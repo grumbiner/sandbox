@@ -1,0 +1,14 @@
+temps.wi
+growth.wi
+predict.wi
+debugs.wi
+243.0               ta *variable
+0.8                 alpha
+0.00                c * variable
+  0.0               swdown *variable
+ 5.                 ua *variable
+15.                 taus *uncertain
+1.5                 taui *uncertain
+2.                  fw *variable
+1.E-3               qa *variable
+0.34                I0
