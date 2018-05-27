@@ -1,0 +1,140 @@
+
+
+
+From james@corona.atmos.washington.edu Fri Jun  9 08:45:00 EDT 1995
+Article: 15060 of sci.geo.meteorology
+Path: news3.digex.net!news2.digex.net!howland.reston.ans.net!news.sprintlink.net!ratty.wolfe.net!big.aa.net!news.alt.net!news.u.washington.edu!news.u.washington.edu!james
+From: james@corona.atmos.washington.edu (James Steenburgh)
+Newsgroups: sci.geo.meteorology
+Subject: Re: NWP history was Re: Q: NMC octogon model
+Date: 08 Jun 1995 22:02:27 GMT
+Organization: University of Washington
+Lines: 43
+Message-ID: <JAMES.95Jun8150228@corona.atmos.washington.edu>
+References: <3r4jmp$n45@news.cict.fr> <3r7qdp$88u@access5.digex.net>
+NNTP-Posting-Host: corona.atmos.washington.edu
+In-reply-to: rmg3@access5.digex.net's message of 8 Jun 1995 17:34:49 -0400
+Status: RO
+
+
+In article <3r7qdp$88u@access5.digex.net> rmg3@access5.digex.net (Robert Grumbine) writes:
+
+
+     The first NWP was done by L. F. Richardson, between ambulance runs
+   in world war I.  It was finally published in 1922.  The numerical
+   model attempted was a primitive equation model with 6 layers in the
+   vertical.  Only a single active grid point was used in the horizontal.
+   (There were several lateral boundary points supplying information.)
+   The computation was done on an adding machine.
+
+     The first _successful_ NWP was done shortly after world war II, by
+   a team led (taking authorship of the paper) by J. Charney, Fjortoft,
+   and J. von Neumann, 1948.  This model greatly simplified the governing
+   equations (treated the atmosphere as a single layer), but was applied
+   at continental scale (much of North America).  The computations were
+   done on the ENIAC.
+
+     Is anyone other than me interested in programs which would implement
+   those two models?
+
+     As a general note, if you have copies of classic old models, please
+   write me.
+
+   -- 
+   Bob Grumbine rmg3@access.digex.net
+   Sagredo (Galileo Galilei) "You present these recondite matters with too much 
+   evidence and ease; this great facility makes them less appreciated than they 
+   would be had they been presented in a more abstruse manner." Two New Sciences 
+
+
+Bob,
+
+	Richardson's work has been replicated most recently by Peter
+Lynch.  He gave an excellent talk on it at last year's Symposium on
+Extratropical Cyclones.  See:
+
+Lynch, P., 1994:  Richardson's marvellous forecast. Conference
+procedings: The Life Cycles of Extratropical Cyclones, Vol. I,
+pp. 38-48.
+
+
+Jim
+
+
+
+
+From pierre.benard@meteo.fr Fri Jun  9 11:24:53 1995
+Received: from cti825.cnrm.meteo.fr (cti825.cnrm.meteo.fr [137.129.150.3]) by mail1.access.digex.net (8.6.12/8.6.12) with SMTP id LAA15061;  for <rmg3@access.digex.net> ; Fri, 9 Jun 1995 11:24:44 -0400
+Received: from nout.meteo.fr by cti825.cnrm.meteo.fr with SMTP id AA11738
+  (5.65c8/IDA-1.4.4 for <rmg3@access.digex.net>); Fri, 9 Jun 1995 17:22:36 +0200
+Received: by nout.meteo.fr id AA09722
+  (5.65c8/IDA-1.4.4); Fri, 9 Jun 1995 17:24:32 +0200
+From: Pierre BENARD <Pierre.BENARD@meteo.fr>
+Message-Id: <199506091524.AA09722@nout.meteo.fr>
+Subject: Re: NWP History
+To: rmg3@access.digex.net
+Date: Fri, 9 Jun 95 17:24:32 METDST
+Cc: pierre.benard@meteo.fr
+Organization: Meteo-France
+X-Charset: ROMAN8
+Return-Receipt-To: pierre.benard@meteo.fr
+Mailer: Elm [revision: 70.85]
+Status: RO
+
+ 
+> 
+>   Not necessarily a problem.  My wife is fluent in french, and I have
+> a little french myself.
+> 
+  
+>   I don't know about a standard reference.  I suspect that P. D. 
+> Thompson's book on NWP would mention it.  So should Smagorinsky from
+> about that time.  The NMC octagon was used from the mid 1950's to ?the 
+> LFM in the 1970's.  I understand that data are still archived on that 
+> grid.  I've started word through my friends at the NMC, to see who can 
+> remember what from those days.  The first model (I don't know what grid) 
+> was equivalent barotropic (similar, perhaps identical, to the Charney, 
+> Fjortoft, von Neumann model), but it may not have been on the octagon.
+> 
+>
+
+Thank you for your help, do you mean you are interested by this book
+"La prevision du temps et du climat"?
+
+OK, I'm too young to have known this "octagonal" period,
+and I searched by mistake the 65 to 75 period in our library.
+I'll try to search earlier, but journals and books become quite
+rare from this period.... let's hope.
+
+I'm co-writing at present time a paper on the problem of the map
+factor in our METEO-FRANCE operational model when used with
+variable resolution and semi-lagrangian options.
+It seems that NMC octagon model was the first model in
+which the total variations of map factor in the domain were
+significant (probably a factor 2, but I wanted to
+check with the descriptions in papers). 
+Of course they did not have the same kind of problem as us since
+I guess they had not semi-lagrangian, semi-implicit, two-time level
+scheme, high resolution and so on... I would just like to quote
+a reference about this model.
+
+Please note my e-mail adress if you have more precisions:
+
+       pierre.benard@meteo.fr
+       ^^^^^^^^^^^^^^^^^^^^^^
+Thank you very much.
+
+Pierre Benard
+
+METEO-FRANCE
+Centre National de Recherches Meteorologiques
+42 Avenue Coriolis
+31057 TOULOUSE CEDEX  -  FRANCE
+
+ -- 
+> Bob Grumbine rmg3@access.digex.net
+> Sagredo (Galileo Galilei) "You present these recondite matters with too much 
+> evidence and ease; this great facility makes them less appreciated than they 
+> would be had they been presented in a more abstruse manner." Two New Sciences 
+> 
+> 
