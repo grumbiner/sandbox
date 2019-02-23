@@ -1,0 +1,139 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\textwidth = 6.5 in
+\textheight = 9 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+\parskip = 0.2in
+\parindent = 0.0in
+
+\title{The Byte-addressable C I/O library: BACIO}
+\author{Robert Grumbine, Mark Iredell, Stephen Gilbert}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+  In the late 1990s, as the NWS central Cray computer was due to be retired, it 
+became necessary to emulate the ability of the Cray for Fortran programs to 
+read C-unformatted files.  The original Cray Fortran call was BAREAD, for
+byte-addressable read, so a BACIO -- byte-addressable C I/O -- library was written
+to preserve as transparently as possible the old codes.
+
+  The library is in two parts, the Fortran side, which most people use, and
+the C side, which manages the actual I/O.  The C side may be called directly from
+Fortran programs, though it hasn't typically been used that way.
+
+
+\section{Usage -- bacio.c, banio.c; baciol.c, baniol.c}
+
+  One may directly use the C entry for the bacio library from Fortran.  
+Its name, to Fortran programs, is bacio or, for structured data types, 
+banio.  It is necessary at time of installation, however, to verify 
+the name (banio, banio\_, ...) expected on the C side and appropriately
+modify the \#define in clib.h in order to be able to link to the library.
+It may be required to add a new type entirely, in which case new
+calls will also need to be included below.  Only the function names themselves
+need to change.  
+
+  The arguments are, in order:\\
+\begin{tabular}{lll}
+INTEGER &mode & I/O Mode, see following table and sum for desired results \\
+INTEGER &start&  Starting byte \\
+INTEGER &size&  Size of items being read\\
+INTEGER &no & Number of items requested \\
+INTEGER &nactual&  Actual number read (output) \\
+INTEGER &fdes & File descriptor (output) \\
+CHARACTER() &fname & File name (input) \\
+CHARACTER() &data & Character array for data (bacio) \\
+\end{tabular}
+
+  Note that in reading the C source code, you'll see two more 
+arguments, namelen and datanamelen.  They are constructed by the 
+Fortran compiler.  If you specify them, or add them to the argument 
+list, you'll break the call.
+ 
+  The following modes are not all mutually compatible.  While the 
+library does attempt to check for mutually incompatible options (Readonly 
+and Writeonly at the same time, for instance) you should take some care 
+that you specify compatible options.  
+
+  Different systems have different limits to how many files may be 
+opened from a C program or library.  As of 21 April 2008, the NWS IBM 
+SP's limit was over 20,000 files.  Redhat 7.3 was 1020 files, Mac OS-X 
+10.5 limited to 252, and an SGI Origin system limited to 196 files.  
+These limits are irrespective of any limits in the Fortran module, 
+which currently is set to 999 files.
+
+Table 1: Bacio and Banio operating modes
+
+\begin{tabular}{lrl}
+Modes & &\\
+BAOPEN\_RONLY         &     1 & Open read-only \\
+BAOPEN\_WONLY         &     2 & Open for writing only \\
+BAOPEN\_RW            &     4 & Open for reading and writing \\
+BACLOSE               &    8 & Close the file \\
+BAREAD                &   16 & Read from the file \\
+BAWRITE               &   32 & Write to the file \\
+NOSEEK                &   64 & SEEK\_SET (start is byte number to seek to)\\
+BAOPEN\_WONLY\_TRUNC  &    128 & Open write-only and truncate file \\
+BAOPEN\_WONLY\_APPEND &    256 & Open write-only and append \\
+\end{tabular}
+
+
+Table 2: bacio and banio return codes
+
+\begin{tabular}{rl}
+Value & Return Code  \\
+  0   & All was well                                   \\
+255   & Tried to open read only \_and\_ write only     \\
+254   & Tried to read and write in the same call       \\
+253   & Internal failure in name processing            \\
+252   & Failure in opening file   \\
+251   & Tried to read on a write-only file             \\
+250   & Failed in read to find the 'start' location    \\
+249   & Tried to write to a read only file             \\
+248   & Failed in write to find the 'start' location   \\
+247   & Error in close                                 \\
+246   & Read or wrote fewer data than requested        \\
+102   & Massive catastrophe -- datary pointer is NULL  \\
+\end{tabular}
+
+
+baciol and baniol work exactly like bacio and banio, the difference
+being that the arguments
+start, newpos, no, nactual must now be 8 byte integers, INTEGER$*$8 in
+Fortran, for instance.  Arguments mode, size, fdes are unchanged. 
+This does leave a limit of 2Gb for the maximun size of things read.
+Arguments for system type IBM8 are unchanged as they are already 
+long long ints.
+
+
+\section{Usage : baciof.f}
+limit, now, of 999 files, irrespective of system.  Set in module:
+
+      SUBROUTINE BASETO(NOPT,VOPT) \\
+      SUBROUTINE BAOPEN(LU,CFN,IRET) \\
+      SUBROUTINE BAOPENR(LU,CFN,IRET) \\
+      SUBROUTINE BAOPENW(LU,CFN,IRET) \\
+      SUBROUTINE BAOPENWT(LU,CFN,IRET) \\
+      SUBROUTINE BAOPENWA(LU,CFN,IRET) \\
+      SUBROUTINE BACLOSE(LU,IRET) \\
+      SUBROUTINE BAREAD(LU,IB,NB,KA,A) \\
+      SUBROUTINE BAWRITE(LU,IB,NB,KA,A) \\
+      SUBROUTINE WRYTE(LU,NB,A) \\
+
+
+
+\section{Conclusion}
+
+
+
+
+\end{document}

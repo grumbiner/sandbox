@@ -1,0 +1,10 @@
+../bacio_32:	../bacio_32(bacio.v1.3.o) ../bacio_32(baciof.o)
+../bacio_32(bacio.v1.3.o):	bacio.v1.3.c clib4.h
+	ln -f clib4.h clib.h
+	cc -c -O bacio.v1.3.c
+	ar -rv ../bacio_32 bacio.v1.3.o
+	rm clib.h
+../bacio_32(baciof.o):	baciof.f
+	xlf -c -O baciof.f
+	ar -rv ../bacio_32 baciof.o
+	rm -f baciof.o

@@ -1,0 +1,13 @@
+
+set -xS
+make
+make -f grbindex.makefile
+./grbindex.xc ./pgb ./pgi1
+#./gi0 ./pgb ./pgi0
+#./gi1 ./pgb ./pgi1
+#ja
+#for n in 1 2 3 4 5;do
+# ./gi0 ./pgb ./pgi0
+# ./gi1 ./pgb ./pgi1
+#done
+#ja -chlt -n gi

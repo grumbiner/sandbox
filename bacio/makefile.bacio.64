@@ -1,0 +1,10 @@
+../bacio_64:	../bacio_64(bacio.v1.3.o) ../bacio_64(baciof.o)
+../bacio_64(bacio.v1.3.o):	bacio.v1.3.c clib8.h
+	ln -f clib8.h clib.h
+	cc -c -O -qlonglong bacio.v1.3.c
+	ar -rv ../bacio_64 bacio.v1.3.o
+	rm clib.h
+../bacio_64(baciof.o):	baciof.f
+	xlf -c -O -qarch=auto -qintsize=8 -qrealsize=8 -qmaxmem=4096 baciof.f
+	ar -rv ../bacio_64 baciof.o
+	rm -f baciof.o

@@ -1,0 +1,25 @@
+Uninitialized memory access in bacio.v1.3.c
+
+
+--- bacio.v1.3.c.orig	2007-08-29 17:45:41.000000000 +0200
++++ bacio.v1.3.c	2007-08-29 17:47:23.000000000 +0200
+@@ -173,17 +173,15 @@
+     tempchar = (char *) malloc(sizeof(char) * 1 ) ;
+     i = 0;
+     j = 0;
+-    *tempchar = fname[i];
+-    tcharval = *tempchar;
+     while (i == j && i < namelen ) {
++       *tempchar = fname[i];
++       tcharval = *tempchar;
+        fflush(stdout); 
+        if ( isgraph(tcharval) ) {
+          realname[j] = fname[i];
+          j += 1;
+        }
+        i += 1;
+-       *tempchar = fname[i];
+-       tcharval = *tempchar;
+     }
+     #ifdef VERBOSE
+       printf("i,j = %d %d\n",i,j); fflush(stdout);
