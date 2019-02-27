@@ -1,0 +1,41 @@
+/JOB W9BXG V522 CLASS=A                                                         
+/ERROR                                                                          
+/SET TIME=2                                                                     
+/SET SIZE=2                                                                     
+/FILE MODEL FORTRAN                                                             
+PUT THE SOURCE CODE HERE                                                        
+/*                                                                              
+/FILE PARM DATA                                                                 
+PUT THE PARAMETERS HERE                                                         
+/*                                                                              
+/FILE BACK DATA                                                                 
+UNIT 5 DATA GOES HERE                                                           
+/*                                                                              
+FORTVS MODEL ( OPTIMIZE (2) )                                                   
+GLOBAL TXTLIB VLNKMLIB VFORTLIB LINPAKS                                         
+FILEDEF PARM DISK PARM DATA                                                     
+FILEDEF FT05F001 DISK BACK DATA                                                 
+FILEDEF FT06F001 DISK DUMMY DATA                                                
+FILEDEF UC DISK UC DATA                                                         
+FILEDEF VC DISK VC DATA                                                         
+FILEDEF UT DISK UT DATA                                                         
+FILEDEF VT DISK VT DATA                                                         
+FILEDEF SS DISK SS DATA                                                         
+FILEDEF SD DISK SD DATA                                                         
+FILEDEF TS DISK TS DATA                                                         
+FILEDEF TD DISK TD DATA                                                         
+FILEDEF CS DISK CS DATA                                                         
+FILEDEF CD DISK CD DATA                                                         
+FILEDEF UW DISK UW DATA                                                         
+FILEDEF VW DISK VW DATA                                                         
+FILEDEF WE DISK WE DATA                                                         
+FILEDEF H DISK H DATA                                                           
+FILEDEF FLM DISK FLM DATA                                                       
+FILEDEF FLS DISK FLS DATA                                                       
+FILEDEF FLC DISK FLC DATA                                                       
+CP QUERY TIME                                                                   
+LOAD MODEL (START                                                               
+CP QUERY TIME                                                                   
+ERASE LOAD MAP                                                                  
+ERASE MODEL TEXT                                                                
+/*                                                                              

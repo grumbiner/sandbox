@@ -1,0 +1,3 @@
+EXEC SETNCAR
+EXEC FVC stmln
+EXEC NCARG stmln (out &1 cgm b

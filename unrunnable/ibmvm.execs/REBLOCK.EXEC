@@ -1,0 +1,26 @@
+/*********************************************************************
+*
+*  ROUTINE:      REBLOCK EXEC
+*  PURPOSE:      convert 4000-character records to 50 80-character
+*  CALLS:        FVCG EXEC
+*  FILES NEEDED: Reblock Fortran
+*  CALLED BY:
+*  AUTHOR:       Bill Verity <WHV@PSUVM> 03/02/90
+*  REVISIONS:
+*
+*********************************************************************/
+
+arg fn ft fm
+if fm = '' then fm = '*'
+if ft = '' then do
+   say 'REBLOCK requires a filename, filetype and optionally a filemode'
+   say 'as arguments.  It will create a file with the same file name'
+   say 'and a filetype of CARDS on your E disk'
+   exit
+end
+'FILEDEF 8 CLEAR'
+'FILEDEF 8 DISK 'fn ft fm '( PERM'
+'FILEDEF 9 CLEAR'
+'FILEDEF 9 DISK 'FN 'CARDS E ( RECFM F LRECL 80 BLOCK 80 PERM'
+'EXEC FVCG REBLOCK'
+exit

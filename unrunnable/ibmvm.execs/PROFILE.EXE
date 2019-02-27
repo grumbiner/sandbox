@@ -1,0 +1,29 @@
+/*********************************************************************
+*
+*  ROUTINE: PROFILE EXEC
+*
+*  PURPOSE: Commands to run at logon or IPL to set up PSU environment
+*
+*  CALLS:   PSUSETUP EXEC to set up PSU environment
+*
+*  AUTHOR:  Computation Center, 04/06/87
+*
+*  REVISIONS:
+*    12/20/89 CJS Remove various instructions, reference Helps instead
+*
+*********************************************************************/
+ 
+address command
+ 
+/*** It is suggested that you DO NOT put commands before PSUSETUP. ****/
+ 
+'EXEC PSUSETUP'        /* Issue PSUSETUP MENU to change what it does. */
+ 
+/* Please see Help CMS PROFILE for suggestions on putting commands in
+   your PROFILE EXEC.  (Many things can be setup with PSUSETUP; issue
+   PSUSETUP MENU or see Help PSUSETUP).
+*/
+ 
+'EXEC MEMLOAD (QUIET'
+EXEC LAA CCLIB 556
+EXEC LAA CCLIB 558

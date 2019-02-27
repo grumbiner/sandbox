@@ -1,0 +1,37 @@
+/JOB W9BXG V522 CLASS=A                                                         
+/ERROR                                                                          
+/SET TIME=4                                                                     
+/SET SIZE=1                                                                     
+/SET CARDS=20000                                                                
+/INCLUDE MODEL10 FORTRAN                                                        
+/INCLUDE MODEL9IN DATA                                                          
+FORTVS MODEL10 ( OPTIMIZE (2) )                                                 
+GLOBAL TXTLIB VLNKMLIB VFORTLIB                                                 
+FILEDEF MODEL9IN DISK MODEL9IN DATA                                             
+FILEDEF FT06F001 DISK SCREEN DATA                                               
+FILEDEF UC DISK UC DATA                                                         
+FILEDEF VC DISK VC DATA                                                         
+FILEDEF UT DISK UT DATA                                                         
+FILEDEF VT DISK VT DATA                                                         
+FILEDEF SS DISK SS DATA                                                         
+FILEDEF SD DISK SD DATA                                                         
+FILEDEF FLM DISK FLM DATA                                                       
+FILEDEF FLS DISK FLS DATA                                                       
+FILEDEF UCAV DISK UCAV DATA                                                     
+FILEDEF VCAV DISK VCAV DATA                                                     
+FILEDEF UTAV DISK UTAV DATA                                                     
+FILEDEF VTAV DISK VTAV DATA                                                     
+FILEDEF SSAV DISK SSAV DATA                                                     
+FILEDEF SDAV DISK SDAV DATA                                                     
+FILEDEF FLMAV DISK FLMAV DATA                                                   
+FILEDEF FLSAV DISK FLSAV DATA                                                   
+CP QUERY TIME                                                                   
+ERASE MODEL10 LISTING                                                           
+LOAD MODEL10 (START                                                             
+CP QUERY TIME                                                                   
+ERASE LOAD MAP                                                                  
+ERASE MODEL10 TEXT                                                              
+SENDFILE SCREEN DATA TO W9BXG                                                   
+SENDFILE FLMAV DATA TO W9BXG                                                    
+SENDFILE FLSAV DATA TO W9BXG                                                    
+/*                                                                              
