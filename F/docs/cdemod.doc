@@ -1,0 +1,26 @@
+
+
+
+Subroutine cdemod
+
+Level		1
+Entries	cdemod
+Calls		ritout
+
+Purpose:
+	Perform complex demodulation at a specified frequency on a given vector.  Output the results as two unformatted files for amplitude and phase.
+
+Limits:
+	Real data only.
+	Only one frequency.
+	Currently in program form.
+	has internal write out of data - no external control or use.
+
+Arguments:
+	currently none
+
+Usage:
+
+Algorithm:
+	Multiply the data at time i by the sine and cosine of freq*i.  The square root of the sum of the squares gives the demodulated amplitude.  The ATAN of the sine product divided by the cosine product gives the phase.
+

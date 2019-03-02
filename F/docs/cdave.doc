@@ -1,0 +1,21 @@
+
+
+
+Subroutine cdave(ns)
+
+Level		2
+Entries	cdave,
+Calls		
+Files		
+
+Purpose:	
+	Compute averages of fields, and save to 'tape' (disk file which may be identified with a tape).  Also produce a file of averages which have had their ranges compressed for transmission over phone lines.
+
+Limits:
+	Currently this is in the form written by A. T. Lunde and modified slightly by R. Grumbine for use with the Ed Birchfield climate model.  Extensive work is required to make this a generally usable subroutine.
+
+Arguments:
+	INTEGER	ns
+
+Algorithms:
+	For data compression, the method is to divide the various quantities by a preselected power of ten.  Then the information is written out in an I3 format.  3 digits chosen because this is the practical limit of graphics resolution.  This also makes transmission faster than sending unformatted data while avoiding any problems with different internal representations on the machines.

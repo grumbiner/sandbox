@@ -1,0 +1,21 @@
+
+
+
+vecav (subroutine)
+
+Entries:	vecav
+Calls:		none
+
+Purpose:
+	Compute a sequential average of elements in a data vector.  Return result in a different vector.
+
+Limits:
+	Data and output must be 1 dimensional and real.
+
+Arguments:
+	Real z(m)	Data vector
+	Integer m	number of data points
+	Real zz(n)	Result vector
+	Integer n	number of output points.  N must be greater than or equal to m/av.
+
+av is requested interactively.

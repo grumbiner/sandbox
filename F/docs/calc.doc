@@ -1,0 +1,35 @@
+
+
+
+calc (subroutine)
+
+Entries:	calc
+Calls:		alog10 (compute base 10 log), armxmn
+
+Purpose:
+	Reprocess data for plotting (y-x, log y-x, y-log x, log y - log x).
+	Request or compute bounds on x, y plotting ranges.
+	Request or compute tic mark spacing.
+
+Algorithms:
+	Computed plotting range is equal to the bounds on x, y after scaling for plotting in first part.
+	Tic mark spacing is given by:
+		range = max - min
+		dx = 10**(alog10(range)-Trunc(alog10(range))
+		dx = round(dx+0.5)
+		tic = dx*10**(trunc(alog10(range)) - 1. )
+
+Limits:
+	The tic mark computation does not work well for ranges less than 1.0
+	Make a function of tic computation?
+	Have machine optionally select type of plot?
+	Scheme for bounds computing is poor.
+	2D plotting only.
+	Requires both vectors even when one (x say) is simply 1-N.
+
+Arguments:
+	Real xmax, xmin, ymax, ymin	Bounds for plotting (after scaling)
+	Real xtic, ytic			Tic mark spacing
+	Integer size				Number of data points
+	Real xraw(size), yraw(size)	Raw data
+	Real x(size), y(data)		Plot scaled data

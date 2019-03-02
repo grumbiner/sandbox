@@ -1,0 +1,19 @@
+
+
+
+Subroutine entr(x, nx, ny, y)
+
+Entries:	entr
+Calls		none
+
+Purpose:
+	Set array y equal to array x.
+
+Limits:
+	Real data only.
+	2 dimensions required.
+
+Arguments:
+	REAL x(nx, ny)	Reference data array
+	INTEGER nx, ny	dimensions of the arrays
+	REAL y(nx, ny)	Array to set equal to X

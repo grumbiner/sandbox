@@ -1,0 +1,25 @@
+
+
+arav (subroutine)
+
+Entries:	arav
+Calls:		none
+
+Purpose:
+	Decimation averaging of a 2d array - average specified number of terms in x direction (first index) per term in the output array.  This is a 'stepping' rather than moving average in that n points are averaged, then the average of the next n points is computed - there is no overlap between averaged subsections.
+
+Limits:
+	Data and output arrays must be 2D, and real.
+
+Arguments:
+	Real z(m,n)	Data array
+	Integer m	First dimension of z
+	Integer ts	?
+	Integer n	Second dimension of z
+	Real zz(l,p)	Output array
+	Integer l,p	First dimension of z, must be greater than or equal to m/av
+	Integer p	Second dimension of zz, must be greater than or equal to n. 
+
+The number of steps to average (av) is requested interactively.
+
+Level 1.  Not 'field tested?' as of 12-1-88.

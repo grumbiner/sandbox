@@ -1,0 +1,30 @@
+
+
+
+
+
+
+ftrc (subroutine)
+
+
+Entries: ftrc
+Calls  : ISML routine FFTRC
+
+Purpose:
+	Act as a front end for calls to the IMSL routines for computing fast fourier transforms and their inverse.
+
+Limits:
+	Does not act like a good front end: Requires the IMSL arrays to be dimensioned in the calling program, rather than the front end.
+	Does not have option for computing the inverse transform.
+	Only works for real data.
+
+Arguments:
+	Real f(n)		Real data vector to be transformed.
+	Complex c(n)	Fast fourier transform of f
+	Real buffer		currently unused
+	Integer n		Number of data points in f.
+	Integer iwk(3*n+150)	Array for IMSL routines.
+	Real wk(3*n+150)		Array for IMSL routines.
+
+Usage:
+	Enter the data into the f vector, after the call, c will contain the real and imaginary parts of the transform.  Buffer is arbitrary.  IWK and WK must be dimensioned in the calling routine to 3*n+150, where n is the number of data points, or larger.

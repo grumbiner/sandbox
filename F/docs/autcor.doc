@@ -1,0 +1,28 @@
+
+
+
+autcor (subroutine)
+
+Entries:	autcor
+Calls:		none
+
+Purpose:
+	Compute the autocorrelation of a vector.
+
+Algorithm:
+	Autocorrelation at lag=K is computed by summing the product of x(i)*x(i+K) from i = 1, N-K.
+	Returned vector is scaled by the value at zero lag, which puts everything on a scale of -1 to 1.
+
+Limits:
+	Algorithm is slightly incorrect.
+	Requires real vectors.
+	
+Arguments:
+	Real x	Data vector
+	Integer n	Number of data points
+	Real a	Autocorrelation vector [-1,+1]
+	Integer len	Number of lags to use (0 to len), dimension of a=len+1
+
+Usage:
+	Pass arguments, use result.
+	The choice of number of lags is fairly arbitrary, but for practical reasons (having enough points to compute a reasonable sum), should not exceed, say, half the number of data points.

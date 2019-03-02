@@ -1,0 +1,21 @@
+
+
+
+Function erf(x)
+
+Entries	erf
+Calls		none
+
+Purpose:
+	Compute the error function of x (integral from 0 to x of exp(-x**2) )
+
+Limits:
+	x must be real.
+	erf is double precision.
+	See abramowitz and Stegun for more.
+
+Arguments:
+	Real*8	x
+	Real*8	erf
+
+Written by D. R. MacAyeal

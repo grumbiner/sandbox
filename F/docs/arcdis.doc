@@ -1,0 +1,26 @@
+
+
+
+
+
+
+arcdis (real function)
+
+
+Entries: arcdis
+Calls  : cos, sin
+
+Purpose: 
+	Compute the distance in kilometers between two latitude, longitued points on the earth.
+
+Limits:
+	arguments to the trig fns. occasionally exceed the limits on the HP 9020.
+
+Arguments:
+	Real lat1	latitude of the first point
+	Real long1	longitude of the first point
+	Real lat2	latitude of the second point
+	Real long2	longitude of the second point
+
+Usage:
+	Set the arguments and use the result.

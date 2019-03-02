@@ -1,0 +1,26 @@
+
+
+
+
+
+
+Program power
+
+Calls:	detrnd, filt, ftrc, readin, ritout, yes
+Files:	10 - For readin
+	11 - Amplitude file for unformatted output, or data file for formatted 			output
+	12 - Phase file for unformatted output
+	13 - Frequency file for unformatted output
+
+Purpose:
+	Compute the amplitude spectrum for a given data vector.  Also allow some simple filtering and detrending prior to analysis.
+
+Limits:
+	Does not compute actual power (A2 / frequency), or variance (A2 ) spectra.
+	Only works for real data.
+	Limited number and type of filters.
+	Does not produce band averaged output.
+
+Usage:
+	The program is designed for interactive execution, so input is assumed to be via the keyboard.  For time step, a value of 1. may be interpreted as meaning one time step (unit undefined).  If a fractional value is used, the resulting output frequencies are multiplied by the fraction.  This may be convenient for converting output from cycles per hour (say) to cycles per day.  The detrending referred to is simply subtracting the best fit line from the data.  Output to the screen is the statement:  The total variance was ...
+Strictly speaking, this number is not the variance.  The value printed is the sum of the squares of the fourier amplitudes, and is actually equal to 1/N times the true variance, where N is the number of data points(?).

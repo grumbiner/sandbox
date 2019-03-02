@@ -1,0 +1,31 @@
+
+
+
+
+
+
+frecmp (subroutine)
+
+
+Entries: frecmp
+Calls  : none
+Files  : uses unit 11 to write out the data.
+
+Purpose:
+	Find the frequencies of occurrence of values in an input vector and return them in another vector.
+
+Limits:
+	Redundant computations in the loop which increments the frequency of occurrence.
+	Writes out the data on its own.
+	Writes out the data unformatted, in order of index, frequency of occurrence.
+	Can only use a real input vector.
+
+Arguments:
+	Real q(n)	Input data vector
+	Integer n	number of elements in data vector
+	Real mult	multiplier for values in the data vector (This subroutine uses the integer value of the multiplied data as the index to the point in the frequency of occurrence array to increment.)
+	Real freq(-m:m)	frequency of occurrence vector, where the index represents the magnitude of the element, and the value is the number of times it occurred.
+	Integer m		number of different values estimated to be represented in the data.
+
+Usage:
+	Put the data into q.  Estimate a 'good' multiplier for the data and put it into mult.  The principle usage seems to be to produce a file with the data. But it will return the data in the freq vector, although it will not say what the range of the variables was.

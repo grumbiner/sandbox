@@ -1,0 +1,28 @@
+
+
+
+
+
+
+armxmn (subroutine)
+
+
+Entries: armxmn
+Calls  : none
+
+Purpose: 
+	Find the maximum and minimum values in a vector.  (The minimum is in the sense of -1 is smaller than 0, NOT .1 is smaller than -.2.)
+
+Limits:
+	Only for real vectors.
+	Largest Max is 1E36.
+	Smallest Min is -1E36.
+
+Arguments:
+	Real x(size)	data vector to analyze
+	Integer size	number of elements in x
+	Real xmax		Maximum value in the vector.
+	Real xmin		Minimum value in the vector.
+
+Usage:
+	Pass x, use xmax, xmin as desired.

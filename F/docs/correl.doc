@@ -1,0 +1,31 @@
+
+
+
+
+
+
+correl (subroutine)
+
+
+Entries: correl
+Calls  : none
+
+Purpose:
+	Compute the correlation coefficient (r value) between two vectors.  As a by product, the average and standard deviations of the two vectors are also computed.
+
+Limits:
+	Arguments are in silly order.
+	Can only use real data.
+
+Arguments:
+	Real x(n)	vector with the first variable
+	Real y(n)	vector with the second variable
+	Integer n	number of elements in the data vectors
+	Real sigx	standard deviation in the first vector
+	Real sigy	standard deviation in the second vector
+	Real corxy	correlation between the two vectors
+	Real avgx	average value of the first vector
+	Real avgy	average value of the second vector
+
+Usage:
+	Fill the x and y vectors appropriately.  Use the returned parameters as desired.

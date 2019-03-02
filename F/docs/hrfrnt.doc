@@ -1,0 +1,26 @@
+
+
+
+
+
+
+Program hrfrnt
+
+Calls:	demod, harmrm, harmrn, readin, ritout
+Files:	unit 10 - for readin
+	unit 11 - harmonic output
+	unit 12 - residual from original series after subtracting best fit 					harmonics
+
+Purpose:
+	Act as a front end for calls to the harmonic analysis routines for regularly spaced data.  Read in the frequencies at which to analyze the data, and the data.  Write out the results in the form: 
+Frequency (cph), amplitude, phase.  Uses format 3E14.6.
+
+Limits:
+	Can only analyze real data.
+	Fixed format output.
+	Mandatory formatted output.
+	Does not compute the period.
+	Only reads the frequencies from the keyboard.
+
+Usage:
+	The program is designed to run interactively in getting the number, and value of the frequencies to analyze.  For the frequencies, answer in cycles per hour (actually cycles per sampling interval).  If you wish to analyze the mean as well as some oscillations, a frequency of 0.0 must be your first entry.

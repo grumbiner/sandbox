@@ -1,0 +1,29 @@
+
+
+
+
+
+
+Detrnd (subroutine)
+
+
+Entries: Detrnd
+Calls  : none
+
+Purpose:
+	Find the best fit line of the form y = bnot + bwon*x to the input data.  If subtr is true, subtract this line from the y vector.
+
+Limits:
+	Only computes linear fits.
+
+Arguments:
+	Real x(n)	independant variable vector
+	Real y(n)	dependent variable vector
+	Integer n	number of data points
+	Real bnot	y intercept of the fitted line
+	Real bwon	slope of the fitted line
+	Real avg	Average value of the fitted line over the range of the independant variable.
+	Logical subtr	Subtract the fitted line from the dependant variable if true.
+
+Usage:
+	Be certain that the independent variable is entered into the x array.

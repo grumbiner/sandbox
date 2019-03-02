@@ -1,0 +1,25 @@
+
+
+
+Preset (subroutine)
+
+Entries:	preset
+Calls:		none
+
+Purpose:	
+	Set a 1d vector equal to a constant.
+
+Limits:
+	Vector and constant must be real.
+	No dimension limit in theory.  The size of each subscript may be multiplied to find an equivalent vector size (argument LEN) for a multidimensional array.
+
+Arguments:
+	Implicit Real Val	Scalar value to set vector elements equal to.
+	Implicit Real (LEN) FWA 	Vector to set equal to scalar
+	Implicit Integer Len	Number of elements to set to scalar.
+
+Usage:
+	Set arguments, use result. (See also limits)
+
+Author: 
+	Albert Lunde (Working with Ed Birchfield on Energy balance climate model. (Prior to 8-84)

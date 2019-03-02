@@ -1,0 +1,22 @@
+
+
+
+arset (subroutine)
+
+Entries:	arset
+Calls:		none
+
+Purpose:	
+	Set all elements of a 2D array equal to a given constant.
+
+Limits:
+	Only for 2D arrays.
+
+Arguments:
+	Real x(nx, ny)	array to be initialized
+	Integer nx, ny	dimensions of the first and second indices
+	Real value		value to set array elements equal to
+
+Usage:
+	Set arguments, use result
+

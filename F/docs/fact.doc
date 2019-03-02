@@ -1,0 +1,20 @@
+
+
+
+Function fact(x)
+
+Level:		1
+Entries:	fact
+Calls:		none
+
+Purpose:	
+	Compute the factorial for an integral x when the value may become large.
+
+Limits:
+	x must be real.
+	fact must be double precision.
+
+Arguments:
+	Real		x
+	Real*8	fact
+
