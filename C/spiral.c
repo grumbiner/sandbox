@@ -1,4 +1,6 @@
-spiral(px, py, npts, xnot, ynot,turns, alpha)
+#include <math.h>
+
+void spiral(px, py, npts, xnot, ynot,turns, alpha)
 int npts, xnot, ynot, *px, *py;
 float turns, alpha;
 { 

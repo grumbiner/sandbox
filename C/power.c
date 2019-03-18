@@ -1,5 +1,5 @@
  
-power(alpha,beta)
+long power(alpha,beta)
 long alpha, beta;
   { long i,j ;
     i = alpha;
