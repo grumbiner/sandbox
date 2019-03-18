@@ -1,0 +1,69 @@
+      SUBROUTINE HYDRO(QTMP,QGPHI,QPHI,NMET,KMAX,SI,SL)
+C
+      IMPLICIT none
+      REAL QTMP(NMET*KMAX),QGPHI(NMET),QPHI(NMET*KMAX)
+      REAL SI(NMET),SL(NMET)
+      INTEGER NMET, KMAX
+C
+      INTEGER bgdim
+      PARAMETER (bgdim = 127*128)
+      REAL DEL(bgdim)
+      REAL SIGK(bgdim),SIGKIV(bgdim)
+      REAL XALFA(bgdim),XBETA(bgdim)
+C
+      INTEGER IFP
+      DATA IFP/0/
+C
+      REAL GASR, CP, RK
+      INTEGER K, IX1, IXM, NM
+
+      IF(IFP.EQ.0) THEN
+C
+      GASR=287.04/9.8062
+      CP=1004.6/9.8062
+      RK=GASR/CP
+C
+      DO 1 K=1,KMAX
+      DEL(K)=SI(K)-SI(K+1)
+    1 CONTINUE
+C
+C     COMPUTE CONSTANTS FOR HYDROSTATIC EQUATION
+C
+      DO 70 K=1,KMAX
+      SIGK(K)=SL(K)**RK
+      SIGKIV(K)=1./SIGK(K)
+   70 CONTINUE
+C
+      DO 75 K=2,KMAX
+      XALFA(K)=CP*0.5*(SIGK(K-1)*SIGKIV(K)-1.)
+   75 CONTINUE
+      DO 80 K=1,KMAX-1
+      XBETA(K)=CP*0.5*(1.-SIGK(K+1)*SIGKIV(K))
+   80 CONTINUE
+      XALFA(1)=0.
+      XBETA(KMAX)=CP*0.5
+C
+      IFP=1
+      ENDIF
+C
+C  FIND LOWEST SIGMA LEVEL GEOPOTENTIAL
+C
+      DO 10 NM=1,NMET
+        QPHI(NM)=QGPHI(NM)+GASR*QTMP(NM)*DEL(1)
+      DO 10 K=2,KMAX
+      IXM=NMET*(K-2)
+      IX1=NMET*(K-1)
+      QPHI(NM) = QPHI(NM) + GASR*QTMP(IX1+NM)*DEL(K)-
+     1    (XALFA(K)*QTMP(IX1+NM)  + XBETA(K-1)*QTMP(IXM+NM))
+     2        *SI(K)
+   10 CONTINUE
+C
+      DO 20 K=2,KMAX
+      IXM=NMET*(K-2)
+      IX1=NMET*(K-1)
+      CALL HSUM(QPHI(IX1+1),QPHI(IXM+1),QTMP,XALFA,XBETA,
+     1          NMET,IX1,IXM,K)
+   20 CONTINUE
+C
+      RETURN
+      END
