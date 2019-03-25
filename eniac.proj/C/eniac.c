@@ -21,13 +21,13 @@ int main(void) {
     float pi;
 #define p_const 19
 #define q_const 16
-#define n_const 24
 #define ip_const 9
 #define jp_const 13
     
 /*    Declare temporary arrays -
         These were used because of the memory constraint on the ENIAC*/
-    float s[p_const][p_const], t[q_const][q_const], v[p_const][q_const];
+    float s[p_const][p_const], t[q_const][q_const];
+    float v[p_const][q_const];
     float r[p_const][q_const], f[p_const][q_const], h[p_const][q_const];
     float a[p_const][q_const], b[p_const][q_const];
     float alpha[p_const][q_const],  beta[p_const][q_const];
@@ -86,12 +86,29 @@ C    This file is not comparable to anything in the original program. */
         z[i][j] = z[i][j]/fttom;  
       }
     }
+    /* initialize zeta to zero */
+    for ( j = 0; j <= q; j++) {
+      for ( i = 0; i <= p; i++) {
+        v[i][j] = 0.0;
+        r[i][j] = 0.0;
+        f[i][j] = 0.0;
+        h[i][j] = 0.0;
+        zeta[i][j] = 0.0;
+         eta[i][j] = 0.0;
+        zetap[i][j] = 0.0;
+        a[i][j] = 0.0;
+        b[i][j] = 0.0;
+         beta[i][j] = 0.0;
+        alpha[i][j] = 0.0;
+      
+      }
+    }
  
 /*    Prepare the data decks - used due to memory constraints */
-    for (i = 1; j <= p-1; j++) {
-       for (l = 1; l <= p-1; l++) {
-          s[l][i] = sin(pi*i*l/p);  
-       }
+    for (i = 1; i <= p-1; i++) {
+      for (l = 1; l <= p-1; l++) {
+        s[l][i] = sin(pi*i*l/p);  
+      }
     }
    
      for (j = 1; j <= q-1; j++) {
@@ -115,9 +132,9 @@ C    This file is not comparable to anything in the original program. */
      }
    
      for (i = 0; i <= p; i++) {
-        for (j = 0; j <= q; j++) {
-        f[i][j] = (1.-r[i][j])/(1.+r[i][j]); 
-        }
+       for (j = 0; j <= q; j++) {
+         f[i][j] = (1.-r[i][j])/(1.+r[i][j]); 
+       }
      }
    
      for (i = 0; i <= p; i++) {
@@ -148,20 +165,11 @@ C    This file is not comparable to anything in the original program. */
     }
     }
 
-/* tmp output */
-    //for (i = 0; i <= p; i++) {
-    //   for (j = 0; j <= q; j++) {
-    //      printf("%6.1f",z[i][j]);
-    //   }
-    //   printf("\n");
-    //}
-    //return 1;
    
 /*     END OF THE PRELIMINARY SET UP SECTION
     BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS             */
 
-    for ( k = 0; k <= 8*n-1; k++) {
-      //printf("In iterative loop, k = %d\n", k); fflush(stdout);
+    for ( k = 0; k <= 3*n-1; k++) {
     
       for (j = 1; j <= q-1; j++) {
         for (i = 1; i <= p-1; i++) {
@@ -235,15 +243,6 @@ C    This file is not comparable to anything in the original program. */
      }
    }
           
-/* tmp output */
-    //printf("k = %d\n",k); fflush(stdout);
-    //for (i = 0; i <= p; i++) {
-    //   for (j = 0; j <= q; j++) {
-    //      printf("%6.1f",z[i][j]);
-    //   }
-    //   printf("\n");
-    //}
-    //return 1;
 /*    SECTION FOR CARRYING FORWARD THE EXTRAPOLATION */
      if (k == 0) {
        for (j = 1; j <= q-1; j++)  {
@@ -261,15 +260,6 @@ C    This file is not comparable to anything in the original program. */
        }
        }
      }
-/* tmp output */
-    printf("k = %d\n",k); fflush(stdout);
-    for (i = 0; i <= p; i++) {
-       for (j = 0; j <= q; j++) {
-          printf("%6.1f",z[i][j]);
-       }
-       printf("\n");
-    }
-    return 1;
 
 /*    Apply the inflow/outflow conditions    */
     for (j = 1; j <= q-1; j++) {
@@ -309,12 +299,14 @@ C    This file is not comparable to anything in the original program. */
      }
      
      /* output */
+     printf("k = %d\n",k); fflush(stdout);
      for (i = 0; i <= p; i++) {
        for (j = 0; j <= q; j++) {
-         printf("%6.1f",z[i][j]);
+         printf("%7.2f",z[i][j]);
        }
        printf("\n");
      }
+     printf("\n");
 
   } /* end of k (time step) loop */   
 

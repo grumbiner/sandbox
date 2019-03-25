@@ -92,9 +92,8 @@ C      Rescale the heights to metric
           z(i,j)  = z(i,j)/fttom
     2   CONTINUE
     1 CONTINUE
-CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-CD      WRITE (*,9002)
-CD      STOP
+
+      zeta = 0.0
 
 C      Prepare the data decks - used due to memory constraints
       DO 10 i = 1, p-1
@@ -157,15 +156,11 @@ C      Prepare the data decks - used due to memory constraints
           eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
    81   CONTINUE
    80 CONTINUE
-   
-CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-CD      WRITE (*,9002)
-CD      STOP
 
 C     END OF THE PRELIMINARY SET UP SECTION
 C***********************************************************!!
 C      BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS
-      DO 2000 k = 0, 8*n-1
+      DO 2000 k = 0, 3*n-1
       
       DO 1010 j = 1, q-1
         DO 1020 i = 1, p-1
@@ -203,9 +198,6 @@ C      BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS
      3                        *(z(i+1,j)-z(i-1,j)) )
  1210   CONTINUE
  1200 CONTINUE
-CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-CD      WRITE (*,9002)
-CD      STOP
  
        DO 1300 j = 1, q-1
         DO 1310 i = 1, p-1
@@ -248,9 +240,6 @@ CD      STOP
  1720     CONTINUE
  1710   CONTINUE
  1700 CONTINUE
-CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-CD      WRITE (*,9002)
-CD      STOP
 
 C      SECTION FOR CARRYING FORWARD THE EXTRAPOLATION 
        IF (k.EQ.0) THEN
@@ -268,10 +257,6 @@ C      SECTION FOR CARRYING FORWARD THE EXTRAPOLATION
  1830     CONTINUE
  1820   CONTINUE
       ENDIF
-      PRINT *,'k = ',k
-CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-CD      WRITE (*,9002)
-CD      STOP
 
 C      Apply the inflow/outflow conditions      
       DO 1900 j = 1, q-1
@@ -304,12 +289,15 @@ C      Apply the inflow/outflow conditions
         ENDIF
  1910 CONTINUE
        
-      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
-      WRITE (*,9002)
+CD      WRITE (*,9003) k
+CD      WRITE (*,9001) ((z(i,j),j=0,q),i=0,p)
+CD      WRITE (*,9002)
+      WRITE (1,9003) k
       WRITE (1,9001) ((z(i,j),j=0,q),i=0,p)
       WRITE (1,9002)
- 9001 FORMAT (16F6.1)
+ 9001 FORMAT (16F7.2)
  9002 FORMAT (' ')
+ 9003 FORMAT ('k = ',I3)
       
  2000 CONTINUE
  

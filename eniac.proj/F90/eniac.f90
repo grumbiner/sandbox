@@ -40,7 +40,6 @@ PROGRAM ENIAC
   
 !  Declare computational variables
   INTEGER i, j, k, l, m
-  REAL zi(0:p,0:q)
   
 !***********************************************************!!
 !  Set up the initial conditions deck
@@ -73,9 +72,9 @@ PROGRAM ENIAC
   DO j = 0, q
     DO i = 0, p
       z(i,j)  = z(i,j)/fttom
-      zi(i,j) = z(i,j)
     ENDDO
   ENDDO
+  zeta = 0.0
 
 !  Prepare the data decks - used due to memory constraints
   DO i = 1, p-1
@@ -138,7 +137,7 @@ PROGRAM ENIAC
 !     END OF THE PRELIMINARY SET UP SECTION
 !***********************************************************!!
 !  BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS
-  DO 2000 k = 0, 8*n-1
+  DO 2000 k = 0, 3*n-1
   
     DO j = 1, q-1
       DO i = 1, p-1
@@ -147,18 +146,22 @@ PROGRAM ENIAC
     ENDDO
 
     DO i = 1, p-1
+      j = 0
       IF (z(i+1,0) .LT. z(i-1,0)) THEN
         eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
       ENDIF
+      j = q
       IF (z(i+1,q) .GT. z(i-1,q)) THEN
         eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
       ENDIF
     ENDDO
 
     DO j = 1, q-1
+      i = 0
       IF (z(0,j+1).GT.z(0,j-1)) THEN
         eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
       ENDIF
+      i = p
       IF (z(p,j+1).LT.z(p,j-1)) THEN 
         eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
       ENDIF
@@ -246,7 +249,7 @@ PROGRAM ENIAC
       z(p,j)    = z(p,j)
       zeta(p,j) = zeta(p,j)
     ENDIF
- ENDDO
+  ENDDO
    DO i = 1, p-1
      IF (z(i+1,0) .LT. z(i-1,0)) THEN
        z(i,0)    = z(i,0)
@@ -261,10 +264,12 @@ PROGRAM ENIAC
      ENDIF
    ENDDO
    
+  WRITE (1,9003) k
   WRITE (1,9001) ((z(i,j),j=0,q),i=0,p)
   WRITE (1,9002)
- 9001 FORMAT (16F6.1)
+ 9001 FORMAT (16F7.2)
  9002 FORMAT (' ')
+ 9003 FORMAT ('k = ',I3)
   
  2000 CONTINUE
  
