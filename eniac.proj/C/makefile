@@ -1,5 +1,7 @@
 
 eniac :
 	gcc -O2 -ansi $(@).c -o $(@)
-	time ./eniac > eniac.out
-	cmp -l eniac.out ../reference/ENIAC.OUT | wc
+	time ./eniac > ENIAC.OUT
+	diff ENIAC.OUT ../reference/ENIAC.REF | wc
+	ln -sf ../reference/ENIAC.REF .
+	../check/check > delta.out 
