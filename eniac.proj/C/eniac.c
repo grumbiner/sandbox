@@ -299,7 +299,7 @@ C    This file is not comparable to anything in the original program. */
      }
      
      /* output */
-     printf("k = %d\n",k); fflush(stdout);
+     printf("%3d\n",k); fflush(stdout);
      for (i = 0; i <= p; i++) {
        for (j = 0; j <= q; j++) {
          printf("%7.2f",z[i][j]);

@@ -157,6 +157,7 @@ C      Prepare the data decks - used due to memory constraints
    81   CONTINUE
    80 CONTINUE
 
+      PRINT *,SECOND()*1000.,' ms'
 C     END OF THE PRELIMINARY SET UP SECTION
 C***********************************************************!!
 C      BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS
@@ -300,6 +301,7 @@ CD      WRITE (*,9002)
  9003 FORMAT ('k = ',I3)
       
  2000 CONTINUE
+      PRINT *,SECOND()*1000.,' ms'
  
 C***********************************************************!! 
 

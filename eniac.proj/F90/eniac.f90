@@ -68,13 +68,24 @@ PROGRAM ENIAC
 ! This file is not comparable to anything in the original program.
   OPEN (UNIT=1, FILE="ENIAC.OUT", FORM="FORMATTED")
   
-! Rescale the heights to metric
-  DO j = 0, q
-    DO i = 0, p
-      z(i,j)  = z(i,j)/fttom
-    ENDDO
-  ENDDO
+  s = 0.
+  t = 0.
+  v = 0.
+  r = 0.
+  h = 0.
+  f = 0.
   zeta = 0.0
+  eta  = 0.0
+  a = 0.0
+  b = 0.0
+  alpha = 0.0
+  beta  = 0.0
+  zp    = 0.0
+  zetap = 0.0
+
+  PRINT *,SECOND()*1000.,' ms'
+! Rescale the heights to metric
+  z    = z / fttom
 
 !  Prepare the data decks - used due to memory constraints
   DO i = 1, p-1
@@ -87,38 +98,23 @@ PROGRAM ENIAC
     DO m = 1, q-1
       t(m,j) = SIN(pi*m*j/q)
     ENDDO
-    ENDDO
+  ENDDO
    
   DO i = 0, p
     DO j = 0, q
       v(i,j) = p*q*(SIN(pi*i/(2*p))**2 + SIN(pi*j/(2*q))**2 )
-    ENDDO
-  ENDDO
-   
-  DO i = 0, p
-    DO j = 0, q
       r(i,j) = (ds/(2*radius))**2 *((i-ip)**2+(j-jp)**2)
     ENDDO
   ENDDO
    
-  DO i = 0, p
-    DO j = 0, q
-      f(i,j) = (1.-r(i,j))/(1.+r(i,j))
-    ENDDO
-  ENDDO
-   
-  DO i = 0, p
-    DO j = 0, q
-      h(i,j) = g/(2*omega*ds)**2 * (1+r(i,j))**3/(1.-r(i,j))
-    ENDDO
-  ENDDO
+  f = (1.-r)/(1.+r)
+  h = g/(2*omega*ds)**2 * (1.+r)**3 / (1.-r) 
 
   DO i = 1, p-1
     DO j = 1, q-1
       zeta(i,j) = z(i+1,j)+z(i,j+1)+z(i-1,j)+z(i,j-1) - 4.*z(i,j)
     ENDDO
   ENDDO
-   
   DO j = 0, q
     zeta(0,j) = 2.*zeta(1,j)  - zeta(2,j)
     zeta(p,j) = 2.*zeta(p-1,j)- zeta(p-2,j)
@@ -128,15 +124,12 @@ PROGRAM ENIAC
     zeta(i,q) = 2.*zeta(i,q-1) - zeta(i,q-2)
   ENDDO
    
-  DO j = 0, q
-    DO i = 0, p
-      eta(i,j) = f(i,j)+h(i,j)*zeta(i,j)
-    ENDDO
-  ENDDO
+  eta = f + h*zeta
    
 !     END OF THE PRELIMINARY SET UP SECTION
 !***********************************************************!!
 !  BEGIN THE ITERATIVE SOLUTION OF THE EQUATIONS
+  PRINT *,SECOND()*1000.,' ms'
   DO 2000 k = 0, 3*n-1
   
     DO j = 1, q-1
@@ -192,11 +185,8 @@ PROGRAM ENIAC
       ENDDO
     ENDDO
  
-    DO j = 1, q-1
-      DO i = 1, p-1
-        b(i,j) = -a(i,j)/v(i,j)
-      ENDDO
-    ENDDO
+    b = -a / v
+    !b(1:p-1,1:q-1) = -a(1:p-1,1:q-1) / v(1:p-1,1:q-1)
    
     DO j = 1, q-1
       DO i = 1, p-1
@@ -218,20 +208,12 @@ PROGRAM ENIAC
 
 !  SECTION FOR CARRYING FORWARD THE EXTRAPOLATION 
    IF (k.EQ.0) THEN
-     DO j= 1, q-1
-       DO i = 1, p-1
-         z(i,j)    = z(i,j)+dt*zp(i,j)
-         zeta(i,j) = zeta(i,j)+dt*zetap(i,j)
-       ENDDO
-     ENDDO
+     z    = z    + dt*zp
+     zeta = zeta + dt*zetap
     ELSE
-      DO j = 1, q-1
-      DO i = 1, p-1
-        z(i,j)    = z(i,j)+2.*dt*zp(i,j)
-        zeta(i,j) = zeta(i,j)+2.*dt*zetap(i,j)
-      ENDDO
-      ENDDO
-  ENDIF
+     z    = z    + 2.*dt*zp
+     zeta = zeta + 2.*dt*zetap
+   ENDIF
 
 !  Apply the inflow/outflow conditions  
   DO j = 1, q-1
@@ -269,9 +251,11 @@ PROGRAM ENIAC
   WRITE (1,9002)
  9001 FORMAT (16F7.2)
  9002 FORMAT (' ')
- 9003 FORMAT ('k = ',I3)
+ 9003 FORMAT (I3)
   
  2000 CONTINUE
+  
+  PRINT *,SECOND()*1000.,' ms'
  
 !***********************************************************!! 
 
