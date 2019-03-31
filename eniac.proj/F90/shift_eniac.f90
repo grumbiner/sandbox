@@ -68,6 +68,7 @@ PROGRAM ENIAC
 ! BEGIN THE EXECUTION HERE
 ! This file is not comparable to anything in the original program.
   OPEN (UNIT=1, FILE="ENIAC.OUT", FORM="FORMATTED")
+  PRINT *,'average initial z = ',SUM(z)/FLOAT(p+1)/FLOAT(q+1)
   
   s = 0.
   t = 0.
@@ -83,9 +84,11 @@ PROGRAM ENIAC
   beta  = 0.0
   zp    = 0.0
   zetap = 0.0
+  
 
   PRINT *,SECOND()*1000.,' ms'
-! Rescale the heights to metric
+  z = z - 820
+! Rescale the heights (10's of feet) to metric
   z    = z / fttom
 
 !  Prepare the data decks - used due to memory constraints
@@ -248,7 +251,7 @@ PROGRAM ENIAC
    ENDDO
    
   WRITE (1,9003) k
-  WRITE (1,9001) ((z(i,j),j=0,q),i=0,p)
+  WRITE (1,9001) ((820/fttom+z(i,j),j=0,q),i=0,p)
   WRITE (1,9002)
  9001 FORMAT (16F7.2)
  9002 FORMAT (' ')
