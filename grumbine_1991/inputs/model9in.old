@@ -1,0 +1,57 @@
+n                       old data?
+0.0                     uc
+0.0                     vc
+0.0                     ut
+0.0                     vt
+0.0                     ss
+-0.10                   sd
+2.0E-7                  we mag
+70.                     number of x gridpoints in wave
+70.                     number of y gridpoints in wave
+500.0                   h0
+540000                  xcen
+400000                  sigx
+ 20000                  ycen
+ 40000                  sigy
+ 0.10                  m/day qfmax
+ 0.60                   m/winter freezing
+-0.60                   m/summer melting
+  100                   strspr (5 mo)
+  160                   strsum (3 mo)
+  220                   strfll (3 mo)
+    0                   strwin (1 mo)
+  240                   nout
+  240                   nflout
+ 7680                   ntot, 240 = 1 year
+0.115                   scrit
+  240                   t average
+2.0E+4                  delx
+2.0E+4                  dely
+1.31487E+5               delt 
+3.453E+1                sref
+-1.0E-1                 sdref
+ 0.0E+0                 ssref
+8.0E+4                  ahm
+0.0E-4                  avm
+4.0E+2                  ahs
+3.0E-4                  avs
+-1.4E-4                 f
+9.80                    g
+7.E-12                  beta              Barotropic
+uc
+vc
+ut
+vt
+ss
+sd
+flm
+fls
+ucav
+vcav
+utav
+vtav
+ssav
+sdav
+flmav
+flsav
+harry                                                                     

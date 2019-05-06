@@ -1,0 +1,57 @@
+n                       old data?
+0.0                     uc
+0.0                     vc
+0.0                     ut
+0.0                     vt
+0.0                     ss
+-0.07                   sd
+0.9E-6                  we mag
+70.                     number of x gridpoints in wave
+70.                     number of y gridpoints in wave
+500.0                   h0
+540000                  xcen
+680000                  sigx
+ 20000                  ycen
+ 42000                  sigy
+ 0.10                   m/day qfmax
+ 0.30                   m/winter freezing
+-0.30                   m/summer melting
+  250                   strspr
+  400                   strsum
+  550                   strfll
+    0                   strwin
+  600                   nout
+  600                   nflout
+ 9000                   ntot, 600 = 1 year
+0.115                   scrit
+  600                   t average
+2.0E+4                  delx
+2.0E+4                  dely
+5.2594E+4               delt 
+3.453E+1                sref
+-7.0E-2                 sdref
+ 0.0E+0                 ssref
+4.0E+2                  ahm
+0.0E-4                  avm
+4.0E+2                  ahs
+3.0E-4                  avs
+-1.4E-4                 f
+9.80                    g
+7.E-12                  beta              Barotropic
+uct                                                             
+vct                                                                     
+utt                                                                     
+vtt                                                                     
+sst                                                                     
+sdt                                                                     
+flmt                                                                     
+flst                                                                     
+ucavt                                                                     
+vcavt                                                                     
+utavt                                                                     
+vtavt                                                                     
+ssavt                                                                     
+sdavt                                                                     
+flmavt                                                                     
+flsavt                                                                     
+harry                                                                     

@@ -1,0 +1,17 @@
+  .005       deltat                     
+  .040       DELTAX  (DX=500KM*DELTAX) 
+ 2.50E-4     e                        
+ 1.25E-2     r                       
+ 2.00E-2     epsiln                 
+ 0.1         sigma                 
+  23         xbox                 
+  22         ybox                
+ 1.000       END TIME IN YEARS  
+-0.5         initial s         
+.FALSE.      do you want heavy debugging output?           
+  10         print out info. every n time steps, this is n.
+ 100         end of winter                         
+ 150         start of summer                      
+ 180         end of summer                       
+  16         yice                               
+ 1.0         qmax                             

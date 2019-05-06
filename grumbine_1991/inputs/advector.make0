@@ -1,0 +1,53 @@
+#   File:       advector.make
+#   Target:     advector
+#   Sources:    :ADV:ADV2D1.F
+#               :ADV:ADV2D2.F
+#               :ADV:ADVECTOR.F
+#               :ADV:INIT.F
+#               :ADV:INTEG.F
+#               :ADV:lap2.F
+#               :ADV:SOURCE2.F
+#   Created:    Saturday, October 17, 1992 22:11:09
+
+
+OBJECTS = ¶
+		:ADV:ADV2D1.F.o ¶
+		:ADV:ADV2D2.F.o ¶
+		:ADV:ADVECTOR.F.o ¶
+		:ADV:INIT.F.o ¶
+		:ADV:INTEG.F.o ¶
+		:ADV:lap2.F.o ¶
+		:ADV:SOURCE2.F.o
+
+
+
+FFLAGS = -q -O -N11 -N8 -F -mf -N13
+FFLAG2 = -q -N11 -N8 -F -mf -N13
+
+"advector" ÄÄ "advector".make
+	Duplicate -r -y "{FLibraries}F77mrwe.o" "advector"
+
+advector ÄÄ advector.make {OBJECTS}
+	Link -f -model far -t APPL -c rmg3 ¶
+		{OBJECTS} ¶
+		"{Libraries}"Runtime.o ¶
+		"{Libraries}"Interface.o ¶
+		"{FLibraries}"F77mrwe.o ¶
+		"{FLibraries}"frt0.o ¶
+		"{FLibraries}"f77io.o ¶
+		"{FLibraries}"f77math.o ¶
+		-o advector
+:ADV:ADV2D1.F.o Ä advector.make :ADV:ADV2D1.F
+	 f77compiler {FFLAG2} :ADV:ADV2D1.F
+:ADV:ADV2D2.F.o Ä advector.make :ADV:ADV2D2.F
+	 f77compiler {FFLAG2} :ADV:ADV2D2.F
+:ADV:ADVECTOR.F.o Ä advector.make :ADV:ADVECTOR.F
+	 f77compiler {FFLAGS} :ADV:ADVECTOR.F
+:ADV:INIT.F.o Ä advector.make :ADV:INIT.F
+	 f77compiler {FFLAGS} :ADV:INIT.F
+:ADV:INTEG.F.o Ä advector.make :ADV:INTEG.F
+	 f77compiler {FFLAGS} :ADV:INTEG.F
+:ADV:lap2.F.o Ä advector.make :ADV:lap2.F
+	 f77compiler {FFLAGS} :ADV:lap2.F
+:ADV:SOURCE2.F.o Ä advector.make :ADV:SOURCE2.F
+	 f77compiler {FFLAGS} :ADV:SOURCE2.F

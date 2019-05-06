@@ -1,0 +1,45 @@
+14400                   nstep
+ 480                    outfrq
+1200                    forfrq
+-0.10                   SD
+2.0E-7                  WE MAG
+500.0                   H0
+540000                  XCEN
+400000                  SIGX
+ 60000                  YCEN
+ 40000                  SIGY
+ 0.10                   M/DAY QFMAX
+ 0.60                   M/WINTER FREEZING
+-0.60                   M/SUMMER MELTING
+    0                   STRWIN
+  200                   STRSPR
+  320                   STRSUM
+  440                   STRFLL
+0.115                   SCRIT
+2.0E+4                  DELX
+2.0E+4                  DELY
+6.574359E4              DELT
+1.0E4                   AHM
+4.0E+2                  AHS
+6.E-4                   AVS
+1027.808                Rho 0 
+9.81                    G
+-72.0                   Latitude
+1.0                     Grid multiplier
+ucmonths
+vcmonths
+utmonths
+vtmonths
+ssmonths
+sdmonths
+flmmonths
+flsmonths
+ucavmonths
+vcavmonths
+utavmonths
+vtavmonths
+ssavmonths
+sdavmonths
+flmavmonths
+flsavmonths
+HARRY
