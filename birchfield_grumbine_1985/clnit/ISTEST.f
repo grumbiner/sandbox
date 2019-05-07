@@ -1,0 +1,171 @@
+      PROGRAM ISTEST
+  
+C================================================================== 
+C 
+C          PROGRAM: CLNIT 
+C             FROM: CLNZ
+C               DATE = 28 JUN 84
+C 
+C                   THIS MODEL OF THE ICE SHEET USES THE
+C                   REVISED NUMERICAL SCHEMA OF 10 FEB 84.
+C                   MODIFIED ACCORDING TO 2-18-84 NOTES.
+C                   VOLUME COMPUTATION CORRECTED 2-25-84. BG
+C                   CHANGES IN NO ICE SHEET CASES MADE 3-25-84
+C                   FIRN LINE CALCULATIONS CORRECTED 3/25 TO 4/2/84 BG
+C                   TEMPERATURE DEPENDANT ACCUMULATION INTRODUCED 
+C                       4-18-84 BG
+C                   CORRECTIONS 4-23-84.  BG
+C                   REDERIVED ISSB+1 PT CAL 4/27/84 
+C         4-30-84   BEDROCK EXTRAP MOVED OUTSIDE ITERATION LOOP 
+C                   EPSI FUDGE FACTOR AND XNAUT REMOVED 5-15-84 
+C                   MOST PARAMETER STATEMENTS REMOVED 5-15-84 
+C                   MOST CONSTANTS NOW INITIALIZED IN ISINIT 5-18-84
+C                   CLEANUP OF ISHEET JUNE 6 84 
+C                   REDERIVED BEDROCK EXTRAPOLATION 6-12-84 
+C                   THICKNESSES REPLACED WITH MAX(0,H+H') 6-12-84 
+C                   SMALL ICE SHEET CASE ADDED 6-12-84
+C                   SPECIAL TREATMENT OF ACCUM AT ISSB+1 DROPPED 6-13 
+C                   ALTERNATE SET-UP MODES DROPPED 6-13-84
+C                   ISSB, ISNB COMPUTATIONS CORRECTED-USE BHAT 6-13 
+C                   WHEN ICE SHEET MOVES, SET HVIRT=H(ISSB+1) 6-14-84 
+C                   SET H(ISSB+1)=HVIRT JUST BEFORE BEDROCK EXTRAP
+C                     THIS WIILL ALLOW THE SHEET TO MOVE FORWARD DUE TO
+C                     MASS FLUX. 6-14-84
+C                   FORCING CORRECTED TO NOTES OF EB 6-7-84, ON 6-15-84 
+C                   UJM1,VJM1 REMOVED 6-21-84 
+C                   BEDROCK EXTRAP ATION MOVED BEFORE THE H EXTRAP 6-21
+C                   ZETA MULTIPLIER ADDED FOR MASS FLUX AT ISSB+1 6-28
+C                   ACCUMULATION FOR T*>0 MODIFIED 6-29-84
+C                   ITERATION LOOP CONTROL REINTRODUCED 7-1-84. 
+C                   ZETA REMOVED 7-24-84. 
+C                   MS0 AND MA' PRINTED SEPARATELY 7-24.
+C                   MODIFIED FOR MACINTOSH AT U OF C BG 12-10-85.
+C================================================================== 
+  
+      INTEGER MXSB
+      PARAMETER (MXSB  = 160) 
+  
+      COMMON /ISCOM/ HGT(0:MXSB,0:1), H, HP,
+     1      ACMRAT, SLOPE, TIMELP, OSCARG, TIMSTP, GRDSTP,
+     2      SNLAMP, SNLMPT, SNLXIN, TRIPS, RNETAC, POLFLX,
+     3      MSNAUT, MAPRIM, OUTDAT, ISSB
+  
+      INTEGER I, J, H, HP, TRIPS, ISSB
+      REAL HGT, ACMRAT, SLOPE, SNLXIN 
+      REAL DX, TIME, GRDSTP 
+  
+      LOGICAL  OUTHGT, OUTVOL, OUTDAT 
+      REAL CALTIM, FNLTIM, TIMSTP 
+      REAL SNLAMP, SNLMPT, OSCARG 
+      REAL MSNAUT, MAPRIM 
+  
+C------------------------------------------------------------------ 
+  
+      OPEN (UNIT=1,FILE='CLNIT.DATA',STATUS='OLD')
+      OPEN (UNIT=2,FILE='HEIGHTS',STATUS='NEW')
+      OPEN (UNIT=4,FILE='VOLUMES',STATUS='NEW')
+      
+      TRIPS= 0
+  
+      READ (1,9006) GRDSTP
+      READ (1,9006) TIMSTP
+      DX = GRDSTP * 111111.111111 
+  
+      READ (1,9007) OUTDAT
+      READ (1,9007) OUTHGT
+      READ (1,9007) OUTVOL
+ 9007 FORMAT(L14)
+ 
+      READ (1,9006) CALTIM
+      READ (1,9006) FNLTIM
+ 9006 FORMAT (F14.4)
+  
+C     INITIALIZE THE ISHEET SUBROUTINE
+      CALL ISHEET (0.0) 
+  
+C------------------------------------------------------------------ 
+  
+C     INITIAL CONDITIONS SET UP FOR NO ICE SHEET CASE.
+      DO 100 I = 0, MXSB
+        HGT(I,0) = 0.0
+        HGT(I,1) = 0.0
+ 100  CONTINUE
+  
+C     PRINT OUT THE INITIAL CONDITIONS
+      IF (OUTDAT) THEN
+        J=MXSB
+ 1000   IF ((HGT(J,0)+HGT(J,1).LE.0.0).AND.(J.GT.1)) THEN 
+          J=J-1 
+          GO TO 1000
+        ENDIF 
+        DO 1100 I=0,MIN(J+5,MXSB) 
+          IF (MOD(I,50).EQ.0) WRITE (*,9001) 0.0
+          WRITE (*,9002) I,(11.6+GRDSTP*I),(I*DX/1000.0),HGT(I,0),
+     1        HGT(I,1),HGT(I,0)+HGT(I,1)
+ 1100   CONTINUE
+      ENDIF 
+C 
+C     WRITE THE INITIAL HEIGHTS OUT TO TAPE 2 IF OUTHGT TRUE
+      IF (OUTHGT) THEN
+        WRITE(2,9005) 0.0 
+        WRITE(2,9003) ((INT(HGT(I+J,0)),J=0,9),I=0,MXSB-10,10)
+        WRITE(2,9003) ((INT(HGT(I+J,1)),J=0,9),I=0,MXSB-10,10)
+      ENDIF 
+  
+C     CAL THE INITIAL VOLUME AND WRITE TO TAPE 4 IF OUTVOL TRUE 
+C     USE THE TRAPEZOIDAL RULE TO COMPUTE THE 'VOLUME'. 
+      IF (OUTVOL) THEN
+        WRITE (4,9004) HINTEG(DX,1),0.0,0.0,0.0,0.0,0.0 
+      ENDIF 
+  
+C------------------------------------------------------------------ 
+  
+C-----BEGIN MAIN TIME EXTRAPOLATION LOOP
+      DO 10000 TIME=CALTIM, FNLTIM, CALTIM
+  
+        CALL ISHEET ( CALTIM )
+  
+C       WRITE OUT HGT,ETC TO OUTPUT IF OUTDAT=TRUE. 
+        IF (OUTDAT) THEN
+          J=MXSB
+ 1400     IF ((HGT(J,H)+HGT(J,HP).LE.0.0).AND.(J.GT.1)) THEN
+            J=J-1 
+            GO TO 1400
+          ENDIF 
+          DO 1500 I=0,MIN(J+5,MXSB) 
+          IF (MOD(I,50).EQ.0) WRITE (*,9001) TIME 
+            WRITE (*,9002) I,(11.6+GRDSTP*I),(I*DX/1000.0),HGT(I,H),
+     1        HGT(I,HP),HGT(I,H)+HGT(I,HP)
+ 1500     CONTINUE
+        ENDIF 
+  
+C-------WRITE HEIGHT PROFILE OUT TO TAPE 2 IF OUTHGT TRUE 
+        IF (OUTHGT) THEN
+          WRITE (2,9005) SNLXIN 
+          WRITE(2,9003) ((INT(HGT(I+J,H)),J=0,9),I=0,MXSB-10,10)
+          WRITE(2,9003) ((INT(HGT(I+J,HP)),J=0,9),I=0,MXSB-10,10) 
+        ENDIF 
+  
+C-------CAL ICE VOL AND WRITE TO TAPE 4 IF OUTVOL TRUE
+C-------USE THE TRAPEZOIDAL RULE
+        IF (OUTVOL) THEN
+          WRITE (4,9004) HINTEG(DX,1),POLFLX,MSNAUT,MAPRIM,RNETAC,
+     1    ISSB*DX/1000. 
+        ENDIF 
+  
+10000 CONTINUE
+C-----END OF MAIN TIME EXTRAPOLATION LOOP 
+  
+ 9001 FORMAT ('1', 2X, 'TIME : ', F8.1, ' YRS', / 
+     1  3X,'GRID',5X,'CLAT',3X,'DISTANCE',18X,'HEIGHT',19X,'DEPTH', 
+     2  18X,'THICKNESS',/,3X,'POINT',4X,'DEGS',6X,'KM', 
+     3  3(24X,'M')) 
+  
+ 9002 FORMAT (3X,I3,6X,F4.1,3X,F8.3,3(5X,F20.10)) 
+  
+ 9003 FORMAT (18(10(1X,I6),/))
+  
+ 9004 FORMAT (E25.12) 
+  
+ 9005 FORMAT (E20.12) 
+      END 
