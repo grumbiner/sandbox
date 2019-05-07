@@ -1,4 +1,4 @@
-FC = gfortran -c 
+FC = gfortran -c -O2 
 LD = gfortran
 
 predict : predmain.o initpred.o grower.o iceprd.o temper.o Makefile 
