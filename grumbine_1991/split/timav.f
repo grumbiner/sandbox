@@ -41,12 +41,12 @@ C     Number of steps to average over is tav.
             r6(l,k) = 0.0
  1050     CONTINUE
  1040   CONTINUE
-         DO 1060 k = 1, ny
-          DO 1060 l = 1, nscrit
-            f1(k,l) = 0.0
-            f2(k,l) = 0.0
- 1070     CONTINUE
- 1060   CONTINUE
+         DO k = 1, ny
+           DO l = 1, nscrit
+             f1(k,l) = 0.0
+             f2(k,l) = 0.0
+           ENDDO
+         ENDDO
 
        ELSE
 

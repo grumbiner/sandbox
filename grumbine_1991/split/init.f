@@ -35,7 +35,7 @@ C     Parameters for barotropic flow
       REAL beta
 
       REAL rho, value, a, b
-      CHARACTER*60 fname
+      CHARACTER(60) fname
       INTEGER i, j, dummy
       LOGICAL yes
 

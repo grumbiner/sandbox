@@ -57,14 +57,12 @@ C       compute the required slope for salt conservation.
 
         a    = sumq*2./FLOAT(ny*(ny+1))/FLOAT(nx)/dely
         PRINT *,'linear melting parameter = ',a
-      CALL FLUSH(6)
 
 C       Compute the fix required for salt conservation interannually.
         CALL summer(ss, nx, ny, qfix)
         qfix = -qfix*h(nx/2,ny/2)/DBLE(strspr-strwin+1)
      1             /DBLE((nx-2)*(ny-2))/delt
         PRINT *,'qfix correction',qfix
-      CALL FLUSH(6)
 CD        WRITE (1, 9001) qfix
       ENDIF
  9001 FORMAT ('qfix correction',E13.6)

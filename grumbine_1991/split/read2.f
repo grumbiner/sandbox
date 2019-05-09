@@ -8,7 +8,7 @@ C     Bob Grumbine 5 April 1994.
 
       INTEGER nx, ny, unit
       REAL x(nx, ny)
-      CHARACTER*60 fname
+      CHARACTER(60) fname
       LOGICAL ope, clos
 
       IF (ope) OPEN(unit, FILE=fname, FORM='UNFORMATTED', STATUS='OLD')

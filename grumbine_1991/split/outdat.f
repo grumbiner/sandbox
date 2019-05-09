@@ -16,7 +16,7 @@ C     Write out the velocity, salinity, and temperature.
       REAL uctemp, vctemp, iconst
       REAL flm(ny), fls(ny)
 
-      CHARACTER*60 fname(nfield)
+      CHARACTER(60) fname(nfield)
       SAVE flm, fls, fname
 
       uctemp  = uc(1,1)
