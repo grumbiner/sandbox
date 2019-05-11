@@ -95,8 +95,8 @@ C     Number of steps to average over is tav.
            WRITE (56,9009) (f1(i,j),i=1,ny)
            WRITE (57,9009) (f2(i,j),i=1,ny)
  2100          CONTINUE
-           WRITE (56,9010)
-           WRITE (57,9010)
+!           WRITE (56,9010)
+!           WRITE (57,9010)
           DO 2060 k = 1, ny
             DO 2050 l = 1, nx
               r1(l,k) = 0.0
@@ -119,7 +119,7 @@ C     Number of steps to average over is tav.
 
  9002 FORMAT (A60)
 
- 9009 FORMAT (36F6.2)
+ 9009 FORMAT (360F6.2)
 
  9010 FORMAT (' end of step')
 

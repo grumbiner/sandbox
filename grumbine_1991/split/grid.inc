@@ -1,4 +1,4 @@
 !      IMPLICIT none
       INTEGER nx, ny
-      PARAMETER (nx = 36)
-      PARAMETER (ny = 36)
+      PARAMETER (nx = 72)
+      PARAMETER (ny = 72)

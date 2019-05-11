@@ -31,6 +31,7 @@ C     BEGIN EXECUTION
 
 C     Initialize the variables
 CD      PRINT *,'Calling Init'
+CD      CALL FLUSH(6)
       CALL init (uc, vc, ut, vt, ss, sd, we, h, nx, ny,
      2           ahm, avm, ahs, avs,
      3           sdref, ssref, rhoref, g, f,
@@ -45,13 +46,17 @@ CD      PRINT *,'Calling Init'
 
 C     Open the output files
 CD      PRINT *,'Calling outstr'
+CD      CALL FLUSH(6)
       CALL outstr(uc, vc, ut, vt, ss, sd, h, delx)
 CD      PRINT *,ut
+CD      CALL FLUSH(6)
       
 C     Compute the Barotropic flow solution.
 CD      PRINT *,'Calling uvtrop'
+CD      CALL FLUSH(6)
       CALL uvtrop(ut, vt, we, href, delx, dely, f, beta, ahm, nx, ny)
 CD      PRINT *,ut
+CD      CALL FLUSH(6)
 C***********************************************************----------!!
 CM      OPEN (1, FILE='timeinfo', FORM='FORMATTED', STATUS='NEW')
 

@@ -6,8 +6,8 @@ N                       OLD DATA?
 0.0                     SS
 -0.10                   SD
 2.0E-7                  WE MAG
-70.                     NUMBER OF X GRIDPOINTS IN WavE
-70.                     NUMBER OF Y GRIDPOINTS IN WavE
+70.                     NUMBER OF X GRIDPOINTS IN WAVE
+70.                     NUMBER OF Y GRIDPOINTS IN WAVE
 500.0                   H0
 540000                  XCEN
 400000                  SIGX
@@ -24,7 +24,7 @@ N                       OLD DATA?
   960                   NFLOUT
  7680                   NTOT, 240 = 1 YEAR
 0.115                   SCRIT
-  240                   T avERAGE
+  240                   T AVERAGE
 2.0E+4                  DELX
 2.0E+4                  DELY
 1.31485E+5              DELT
@@ -32,12 +32,12 @@ N                       OLD DATA?
 -1.0E-1                 SDREF
  0.0E+0                 SSREF
 8.0E+4                  AHM
-0.0E-4                  avM
+0.0E-4                  AVM
 4.0E+2                  AHS
-3.0E-4                  avS
+3.0E-4                  AVS
 -1.4E-4                 F
 9.80                    G
-7.E-12                  BEtA              BAROtROPIc
+7.E-12                  BETA              BAROTROPIc
 ucrefyr
 vcrefyr
 utrefyr
