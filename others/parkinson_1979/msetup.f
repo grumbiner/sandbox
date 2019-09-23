@@ -1,0 +1,285 @@
+      SUBROUTINE msetup(IHEMI,IT,JT,NYMIN,NYTAPE,NYMAX,
+     1 CL1, CL2, CL3, CL4, CL5, CL6, CL7, CL8, CL9, CL10,
+     2 CLD, EMI, EMS, EMW, ASTART, DEG, AI, AS, AW, NN, TWUI)
+C
+      IMPLICIT none
+
+      INTEGER IHEMI, IT, JT, NYMIN, NYTAPE, NYMAX
+
+C     DECLARE BLANK COMMON
+      REAL SEALND(42,41), TSNOW(42,31), HICE(42,31), HSNO(42,31)
+      REAL FREE(42,31),FXSOL(42,31),TOCN(42,31),FXBTM(42,31),TICE(42,31) 
+      REAL TEMPM(42,31,12),DEWM(42,31,12),UMAT(42,31,12),VMAT(42,31,12)
+
+C     DECLARE COMMONS C1-C5
+      REAL TEMP, FLON, DEW, VP, CLDD, DRAGW
+      REAL AREA, AMIN, DT, DMIX, EYN, QS, QI, SIGMA, SK, TB, YK
+      REAL FSEN, FSENW, FMI, DAY, SNO(12)
+      REAL TS, TI, HI, HS, TW, WIND, TWI, FLAT, DRAG, FLATW, FLONW
+      REAL DTOP(42,41)
+
+C     DECLARE COMMON C6
+      REAL RLAT, RLONG, DLAT, DLONG
+      INTEGER NSTEP
+      REAL COSZ, STIME, TIME, TSFLUX, XLAT(42,31), XLON(42,31)
+
+C     DECLARE COMMON C7-C10
+      INTEGER NCC, NCB
+      REAL UICE(42,31), VICE(42,31), STEP
+      REAL AIRD, Q10M, QSURF
+
+      COMMON SEALND,TSNOW,HICE,HSNO,
+     1FREE,FXSOL,TOCN,FXBTM,TICE,
+     2TEMPM,DEWM,UMAT,VMAT
+      COMMON /C1/ TEMP,FLON,DEW,VP,CLDD,DRAGW
+      COMMON /C2/ AREA,AMIN,DT,DMIX,EYN,QS,QI,SIGMA,SK,TB,YK
+      COMMON /C3/ FSEN,FSENW,FMI,DAY,SNO
+      COMMON /C4/ TS,TI,HI,HS,TW,WIND,TWI,FLAT,DRAG,FLATW,FLONW
+      COMMON /C5/ DTOP
+      COMMON /C6/ RLAT,RLONG,DLAT,DLONG,NSTEP,
+     1COSZ,STIME,TIME,TSFLUX,XLAT,XLON
+      COMMON /C7/ NCC,NCB
+      COMMON /C8/ UICE,VICE,STEP
+      COMMON /C9/ AIRD
+      COMMON /C10/ Q10M,QSURF
+
+      REAL TWUI(42,31),CLD(12)
+      REAL SNO2(12)
+      REAL CL1, CL2, CL3, CL4, CL5, CL6, CL7, CL8, CL9, CL10
+      REAL EMI, EMS, EMW, ASTART, DEG, AI, AS, AW
+
+      INTEGER III, I, J, M, LEN
+      INTEGER NN
+
+CBG      DATA CL1/1.291677E-6/,CL2/3.125025E-4/,CL3/2.712106E-2/,
+CBG     1 CL4/0.9952592/,CL5/13.69014/,CL6/1.205E-6/,CL7/2.934E-4/,
+CBG     2 CL8/2.55645E-2/,CL9/0.94371/,CL10/13.138/
+CBG      DATA  CLD/.50,.50,.50,.55,.70,.75,.75,.80,.80,.70,.60,.50/
+CBG      DATA EMI/0.97/,EMS/0.99/,ASTART/0.10/,DEG/57.2958/
+CBG      DATA AI/0.5/,AS/0.75/,AW/0.1/
+C
+C SET MONTHLY SNOWFALL RATES FOR APPROPRIATE HEMISPHERE
+CBG      DATA SNO2/0.0,0.0,1.1574E-9,1.1574E-9,1.1574E-9,1.1574E-9,
+CBG     11.1574E-9,1.1574E-9,1.1574E-9,1.1574E-9,1.1574E-9,0.0/
+     
+      SNO2(1) = 0.0
+      SNO2(2) = 0.0
+      SNO2(3) = 1.1574E-9
+      SNO2(4) = 1.1574E-9
+      SNO2(5) = 1.1574E-9
+      SNO2(6) = 1.1574E-9
+      SNO2(7) = 1.1574E-9
+      SNO2(8) = 1.1574E-9
+      SNO2(9) = 1.1574E-9
+      SNO2(10) = 1.1574E-9
+      SNO2(11) = 1.1574E-9
+      SNO2(12) = 0.0
+ 
+      CL1 = 1.291677E-6
+      CL2 = 3.125025E-4
+      CL3 = 2.712106E-2
+      CL4 = 0.9952592
+      CL5 = 13.69014
+      CL6 = 1.205E-6
+      CL7 = 2.934E-4
+      CL8 = 2.55645E-2
+      CL9 = 0.94371
+      CL10 = 13.138
+
+      EMI  = 0.97
+      EMS  = 0.99
+      ASTART = 0.10
+      DEG    = 57.2958
+      AI     = 0.5
+      AS     = 0.75
+      AW     = 0.1
+      CLD(1) = 0.50
+      CLD(2) = 0.50
+      CLD(3) = 0.50
+      CLD(4) = 0.55
+      CLD(5) = 0.70
+      CLD(6) = 0.75
+      CLD(7) = 0.75
+      CLD(8) = 0.80
+      CLD(9) = 0.80
+      CLD(10) = 0.70
+      CLD(11) = 0.60
+      CLD(12) = 0.50
+
+
+      SNO(1)=3.215E-9
+      SNO(2)=3.215E-9
+      SNO(3)=3.215E-9
+      SNO(4)=3.215E-9
+      SNO(5)=19.290E-9
+      SNO(6)=0.0
+      SNO(7)=0.0
+      SNO(8)=0.0
+      SNO(9)=49.603E-9
+      SNO(10)=49.603E-9
+      SNO(11)=3.215E-9
+      SNO(12)=3.215E-9
+      IF(IHEMI.EQ.1) GO TO 7
+      DO 6 III=1,12
+    6 SNO(III)=SNO2(III)
+    7 CONTINUE
+      EMW=0.97
+C SET OCEANIC HEAT FLUXES
+      FMI=2.0+23.0*(IHEMI-1)
+      SIGMA=5.67E-8
+      NSTEP=90
+      DT=28800.0
+      EYN=0.17
+      SK=0.31
+      YK=2.04
+      QS=110.0E6
+      QI=302.0E6
+      TS=271.20
+      TI=271.20
+      TB=271.20
+      DMIX=30.0
+      TW=271.45
+      TWI=271.45
+      DRAG=0.00175
+      DRAGW=0.00175
+      AREA=ASTART
+      IF(IHEMI.EQ.2)GOTO20
+      HI=3.5
+      HS=0.3
+      AMIN=0.005
+      PRINT 885
+  885 FORMAT (1X,6HARCTIC)
+      GO TO 21
+   20 HI=1.5
+      HS=0.0
+      AMIN=0.02
+      PRINT 884
+  884 FORMAT(1X,9HANTARCTIC)
+   21 CONTINUE
+
+C READ SEA,LAND DATA CARDS
+CD      PRINT *,'BG  Reading from unit 5, or attempting'
+CD      PRINT *,'IHEMI = ',IHEMI
+      IF (IHEMI .EQ. 1) THEN
+C       BG -- open data files for reading.  IHEMI=1 --> Arctic
+        OPEN (UNIT=5, FILE='in.arctic', FORM='FORMATTED', 
+     1                STATUS='OLD')
+CD        PRINT *,'Opened unit 5 arctic'
+       ELSE
+        OPEN (UNIT=5, FILE='in.antarctic', FORM='FORMATTED', 
+     1                STATUS='OLD')
+CD        PRINT *,'Opened unit 5 antarctic'
+      ENDIF
+      READ (5,888) ((SEALND(I,J),I=1,42),J=1,31)
+CBG  888 FORMAT (2X,42F1.0)
+  888 FORMAT (42F1.0)
+CD      PRINT *,'Have read sealnd'
+
+      DO 1 J=1,31
+CD        PRINT *,'j dtop',J
+        READ(5,50)  (DTOP(I,J),I=1,42)
+   50   FORMAT(14F5.2)
+    1 CONTINUE
+CD      PRINT *,'Have read in DTOP'
+
+      IF(IHEMI.EQ.1) GO TO 23
+      READ(5,889) ((SEALND(I,J),I=1,41),J=1,41)
+  889 FORMAT(41F1.0)
+      DO 3 J=1,41
+        READ(5,51) (DTOP(I,J),I=1,41)
+CD        PRINT *,'BG  Done Reading from unit 5, or attempting'
+   51   FORMAT(14F5.2)
+    3 CONTINUE
+   23 CONTINUE
+
+C READ DATA FOR MONTH FROM TAPE
+CD      PRINT *,'Calling posn'
+      CALL POSN(1,8,1)
+CD      PRINT *,'Returned from posn'
+      PRINT *,'NYTAPE, NYMAX, LEN, NYMIN',NYTAPE, NYMAX, 
+     1 LEN, NYMIN
+
+C NOTE:  HICE,HSNO,FREE AND TOCN  = TEMPM,DEWM,UMAT+VMAT HERE
+      DO 15 M=1,12
+       CALL FREAD(HICE,8,LEN,105,106)
+       CALL FREAD(HSNO,8,LEN,105,106)
+       CALL FREAD(FREE,8,LEN,105,106)
+       CALL FREAD(TOCN,8,LEN,105,106)
+CD       PRINT *,'tempm, dewm, umat, vmat',HICE(1,1),HSNO(1,1),
+CD     1      FREE(1,1),TOCN(1,1), M
+
+C
+      IF(NYTAPE.GT.NYMAX) GO TO 13
+        CALL FWRITE(HICE,4,LEN)
+        CALL FWRITE(HSNO,4,LEN)
+        CALL FWRITE(FREE,4,LEN)
+        CALL FWRITE(TOCN,4,LEN)
+   13 CONTINUE
+       DO 14 I=1,IT
+       DO 14 J=1,JT
+       TEMPM(I,J,M)=HICE(I,J)
+       DEWM(I,J,M)=HSNO(I,J)
+       UMAT(I,J,M)=FREE(I,J)
+C      UMAT(I,J,M)=4.*FREE(I,J)
+       VMAT(I,J,M)=TOCN(I,J)
+C      VMAT(I,J,M)=4.*TOCN(I,J)
+   14  CONTINUE
+   15 CONTINUE
+C
+C      CALL FREAD(DTOP,8,LEN,&105,&106)
+C INITIALIZE GRID POINT VALUES
+C
+      IF(NYMIN.EQ.1) GO TO 16
+C
+       CALL FREAD(HICE,8,LEN,105,106)
+       CALL FREAD(HSNO,8,LEN,105,106)
+       CALL FREAD(FREE,8,LEN,105,106)
+       CALL FREAD(TOCN,8,LEN,105,106)
+       CALL FREAD(TWUI,8,LEN,105,106)
+       CALL FREAD(FXSOL,8,LEN,105,106)
+       CALL FREAD(FXBTM,8,LEN,105,106)
+       CALL FREAD(TSNOW,8,LEN,105,106)
+       CALL FREAD(TICE,8,LEN,105,106)
+      GO TO 305
+   16 CONTINUE
+C
+      PRINT *,'setting arrays equal to constants'
+      PRINT *,'hi, hs, area, tw, ts, ti, twi',
+     1  HI, HS, AREA, TW, TS, TI, TWI
+
+      DO 303 I=1,IT
+      DO 303 J=1,JT
+        HICE (I,J) = HI
+        HSNO (I,J) = HS
+        FREE (I,J) = AREA
+        TOCN (I,J) = TW
+        TSNOW(I,J) = TS
+        TICE (I,J) = TI
+        TWUI (I,J) = TWI
+  303 CONTINUE
+  305 CONTINUE
+
+CD      PRINT *,'first element of arrays in msetup.f',
+CD     1 HICE(1,1),HSNO(1,1),FREE(1,1), TOCN(1,1), TSNOW(1,1),
+CD     2 TICE(1,1),TWUI(1,1)
+
+C
+C INITIALIZE LAND GRID PT VALUES
+      DO 304 I=1,IT
+      DO 304 J=1,JT
+        IF (SEALND(I,J) .NE. 0.0) GO TO 304
+        HICE(I,J)  = -100.0
+        HSNO(I,J)  = -100.0
+        FREE(I,J)  = -100.0
+        TOCN(I,J)  = -100.0
+        TWUI(I,J)  = -100.0
+        FXSOL(I,J) = -100.0
+        FXBTM(I,J) = -100.0
+304   CONTINUE
+
+C DETERMINE GEOGRAPHIC COORDINATES
+      CALL COORD (IT,JT,IHEMI)
+      NN=IFIX(NSTEP/2.+1)
+
+      RETURN
+      END

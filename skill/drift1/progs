@@ -1,0 +1,32 @@
+bcomp.f         : Compare buoys and mrf forecasts.
+
+dates.f         : Split date-sorted buoy file into files by date.
+buoystats.f     : Original program to compute by-platform statistics.
+lat.f           : Summarize buoy errors by latitude.
+buoyllcheck.f   : Extract only those buoy entries which are good.
+polar2.f        : Extract polar drifting buoys from buoy file.
+timer.f         : Extract buoys which are +- 3 hours of 00 UTC
+getbuoy.f       : SBR Read in a single buoy entry, convert to BG standard
+putbuoy.f       : SBR Write out a buoy entry, converting back to NOS standard
+
+remdup.f        : SBR Remove duplicates in time by averaging the values reported
+mrftrmby.f      : Trim buoy file to single observation per time step (remdup?)
+trimdby.f       : Trim buoy file to single observation for close in distance 
+                    observations (remdup?) (subr?)
+
+driftse.f       : Compute buoy kinematics.
+fcomp.f         : Intercompare the two drift forecast models.
+get6.f          : Intercompare the two drift forecast models.
+tally.f         : Summarize monthly scores after the dailies are available.
+big3.f          : Score the forecast models against buoy drift.
+score5.f        : Score the forecast models against buoy drift.
+skverf5.f       : Score the forecast models against buoy drift.
+sanaly.f        : SBR Score forecasts
+getfcst.f       : SBR read in skiles1 and skiles2 forecasts
+getedg.f        : SBR Read in ice edge points from sk2 forecasts
+transfer.f      : SBR Transfer forecasts into a single large array.
+dater.f         : FN return a 6 digit date given present and a delta.
+delay.f         : FN Find the time difference between two dates.
+
+
+

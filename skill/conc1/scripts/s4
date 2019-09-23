@@ -1,0 +1,81 @@
+#!/bin/bash
+HOME3=~rmg3
+DATA=/data/forecasts/ice.model/output
+export HOME3 DATA
+#set -x
+
+#Get the land masks
+for pole in south north
+do
+  p=`echo $pole | cut -c1`
+  wgrib ~ftp/pub/ice/${p}land.psg | wgrib ~ftp/pub/ice/${p}land.psg -i -o ${p}land
+done
+
+tag=$1
+base=9703
+for dd in 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+do
+  tag=${base}$dd
+  for pole in south 
+#  for pole in south 
+  do
+    p=`echo $pole | cut -c1`
+    tagm=$tag
+    base=`echo $tag | cut -c1-4`
+    for dy in 1 2 3 4 5 6 7 
+#    for dy in 1 
+    do
+
+      hr=`expr 024 \* $dy`
+      tagm=`expr $tagm - 1`
+      tagm=`dtgfix3 $tagm`
+
+      if [ -f obs ] ; then
+        rm obs
+      fi
+      if [ -f persist ] ; then
+        rm persist
+      fi
+      if [ -f mconc ] ; then
+        rm mconc
+      fi
+      for i in 0 1 2 3 4 5 6 
+      do
+        if [ -f fort.1$i ] ; then
+          rm fort.1$i
+        fi
+      done
+
+#Get the forecast concentration file
+wgrib $DATA/${pole}grib.$tag.f$hr | grep ICEC | wgrib $DATA/${pole}grib.$tag.f$hr -i -o mconc 
+#tar xvf /data/new/$pole/$tag/t$tag.$pole.tar 
+#tar xvf f18.tar
+#cp conc conc.$pole.$tag
+#cp conc mconc
+
+#Get the observed ice concentrations
+#wgrib /data/sflux/${pole}psg.$tag | wgrib -i /data/sflux/${pole}psg.$tag -o obs 
+wgrib ~jwaldrop/obs/${p}psg.$base | grep $tag | wgrib -i ~jwaldrop/obs/${p}psg.$base -o obs 
+
+#Get the persisted ice concentrations
+#wgrib /data/sflux/${pole}psg.$tagm | wgrib -i /data/sflux/${pole}psg.$tagm -o persist 
+wgrib ~jwaldrop/obs/${p}psg.$base | grep $tagm | wgrib -i ~jwaldrop/obs/${p}psg.$base -o persist 
+
+      ln -s $HOME3/icemodel/running/$pole/MASK  fort.10
+      ln ${p}land      fort.11
+
+      ln obs           fort.12
+      ln persist       fort.14
+      ln mconc         fort.13
+      ln avgout.$pole.$base  fort.16
+
+      ./trans4.$pole > test.out
+
+      echo forecast valid $tag lead $hr
+#John puts scoring program here
+      ./mse.cc.ss.4
+      mv fort.15 score${p}.${tag}$hr
+    done
+  done
+
+done

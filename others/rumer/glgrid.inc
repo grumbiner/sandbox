@@ -1,0 +1,3 @@
+      INTEGER NX, NY
+      PARAMETER (NX = 78)
+      PARAMETER (NY = 21)

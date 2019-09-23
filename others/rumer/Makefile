@@ -1,0 +1,80 @@
+SHELL=/bin/sh
+#
+# This makefile was produced by /usr/bin/fmgen at 02:22:25 PM on 10/17/94
+# If it is invoked by the command line
+#	make -f makefile
+# it will compile the fortran modules indicated by SRCS into the object
+# modules indicated by OBJS and produce an executable named a.out.
+#
+# If it is invoked by the command line
+#	make -f makefile a.out.prof
+# it will compile the fortran modules indicated by SRCS into the object
+# modules indicated by OBJS and produce an executable which profiles
+# named a.out.prof.
+#
+# To remove all the objects but leave the executables use the command line
+#	make -f makefile clean
+#
+# To remove everything but the source files use the command line
+#	make -f makefile clobber
+#
+# To remove the source files created by /usr/bin/fmgen and this makefile
+# use the command line
+#	make -f makefile void
+#
+# The parameters SRCS and OBJS should not need to be changed.  If, however,
+# you need to add a new module add the name of the source module to the
+# SRCS parameter and add the name of the resulting object file to the OBJS
+# parameter.  The new modules are not limited to fortran, but may be C, YACC,
+# LEX, or CAL.  An explicit rule will need to be added for PASCAL modules.
+#
+SRCS=	BOUNDS1.f BOUNDS2.f CHECK.f CNCOMP.f PRINTER.f RESTART.f THERMAL.f \
+	UVCOMP.f WINCOMP.f WRITEX.f rumer.f
+
+OBJS=	BOUNDS1.o BOUNDS2.o CHECK.o CNCOMP.o PRINTER.o RESTART.o THERMAL.o \
+	UVCOMP.o WINCOMP.o WRITEX.o rumer.o
+
+# Tunable parameters
+#
+# CF		Name of the fortran compiling system to use
+# LDFLAGS	Flags to the loader
+# LIBS		List of libraries
+# CMD		Name of the executable
+# PROFLIB	Library needed for profiling
+#
+CF =		f77
+LDFLAGS =	
+LIBS =		
+CMD =		a.out
+#PROFLIB =	-lprof
+PROFLIB =	
+
+# To perform the default compilation, use the first line
+# To compile with flowtracing turned on, use the second line
+# To compile giving profile additonal information, use the third line
+# WARNING:  SIMULTANEOUSLY PROFILING AND FLOWTRACING IS NOT RECOMMENDED 
+FFLAGS =	
+#FFLAGS =	 -F
+#FFLAGS =	 -Wf"-ez"
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+all:		$(CMD)
+
+$(CMD):		$(OBJS)
+	$(CF) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+
+# Make the profiled version of the command and call it a.out.prof
+#
+$(CMD).prof:	$(OBJS)
+	$(CF) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
+
+clean:
+	-rm -f $(OBJS)
+
+clobber:	clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:	clobber
+	-rm -f $(SRCS) makefile
