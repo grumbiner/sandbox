@@ -13,7 +13,7 @@ C     Declare data matrices:
       INTEGER dir(9200)
 
 C     Declare local variables:
-      INTEGER unit, n
+      INTEGER i, unit, n
       LOGICAL yes
       REAL q1(9200) 
 

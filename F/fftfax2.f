@@ -40,32 +40,33 @@ cdir$ ivdep
       enddo
       return
       end
-     TRIGS(2*K+1+N)=TRIGS(2*K+1)/TRIGS(2*K+2)
-        TRIGS(2*K+2+N)=TRIGS(2*K+2)
-      ENDDO
-      NU=N
-      K=0
-      L=1
-      IFAC=LFAX(L)
-      IFAX(1)=0
-      DO WHILE(NU.GT.1)
-        NW=NU/IFAC
-        IF(NW*IFAC.EQ.NU.AND.(IFAC.NE.8.OR.K.EQ.0)) THEN
-          K=K+1
-          JFAX(K)=IFAC
-          NU=NW
-        ELSE
-          L=L+1
-          IFAC=LFAX(L)
-          IF(IFAC.EQ.1) THEN
-            WRITE(6,*) N,' CONTAINS ILLEGAL FACTORS'
-            RETURN
-          ENDIF
-        ENDIF
-      ENDDO
-      IFAX(1)=K
-      DO I=2,K+1
-        IFAX(I)=JFAX(K+2-I)
-      ENDDO
-      RETURN
-      END
+
+C      TRIGS(2*K+1+N)=TRIGS(2*K+1)/TRIGS(2*K+2)
+C        TRIGS(2*K+2+N)=TRIGS(2*K+2)
+C      ENDDO
+C      NU=N
+C      K=0
+C      L=1
+C      IFAC=LFAX(L)
+C      IFAX(1)=0
+C      DO WHILE(NU.GT.1)
+C        NW=NU/IFAC
+C        IF(NW*IFAC.EQ.NU.AND.(IFAC.NE.8.OR.K.EQ.0)) THEN
+C          K=K+1
+C          JFAX(K)=IFAC
+C          NU=NW
+C        ELSE
+C          L=L+1
+C          IFAC=LFAX(L)
+C          IF(IFAC.EQ.1) THEN
+C            WRITE(6,*) N,' CONTAINS ILLEGAL FACTORS'
+C            RETURN
+C          ENDIF
+C        ENDIF
+C      ENDDO
+C      IFAX(1)=K
+C      DO I=2,K+1
+C        IFAX(I)=JFAX(K+2-I)
+C      ENDDO
+C      RETURN
+C      END

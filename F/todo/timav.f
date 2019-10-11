@@ -9,6 +9,7 @@ C       BG 9-29-89
       IMPLICIT none
 CD      INCLUDE "grid.inc"
 
+      INTEGER nx, ny
       REAL uc(nx, ny), vc(nx, ny), ss(nx, ny), sd(nx, ny)
       REAL ut(nx, ny), vt(nx, ny), h(nx, ny)
       REAL scrit, delx, dely

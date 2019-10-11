@@ -27,8 +27,8 @@ C     Local variables:
         outch = ' '
         READ (10, 9002, END=3000) au1, au2, au3, title, jou, vol,
      1                  page1, page2, year, note, nref
-D       WRITE (*, 9002) au1, au2, au3, title, jou, vol,
-D    1                  page1, page2, year, note, nref
+CD       WRITE (*, 9002) au1, au2, au3, title, jou, vol,
+CD    1                  page1, page2, year, note, nref
  9002   FORMAT (3A24,/,A196,/,A24,4I5,1X,A16,I4)
 
         WRITE (line, '(3A24,A196,A24,4I5,1x,A16,I4)') au1, au2, au3, 

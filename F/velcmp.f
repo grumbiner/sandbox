@@ -34,6 +34,7 @@ C*************************************************----------++++++++++!!
       SUBROUTINE vexact(vt, we, psi, href, dx, f, beta, ahm, nx, ny)
 C     Analytic evaluation of soln.
       IMPLICIT none
+      INTEGER nx, ny
       REAL vt(nx, ny), we(nx, ny), psi(nx, ny)
       REAL dx, f, beta, ahm, href
 

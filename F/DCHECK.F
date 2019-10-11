@@ -16,7 +16,7 @@ C     Declare local variables:
 
 C     Put some of the arrays into extended storage so that they won't
 C       cause a stack overflow.
-$EMA  uct, day, month, year, q1 
+CHP$EMA  uct, day, month, year, q1 
 
 C***********************************************************----------!!
 
