@@ -1,0 +1,10 @@
+2                     Curve type
+3
+60
+361                   Record length
+0.05                  Noise size
+3.09                  Epsilon
+0.00                  Probability of gaps
+0.0                   Autocorrelation parameter (should be 0.0)
+1000                   Number of series
+f3.09

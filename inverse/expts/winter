@@ -1,0 +1,26 @@
+temps.wi
+growth.wi
+predict.wi
+debugs.wi
+243.0               ta *variable
+271.3               tf
+0.3                 ks
+2.2                 ki
+0.97                ei
+0.8                 alpha
+900.                rhoi
+1.2                 rhoa
+3.34E5              lf
+2.83E6              lv
+0.50                c * variable
+  0.0               swdown *variable
+1.75E-3             cdq
+1.75E-3             cd
+ 5.                 ua *variable
+1004.               cp
+5.67E-8             sigma
+15.                 taus *uncertain
+1.5                 taui *uncertain
+2.                  fw *variable
+1.E-3               qa *variable
+0.34                I0

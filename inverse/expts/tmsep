@@ -1,0 +1,129 @@
+# QSUB -o /dm/wd21rg/mettest.sep
+# QSUB -lT  18000
+# QSUB -lM    5.0MW
+# QSUB -me
+
+set -x
+
+tag=`date +'%y%m%d'`
+yy=`echo $tag | cut -c1-2`
+mm=`echo $tag | cut -c3-4`
+dd=`echo $tag | cut -c5-6`
+dm=`expr $dd - 1`
+tagm=`dtgfix3 $yy $mm $dm`
+
+EXDIR=/wd2/wd21/wd21rg/execs
+RUNDIR=/tmp/wd21rg
+#RUNDIR=$HOME3
+CONCDIR=/dm/wd21rg/ssmi/fifteenth
+REANDIR=/dm/wd21rg/reanl/1995
+
+FBASE=/com/mrf/PROD/mrf.${tagm}/drfmr.T00Z.SFLUXGrbF
+IBASE=/com/mrf/PROD/mrf.${tagm}/drfmr.T00Z.SFLUXGrbiF
+
+export tag tagm RUNDIR EXDIR FBASE IBASE REANDIR CONCDIR
+
+if [ ! -d $RUNDIR ] ; then
+  mkdir $RUNDIR
+fi
+cd $RUNDIR
+rm *
+
+FILENV=.assign
+NCPUS=2
+export FILENV NCPUS
+
+########################################################
+#Now begin execution:
+
+
+#Attach files to unit numbers
+base=9409
+for dy in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+          21 22 23 24 25 26 27 28 29 30
+do
+  rm *
+  for time in 00 06 12 18
+  do
+  #Make the grib indices
+    file1=crsflx.${base}${dy}$time
+    tar xvf $DHOME/forcing/zf${base}.tar $file1
+    if [ ! -f $file1 ] ; then
+      d2=`expr $base$dy + 1 `
+      d2=`dtgfix3 $d2`
+      base2=`echo $d2 | cut -c1-4`
+      tar xvf $DHOME/forcing/zf${base2}.tar crsflx.${d2}$time
+      mv crsflx.${d2}$time $file1
+    fi
+    if [ ! -f $file1 ] ; then
+      d2=`expr $d2 + 1 `
+      d2=`dtgfix3 $d2`
+      base2=`echo $d2 | cut -c1-4`
+      tar xvf $DHOME/forcing/zf${base2}.tar crsflx.${d2}$time
+      mv crsflx.${d2}$time $file1
+    fi
+    if [ ! -f $file1 ] ; then
+      exit -1
+    fi
+  
+    assign -a $file1  -s unblocked   fort.11
+    assign -a ${file1}i -s unblocked  fort.51
+    ${EXDIR}/windex1 $file1  ${file1}i
+  
+  #Make the meteorology files
+    i=41
+    assign -a $file1 -s unblocked   fort.$i
+    j=`expr $i + 30`
+    assign -a ${file1}i -s unblocked   fort.$j
+  
+    for pole in north south 
+    do
+  
+      #Assign the output file for the translated fields
+      assign -a metout.${pole}.$time           fort.20
+      touch metin
+      echo 1 > metin
+      ja
+        time ${EXDIR}/met.$pole < metin
+      ja -chlst
+    done
+    
+  done
+  
+  #Now compute the freezing rates:
+  for pole in north south
+  do
+    rm nin
+    echo 4 > nin
+    echo metout.${pole}.00 >> nin
+    echo metout.${pole}.06 >> nin
+    echo metout.${pole}.12 >> nin
+    echo metout.${pole}.18 >> nin
+    echo oce.flux >> nin
+    echo growout.$pole >> nin
+    echo debugs >> nin
+    echo 0.8 >> nin
+    echo 0.5 >> nin
+    echo 5.0 >> nin
+    echo 15.0 >> nin
+    echo 1.5 >> nin
+    echo 0.34 >> nin
+  
+    assign -a metout.${pole}.00 fort.31
+    assign -a metout.${pole}.06 fort.32
+    assign -a metout.${pole}.12 fort.33
+    assign -a metout.${pole}.18 fort.34
+    assign -a growout.${pole}${base}${dy} -s unblocked fort.12
+    if [ ! -s oce.flux ] ; then
+      touch oce.flux
+    fi
+    ja 
+      ${EXDIR}/f0.$pole < nin
+    ja -chlst
+  
+  done
+  
+  rm metin nin
+  mv growout.* $DHOME/grows
+  
+done  

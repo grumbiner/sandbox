@@ -1,0 +1,314 @@
+\documentstyle[12pt]{article}
+\textwidth=6.0in
+\textheight=9.0in
+\topmargin=-0.5in
+\oddsidemargin=0.5in
+\renewcommand{\baselinestretch}{2.0}
+\newcommand{\grad}{\nabla}
+\renewcommand{\div}{\grad \cdot}
+
+
+\begin{document}
+\title{A Theory for Inverting Areal Concentrations to Obtain the Ice Thickness 
+Distribution*}
+\author{ Robert W. Grumbine \\
+National Meteorological Center\\
+Camp Springs, MD 20746\\
+Donald J. Cavalieri\\
+NASA GSFC\\
+Greenbelt, MD 20771}
+\date {23 October 1995}
+\maketitle
+\begin{center}
+To be submitted to J. Geophysical Research - Oceans  \\
+OPC contribution number:
+\end{center}
+
+\pagebreak
+
+{\bf Abstract}
+    
+    The ice thickness distribution is not directly observable on global 
+scales.  We present a theory by which the thickness distribution may be
+derived given observations of ice concentration, and a knowledge of the
+ice dynamics and thermodynamics.  The theory is a variational inversion
+scheme, for what turns out to be a wave-like problem.  We find that the
+accuracy of the inversion is principally limited by knowledge of ice ridging,
+and by the observation of ice cover decay.
+
+
+\section{Introduction}
+
+    Ice thickness has long been considered an
+important feature of the ice pack.  Submarine sonar observations of ice 
+thickness extend back to at least [], while airborne laser techniques were 
+tested by 1971 [].  Both aerial and submarine measurements are, though,
+point measurements of the thickness of an ice floe (the one which is 
+in view of the sensor).  This poses something of a conflict with how ice
+has tended to be described for theoretical and modelling purposes.  There,
+sea ice is treated as a continuum.  Consequently, any region (or grid cell),
+must be described by the thicknesses of all the floes in the area, rather
+than a single thickness.  A theory for the evolution for that thickness 
+distribution was advanced by Thorndike et al. [1975].
+
+    The thickness distribution may be obtained by integrating observations 
+of ice (floe) thickness along a length of an observation track.  But, barring
+an enormous increase in submarine and aircraft time (and therefore funds), 
+these observations will not be global.  And it is the global distribution 
+which is required.
+
+    The ice thickness distribution is needed for: correct determination of
+air-ice-ocean fluxes of heat and salt, correct forecast and modelling
+of ice advance and retreat, and for correct ice-biosphere interactions.  
+The heat flux (and, due to the fractioning of salt with respect to ice in
+the freezing process, salt) is approximately equal between open water, thin
+ice, and thick ice [Maykut, 19??].  This even though the open water and thin
+ice constitute only a few percent of the Arctic ice pack.  Ice 
+modelling/forecasting requires the thickness for the advance and retreat 
+of the ice cover -- thin ice will decay faster, and cannot be advected (as
+an ice cover) as easily into warmer waters.  The ice (and snow) thickness
+also controls the amount of light which reaches the bottom of the ice floes,
+which strongly affects the biological communities which grow there [???].
+
+    The polar ice packs are also expected to be monitor points for climate
+change.  If warming is enhanced near the poles, as models predict [????],
+the sea ice should get thinner and retreat.  Analysis of ice extent 
+observations [Gloersen, Parkinson, Zwally, 199?], have been ambiguous in
+defining whether the ice extent has declined in the Arctic.  These analyses
+find no decline in Antarctic ice cover.  Submarine observations of ice
+thickness [Wadhams, 1993?] have been suggested to indicate that the ice
+in the Arctic has thinned.  But this may be due to sampling statistics
+rather than an actual change [Walsh, 199?].
+
+    Ice thickness is therefore an intrinsically interesting feature of
+the earth system, and has use for climate monitoring.  It is, however,
+not something directly observable on global scales.  One feature which
+can be observed globally is ice concentration.  If there were a means
+of deriving ice thickness distribution from the ice concentration, we
+would be able to construct a history of ice thickness back to fall of
+1978.  This would presumably be long enough to determine whether the
+ice pack has thinned significantly, thickened, or remained approximately
+constant.
+
+    We present a theory which will satisfy most of our interests.  The
+theory is based on variational data assimilation techniques, which have
+a wide use elsewhere [.....].  In our application, we operate under a 
+special constraint which is not typical -- the variable of interest is
+not observable, but we find compensations -- most noteably that the
+propagation of information from better-known areas grows to encompass
+the whole domain (in space and time).  What follows is not the only,
+or even first, means of responding to this problem.  Kalman filtering
+techniques have been applied to the restricted problem of ice type
+inferences at limited spatial resolution [Thorndike, Thomas, Rothrock].  
+Formally, this could be extended to the problem of the entire thickness
+distribution, and at arbitrary spatial resolution.  It is not clear to
+us how this should be done.  Nor, given that the Kalman approach assumes
+that the model is good, is it obvious that it should be.  The variational
+approach that we take is formally equivalent to Kalman filtering in the
+limit that the definition of 'good fit' is the same, and the same physical
+and observing models are used for both the Kalman and variational method [].
+The variational method has also been shown to be formally equivalent to
+control theory methods [], and to optimal interpolation [].  Selection from
+the various methods, then is a matter of convenience.
+
+    In the next sections, we will describe the observations which we can
+use, the governing equations for the evolution of the desired and observable
+variables, the theory for extracting the desired information given what is
+observable, and finally discuss the merit of what we have when done.  We
+will also illustrate the procedure in a theoretical situation, in which 
+noisy observations are made on a computed time history of ice thickness 
+distribution, and the theory is applied to infer the original history from
+those contaminated observations.
+\section{Knowables}
+
+    Ice concentration -- Don
+
+    The ice velocity field can be derived from buoy drift observations
+augmented by the analyzed winds and pressure field [Colony, 199?] for
+the Arctic.  Antarctic coverage of buoys is currently insufficient for
+this practice.  The ice velocity field can also be modelled with a 
+fairly high correlation between model and observed drift [Flato, Ip, ...]
+
+    The freezing and melting of ice is constrained by the atmosphere and
+ocean thermodynamics.  The atmospheric fields are obtainable from analyses
+at high (approximately 100 km, 12 hours) resolution.  The oceanic fields are 
+more poorly constrained, but forecast experiments with a coupled ice-ocean
+model [Hibler and Bryan, 1987], and a coupled ice-mixed layer model [Lemke,
+Owens, ..., 198?], have shown that the effects on ice can be modelled
+reasonably well.  
+
+    These required fields can be observed or modelled fairly well.  The
+fact that they cannot be constrained perfectly requires that we allow for
+input errors when developing the theory.
+\section{Governing equations}
+
+    The theory for the evolution of the ice thickness distribution was
+proposed by Thorndike et al [1975].  Define g(x, y, h, t) to be the 
+probability per unit thickness of finding a floe at a location x, y, at 
+time t, whose thickness is between h and h+dh.  A thickness h = 0 denotes
+open water.  Integrating g over all thicknesses not equal to 0 gives
+the probability of finding ice; it is the ice concentration.  The evolution
+equation for g is:
+\begin{equation}
+\frac {\partial g}{\partial t} +
+\div \vec{U}g +
+\frac {\partial fg} {\partial h} +
+= \psi
+\end{equation}
+\noindent where $\vec{U}$ is the ice velocity field, f is the freezing rate
+(thickness per unit time), and $\psi$ describes ridging/rafting/fragmentation.
+Physically, the second term says that g may change due to advection of g and
+convergence/divergence of g.  This is the normal term for conservation of
+a scalar in a compressible fluid.  The third term describes an evolution of
+g due to freezing.  If g is large at thickness h, a short time later it has
+propagated to thickness h+fdt.  We defer discussion of
+ridging until later.  Here, just note that when ice floes collide, they
+may crumble at the point of collision and build up significant thickness.
+This, of course, affects the probability of finding thick ice, and destroys
+some of the thinner ice. The freezing and advection terms have the character 
+of a wave equation.  This fact was noted by Coon
+et al. [1974], and exploited by Grumbine [1993].  The feature of a wave 
+equation is that {\it if} g is known initially, then what occurs is that
+the value is carried along characteristics.  Further, if g is always known
+at the boundaries, g is known everywhere and for all time.
+
+    To get to an equation with knowable terms, integrate the thickness 
+distribution over all thicknesses greater than h0.  This thickness is
+not quite zero because until ice has thickened somewhat (5-10 cm) it
+is not observable [Cavalieri,...], nor is its growth sensibly described
+by the slab approximation [Untersteiner...].  
+\begin{eqnarray}
+\frac {\partial A}{\partial t} + \div \vec{U}A + fg|^{\infty} - fg|_{h_0}
+= \Psi \\
+\Psi &=& \int_{h_0}^{\infty} \psi dh \\
+A    &=& \int_{h_0}^{\infty} g   dh 
+\end{eqnarray}
+\noindent  Where we have defined $\Psi$ and A as above.  Equation ?? is now
+composed almost entirely of knowable terms.  The evolution of ice 
+concentration, A, is observable by satellite.  The ice velocity field is
+observable or modellable.  The ice ridging is observable or modellable.
+There is no ice infinitely thick, so g, and hence that term, is zero.
+The final term is f(h0)g(h0).  The freezing rate of ice at a given thickness
+is computable.  
+
+    The only unknown, then is the ice thickness distribution
+function for the thinnest ice.  This is precisely the boundary condition which
+is needed to evaluate the evolution of g everywhere and for all time.
+If we were entirely confident of the knowable terms, we could solve equation
+?? for g(h0), and apply it as the boundary condition to equation ??,
+which would give the ice thickness distribution for the entire domain of the
+problem.  Note, when the ice is freezing, the characteristics advance away
+from the thin ice.  i.e., new ice is created and over time it gets thicker.
+When the ice is melting, the reverse occurs.  Ice thins, and on reaching
+h0, disappears.  A characteristic for an ice floe which forms in the
+winter and is destroyed in the summer is illustrated in figure ??.
+The observations of ice concentration establish the magnitude of g at
+the birth and death of the ice, note by the circles in the figure.  Away from
+the observing times, no information is presumed available to constrain
+g.  If a submarine happened to pass under an observing cell, this would
+provide a constraint for the entire distribution at that time.  The
+constraint is noted for the sample ice floe by the x.
+
+\section{Theory}
+
+    There are several ways in which to develop a variational minimization
+scheme, and several alternative methods to the variational.  We use the
+variational concept, and follow the methods of Sasaki [1976, 1969, 1956].
+The strong constraint of Sasaki [19??] represents a constraint which is
+known exactly.  This would be, say, conservation of mass in a closed system.
+A weak constraint represents a property which should be nearly known,
+though some variation is permissable.  We will apply weak constraints to
+the requirement that the ice concentration derived by the variational
+scheme match the observed.  This should not be a strong constraint as
+the observations are imperfect.  Most of our system is represented by
+weak constraints.
+
+\section{Application}
+
+    We have implemented computational solutions to evaluate the evolution
+of the ice thickness distribution, to emulate noisy observations of ice 
+concentration given the ice thickness distribution, and to invert these
+noisy observations to obtain an estimated evolution for g(h0), and finally,
+given the estimated g(h0), to evaluate the ice thickness distribution from
+the inversion method.  We first need to consider some of the computational
+requirements for this problem.
+
+    Since the governing equation for ice thickness distribution 
+is wave-like, we must satisfy the CFL criterion that the time step be 
+sufficiently short that advection does not cross more than 1 cell in a time 
+step.  For an ice velocity
+of 0.1 m/s and grid spacing of 127 km, this is a time step of 1.27*10$^6$ s,
+far longer than anything we'd use given daily observations.  For a freezing
+rate of 0.1 m/day (typical for thin ice in winter), and a 0.5 day time step 
+(typical of sea ice models), the minimum spacing in thickness is 0.05 m.
+Ice freezing rates decline with increasing thickness (due largely to the
+effect of insulation provided by thick ice), but even for meter thick ice,
+the freezing rate can be 0.03 m/day.  That permits a somewhat coarser grid,
+0.15 m.  To model all ice up to 10 meters thick (ice thicker than that is seldom
+observed in submarine tracks of the Arctic ocean), we need approximately 
+200 thickness levels, spaced 0.05 cm apart.  Ice advection gives no limit,
+but ice thermodynamics do.  The number of levels cannot be reduced without
+either decreasing the time step (which should be avoided due to the approximately
+daily observations, and meteorological forcing which is 12 hourly), or doing
+violence to the freezing rate.
+
+    We derive the true solution by evaluating the ice thickness distribution
+equation for a specified freezing history.  The boundary condition for thin
+ice is set to be a concentration of (1-A)*epsi, where epsi is the fraction
+of previously open water which the thinnest ice covers.  Epsi is taken to be
+0.1, its exact value being irrelevant to the proceeding.  The freezing is
+taken to be ()*sin(omega t).  This is not strictly realistic, as the melting
+rate typically has less dependence on thickness than the winter freezing does.
+It is, however, unrealistic in a sense which is more difficult to model
+or invert.  It is taken for ease of generating a test case.  For the first
+test, we set the ice velocity to zero (which also sets ridging to zero).  
+Freezing and melting are the most constraining features, occurring as they
+do in conjunction with the boundary condition.  
+
+    The noisy observations are emulated by computing, from the ice thickness
+distribution, the true ice concentration, and adding a uniformly random
+variable, in the range $\pm$ 0.05 in concentration, and then truncating the
+observations to concentrations in the range of 0 to 1.  The observations
+are taken daily.
+
+    The observations are then fed to the program which solves equations ??,
+which provides the new g(bc).  This g(bc) is then fed back to the
+forward problem solver as the boundary condition, and the thickness 
+distribution computed therefrom.  When all this is done, we arrive at
+figures ?? and ??.  Figure ?? presents the true values of ice concentration,
+the noisy observations of ice concentration, and the ice concentration after
+assimilation.  Figure ?? presents snapshots of the ice thickness distribution
+from the true solution and the variational estimate for several different
+times in the year.  From this we see clearly that the variational method
+is quite good at removing noise from the ice concentration observations.
+We also find that the ice thickness distribution can be retrieved with 
+good confidence.
+\section{Conclusions}
+
+    The most important step, application to real ice observations, including
+ice velocity and ridging, is still to be done.  From the above, though,
+the project looks like it can indeed be carried out.  The variational
+theory developed here can effectively remove noise from the observations
+of ice concentration.  Having done so, it can infer the thickness of
+the thinnest ice with sufficient accuracy to provide the boundary 
+conditions for an ice thickness distribution evolution model.  
+\section{Bibliography}
+Ketchum
+
+Bourke
+
+Thorndike
+
+Thomas
+
+Rothrock
+
+Thorndike et al.
+
+Flato
+
+Hibler+Bryan
+
+Lemke et al 1987
+
+\end{document}

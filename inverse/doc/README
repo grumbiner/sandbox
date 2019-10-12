@@ -1,0 +1,12 @@
+#This directory ($HOME3/inverse) contains files related to the ice
+#  thickness inversion project.  Additionally, files for the cleaning
+#  of ssmi analyses from the weather-contaminated NASA-Team algorithm.
+
+#Directories are:
+#  smoothing : the preliminary work on smoothing time series
+#  thickness : the work on getting an ice thickness distribution.
+#  therm     : estimating ice growth rates given MRF information,
+#               used for trimming contaminated SSMI fields prior
+#               to trying inversions.
+#  predict   : thermodynamic and dynamic predictability support routines.
+ 
