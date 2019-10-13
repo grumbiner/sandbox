@@ -1,0 +1,12 @@
+set -x
+wgrib -V *.grib.f72 | head -6 > alpha
+x=`./parmer < alpha`
+wgrib *.grib.f72 | grep UGRD | grep '35 m' | wgrib *.grib.f72 -i -nh -o huru.low
+wgrib *.grib.f72 | grep VGRD | grep '35 m' | wgrib *.grib.f72 -i -nh -o hurv.low
+
+wgrib -V *.gribn3.f72 | head -6 > beta
+y=`./parmer < beta`
+wgrib *.gribn3.f72 | grep UGRD | grep '35 m' | wgrib *.gribn3.f72 -i -nh -o huru.high
+wgrib *.gribn3.f72 | grep VGRD | grep '35 m' | wgrib *.gribn3.f72 -i -nh -o hurv.high
+
+./hur4 $x $y huru hurv ecgu ecgu

@@ -1,0 +1,738 @@
+#  
+#        Make sea ice data ( SSM/I )
+#
+#      From  1992  1  1  to  1992   6  24
+#
+#     created     1994  11  29   BY  A.B.
+#
+#  **  --  COMMON PART  --  **
+#
+f77 -c -o  m.o  iceQC.f
+#        -- Compile the FORTRAN program
+#
+f77 -o work.a m.o \
+       $EMOSLIB $ECLIB
+#    -- link and make binary
+#    -- $EMOSLIB,$ECLIB are used for pbopen,pbread
+#
+ln -s nmc92.filter    fort.51
+ln -s nmask.2         fort.60
+ln -s smask.2         fort.61
+#   -- fort.51 : weekly SST (360,180)
+#   -- fort.60 : LAND/SEA mask over N.H.
+#   -- fort.61 : LAND/SEA mask over S.H.
+#
+#
+#
+#  **  --  FOR EVERY WEEK  --  **
+#
+ln -s ../1991/nh/911229.tot fort.10
+ln -s ../1991/nh/911230.tot fort.11
+ln -s ../1991/nh/911231.tot fort.12
+ln -s ./nh/920101.tot fort.13
+ln -s ./nh/920102.tot fort.14
+ln -s ./nh/920103.tot fort.15
+ln -s ./nh/920104.tot fort.16
+#
+#  fort.10 - fort.16  : original satellite sea ice 
+#                       concentration data for N.H.
+#
+ln -s ../1991/sh/911229.tot fort.30
+ln -s ../1991/sh/911230.tot fort.31
+ln -s ../1991/sh/911231.tot fort.32
+ln -s ./sh/920101.tot fort.33
+ln -s ./sh/920102.tot fort.34
+ln -s ./sh/920103.tot fort.35
+ln -s ./sh/920104.tot fort.36
+#
+#  fort.30 - fort.36  : original satellite sea ice 
+#                       concentration data for N.H.
+#
+ln -s ice920101       fort.99
+ln -s ice911225       fort.50
+#
+#  fort.99 : output = weekly global sea ice con. data
+#  fort.50 : previous sea ice con. data
+#            -- if it is empty file, no problem at all
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=1,idm=01  &end
+ &datef  iyf=1991,imf=12,idf=29  &end
+ &datel  iyl=1992,iml=1,idl=04  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+#  &datem : middle date of the week
+#  &datef : date of the first satellite data
+#  &datel : date of the last  satellite data
+#  &efile : file sequence number of the last files
+#
+#  --  execute the calculation  --
+#
+work.a <namelst
+#
+#
+#  --  for the next week
+#
+ln -s ./nh/920105.tot fort.10
+ln -s ./nh/920106.tot fort.11
+ln -s ./nh/920107.tot fort.12
+ln -s ./nh/920108.tot fort.13
+ln -s ./nh/920109.tot fort.14
+ln -s ./nh/920110.tot fort.15
+ln -s ./nh/920111.tot fort.16
+ln -s ./sh/920105.tot fort.30
+ln -s ./sh/920106.tot fort.31
+ln -s ./sh/920107.tot fort.32
+ln -s ./sh/920108.tot fort.33
+ln -s ./sh/920109.tot fort.34
+ln -s ./sh/920110.tot fort.35
+ln -s ./sh/920111.tot fort.36
+ln -s ice920108       fort.99
+ln -s ice920101       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=1,idm=08  &end
+ &datef  iyf=1992,imf=1,idf=05  &end
+ &datel  iyl=1992,iml=1,idl=11  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+#
+#  --  for the next week
+#
+ln -s ./nh/920112.tot fort.10
+ln -s ./nh/920113.tot fort.11
+ln -s ./nh/920114.tot fort.12
+ln -s ./nh/920115.tot fort.13
+ln -s ./nh/920116.tot fort.14
+ln -s ./nh/920117.tot fort.15
+ln -s ./nh/920118.tot fort.16
+ln -s ./sh/920112.tot fort.30
+ln -s ./sh/920113.tot fort.31
+ln -s ./sh/920114.tot fort.32
+ln -s ./sh/920115.tot fort.33
+ln -s ./sh/920116.tot fort.34
+ln -s ./sh/920117.tot fort.35
+ln -s ./sh/920118.tot fort.36
+ln -s ice920115       fort.99
+ln -s ice920108       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=1,idm=15  &end
+ &datef  iyf=1992,imf=1,idf=12  &end
+ &datel  iyl=1992,iml=1,idl=18  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+#
+#
+#  --  for the next week
+#
+work.a <namelst
+#
+ln -s ./nh/920119.tot fort.10
+ln -s ./nh/920120.tot fort.11
+ln -s ./nh/920121.tot fort.12
+ln -s ./nh/920122.tot fort.13
+ln -s ./nh/920123.tot fort.14
+ln -s ./nh/920124.tot fort.15
+ln -s ./nh/920125.tot fort.16
+ln -s ./sh/920119.tot fort.30
+ln -s ./sh/920120.tot fort.31
+ln -s ./sh/920121.tot fort.32
+ln -s ./sh/920122.tot fort.33
+ln -s ./sh/920123.tot fort.34
+ln -s ./sh/920124.tot fort.35
+ln -s ./sh/920125.tot fort.36
+ln -s ice920122       fort.99
+ln -s ice920115       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=1,idm=22  &end
+ &datef  iyf=1992,imf=1,idf=19  &end
+ &datel  iyl=1992,iml=1,idl=25  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920126.tot fort.10
+ln -s ./nh/920127.tot fort.11
+ln -s ./nh/920128.tot fort.12
+ln -s ./nh/920129.tot fort.13
+ln -s ./nh/920130.tot fort.14
+ln -s ./nh/920131.tot fort.15
+ln -s ./nh/920201.tot fort.16
+ln -s ./sh/920126.tot fort.30
+ln -s ./sh/920127.tot fort.31
+ln -s ./sh/920128.tot fort.32
+ln -s ./sh/920129.tot fort.33
+ln -s ./sh/920130.tot fort.34
+ln -s ./sh/920131.tot fort.35
+ln -s ./sh/920201.tot fort.36
+ln -s ice920129       fort.99
+ln -s ice920122       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=1,idm=29  &end
+ &datef  iyf=1992,imf=1,idf=26  &end
+ &datel  iyl=1992,iml=2,idl=01  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920202.tot fort.10
+ln -s ./nh/920203.tot fort.11
+ln -s ./nh/920204.tot fort.12
+ln -s ./nh/920205.tot fort.13
+ln -s ./nh/920206.tot fort.14
+ln -s ./nh/920207.tot fort.15
+ln -s ./nh/920208.tot fort.16
+ln -s ./sh/920202.tot fort.30
+ln -s ./sh/920203.tot fort.31
+ln -s ./sh/920204.tot fort.32
+ln -s ./sh/920205.tot fort.33
+ln -s ./sh/920206.tot fort.34
+ln -s ./sh/920207.tot fort.35
+ln -s ./sh/920208.tot fort.36
+ln -s ice920205       fort.99
+ln -s ice920129       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=2,idm=05  &end
+ &datef  iyf=1992,imf=2,idf=02  &end
+ &datel  iyl=1992,iml=2,idl=08  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920209.tot fort.10
+ln -s ./nh/920210.tot fort.11
+ln -s ./nh/920211.tot fort.12
+ln -s ./nh/920212.tot fort.13
+ln -s ./nh/920213.tot fort.14
+ln -s ./nh/920214.tot fort.15
+ln -s ./nh/920215.tot fort.16
+ln -s ./sh/920209.tot fort.30
+ln -s ./sh/920210.tot fort.31
+ln -s ./sh/920211.tot fort.32
+ln -s ./sh/920212.tot fort.33
+ln -s ./sh/920213.tot fort.34
+ln -s ./sh/920214.tot fort.35
+ln -s ./sh/920215.tot fort.36
+ln -s ice920212       fort.99
+ln -s ice920205       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=2,idm=12  &end
+ &datef  iyf=1992,imf=2,idf=09  &end
+ &datel  iyl=1992,iml=2,idl=15  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920216.tot fort.10
+ln -s ./nh/920217.tot fort.11
+ln -s ./nh/920218.tot fort.12
+ln -s ./nh/920219.tot fort.13
+ln -s ./nh/920220.tot fort.14
+ln -s ./nh/920221.tot fort.15
+ln -s ./nh/920222.tot fort.16
+ln -s ./sh/920216.tot fort.30
+ln -s ./sh/920217.tot fort.31
+ln -s ./sh/920218.tot fort.32
+ln -s ./sh/920219.tot fort.33
+ln -s ./sh/920220.tot fort.34
+ln -s ./sh/920221.tot fort.35
+ln -s ./sh/920222.tot fort.36
+ln -s ice920219       fort.99
+ln -s ice920212       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=2,idm=19  &end
+ &datef  iyf=1992,imf=2,idf=16  &end
+ &datel  iyl=1992,iml=2,idl=22  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920223.tot fort.10
+ln -s ./nh/920224.tot fort.11
+ln -s ./nh/920225.tot fort.12
+ln -s ./nh/920226.tot fort.13
+ln -s ./nh/920227.tot fort.14
+ln -s ./nh/920228.tot fort.15
+ln -s ./nh/920229.tot fort.16
+ln -s ./sh/920223.tot fort.30
+ln -s ./sh/920224.tot fort.31
+ln -s ./sh/920225.tot fort.32
+ln -s ./sh/920226.tot fort.33
+ln -s ./sh/920227.tot fort.34
+ln -s ./sh/920228.tot fort.35
+ln -s ./sh/920229.tot fort.36
+ln -s ice920226       fort.99
+ln -s ice920219       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=2,idm=26  &end
+ &datef  iyf=1992,imf=2,idf=23  &end
+ &datel  iyl=1992,iml=2,idl=29  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920301.tot fort.10
+ln -s ./nh/920302.tot fort.11
+ln -s ./nh/920303.tot fort.12
+ln -s ./nh/920304.tot fort.13
+ln -s ./nh/920305.tot fort.14
+ln -s ./nh/920306.tot fort.15
+ln -s ./nh/920307.tot fort.16
+ln -s ./sh/920301.tot fort.30
+ln -s ./sh/920302.tot fort.31
+ln -s ./sh/920303.tot fort.32
+ln -s ./sh/920304.tot fort.33
+ln -s ./sh/920305.tot fort.34
+ln -s ./sh/920306.tot fort.35
+ln -s ./sh/920307.tot fort.36
+ln -s ice920304       fort.99
+ln -s ice920226       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=3,idm=04  &end
+ &datef  iyf=1992,imf=3,idf=01  &end
+ &datel  iyl=1992,iml=3,idl=07  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920308.tot fort.10
+ln -s ./nh/920309.tot fort.11
+ln -s ./nh/920310.tot fort.12
+ln -s ./nh/920311.tot fort.13
+ln -s ./nh/920312.tot fort.14
+ln -s ./nh/920313.tot fort.15
+ln -s ./nh/920314.tot fort.16
+ln -s ./sh/920308.tot fort.30
+ln -s ./sh/920309.tot fort.31
+ln -s ./sh/920310.tot fort.32
+ln -s ./sh/920311.tot fort.33
+ln -s ./sh/920312.tot fort.34
+ln -s ./sh/920313.tot fort.35
+ln -s ./sh/920314.tot fort.36
+ln -s ice920311       fort.99
+ln -s ice920304       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=3,idm=11  &end
+ &datef  iyf=1992,imf=3,idf=08  &end
+ &datel  iyl=1992,iml=3,idl=14  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920315.tot fort.10
+ln -s ./nh/920316.tot fort.11
+ln -s ./nh/920317.tot fort.12
+ln -s ./nh/920318.tot fort.13
+ln -s ./nh/920319.tot fort.14
+ln -s ./nh/920320.tot fort.15
+ln -s ./nh/920321.tot fort.16
+ln -s ./sh/920315.tot fort.30
+ln -s ./sh/920316.tot fort.31
+ln -s ./sh/920317.tot fort.32
+ln -s ./sh/920318.tot fort.33
+ln -s ./sh/920319.tot fort.34
+ln -s ./sh/920320.tot fort.35
+ln -s ./sh/920321.tot fort.36
+ln -s ice920318       fort.99
+ln -s ice920311       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=3,idm=18  &end
+ &datef  iyf=1992,imf=3,idf=15  &end
+ &datel  iyl=1992,iml=3,idl=21  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920322.tot fort.10
+ln -s ./nh/920323.tot fort.11
+ln -s ./nh/920324.tot fort.12
+ln -s ./nh/920325.tot fort.13
+ln -s ./nh/920326.tot fort.14
+ln -s ./nh/920327.tot fort.15
+ln -s ./nh/920328.tot fort.16
+ln -s ./sh/920322.tot fort.30
+ln -s ./sh/920323.tot fort.31
+ln -s ./sh/920324.tot fort.32
+ln -s ./sh/920325.tot fort.33
+ln -s ./sh/920326.tot fort.34
+ln -s ./sh/920327.tot fort.35
+ln -s ./sh/920328.tot fort.36
+ln -s ice920325       fort.99
+ln -s ice920318       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=3,idm=25  &end
+ &datef  iyf=1992,imf=3,idf=22  &end
+ &datel  iyl=1992,iml=3,idl=28  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920329.tot fort.10
+ln -s ./nh/920330.tot fort.11
+ln -s ./nh/920331.tot fort.12
+ln -s ./nh/920401.tot fort.13
+ln -s ./nh/920402.tot fort.14
+ln -s ./nh/920403.tot fort.15
+ln -s ./nh/920404.tot fort.16
+ln -s ./sh/920329.tot fort.30
+ln -s ./sh/920330.tot fort.31
+ln -s ./sh/920331.tot fort.32
+ln -s ./sh/920401.tot fort.33
+ln -s ./sh/920402.tot fort.34
+ln -s ./sh/920403.tot fort.35
+ln -s ./sh/920404.tot fort.36
+ln -s ice920401       fort.99
+ln -s ice920325       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=4,idm=01  &end
+ &datef  iyf=1992,imf=3,idf=29  &end
+ &datel  iyl=1992,iml=4,idl=04  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920405.tot fort.10
+ln -s ./nh/920406.tot fort.11
+ln -s ./nh/920407.tot fort.12
+ln -s ./nh/920408.tot fort.13
+ln -s ./nh/920409.tot fort.14
+ln -s ./nh/920410.tot fort.15
+ln -s ./nh/920411.tot fort.16
+ln -s ./sh/920405.tot fort.30
+ln -s ./sh/920406.tot fort.31
+ln -s ./sh/920407.tot fort.32
+ln -s ./sh/920408.tot fort.33
+ln -s ./sh/920409.tot fort.34
+ln -s ./sh/920410.tot fort.35
+ln -s ./sh/920411.tot fort.36
+ln -s ice920408       fort.99
+ln -s ice920401       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=4,idm=08  &end
+ &datef  iyf=1992,imf=4,idf=05  &end
+ &datel  iyl=1992,iml=4,idl=11  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920412.tot fort.10
+ln -s ./nh/920413.tot fort.11
+ln -s ./nh/920414.tot fort.12
+ln -s ./nh/920415.tot fort.13
+ln -s ./nh/920416.tot fort.14
+ln -s ./nh/920417.tot fort.15
+ln -s ./nh/920418.tot fort.16
+ln -s ./sh/920412.tot fort.30
+ln -s ./sh/920413.tot fort.31
+ln -s ./sh/920414.tot fort.32
+ln -s ./sh/920415.tot fort.33
+ln -s ./sh/920416.tot fort.34
+ln -s ./sh/920417.tot fort.35
+ln -s ./sh/920418.tot fort.36
+ln -s ice920415       fort.99
+ln -s ice920408       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=4,idm=15  &end
+ &datef  iyf=1992,imf=4,idf=12  &end
+ &datel  iyl=1992,iml=4,idl=18  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920419.tot fort.10
+ln -s ./nh/920420.tot fort.11
+ln -s ./nh/920421.tot fort.12
+ln -s ./nh/920422.tot fort.13
+ln -s ./nh/920423.tot fort.14
+ln -s ./nh/920424.tot fort.15
+ln -s ./nh/920425.tot fort.16
+ln -s ./sh/920419.tot fort.30
+ln -s ./sh/920420.tot fort.31
+ln -s ./sh/920421.tot fort.32
+ln -s ./sh/920422.tot fort.33
+ln -s ./sh/920423.tot fort.34
+ln -s ./sh/920424.tot fort.35
+ln -s ./sh/920425.tot fort.36
+ln -s ice920422       fort.99
+ln -s ice920415       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=4,idm=22  &end
+ &datef  iyf=1992,imf=4,idf=19  &end
+ &datel  iyl=1992,iml=4,idl=25  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920426.tot fort.10
+ln -s ./nh/920427.tot fort.11
+ln -s ./nh/920428.tot fort.12
+ln -s ./nh/920429.tot fort.13
+ln -s ./nh/920430.tot fort.14
+ln -s ./nh/920501.tot fort.15
+ln -s ./nh/920502.tot fort.16
+ln -s ./sh/920426.tot fort.30
+ln -s ./sh/920427.tot fort.31
+ln -s ./sh/920428.tot fort.32
+ln -s ./sh/920429.tot fort.33
+ln -s ./sh/920430.tot fort.34
+ln -s ./sh/920501.tot fort.35
+ln -s ./sh/920502.tot fort.36
+ln -s ice920429       fort.99
+ln -s ice920422       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=4,idm=29  &end
+ &datef  iyf=1992,imf=4,idf=26  &end
+ &datel  iyl=1992,iml=5,idl=02  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920503.tot fort.10
+ln -s ./nh/920504.tot fort.11
+ln -s ./nh/920505.tot fort.12
+ln -s ./nh/920506.tot fort.13
+ln -s ./nh/920507.tot fort.14
+ln -s ./nh/920508.tot fort.15
+ln -s ./nh/920509.tot fort.16
+ln -s ./sh/920503.tot fort.30
+ln -s ./sh/920504.tot fort.31
+ln -s ./sh/920505.tot fort.32
+ln -s ./sh/920506.tot fort.33
+ln -s ./sh/920507.tot fort.34
+ln -s ./sh/920508.tot fort.35
+ln -s ./sh/920509.tot fort.36
+ln -s ice920506       fort.99
+ln -s ice920429       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=5,idm=06  &end
+ &datef  iyf=1992,imf=5,idf=03  &end
+ &datel  iyl=1992,iml=5,idl=09  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920510.tot fort.10
+ln -s ./nh/920511.tot fort.11
+ln -s ./nh/920512.tot fort.12
+ln -s ./nh/920513.tot fort.13
+ln -s ./nh/920514.tot fort.14
+ln -s ./nh/920515.tot fort.15
+ln -s ./nh/920516.tot fort.16
+ln -s ./sh/920510.tot fort.30
+ln -s ./sh/920511.tot fort.31
+ln -s ./sh/920512.tot fort.32
+ln -s ./sh/920513.tot fort.33
+ln -s ./sh/920514.tot fort.34
+ln -s ./sh/920515.tot fort.35
+ln -s ./sh/920516.tot fort.36
+ln -s ice920513       fort.99
+ln -s ice920506       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=5,idm=13  &end
+ &datef  iyf=1992,imf=5,idf=10  &end
+ &datel  iyl=1992,iml=5,idl=16  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920517.tot fort.10
+ln -s ./nh/920518.tot fort.11
+ln -s ./nh/920519.tot fort.12
+ln -s ./nh/920520.tot fort.13
+ln -s ./nh/920521.tot fort.14
+ln -s ./nh/920522.tot fort.15
+ln -s ./nh/920523.tot fort.16
+ln -s ./sh/920517.tot fort.30
+ln -s ./sh/920518.tot fort.31
+ln -s ./sh/920519.tot fort.32
+ln -s ./sh/920520.tot fort.33
+ln -s ./sh/920521.tot fort.34
+ln -s ./sh/920522.tot fort.35
+ln -s ./sh/920523.tot fort.36
+ln -s ice920520       fort.99
+ln -s ice920513       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=5,idm=20  &end
+ &datef  iyf=1992,imf=5,idf=17  &end
+ &datel  iyl=1992,iml=5,idl=23  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920524.tot fort.10
+ln -s ./nh/920525.tot fort.11
+ln -s ./nh/920526.tot fort.12
+ln -s ./nh/920527.tot fort.13
+ln -s ./nh/920528.tot fort.14
+ln -s ./nh/920529.tot fort.15
+ln -s ./nh/920530.tot fort.16
+ln -s ./sh/920524.tot fort.30
+ln -s ./sh/920525.tot fort.31
+ln -s ./sh/920526.tot fort.32
+ln -s ./sh/920527.tot fort.33
+ln -s ./sh/920528.tot fort.34
+ln -s ./sh/920529.tot fort.35
+ln -s ./sh/920530.tot fort.36
+ln -s ice920527       fort.99
+ln -s ice920520       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=5,idm=27  &end
+ &datef  iyf=1992,imf=5,idf=24  &end
+ &datel  iyl=1992,iml=5,idl=30  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920531.tot fort.10
+ln -s ./nh/920601.tot fort.11
+ln -s ./nh/920602.tot fort.12
+ln -s ./nh/920603.tot fort.13
+ln -s ./nh/920604.tot fort.14
+ln -s ./nh/920605.tot fort.15
+ln -s ./nh/920606.tot fort.16
+ln -s ./sh/920531.tot fort.30
+ln -s ./sh/920601.tot fort.31
+ln -s ./sh/920602.tot fort.32
+ln -s ./sh/920603.tot fort.33
+ln -s ./sh/920604.tot fort.34
+ln -s ./sh/920605.tot fort.35
+ln -s ./sh/920606.tot fort.36
+ln -s ice920603       fort.99
+ln -s ice920527       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=6,idm=03  &end
+ &datef  iyf=1992,imf=5,idf=31  &end
+ &datel  iyl=1992,iml=6,idl=06  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920607.tot fort.10
+ln -s ./nh/920608.tot fort.11
+ln -s ./nh/920609.tot fort.12
+ln -s ./nh/920610.tot fort.13
+ln -s ./nh/920611.tot fort.14
+ln -s ./nh/920612.tot fort.15
+ln -s ./nh/920613.tot fort.16
+ln -s ./sh/920607.tot fort.30
+ln -s ./sh/920608.tot fort.31
+ln -s ./sh/920609.tot fort.32
+ln -s ./sh/920610.tot fort.33
+ln -s ./sh/920611.tot fort.34
+ln -s ./sh/920612.tot fort.35
+ln -s ./sh/920613.tot fort.36
+ln -s ice920610       fort.99
+ln -s ice920603       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=6,idm=10  &end
+ &datef  iyf=1992,imf=6,idf=07  &end
+ &datel  iyl=1992,iml=6,idl=13  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920614.tot fort.10
+ln -s ./nh/920615.tot fort.11
+ln -s ./nh/920616.tot fort.12
+ln -s ./nh/920617.tot fort.13
+ln -s ./nh/920618.tot fort.14
+ln -s ./nh/920619.tot fort.15
+ln -s ./nh/920620.tot fort.16
+ln -s ./sh/920614.tot fort.30
+ln -s ./sh/920615.tot fort.31
+ln -s ./sh/920616.tot fort.32
+ln -s ./sh/920617.tot fort.33
+ln -s ./sh/920618.tot fort.34
+ln -s ./sh/920619.tot fort.35
+ln -s ./sh/920620.tot fort.36
+ln -s ice920617       fort.99
+ln -s ice920610       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=6,idm=17  &end
+ &datef  iyf=1992,imf=6,idf=14  &end
+ &datel  iyl=1992,iml=6,idl=20  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+ln -s ./nh/920621.tot fort.10
+ln -s ./nh/920622.tot fort.11
+ln -s ./nh/920623.tot fort.12
+ln -s ./nh/920624.tot fort.13
+ln -s ./nh/920625.tot fort.14
+ln -s ./nh/920626.tot fort.15
+ln -s ./nh/920627.tot fort.16
+ln -s ./sh/920621.tot fort.30
+ln -s ./sh/920622.tot fort.31
+ln -s ./sh/920623.tot fort.32
+ln -s ./sh/920624.tot fort.33
+ln -s ./sh/920625.tot fort.34
+ln -s ./sh/920626.tot fort.35
+ln -s ./sh/920627.tot fort.36
+ln -s ice920624       fort.99
+ln -s ice920617       fort.50
+#
+cat > namelst <<EOF
+ &datem  iym=1992,imm=6,idm=24  &end
+ &datef  iyf=1992,imf=6,idf=21  &end
+ &datel  iyl=1992,iml=6,idl=27  &end
+ &efile  ienfile=16,iesfile=36  &end
+EOF
+#
+work.a <namelst
+#
+#  cleaning
+#
+rm m.o work.a
+rm fort.*
+rm namelst

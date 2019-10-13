@@ -1,0 +1,4 @@
+mkdir /tmp/wd21rg
+cd /tmp/wd21rg
+fetch - -fBB -mVX -t"dsn=com.psatavsp.sharepr.ss5idb,disp=shr" | \
+uscpblock -u -fBB - > unblock

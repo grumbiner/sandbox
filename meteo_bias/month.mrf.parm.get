@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#argument 1 is base yymmdd
+
+#Script to extract mrf parameters from the flux file using wgrib
+#Robert Grumbine
+#4 February 1998
+
+base=$1
+wdir=~/cdrom/$base/
+for dy in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+          21 22 23 24 25 26 27 28 29 30 31
+do
+  for hr in 00 06 12 18 
+  do
+    wgrib ${wdir}/${base}$dy$hr.fx6 > index
+    for parm in SHTFL LHTFL DLWRF DSWRF ALBDO ICEC LAND 
+    do
+      grep $parm index | wgrib -nh -i ${wdir}/${base}$dy$hr.fx6 -o ${parm}.${base}$dy$hr
+    done
+    parm=ULWRF
+    grep 'kpds5=212' index | grep 'kpds6=1' | grep 'kpds7=0' | \
+      wgrib -nh -i ${wdir}/${base}$dy$hr.fx6 -o ${parm}.${base}$dy$hr
+    parm=USWRF
+    grep 'kpds5=211' index | grep 'kpds6=1' | grep 'kpds7=0' | \
+      wgrib -nh -i ${wdir}/${base}$dy$hr.fx6 -o ${parm}.${base}$dy$hr
+     
+  done
+done

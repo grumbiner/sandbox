@@ -1,0 +1,11 @@
+
+jday=31
+yy=2001
+#time ./ssmi.orig delta nland.map sland.map \
+#  n3ssmi s3ssmi umasknorth umasksouth \
+#  b3north b3south $jday $yy 246 > v
+time ./ssmi.orig delta nland.map sland.map \
+  n3ssmi s3ssmi umasknorth umasksouth \
+  $jday $yy 246 > v
+
+

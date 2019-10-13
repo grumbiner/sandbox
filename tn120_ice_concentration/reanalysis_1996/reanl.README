@@ -1,0 +1,8 @@
+The execution stream is:
+
+reanl.x where x is the CD number from NSIDC
+  -- requires programs nsidc, nsidc.south (which require the HDF library to link)
+filt
+  -- requires programs filtnsidc and tfill, along with Reynolds 1 degree sst
+      as input.  This currently uses wgrib to decode the grib files.
+

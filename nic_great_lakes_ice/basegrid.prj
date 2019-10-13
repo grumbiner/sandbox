@@ -1,0 +1,11 @@
+Projection    MERCATOR                                                          
+Zunits        NO                                                                
+Units         METERS                                                            
+Spheroid      CLARKE1866                                                        
+Xshift        0.0000000000                                                      
+Yshift        0.0000000000                                                      
+Parameters                                                                      
+-84  8 24.000 /* longitude of central meridian                                  
+ 45  2 24.000 /* latitude of true scale                                         
+0.00000 /* false easting (meters)                                       
+0.00000 /* false northing (meters)                                      

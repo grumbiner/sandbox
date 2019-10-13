@@ -1,0 +1,116 @@
+
+
+This directory contains two sample Interactive Display Language (IDL) programs 
+that can read and display the DMSP F-11 SSM/I Brightness Temperature files on 
+this CDROM. The IDL code includes the ability to apply one of three overlays 
+to the image on the screen: a land mask, a coastline mask or a 
+latitude/longitude mask. To execute this program, one must have a version of 
+IDL that supports Hierarchical Data Format (HDF). IDL version 3.0 or later
+contains utilities for manipulating data stored in HDF. This code was written 
+and tested on a DECstation/ULTRIX running IDL version 3.5.1.
+
+When using a CDROM drive that mounts a CDROM using the ISO9660 standard, the
+user will observe that all filenames will appear in UPPER-CASE. For some 
+systems such as SUN and SGI the filenames will appear in lower-case. In the 
+latter case, all paths and filenames in the IDL code must be changed to 
+lower-case before executing this IDL code.
+
+To compile this program type at the IDL command line:
+
+IDL> .run display_f11_xa.pro	(You may need to add the path to this program)
+		or		(eg. .run /cdrom/TOOLS/IDL/DISPLAY_F11_XA.PRO )
+IDL> .run display_f11.pro     	(use UPPERCASE or lowercase as needed.)
+
+
+To run this program type: 
+
+	IDL> display_f11_xa,tb	or	IDL> display_f11,tb
+
+Note: 'tb' is a returned variable that contains data to be displayed.
+
+Here is an sample session. (User responses are indicated after the :'s)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+IDL> display_f11_xa,tb
+
+Enter the start date (eg. 911203)
+:911221
+
+Enter the stop date  (eg. 911231)
+:911221
+
+Enter the hemisphere (1 = northern)
+	             (2 = southern)
+:1
+
+Enter the channel to display (1-7)
+ 1   2   3   4   5   6   7
+--- --- --- --- --- --- ---
+19H 19V 22V 37H 37V 85H 85V
+:2
+
+Enter the path to the data.
+eg. /cdrom or /mnt  -  (a CDROM mount point or files on hard disk)
+:/cdrom
+
+Enter an IDL window number where the dates will be displayed
+: 1
+
+Do you wish to overlay a mask file?
+coastline, lat/lon or land mask
+y/n
+:y
+
+The northern hemisphere 12.5 km resolution has 3 overlays to choose from:
+1 - N3BCOAST.HDF - (a coastline)
+2 - N3BLTLN.HDF  - (lat/lon grids)
+3 - N3BMASK.HDF  - (a land mask)
+
+Enter a number (1-3) for the overlay.
+:2
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+An image will appear in the window that you have selected.
+
+
+
+
+
+A very short list of some IDL commands (for use with display_f11.pro):
+
+tvscl - procedure that scales the intesnsity values of the image into the
+	range of the display and outputs the data to the image display.
+
+	ex.	IDL> tvscl,tb
+		IDL> tvscl,tb(*,*,5) - displays the 5th image of a 3-D array.
+
+tv    -	procedure that displays images on the image display without scaling
+	the intensity.
+
+	ex.	IDL> tv,tb
+		IDL> tv,tb(*,*,5)
+
+loadct-	procedure that loads a color palette.
+
+	ex.	IDL> loadct   - a list of possible selection will appear.
+		IDL> loadct,23 - load the 23rd color palette.
+
+
+
+For a complete description of the Interactive Display Language (IDL), see IDL 
+Reference Guide or IDL User's Guide, Research Systems, Inc., 777 29th St.,
+Suite 302, Boulder, CO 80303, (303)786-9900. Version 3.0 or higher. (1993).
+
+
+For help with this code, contact:
+
+Nick Sandoval
+University of Colorado
+Campus Box 449
+Boulder, CO  80309-0449
+(303)492-5710
+(303)492-2468 (fax)
+e-mail: sandoval@slush.colorado.edu (internet)

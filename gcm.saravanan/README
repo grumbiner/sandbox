@@ -1,0 +1,59 @@
+The following files should now be present in this directory:
+ 
+README makefile.sun makefile.cray mcons.h mgrid.h tmarch.h spcons.h spgrid.h
+sppoly.h spfftb.h ftable.h splib.F prognos.F linpack.F prof.F adiabat.F
+axisym.F ptest.F adbt.in adbt.out.sparc adbt.out.cray manual.tex
+ 
+Here is a brief description of the files:
+ 
+manual.tex contains documentation describing the model, in plain TeX. If you
+are not a habitual TeX user, you will need to ask somebody how to print out
+a TeX file.
+ 
+The makefiles are for use on the Sun or on the Cray.
+ 
+The *.h files are inlcude files.
+ 
+splib.F is the spectral transforms module.
+ 
+prognos.F is the time-marching module.
+ 
+Note: The following files are not as well documented as the above files. They
+are provided for the sake of completeness, and so that the user may have some
+idea of how the above modules are actually used in application programs.
+ 
+linpack.F is a selection of LINPACK routines put together to simulate the NAG
+routines used by prognos.F. It is provided for the sake of completeness, and
+the NAG routines should preferably be used, if available.
+ 
+prof.F is a set of simple subroutines for providing reference vertical
+temperature profiles for the atmosphere. They are based on the paper
+"Analytic representations of standard atmosphere temperature profiles,"
+S.B.Fels, Journal of Atmospheric Sciences(1986), vol. 43, pp.219-221.
+These temperature profiles may be converted to mean potential temperature
+profiles for relaxation by Newtonian cooling. (See file ptest.F)
+ 
+adiabat.F is a MAIN program that tests the conservation properties of the
+primitive equation model, in a manner similar to that described in the paper
+"A multi-layer spectral model and the semi-implicit method", B.J.Hoskins and
+A.J.Simmons, Quart. J. R. Met. Soc.(1975), vol.101,pp.637-655.
+ 
+adbt.in is a sample input file for adiabat.F.
+ 
+The adbt.out.* files are some sample output files for runs using adbt.in.
+(See the makefiles)
+ 
+axisym.F is a MAIN program that runs axisymmetric experiments similar to
+those described in the paper "Nonlinear axially symmetric circulations in a
+nearly inviscid atmosphere", I.M.Held and A.Y.Hou, Journal of Atmospheric
+Sciences(1980), vol.37, pp.515-533.
+ 
+ptest.F is a MAIN program that uses prof.F to relax the atmosphere back to
+time-mean vertical stratification, and compute the winds in nonlinear
+thermal wind balance.
+ 
+If all of the above files are present, you should copy the appropriate makefile
+to the name "makefile", and then type the command
+"make adbt.out"
+This command compiles and runs a test program.
+ 

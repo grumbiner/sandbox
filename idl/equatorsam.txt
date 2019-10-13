@@ -1,0 +1,3 @@
+NORTH SOUTH AMERICA           
+equatorsam
+ 1801  901  -90.0000  -30.0000  -15.0000   15.0000

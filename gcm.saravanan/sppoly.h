@@ -1,0 +1,20 @@
+C Common module for Legendre polynomial tables
+      REAL8 PNORM, PRECI, PRECC1, PRECC2, HRECC1, HRECC2, PK, HK
+      DOUBLE PRECISION FAC
+      COMMON/SPPOL1/ PNORM(0:M1MAX, 0:N2MAX), PRECI(0:M1MAX, K2MAX),
+     1       PRECC1(0:M1MAX, 0:N2MAX), PRECC2(0:M1MAX, 0:N2MAX),
+     2       HRECC1(0:M1MAX, 0:N1MAX), HRECC2(0:M1MAX, 0:N1MAX),
+     3           PK(0:M1MAX, 0:N2MAX),     HK(0:M1MAX, 0:N1MAX),
+     4       FAC(0:2*N2MAX+2)
+C
+      INTEGER KCUR
+      REAL PK2, HK2
+      COMMON/SPPOL2/ KCUR,
+     1       PK2(0:2*M1MAX+1, 0:N2MAX), HK2(0:2*M1MAX+1, 0:N1MAX)
+#ifndef SINGLELAT
+C
+      REAL P2, H2
+      COMMON/SPPOL3/ P2(0:2*M1MAX+1, 0:N2MAX, K2MAX),
+     1               H2(0:2*M1MAX+1, 0:N1MAX, K2MAX)
+#endif
+C

@@ -1,0 +1,45 @@
+# Makefile for Sun workstations
+FFLAGS= -O
+HRESOL= -DN1MAX=21 -DM1MAX=21 -DK1MAX=64 -DK2MAX=33
+VRESOL= -DL1MAX=20
+ 
+# adbt.out is a test output file, containing energy conservation details.
+# Type "make adbat.out" to create it, and then compare it with adbt.out.sparc
+#
+adbt.out: adiabat adbt.in
+	echo Running adiabat in the background to produce adbt.out
+	nohup nice ./adiabat < adbt.in > adbt.out &
+ 
+# "make clean" would delete all resolution dependent files.
+# You should do that before changing any of the resolution parameters above
+ 
+clean:
+	rm splib.o prognos.o
+ 
+ptest: prof.o prognos.o splib.o linpack.o mcons.h mgrid.h
+	f77 ${FFLAGS} -u -DUDEF ${HRESOL} ${VRESOL} \
+            $@.F prof.o prognos.o splib.o linpack.o -o $@
+ 
+axisym: prognos.o splib.o linpack.o mcons.h mgrid.h
+	f77 ${FFLAGS} -u -DUDEF ${HRESOL} ${VRESOL} \
+            $@.F prognos.o splib.o linpack.o -o $@
+ 
+adiabat: prognos.o splib.o linpack.o mcons.h mgrid.h
+	f77 ${FFLAGS} -u -DUDEF ${HRESOL} ${VRESOL} \
+            $@.F prognos.o splib.o linpack.o -o $@
+ 
+prognos.o: mcons.h mgrid.h tmarch.h
+	f77 ${FFLAGS} -c -u -DUDEF ${HRESOL} ${VRESOL} prognos.F
+ 
+mcons.h: spcons.h
+ 
+mgrid.h: spgrid.h
+ 
+splib.o: spcons.h spgrid.h sppoly.h spfftb.h ftable.h
+	f77 ${FFLAGS} -c -u -DUDEF ${HRESOL} splib.F
+ 
+prof.o:
+	f77 ${FFLAGS} -c -u -DUDEF prof.F
+ 
+linpack.o:
+	f77 ${FFLAGS} -c -u linpack.F

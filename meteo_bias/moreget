@@ -1,0 +1,17 @@
+base=$1
+wdir=~/cdrom/$base/
+for dy in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+          21 22 23 24 25 26 27 28 29 30 31
+do
+  for hr in 00 06 12 18 
+  do
+    if [ -f ${wdir}/${base}$dy$hr.fx6 ] ; then
+      wgrib ${wdir}/${base}$dy$hr.fx6 > index
+      for parm in ICEC LAND ALBDO 
+      do
+        grep $parm index | wgrib -nh -i ${wdir}/${base}$dy$hr.fx6 -o ${parm}.${base}$dy$hr
+      done
+    fi
+     
+  done
+done

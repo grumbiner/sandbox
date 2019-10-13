@@ -1,0 +1,20 @@
+#!/bin/ksh
+
+#check which files are missing
+
+tag=19981001
+tag=19990223
+set -x
+j=0
+while [ $tag -lt 19990931 ] 
+do
+  for hh in 00 06 12 18
+  do
+    if [ ! -f flxf06.${tag}$hh ] ; then
+      echo no file flxf06.${tag}$hh
+      j=`expr $j + 1`
+    fi
+  done
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+done

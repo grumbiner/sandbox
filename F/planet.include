@@ -1,0 +1,61 @@
+C***********************************************************__________!!
+C     Include file for planetary parameters relevant to fluid dynamical 
+C       modelling.  BG 2/23/91.
+C     Number of planets
+      PARAMETER (nplan = 1)
+C     Planetary Pointers
+      INTEGER pearth, pmerc, pvenus, pmars, ppluto
+      INTEGER pjupe, psat, puran, pnept
+      PARAMETER (pearth = 1)
+      PARAMETER (pmerc  = 2)
+      PARAMETER (pvenus = 3)
+      PARAMETER (pmars  = 4)
+      PARAMETER (pjupe  = 5)
+      PARAMETER (psat   = 6)
+      PARAMETER (puran  = 7)
+      PARAMETER (pnept  = 8)
+      PARAMETER (ppluto = 9)
+C     Planetary Radii - in meters      
+      REAL radii(nplan)
+      PARAMETER (radii(1) =  6.371E6)
+CD      PARAMETER (radii(pmerc)  =  )
+CD      PARAMETER (radii(pvenus) =  )
+CD      PARAMETER (radii(pmars)  =  )
+CD      PARAMETER (radii(pjupe)  =  )
+CD      PARAMETER (radii(psat)   =  )
+CD      PARAMETER (radii(puran)  =  )
+CD      PARAMETER (radii(pnept)  =  )
+CD      PARAMETER (radii(ppluto) =  )
+C     Planetary surface gravity - m s-2
+      REAL grav(nplan)
+      PARAMETER (grav(1) =  9.81)
+CD      PARAMETER (grav(pmerc)  =  )
+CD      PARAMETER (grav(pvenus) =  )
+CD      PARAMETER (grav(pmars)  =  )
+CD      PARAMETER (grav(pjupe)  =  )
+CD      PARAMETER (grav(psat)   =  )
+CD      PARAMETER (grav(puran)  =  )
+CD      PARAMETER (grav(pnept)  =  )
+CD      PARAMETER (grav(ppluto) =  )
+C     Planetary rotation rate - s-1
+      REAL omega(nplan)
+      PARAMETER (omega(pearth) =  7.292E-5)
+CD      PARAMETER (omega(pmerc)  =  )
+CD      PARAMETER (omega(pvenus) =  )
+CD      PARAMETER (omega(pmars)  =  )
+CD      PARAMETER (omega(pjupe)  =  )
+CD      PARAMETER (omega(psat)   =  )
+CD      PARAMETER (omega(puran)  =  )
+CD      PARAMETER (omega(pnept)  =  )
+CD      PARAMETER (omega(ppluto) =  )
+C     Atmospheric Scale Height
+      REAL schght(nplan)
+      PARAMETER (schght(pearth) =  3700.0)
+CD      PARAMETER (schght(pmerc)  =  )
+CD      PARAMETER (schght(pvenus) =  )
+CD      PARAMETER (schght(pmars)  =  )
+CD      PARAMETER (schght(pjupe)  =  )
+CD      PARAMETER (schght(psat)   =  )
+CD      PARAMETER (schght(puran)  =  )
+CD      PARAMETER (schght(pnept)  =  )
+CD      PARAMETER (schght(ppluto) =  )
