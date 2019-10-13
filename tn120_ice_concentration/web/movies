@@ -1,0 +1,29 @@
+tag=20000305
+j=0
+k=0
+
+if [ -f an ] ; then
+  rm an
+fi
+BASE=parm13northn
+BASE=parm13globalg
+
+while [ $tag -le 20001015 ] 
+do
+
+  j=`expr $j + 1`
+  if [ -f ${BASE}$tag.gif ] ; then
+    echo ${BASE}$tag.gif >> an
+  fi
+  if [ $j -eq 14 ] ; then
+    k=`expr $k + 1`
+    whirlgif -o ${BASE}anim$k.gif -i an
+    rm an
+    j=0
+  fi
+
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+
+done
+

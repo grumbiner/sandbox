@@ -1,0 +1,19 @@
+#!/bin/ksh
+PATH=$PATH:/usr/local/bin/:/usr/local/bin/netpbm
+export PATH
+for name in atl pac
+do
+#   if [ -s plot${name}.ps -a plot${name}.ps -nt /data/WWW/winds/${name}ers2.${CYC}.gif ]
+    if [ -s plot${name}.ps ]
+    then
+      pstopnm plot${name}.ps 
+      convert -negate -geometry 918x1188 -crop 810x972+48+216 plot${name}001.ppm plot${name}.ppm
+      ppmquant 128 plot${name}.ppm > tmp1.ppm
+      ppmtogif tmp1.ppm > plot${name}.gif
+      mv plot${name}.gif /data/WWW/winds/${name}ers2.${CYC}.gif
+    fi
+done
+rm *.ppm *.ps
+
+find /data/WWW/winds/ -name \*ers2\* -mtime +0 -print -exec touch {} \;
+find /data/WWW/winds/ -name ssmi\*.gif -mtime +0 -print -exec touch {} \;

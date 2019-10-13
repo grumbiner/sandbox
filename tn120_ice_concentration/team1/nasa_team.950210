@@ -1,0 +1,127 @@
+#include "ssmi.h"
+#include "icessmi.h"
+
+float nasa_team(const float t19v, const float t19h, const float t22v, 
+                const float t37v, const float t37h, 
+                const float t85v, const float t85h, const char pole)
+{
+/* Implementation of the NASA Team algorithm with 22 GHz weather
+     filter.  C version by Bob Grumbine, based on Fortran code by
+     M. Martino.  3/23/94.
+
+C                                                                
+C   THIS PROGRAM USES THE TEAM ALGORITHM TO CALCULATE THE TOTAL ICE
+C   CONCENTRATION AND THE MULTIYEAR ICE CONCENTRATION.  INPUT ARE 
+C   19 VERT, 19 HORZ AND 37 VERT, 37 HORZ BRIGHTNESS TEMPERATURES.
+C                                                                 
+C   COMPLETELY RE-WRITTEN FOR THE PC 16MAY91 M.G.MARTINO, STX CORP.
+C   22V-19V GR WEATHER FILTER ADDED 22 JULY 93 BY MGM
+C                                                                 
+C     GR FILTER IS .05                        
+C    SSMI TIE POINTS  (1=19H, 4=37V)
+C                              
+*/
+/* NORTH POLE TIE POINTS 08 MAR 91 */                           
+/*      float t0n[7] = {100.8, 177.1, 00.0, 201.7, 0., 0., 0.}: */
+/*      float tfn[7] = {242.8, 258.2, 00.0, 252.8, 0., 0., 0.}: */
+/*      float tmn[7] = {203.9, 223.2, 00.0, 186.3, 0., 0., 0.}: */
+/* North Pole tie points Jan 13, 1992 */
+      float t0n[7] = { 99.8, 177.3, 00.0, 202.5, 0., 0., 0.};                  
+      float tfn[7] = {239.5, 249.7, 00.0, 244.2, 0., 0., 0.};
+      float tmn[7] = {202.3, 221.3, 00.0, 184.6, 0., 0., 0.};
+
+/* SOUTH POLE TIE POINTS 12 FEB 91 */
+/*      float t0s[7] = {100.3, 176.6, 00.0, 200.5, 0., 0., 0.}; */
+/*      float tfs[7] = {237.8, 249.8, 00.0, 243.3, 0., 0., 0.}; */
+/*      float tms[7] = {193.7, 221.6, 00.0, 190.3, 0., 0., 0.}; */
+
+/* South pole tie points 22 Nov 1994, approved 14 Oct 1994 */
+      float t0s[7] = {100.9, 177.1, 00.0, 200.4, 0., 0., 0.}; /* open */
+      float tfs[7] = {236.9, 249.0, 00.0, 242.8, 0., 0., 0.}; /* first */
+      float tms[7] = {193.2, 221.3, 00.0, 190.3, 0., 0., 0.}; /* multi */
+
+/* tie points within function */
+      float *T0, *TF, *TM;
+      float DW[2], DF[2], DM[2];
+      float SW[2], SF[2], SM[2];
+
+/* Local variables */
+      float gr37, gr22, polar;
+      float nf19, nm19, dd19, fy, my, total;
+      float a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1 ;
+      int i;
+
+/*
+C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM          
+*/                                                                 
+                           
+      if (pole == 'n') {
+        T0 = &t0n[0];
+        TF = &tfn[0];
+        TM = &tmn[0];
+      }
+      else if (pole == 's') {
+        T0 = &t0s[0];
+        TF = &tfs[0];
+        TM = &tms[0];
+      }
+      else {
+        printf("specified a pole that doesn't exist!!\n");
+        return -1.;
+      }  
+
+       DW[0]=T0[1]-T0[0];
+       DF[0]=TF[1]-TF[0];
+       DM[0]=TM[1]-TM[0];
+       SW[0]=T0[1]+T0[0];
+       SF[0]=TF[1]+TF[0];
+       SM[0]=TM[1]+TM[0];
+       DW[1]=T0[3]-T0[1];
+       DF[1]=TF[3]-TF[1];
+       DM[1]=TM[3]-TM[1];
+       SW[1]=T0[3]+T0[1];
+       SF[1]=TF[3]+TF[1];
+       SM[1]=TM[3]+TM[1];
+
+       a1=DM[0]*DW[1]-DM[1]*DW[0];
+       b1=DM[1]*SW[0]-DW[1]*SM[0];
+       c1=DW[0]*SM[1]-DM[0]*SW[1];
+       d1=SM[0]*SW[1]-SM[1]*SW[0];
+       i1=DF[1]*DW[0]-DF[0]*DW[1];
+       j1=DW[1]*SF[0]-DF[1]*SW[0];
+       k1=SW[1]*DF[0]-DW[0]*SF[1];
+       l1=SF[1]*SW[0]-SF[0]*SW[1];
+
+       e1=DF[0]*(DM[1]-DW[1])+DW[0]*(DF[1]-DM[1])+DM[0]*(DW[1]-DF[1]); 
+       f1=DF[1]*(SM[0]-SW[0])+DW[1]*(SF[0]-SM[0])+DM[1]*(SW[0]-SF[0]); 
+       g1=DF[0]*(SW[1]-SM[1])+DW[0]*(SM[1]-SF[1])+DM[0]*(SF[1]-SW[1]); 
+       h1=SF[1]*(SW[0]-SM[0])+SW[1]*(SM[0]-SF[0])+SM[1]*(SF[0]-SW[0]);
+
+       if ( (t22v + t19v) == 0. || (t19v + t19h) == 0. || (t37v + t19v)==0. )
+       {
+/*         printf("zero divisor for brightness temperatures\n"); */
+         return BAD_DATA;
+       }
+
+       gr22  =  (t22v - t19v) / (t22v + t19v);
+       polar =  (t19v - t19h) / (t19v + t19h);
+       gr37  =  (t37v - t19v) / (t37v + t19v);
+
+       total = NO_DATA;
+       if ( (gr37 <= GR37LIM) && (gr22 <= GR22LIM) ) {
+           nf19=a1+b1*polar+c1*gr37+d1*polar*gr37;
+           nm19=i1+j1*polar+k1*gr37+l1*polar*gr37;
+           dd19=e1+f1*polar+g1*gr37+h1*polar*gr37;
+           if (dd19 == 0.) {  printf("zero divisor for concentrations\n");
+                              return BAD_DATA; }
+           fy = nf19/dd19;
+           my = nm19/dd19;
+           total = (my + fy)*100.;
+       }
+       else {
+/*        total = BAD_DATA;  Set weather filtered points to 'Bad data'*/
+        total = 0; /* Set weather filtered points to zero */
+       }
+      
+      return total;
+}

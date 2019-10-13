@@ -1,0 +1,16 @@
+PATH=$PATH:/usr/local/bin/:/usr/local/bin/netpbm
+export PATH
+cd /home/wd20cp
+for name in atl pac
+do
+#   if [ -s plot${name}.ps -a plot${name}.ps -nt /data/WWW/winds/${name}ers2.${CYC}.gif ]
+    if [ -s plot${name}.ps ]
+    then
+     pstogif plot${name}.ps
+     convert -negate -geometry 918x1188 -crop 918x1188+96+168 plot${name}.gif test2.gif
+     convert test2.gif test2.ppm
+     ppmtogif test2.ppm > test3.gif
+     rm test2.ppm test2.gif plot${name}.gif plot${name}.ps
+     mv test3.gif /data/WWW/winds/${name}ers2.${CYC}.gif
+    fi
+done
