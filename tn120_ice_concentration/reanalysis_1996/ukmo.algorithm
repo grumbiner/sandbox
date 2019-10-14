@@ -1,0 +1,199 @@
+From nrayner@meto.gov.uk  Thu Jul  1 10:09:09 1999
+Return-Path: <nrayner@meto.gov.uk>
+Received: from thorn.meto.gov.uk (thorn.meto.gov.uk [151.170.240.16])
+	by penguin.wwb.noaa.gov (8.8.7/8.8.7) with ESMTP id KAA31633
+	for <rmg3@penguin.wwb.noaa.gov>; Thu, 1 Jul 1999 10:09:07 -0400
+Received: from thorn (MEADOW) by thorn.meto.gov.uk (PMDF V5.1-9 #D3290)
+ with ESMTP id <01JD1WRN7VYO00TV3Y@thorn.meto.gov.uk> for
+ rmg3@penguin.wwb.noaa.gov; Thu, 1 Jul 1999 14:04:35 GMT
+Received: from hc0800.meto.gov.uk ([151.170.1.12])
+ by meto.gov.uk (PMDF V5.2-32 #32907)
+ with ESMTP id <01JD1WTTKJTY000RQT@meto.gov.uk> for rmg3@penguin.wwb.noaa.gov;
+ Thu, 01 Jul 1999 14:06:21 +0000 (GMT)
+Received: from hc1500.meto.gov.uk (root@hc1500.meto.gov.uk [151.170.11.6])
+ by hc0800.meto.gov.uk with ESMTP (8.7.6/8.7.1) id PAA05102; Thu,
+ 01 Jul 1999 15:06:20 +0100 (BST)
+Received: from hc1500 (hadnr@localhost [127.0.0.1]) by hc1500.meto.gov.uk with
+ SMTP (8.7.6/8.7.3) id PAA25550; Thu, 01 Jul 1999 15:06:19 +0100 (BST)
+Date: Thu, 01 Jul 1999 15:06:17 +0100
+From: nick rayner <nrayner@meto.gov.uk>
+Subject: Re: sea-ice concentration derivation
+Sender: nrayner@meto.gov.uk
+To: Robert Grumbine <rmg3@penguin.wwb.noaa.gov>
+Cc: Nick Rayner <nrayner@meto.gov.uk>
+Message-id: <377B75D9.4534@hc1500.meto.gov.uk>
+Organization: U.K. Meteorological Office
+MIME-version: 1.0
+X-Mailer: Mozilla 2.02 (X11; I; HP-UX B.10.20 9000/780)
+Content-type: MULTIPART/MIXED; BOUNDARY="Boundary_(ID_gNIs3JOZ5mshTnqU9XPY6g)"
+References: <199906301416.KAA30075@penguin.wwb.noaa.gov>
+Status: R
+
+This is a multi-part message in MIME format.
+
+--Boundary_(ID_gNIs3JOZ5mshTnqU9XPY6g)
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7BIT
+
+Robert Grumbine wrote:
+ 
+> Progress of sorts.  Could you mail me the code you use to map from the
+> NASA/NSIDC grids on to latitude/longitude?  I'm finding that the 
+> method I copied from ECMWF is biased high, and that the bias is worse > for lower resolutions.  So even with the same algorithm, my change in > 31 Oct 1995 to 0.5 degree produced a drop in ice area relative to the > 1 degree Nomura grids.  The algorithm is still biased high even at 0.5 > degree, but the degree of bias is more like 1%, as opposed to 10% at 1 > degree resolution. I've got a different method in hand which seems 
+> largely unbiased, and which is resolution independant, but I'd like 
+> another algorithm to check against.
+
+Hi Bob,
+
+The programs I used are written in PV-Wave, which is like IDL. The
+subroutine which goes from polar stereo to lat/long is attached. It
+calls subroutines read_latlong.pro and readfile.pro, which I got from
+NSIDC (and which I have not included here). I'll try to comment
+polar2latlon2.pro as best I can so you can see what I have done.
+
+nick.
+
+
+_______________________________________________________________
+Hadley Centre for Climate Prediction and Research,
+Met. Office, London Rd., Bracknell, Berkshire, RG12 2SY, U.K.
+nrayner@meto.gov.uk, tel (44) 1344 854063, fax (44) 1344 854898 
+http://www.met-office.gov.uk
+
+--Boundary_(ID_gNIs3JOZ5mshTnqU9XPY6g)
+Content-type: text/plain; NAME=polar2latlon2.pro; charset=us-ascii
+Content-disposition: inline; filename=polar2latlon2.pro
+Content-transfer-encoding: 7BIT
+
+  PRO Polar2latlon2,infile,lun1,latfile,lonfile,wgtfile,nlat,nlong, $
+                   yr,mn,dy,mask
+
+; open output file before running this procedure, then close afterwards    
+; takes polar stereographic SMMR and SSM/I data and regrids to regular 
+; lat by long grid
+    
+; read in longitudes and latitudes
+    
+    read_latlong,lonfile,hh,bmap,longs,numcols,numrows
+    read_latlong,latfile,hh,bmap,lats,numcols,numrows
+    
+; read in grid cell areas, to be used as weights in averaging
+    
+    read_latlong,wgtfile,hh,bmap,wgts,numcols,numrows
+
+; read in sea-ice data
+    
+    readfile,infile,hh,bmap,polar,numcols,numrows
+
+; first replace all missing data at extreme north of region by 100.
+
+;    index=WHERE(polar EQ -6666.)
+;    polar(index)=100.
+    
+; take all missing data indicators and replace by -1.0e30
+    
+    index=WHERE(polar EQ -6666. OR POLAR EQ -7777. OR $
+                POLAR eq -8888. OR POLAR EQ -9999.)
+    polar(index)=-1.0e30
+    
+; set up new grid
+    
+    reg=FLTARR(nlong,nlat)
+    awgt=FLTARR(nlong,nlat)
+    count=inTARR(nlong,nlat)
+    land=INTARR(nlong,nlat)
+    
+; where mask shows land, set reg to missing
+    
+    reg(WHERE(MASK(0).data EQ 0.))=-1.0e30
+
+; longitudes go from 0-360 E
+  
+    FOR i=0,numcols-1 DO BEGIN
+      
+      FOR j=0,numrows-1 DO BEGIN
+        
+; calculate latitude and longitude integer indices of pixel
+
+        il=INTARR(1)
+        il(0)=longs(i,j)/(360/nlong)
+        ilon=il(0)
+        ila=INTARR(1)
+        ila(0)=(90.-lats(i,j))/(180/nlat)
+        ilat=ila(0)
+        
+; calculate weighted total of all polar stereo values falling within 
+; each lat/long grid box
+
+        IF POLAR(i,j) NE -1.0e30 AND $
+          reg(ilon,ilat) NE -1.0e30 THEN BEGIN
+
+          reg(ilon,ilat)=reg(ilon,ilat)+POLAR(i,j)*wgts(i,j)
+          awgt(ilon,ilat)=awgt(ilon,ilat)+wgts(i,j)
+          count(ilon,ilat)=count(ilon,ilat)+1
+
+        ENDIF
+        
+        IF POLAR(i,j) EQ -1.0e30 THEN BEGIN
+
+          land(ilon,ilat)=land(ilon,ilat)+1
+          
+        ENDIF
+
+      ENDFOR
+
+    ENDFOR
+
+    missing=WHERE(count eq 0)
+    reg(missing)=-999.
+
+    index=WHERE(reg EQ -999.)
+; set -999.s below 60N to 0.
+    index=index(WHERE(index GE 30*360))
+    reg(index)=0.
+    
+; set land values to missing
+
+    reg(WHERE(MASK(0).data EQ 0.))=-1.0e30
+
+    count=FLOAT(count)
+; put count array into pp format
+    count=makeppfield(count,code=2,zx=0.-FLOAT(360/nlong)/2., $
+                      dx=360/nlong,zy=90.+FLOAT(180/nlat)/2., $
+                      dy=-180/nlat,mdi=-1.0e30)
+
+    count.lbyr=yr
+    count.lbmon=mn
+    count.lbdat=dy
+
+;    ppplot,count
+    
+; calculate weighted averages
+    index=WHERE(awgt NE 0. AND reg GT -999.)
+    reg(index)=reg(index)/awgt(index)
+ 
+; put data array into pp format
+    reg=makeppfield(reg,code=2,zx=0.-FLOAT(360/nlong)/2., $
+                    dx=360/nlong,zy=90.+FLOAT(180/nlat)/2., $
+                    dy=-180/nlat,mdi=-1.0e30)
+
+    reg.lbyr=yr
+    reg.lbmon=mn
+    reg.lbdat=dy
+    
+    writepp,lun1,reg
+    
+    delstruct,reg,count
+    awgt=0
+    polar=0
+    longs=0
+    lats=0
+    bmap=0
+    
+    RETURN
+  END
+
+    
+
+--Boundary_(ID_gNIs3JOZ5mshTnqU9XPY6g)--
+

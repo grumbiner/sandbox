@@ -1,0 +1,121 @@
+C
+      SUBROUTINE SFT99B(WORK,A,TRIGS,INC,JUMP,N,LOT,W1,W2,W3,W4,W5,W6)
+C     Mark Iredell 7 April 1994
+C
+C
+C*    IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION WORK(N),A(N),TRIGS(N)
+      DIMENSION W1(LOT),W2(LOT),W3(LOT),W4(LOT),W5(LOT),W6(LOT)
+C
+      NH=N/2
+      NX=N+1
+      INK=INC+INC
+C
+C*    SCALE=1.D0/DFLOAT(N)
+      SCALE=1.  /DFLOAT(N)
+      IA=1
+      IB=2
+      JA=1
+      JB=N*INC+1
+      DO 14 L=1,LOT
+      W1(L)=WORK(IA)+WORK(IB)
+      W2(L)=WORK(IA)-WORK(IB)
+      IA=IA+NX
+      IB=IB+NX
+   14 CONTINUE
+      DO 11 L=1,LOT
+      A(JA)=SCALE*W1(L)
+      JA=JA+JUMP
+   11 CONTINUE
+      DO 12 L=1,LOT
+      A(JB)=SCALE*W2(L)
+      JB=JB+JUMP
+   12 CONTINUE
+      JA=1
+      DO 13 L=1,LOT
+C*    A(JA+INC)=0.D0
+      A(JA+INC)=0.
+      JA=JA+JUMP
+   13 CONTINUE
+C
+C*    SCALE=0.5D0*SCALE
+      SCALE=0.5  *SCALE
+      IABASE=3
+      IBBASE=N-1
+      JABASE=2*INC+1
+      JBBASE=(N-2)*INC+1
+C
+      DO 30 K=3,NH,2
+      IA=IABASE
+      IB=IBBASE
+      JA=JABASE
+      JB=JBBASE
+      C=TRIGS(N+K  )*SCALE
+      S=TRIGS(N+K+1)*SCALE
+      DO 21 L=1,LOT
+      W1(L)=WORK(IA)+WORK(IB)
+      W2(L)=WORK(IA)-WORK(IB)
+      W3(L)=WORK(IA+1)+WORK(IB+1)
+      W4(L)=WORK(IB+1)-WORK(IA+1)
+      IA=IA+NX
+      IB=IB+NX
+   21 CONTINUE
+      DO 29 L=1,LOT
+      W1(L)=SCALE*W1(L)
+      W4(L)=SCALE*W4(L)
+   29 CONTINUE
+      DO 22 L=1,LOT
+      W5(L)=C*W3(L)
+      W6(L)=C*W2(L)
+   22 CONTINUE
+      DO 23 L=1,LOT
+      W5(L)=W5(L)+S*W2(L)
+      W6(L)=W6(L)-S*W3(L)
+   23 CONTINUE
+      DO 24 L=1,LOT
+      A(JA)=W1(L)+W5(L)
+      JA=JA+JUMP
+   24 CONTINUE
+      DO 25 L=1,LOT
+      A(JB)=W1(L)-W5(L)
+      JB=JB+JUMP
+   25 CONTINUE
+      JA=JABASE
+      DO 26 L=1,LOT
+      A(JA+INC)=W6(L)+W4(L)
+      JA=JA+JUMP
+   26 CONTINUE
+      JB=JBBASE
+      DO 27 L=1,LOT
+      A(JB+INC)=W6(L)-W4(L)
+      JB=JB+JUMP
+   27 CONTINUE
+      IABASE=IABASE+2
+      IBBASE=IBBASE-2
+      JABASE=JABASE+INK
+      JBBASE=JBBASE-INK
+   30 CONTINUE
+C
+      IF(IABASE.NE.IBBASE) GO TO 50
+      IA=IABASE
+      JA=JABASE
+C*    SCALE=2.D0*SCALE
+      SCALE=2.  *SCALE
+      SMINS=-SCALE
+      DO 41 L=1,LOT
+      A(JA)=SCALE*WORK(IA)
+      IA=IA+NX
+      JA=JA+JUMP
+   41 CONTINUE
+      IA=IABASE
+      JA=JABASE
+      DO 42 L=1,LOT
+      A(JA+INC)=SMINS*WORK(IA+1)
+      IA=IA+NX
+      JA=JA+JUMP
+   42 CONTINUE
+C
+   50 CONTINUE
+      RETURN
+C
+      END

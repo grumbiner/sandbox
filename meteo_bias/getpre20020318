@@ -1,0 +1,8 @@
+#tag=20011019
+#while [ $tag -ge 20011001 ]
+#do
+#  /u/wx20mi/bin/hsmgetavn01 ${tag}00 flxf06
+#  tag=`expr $tag - 1`
+#  tag=`dtgfix3 $tag`
+#done
+  /u/wx20mi/bin/hsmgetavn01 2001100600 flxf06

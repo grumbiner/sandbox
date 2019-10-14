@@ -1,0 +1,95 @@
+From dbenner@icecen.fb4.noaa.gov Fri Oct  6 12:29:03 1995
+Return-Path: dbenner@icecen.fb4.noaa.gov
+Received: from icecen.fb4.noaa.gov (icecen.fb4.noaa.gov [140.90.54.85]) by polar.wwb.noaa.gov (8.6.12/8.6.9) with SMTP id MAA07864 for <rmg3@polar.wwb.noaa.gov>; Fri, 6 Oct 1995 12:29:01 -0400
+From: dbenner@icecen.fb4.noaa.gov
+Received: from NAVICECEN-Message_Server by icecen.fb4.noaa.gov
+	with WordPerfect_Office; Fri, 06 Oct 1995 12:38:03 -0500
+Message-Id: <s075232b.001@icecen.fb4.noaa.gov>
+X-Mailer: WordPerfect Office 4.0
+Date: Fri, 06 Oct 1995 12:37:14 -0500
+To: rmg3@polar.wwb.noaa.gov, leshkevich@sparc.glerl.noaa.gov,
+        wd21bb@sun1.wwb.noaa.gov
+Cc: CBERTOIA@icecen.fb4.noaa.gov, DBENNER@icecen.fb4.noaa.gov,
+        OPS@icecen.fb4.noaa.gov, SULLIVAN@icecen.fb4.noaa.gov
+Subject:  Great Lakes Product
+Status: RO
+
+     Larry, Bob and George....we have rebuilt our Great Lakes GRASS
+location (using lat/long) and produced two new sample ASCII raster files. 
+Attached is a text file with the specifications...in general the specs are as
+follows:  the Coastwatch domain based on the exact coordinates provided
+by GLERL, 1024x1024 cell field, cell resolution (in deg:min:sec) was
+generated as a byproduct of setting the grid field to 1024x1024, coordinate
+system and projection is lat/long while the ellipsoid is WGS84
+(George...note we did not use Clark66..if this is a problem please let me
+know immediately.  You should be able to easily import the file into GRASS
+using r.in.ascii).
+     I have placed three files on our anonymous ftp site 140.90.54.61)...cd
+to the pub directory.  File names are as follows: landoverlay_ascii,
+week_12c_reclass_ascii and mailfile_oct6.  Landoverlay is the baseline file
+which shows land cells as 0 and all water areas as 1.  Week_12c is an
+example of the weekly product...land cells are again 0 but water areas may
+be tagged as 0=ice-free and 1-9=ice concentration.  The mailfile is the
+same as the attachment to this message.
+     Please let me know whether you are all satisfied with this
+product...besides being used as input to Bob's ice forecast model, there is
+alot of high-level interest in it becoming routine input to the Eta model.   
+If there are problems...please let me know.  Thanks...Dave
+
+
+------------------- mailfile.mem follows --------------------
+The following file defines the domain in the GRASS location:
+
+(DEFAULT WIND)
+proj:       3
+zone:       0
+north:      50:32:20.04N
+south:      38:50:07.8N
+east:       75:50:07.44W
+west:       92:22:56.28W
+cols:       1024
+rows:       1024
+e-w resol:  0:00:58.172695
+n-s resol:  0:00:41.144766
+
+The following file defines the projection and ellipsoid
+for the location:
+
+(PROJ_INFO)
+name: Latitude-Longitude
+proj: ll
+ellps: WGS84
+
+The following file defines the units of measurement
+for the location:
+
+(PROJ_UNITS)
+unit: degree
+units: degrees
+meters: 1.0
+
+The following file defines the domain and map scale 
+for the location:
+
+(map_header)
+ORGANIZATION: National Ice Center
+DIGIT DATE:   Oct 5 95
+DIGIT NAME:   map_header
+MAP NAME:     shoreline
+MAP DATE:     
+MAP SCALE:    24000
+OTHER INFO:   /disk3g/grass.dbase/GLAKES_NWS/PERMANENT/dig_cats
+ZONE:         0
+WEST EDGE:    92.3823W 
+EAST EDGE:    75.8354W 
+SOUTH EDGE:   38.8355N 
+NORTH EDGE:   50.5389N 
+MAP THRESH:   18.288
+VERTI:
+
+
+
+
+
+
+

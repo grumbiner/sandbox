@@ -1,0 +1,49 @@
+Dear Mr. Nomura,
+
+  I'm sorry for the problems on the SSMI F-11 files.  I got caught
+by the problems of reading in HDF files and had a couple mistakes.
+
+  Proper mask files are now available in the 
+pub/nws/nmc/development/ecmwf/f11ice directory on nic.fb4.noaa.gov.
+They are named nmask.2 and smask.2.  These and the ice concentration
+files are unformatted binary files, 1 byte (8 bits, 1 character)
+per pixel.  The land masks are 0 and 1.  The concentrations are
+the usual percentage encoding with the following exceptions:
+157 still denotes land.
+200 and 224 denote bad or missing data points.
+concentrations are not capped at 100% (values up to 128 occur
+ routinely).
+
+  Further note, in my attempt to read the hdf files from the disk,
+I erred on the number of header bytes.  There are 17 fewer than I
+thought.  This accounts for the overlapped image appearance (the
+Aleutians appearing next to England).  The quick solution is
+to read in the map file as a vector of bytes, set the first 17 bytes
+of the concentration map to zero (never have ice there anyhow), 
+then sequentially (in first index then second) copy from the vector
+into the concentration map.  I will do this for our copy of the
+files.  If you don't mind waiting for this to be run (and transferred),
+I can upload to nic the revised files.
+
+  In the mean time, the rest of the files (to 9308) are on nic.  
+They must (as always) be transferred via binary ftp.
+
+
+On another matter:
+
+  I've been approached by the ISLSCP (International Satellite Land
+Surface Climatology Project) about providing sea ice concentration
+maps on monthly-averaged 1 degree lat-long grids for 1987 and 1988.
+For test purposes, I've already reformatted the monthly averages
+you've developed and created a sample description.  I would 
+definitely not like to send the documentation out with only my
+name, but also would not want to list you against your wishes.
+(For that matter, there's no need for my name to appear at all.)
+I have uploaded the documentation start and the monthly averaged
+maps to nic at pub/nws/nmc/development/ecmwf/islscp.  The averages
+are compressed tar files, so need to be transferred binary.  The
+documentation file is plain text.
+
+Sincerely,
+Bob Grumbine
+wd21rg@hp20.wwb.noaa.gov

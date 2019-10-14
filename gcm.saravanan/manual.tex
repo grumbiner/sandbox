@@ -1,0 +1,1702 @@
+%**start of header
+% TeX preface file
+ 
+%set magnification
+ 
+\magnification=\magstephalf
+ 
+%set page size and position
+ 
+%\hsize=6.5 true in
+%\vsize=8.9 true in
+%\hoffset=0.0 true in
+%\voffset=0.0 true in
+ 
+%set line and paragraph spacing
+ 
+\openup 1\jot
+\parskip=6pt plus 3pt
+ 
+% General TeX macros
+ 
+\def\Title#1{ \vskip 0.5in \centerline{\bf #1} \vskip 0.25in }
+                                            % title of document
+\def\Author#1{ \bigskip \centerline{\sl #1} \bigskip }
+                                            % author's name
+\def\Address#1\period{ {\it \tabskip=0pt plus 1fil
+  \halign to \hsize{\hfil##\hfil\cr#1} \bigskip } }
+                                            % address (end lines with \cr)
+\def\Section#1.#2.
+     {\par\bigbreak {\bf\noindent #1. #2} \par\nobreak \bigskip}
+                                            % section heading
+\def\Subsection#1.#2.
+     {\par\bigbreak {\it\noindent #1. #2} \par\nobreak \bigskip}
+                                            % sub-section heading
+\def\Appendix#1.#2.
+     {\par\bigbreak {\bf\noindent Appendix #1. #2} \par\nobreak \bigskip}
+                                            % appendix heading
+ 
+\def\References{\par\bigbreak \centerline{\bf References} \par\nobreak
+                \bigskip}
+                                           % references heading
+\def\pref#1/#2/#3.#4,#5,#6.
+     {\par\hang\noindent #1, #2:#3.{\it #4,}{\bf #5},#6. \smallskip}
+                                            % paper reference
+\def\bref#1/#2/#3.#4.
+     {\par\hang\noindent #1, #2:{\it #3.}#4. \smallskip}
+                                            % book reference
+\def\oref#1\cr{\par\hang\noindent #1 \smallskip}
+                                            % other reference
+ 
+\def\litem{\par\hang\noindent}              % long item
+ 
+\def\nullcs#1{{}}                           % null control sequence
+ 
+\newcount\eqcount                           % initialize equation counter
+\eqcount=0
+\def\neweq{\global\advance\eqcount by 1 \number\eqcount}
+                                            % obtain new eq. number
+\def\cureq{\number\eqcount}                 % current equation number
+\def\releq#1{\count255 = \eqcount \advance\count255 by #1 \number\count255}
+                                            % relative equation number
+ 
+\def\v#1{{\bf#1}}                           % vector boldface
+\def\td[#1,#2]{{d#1\over{d#2}}}             % total derivative
+\def\pd[#1,#2]{{\partial#1\over{\partial#2}}}
+                                            % partial derivative
+ 
+% Standard journal abbreviations
+ 
+\def\JAS{J.\ Atmos.\ Sci.}
+\def\QJRMS{Quart.\ J.\ Roy.\ Meteor.\ Soc.}
+\def\MWR{Mon.\ Wea.\ Rev.}
+\def\JMSJ{J.\ Meteor.\ Soc.\ Japan}
+ 
+% Macros related to primitive equations
+ 
+\def\half{{1 \over 2}}                      % one-half
+\def\Dp{{\Delta p}}                         % \Delta p
+\def\Dt{{\Delta t}}                         % \Delta t
+ 
+\def\Dcap{{\widehat D}}                     % \widehat D
+\def\Phicap{{\widehat \Phi}}                % \widehat \Phi
+\def\zetacap{{\widehat \zeta}}              % \widehat \zeta
+\def\Thetabar{{\overline \Theta}}           % \overline \Theta
+\def\Thetacap{{\widehat \Theta}}            % \widehat \Theta
+ 
+\def\Htilde{{\tilde H}}                     % \tilde H
+\def\Phitilde{{\tilde \Phi}}                % \tilde \Phi
+ 
+\def\uvec{{\v u}}                           % vector u
+\def\kvec{{\v k}}                           % vertical unit vector
+ 
+\def\Tvec{{\vec \Theta}}                    % \Theta vector
+\def\Dvec{{\vec D}}                         % D vector
+\def\Wvec{{\vec \omega}}                    % \omega vector
+\def\Hvec{{ {\vec H}_{T^R} }}               % H_{T^R} vector
+\def\xivec{{\vec \xi}}                      % \xi vector
+\def\Dcapvec{{\vec \Dcap}}                  % \Dcap vector
+\def\Phicapvec{{\vec \Phicap}}              % \Phicap vector
+\def\Xvec{{\vec X}}                         % X vector
+ 
+\def\Htildevec{{ {\vec \Htilde}_{T^R} }}    % \Htilde vector
+\def\Phitildevec{{\vec \Phitilde}}          % \Phitilde vector
+\def\Hcorrvec{{ {\vec H}_{corr} }}          % H correction vector
+ 
+\def\Mx[#1,#2]{{ M_{#1 \rightarrow #2} }}   % mapping matrix
+ 
+\def\vdiv#1{{ {\left(\pd[#1,p]\right)}_l }} % vertical divergence
+\def\tt[#1,#2]{{ {\left(\pd[#1,t]\right)}^{#2} }}
+                                            % time-tendency
+\def\delh{\mathop{{\v \nabla}_H}}           % horizontal gradient operator
+\def\deleight{\mathop{{\v \nabla}_H^8}}     % scale-selective damping operator
+\def\div{\mathop{\rm div}}                  % horizontal divergence
+\def\curlz{\mathop{\rm curl_z}}             % vertical component of curl
+\def\delsq{\mathop{\nabla_H^2}}             % horizontal Laplacian
+ 
+\def\Pmn[#1,#2]{ P_{#1,#2} }                % associated Legendre polynomial
+\def\Ymn[#1,#2]{ Y_{#1,#2} }                % spherical harmonic
+%**end of header
+ 
+\Title{A Mechanistic Spectral Primitive Equation Model using Pressure
+       Coordinates}
+ 
+\Author{R.~Saravanan}
+\Address Department of Applied Mathematics and Theoretical Physics\cr
+         University of Cambridge\cr
+         Silver Street, Cambridge CB3 9EW, U.K.\cr
+         E-mail: svn@atm.amtp.cam.ac.uk\cr\period
+ 
+\bigskip
+ 
+This document and the software described in it are distributed free for
+research purposes. The software comes with absolutely no warranties
+whatsoever. This software may be freely copied, and may also be modified,
+provided the modified software continues to be freely available under the
+same terms. This software may not be used for any commercial purpose.
+ 
+\vfill\eject
+ 
+\item{1.} Introduction
+\item{2.} Primitive equations in pressure coordinates
+\item{3.} Vertical discretization
+\itemitem{a.} Vertical grid
+\itemitem{b.} Boundary conditions
+\itemitem{c.} Conservation properties
+\itemitem{d.} Linearization about reference vertical stratification
+\itemitem{e.} Vorticity/divergence form
+\item{4.} Time integration
+\itemitem{a.} Semi-implicit leap-frog scheme
+\itemitem{b.} Time-filtering
+\item{5.} Horizontal discretization
+\item{6.} Miscellaneous details
+\itemitem{a.} Passive tracers
+\itemitem{b.} Choice of reference stratification
+\itemitem{c.} Forcing/damping terms
+\item{7.} Fortran implementation
+\itemitem{a.} Overview
+\itemitem{b.} Module {\it splib}
+\itemitem{c.} Module {\it prognos}
+\itemitem{d.} Compilation and customization
+\itemitem{e.} Initialization and time-marching
+ 
+\medskip Appendices \medskip
+ 
+\item{A.} Symbols and notation
+\item{B.} Fortran to Symbols ``dictionary''
+\item{C.} Modifications to allow forcing at bottom boundary
+ 
+\medskip References \bigskip
+ 
+ 
+\Section 1. Introduction.
+ 
+This document describes the implementation of a very simple 3-dimensional
+primitive equation model, using pressure coordinates as described by Lorenz
+(1960). The advantage of using pressure coordinates is that the equations of
+motion take on a particularly simple form. The main disadvantage is that we
+cannot easily apply a realistic boundary condition at the lower boundary,
+i.e., it is not really possible to include the effects of surface topography.
+The model we are about to describe assumes that the planetary surface is
+essentially smooth, and that there is sufficient drag acting near the lower
+boundary to make the details of the lower boundary condition quite
+unimportant. This model would not be suitable for ``realistic'' simulation of
+the Earth's climate (especially in the troposphere), but could be quite useful
+for mechanistic models of isolated phenomena, and for studying idealized
+planetary atmospheres.
+ 
+The model is very flexible in terms of the number of pressure levels, level
+thicknesses, and zonal versus meridional resolution. The number of levels can
+be any integer $\ge 2$. The levels can have any combination of thicknesses.
+The horizontal discretization uses spectral truncation, which is usually
+triangular. For simplicity, the spectral transforms are carried out all the
+latitudes simultaneously. Any order of triangular truncation is allowed, but
+very high orders may be impractical in terms of memory requirements, because
+of the way the spectral transforms are carried out. The range of zonal
+wavenumbers may be further restricted within the range of triangular
+truncation, allowing anisotropic integrations with only very few zonal
+wavenumbers being resolved. The extreme case of axially symmetric horizontal
+representation can also be handled, although not too efficiently. The model
+can also handle an arbitrary number of passive tracers, using simple spectral
+advection.
+ 
+The model incorporates virtually no physical parameterizations of any kind.
+But simple forms of scale-selective damping, and Newtonian/Rayleigh friction
+are provided to facilitate mechanistic simulations.
+ 
+One of the unusual features of this model is that the vertically integrated
+divergence over the whole atmosphere is constrained to be identically zero. In
+other words, divergent shallow water modes with barotropic vertical structure
+are excluded. This leads to increased computational stability of the model.
+This also means that the model needs virtually no other boundary conditions,
+and only interior forcing/damping parameters need to be specified.  But this
+constraint can easily be relaxed to allow ``geopotential forcing'' at the
+lower boundary, as would be necessary for models of the middle atmosphere
+alone. (The necessary modifications are described in Appendix C, although they
+have not been implemented as yet.)
+ 
+ 
+\Section 2. Primitive equations in pressure coordinates.
+ 
+The primitive equations for a dry rotating spherical shallow compressible
+hydrostatic atmosphere in Lagrangian form may be written in pressure
+coordinates as (e.g. see Holton, 1979)
+ 
+$$ \eqalignno{
+\td[\uvec, t]  &= - f\kvec\times\uvec - \delh\Phi + {\v F}_u & (\neweq a) \cr
+\td[\Theta, t] &= F_T                                        & (\cureq b) \cr
+0 &= \delh\cdot\uvec + \pd[\omega, p]                        & (\cureq c) \cr
+\pd[\Phi, \zeta]   &= - C_p\Theta                            & (\cureq d) \cr
+}$$
+ 
+where $\zeta = {(p/p_s)}^\kappa$ denotes an auxiliary vertical coordinate,
+$\Theta$ denotes potential temperature, ${\v F_u}$ denotes mechanical
+forcing/damping terms, and $F_T$ denotes thermal forcing/damping terms.
+Otherwise the notation is fairly standard, and the reader is referred to
+Appendix A for a complete definition of all symbols.
+ 
+Defining the operators
+$$ \curlz(\;) \equiv (\kvec\times\delh) \cdot (\;) ;\quad
+   \div(\;)   \equiv \delh \cdot (\;)
+$$
+ 
+we define the relative vorticity $\xi$ and divergence $D$ as
+ 
+$$ D   \equiv \div\uvec;\quad
+   \xi \equiv \curlz\uvec
+$$
+ 
+Then we can write the primitive equations in Eulerian form as follows:
+ 
+$$ \eqalignno{
+\pd[\uvec, t]      &= - \delh\Phi - \delh({1\over2}\uvec^2)
+- (f+\xi)\kvec\times\uvec - D\uvec - \pd[(\omega\uvec), p]   & (\neweq a) \cr
+\pd[\Theta,t]      &= - \div(\Theta\uvec) -  \pd[(\omega\Theta), p]
+                                                             & (\cureq b) \cr
+\pd[\omega, p]     &= - D                                    & (\cureq c) \cr
+\pd[\Phi, \zeta]   &= - C_p\Theta                            & (\cureq d) \cr
+}$$
+ 
+Note that we have omitted the forcing/damping terms. We shall continue to
+ignore these terms in our discussion of spatial discretization. We will
+re-introduce some of the damping terms later when we discuss the time-marching
+scheme.
+ 
+\Section 3. Vertical discretization.
+ 
+\Subsection a. Vertical grid.
+ 
+We assume that the domain of the model atmosphere extends upward from a
+reference pressure level $p=p_s$ (``surface'') to the level $p=0$ (``top'' of
+the atmosphere). Following Lorenz (1960), we divide the pressure-interval
+$[0,p_s]$ into $L$ (possibly unequal) sub-intervals, each of extent $\Dp_l$.
+ 
+$$p_s = \sum_l \Dp_l, \; l= 1, \ldots, L
+$$
+ 
+We may then think of various quantities as being defined in the middle of
+these $L$ sub-intervals, which we refer to as {\it levels} (or {\it
+full-levels}). The levels are numbered, starting from the
+uppermost-level, as $1, \ldots, L$.  The pressure $p_l$ at the full-levels is
+defined by
+ 
+$$ p_l = {1\over2}\Dp_l + \sum_{l'=1}^{l-1} \Dp_{l'}
+$$
+ 
+It is then convenient to introduce the concept of {\it half-levels} which lie
+at the boundaries of the L pressure sub-intervals. There would be $L-1$
+half-levels which lie in between the $L$ full-levels. These we will refer to
+as the {\it interior} half-levels. There would also be two more half-levels,
+one at the top of the atmosphere, and another at the surface. These we will
+refer to as the boundary half-levels. The half-levels are numbered, starting
+from the top, as $\half, 1+\half, \ldots, L-\half, L+\half$.
+ 
+$$ p_{l+\half} = \sum_{l'=1}^l \Dp_{l'};\qquad p_\half=0,\quad p_{L+\half}=p_s.
+$$
+ 
+We take the prognostic quantities to be the horizontal velocity $\uvec_l$ and
+potential temperature $\Theta_l$ defined at each of the $L$ full-levels.  The
+continuity equation (2c) then suggests that it would be natural to define
+``pressure velocity'' $\omega_{l+\half}$ at the half-levels.  Next we
+introduce the {\it bar} and {\it cap} operators:
+ 
+$$ {\overline q}_{l+\half} \equiv { q_{l+1} + q_l \over 2}
+$$
+ 
+$$ {\widehat  q}_{l+\half} \equiv { q_{l+1} - q_l \over 2}
+$$
+where $q$ is some quantity defined at full-levels.
+(Note that the above operators are not defined at the boundary half-levels)
+ 
+We then define the vertical flux of prognostic quantities at the interior
+half-levels as
+ 
+$$ {\v V}_{u,l+\half} \equiv \omega_{l+\half} {\overline  \uvec}_{l+\half}
+$$
+ 
+$$      V_{T,l+\half} \equiv \omega_{l+\half} \Thetabar_{l+\half}
+$$
+ 
+For any vertical flux $V_{q,l+\half}$, we define the vertical divergence of
+this flux at the full-levels as
+ 
+$$ \vdiv{V_q} \equiv {V_{q,l+\half}-V_{q,l-\half}\over\Dp_l}
+$$
+ 
+We define the {\it vertical integral} of a quantity $q$ as being $\sum_{l=1}^L
+\Dp_l \, q_l$, which is essentially a mass-weighted integral. In particular,
+we note that
+ 
+$$ \sum_{l=1}^L \Dp_l \vdiv{V_q} = V_{q,L+\half} - V_{q,\half}
+$$
+ 
+We assume that the geopotential $\Phi_l$ is also defined at the
+full-levels. Defining $\zeta_l \equiv (p_l/p_s)^\kappa$, we choose to
+discretise the hydrostatic equation (2d) as follows:
+ 
+$$ {\Phi_{l+1} - \Phi_l \over \zeta_{l+1} - \zeta_l} \equiv
+    - C_p \Thetabar_{l+\half}
+$$
+ 
+We can then write the vertically discretized version of (\cureq) as
+ 
+$$ \eqalignno{
+\pd[\uvec_l, t]   &= - \delh\Phi_l - \delh E_l - {\v H}_{u,l}
+                                                             & (\neweq a) \cr
+\pd[\Theta_l,t]   &= - H_{T,l}                               & (\cureq b) \cr
+D_l &= - {\omega_{l+\half}-\omega_{l-\half}\over\Dp_l}       & (\cureq c) \cr
+\Phicap_{l+\half} &=
+                - C_p \zetacap_{l+\half} \Thetabar_{l+\half} & (\cureq d) \cr
+\noalign{\hbox{where}}
+{\v H}_{u,l} &\equiv  (f+\xi_l)\kvec\times\uvec_l + D_l\uvec_l
+                    + \vdiv{{\v V}_u}                        & (\neweq a) \cr
+H_{T,l}      &\equiv  \div(\Theta_l\uvec_l) + \vdiv{V_T}     & (\cureq b) \cr
+E_l          &\equiv  {1 \over 2} \uvec^2_l                  & (\cureq c) \cr
+}$$
+ 
+The auxiliary quantity ${\v H}_u$ represents a part of the momentum flux
+divergence, $H_T$ represents the heat flux divergence, and $E$ represents the
+kinetic energy.
+ 
+ 
+\Subsection b. Boundary conditions.
+ 
+We choose to set the pressure-velocity $\omega$ to zero at the upper and lower
+boundaries of the atmosphere:
+ 
+$$\omega_\half = \omega_{L+\half} = 0
+$$
+ 
+This choice then leads to the constraint that the vertically integrated
+divergence is zero. i.e.
+ 
+$$ \sum_{l=1}^L \Dp_l\,D_l = \omega_\half - \omega_{L+\half} = 0
+$$
+ 
+This choice also allows us to set the vertical fluxes at the boundaries to
+zero. i.e
+ 
+$$ {\v V}_{u,\half} = {\v V}_{u,L+\half} = V_{T,\half} = V_{T,L+\half} = 0
+$$
+ 
+ 
+\Subsection c. Conservation properties.
+ 
+It should be obvious from inspecting (\releq{-1}) that the vertical
+discretization preserves the global conservation properties of absolute
+angular momentum $(\Omega a \cos\phi + u)\cos\phi$ and potential temperature
+$\Theta$.  Now we proceed to show that the global integral of total energy is
+also conserved (in the absence of forcing/damping). Taking the dot-product of
+\uvec\ with (\releq{-1}a), we obtain
+ 
+$$\pd[E_l,t] = - \uvec_l \cdot \delh \Phi_l - \uvec_l \cdot \delh E_l
+                    - D {\uvec_l}^2  - \uvec_l \cdot \vdiv{{\v V}_u}
+$$
+ 
+After some rearranging, this can be written as
+ 
+$$\pd[E_l,t] = - \div (E_l \uvec_l) - \div (\Phi_l \uvec_l) - \vdiv{V_E}
+               + \Phi_l D_l \eqno (\neweq)
+$$
+ 
+where $V_{E,l+\half} \equiv \omega_{l+\half} \half(\uvec_{l+1} \cdot \uvec_l) $
+ 
+If we further define
+$ V_{\Phi,l+\half} \equiv \omega_{l+\half} {\overline \Phi}_{l+\half} $
+then we get
+ 
+$$ \vdiv{V_\Phi}= - \Phi_l D_l + {  \omega_{l+\half}\Phicap_{l+\half}
+                                  + \omega_{l-\half}\Phicap_{l-\half}
+                                    \over \Dp_l }
+$$
+ 
+If we also define
+$ V_{ {\bar\zeta}\,\Thetabar,l+\half} \equiv
+  \omega_{l+\half} {\bar\zeta}_{l+\half} \Thetabar_{l+\half} $
+then we get
+ 
+$$ C_p \vdiv{V_{{\bar\zeta}\,\Thetabar}} = C_p \zeta_l \vdiv{V_T}
+  - { \omega_{l+\half}\Phicap_{l+\half} + \omega_{l-\half}\Phicap_{l-\half}
+      \over \Dp_l }
+$$
+ 
+This allows us to write the kinetic energy tendency equation (\cureq) as
+ 
+$$\pd[E_l,t] = - \div \{(E_l + \Phi_l) \uvec_l\} - \vdiv{V_E} - \vdiv{V_\Phi}
+               - C_p \vdiv{V_{{\bar\zeta}\,\Thetabar}} + C_p \zeta_l \vdiv{V_T}
+               \eqno (\neweq)
+$$
+ 
+If we multiply the potential temperature tendency equation (\releq{-3}b) by
+$C_p
+\zeta$, we obtain
+ 
+$$\pd[C_p\zeta_l\Theta_l,t] = - \div(C_p \zeta_l \Theta_l \uvec_l)
+                 - C_p \zeta_l \vdiv{V_T} \eqno (\neweq)
+$$
+ 
+From (\releq{-1}) and (\cureq) it is clear that the vertical truncation
+preserves the global conservation property of the total energy
+$(E + C_p\zeta\Theta)$.
+ 
+Another quantity conserved by this vertical truncation is $\Theta^2$. If we
+multiply (\releq{-4}b) by $\Theta$, we obtain
+ 
+$$ \pd[\half\Theta^2_l,t] = - \div(\half\Theta^2_l\uvec_l)
+                            - \vdiv{V_{\half\Theta^2}} \eqno (\neweq)
+$$
+ 
+where $ V_{\half\Theta^2,l+\half} \equiv
+       \omega_{l+\half} \half \Theta_{l+1} \Theta_l  $
+ 
+ 
+\Subsection d. Linearization about reference vertical stratification.
+ 
+For the purposes of the semi-implicit time-stepping scheme that we will be
+using, it is necessary to express the $\Theta$ distribution in terms of
+deviations from some reference vertical profile $\Theta^R(p)$. We express
+$\Theta(\lambda,\phi,p,t)$ as
+ 
+$$\Theta = \Theta^R(p) + \Theta'(\lambda,\phi,p,t)
+$$
+ 
+Then we also decompose the heat fluxes as follows:
+ 
+$$\eqalignno{
+H_T             &= H_{T^R} + H_{T'}\cr
+H_{T',l}        &= \div(\Theta'_l\uvec_l) + \vdiv{V_{T'}}
+                   \hphantom{----------}\cr
+H_{T^R,l}       &= \Theta^R_l D_l + \vdiv{V_{T^R}}\cr
+V_{T',l+\half}  &= \omega_{l+\half} {\Thetabar'}_{l+\half}\cr
+}$$
+ 
+We can re-express $H_{T^R}$ as
+ 
+$$\eqalignno{
+H_{T^R,l} &= {  \Thetacap^R_{l+\half} \omega_{l+\half}
+                +\Thetacap^R_{l-\half} \omega_{l-\half} \over \Dp_l}\cr
+          &= \sum_{l'=1}^{L-1} (\delta_{l',l} + \delta_{l',l-1})
+              \Thetacap^R_{l'+\half} \omega_{l'+\half}\cr
+}$$
+ 
+(Here we have used the fact that $\omega_\half = \omega_{L+\half} = 0$.)
+ 
+Defining a column vector of length $L-1$:
+$\Wvec = (\omega_{1+\half},\ldots,\omega_{L-\half}) $,
+and a column vector of length $L$:
+$\Hvec = (H_{T^R,1},\ldots,H_{T^R,L}) $,
+we can write the above equation in matrix form as
+ 
+$$ \Hvec = \Mx[\omega,H] \> \Wvec
+$$
+ 
+where $\Mx[\omega,H]$ is an $L \times (L-1)$ matrix defined by
+ 
+$${\left[ \Mx[\omega,H] \right]}_{l,l'} =
+  \cases{ {\Thetacap^R_{l'+\half} \over \Dp_l} & if $l'=l$ or $l'=l-1$;\cr
+          0                                    & otherwise.\cr}
+$$
+ 
+$$  \Mx[\omega,H] = \pmatrix{
+\Thetacap^R_{1+\half}\over\Dp_1&0&0                              &\cdots&0&0\cr
+\Thetacap^R_{1+\half}\over\Dp_2&\Thetacap^R_{2+\half}\over\Dp_2&0&\cdots&0&0\cr
+0&\Thetacap^R_{2+\half}\over\Dp_3&\Thetacap^R_{3+\half}\over\Dp_3&\cdots&0&0\cr
+\vdots&\vdots&\vdots&\ddots&\vdots&\vdots\cr
+0&0&0&\cdots
+&\Thetacap^R_{L-1-\half}\over\Dp_{L-1}&\Thetacap^R_{L-\half}\over\Dp_{L-1}\cr
+0&0&0&\cdots&0                        &\Thetacap^R_{L-\half}\over\Dp_L\cr
+}$$
+ 
+Next we note that
+ 
+$$ \omega_{l'+\half} = - D_{l'} \Dp_{l'} + \omega_{l'-\half}
+                     = - \sum_{l''=1}^{l'} \Dp_{l''} D_{l''}
+$$
+ 
+Defining a column vector of length $L$:
+$\Dvec = (D_1,\ldots,D_L) $, we can rewrite the above equation in matrix form
+as follows:
+ 
+$$ \Wvec = \Mx[D,\omega] \> \Dvec
+$$
+ 
+where $\Mx[D,\omega]$ is an $(L-1) \times L$ matrix defined by
+ 
+$${\left[ \Mx[D,\omega] \right]}_{l',l''} =
+  \cases{ -\Dp_{l''} & if $l''\le l'$;\cr
+          0          & otherwise.\cr}
+$$
+ 
+$$  \Mx[D,\omega] = \pmatrix{
+-\Dp_1&      0&      0& \cdots&          0&      0\cr
+-\Dp_1& -\Dp_2&      0& \cdots&          0&      0\cr
+-\Dp_1& -\Dp_2& -\Dp_3& \cdots&          0&      0\cr
+\vdots& \vdots& \vdots& \ddots&     \vdots& \vdots\cr
+-\Dp_1& -\Dp_2& -\Dp_3& \cdots& -\Dp_{L-1}&      0\cr
+}$$
+ 
+This allows us to define the compound matrix $\Mx[D,H] = \Mx[\omega,H] \>
+\Mx[D,\omega]$.
+ 
+\Subsection e. Vorticity/divergence form.
+ 
+Rather than work with the discretised momentum equations, we prefer to work
+with the time-tendency equations for vorticity and divergence. This is
+motivated by the fact that when representing the horizontal variation of
+quantities using spherical harmonics, it is much easier to deal with
+scalars (such as vorticity) than with components of vectors. We apply the
+$\div$ and $\curlz$ operators to (3a) to obtain the following prognostic
+equations
+ 
+$$ \eqalignno{
+\pd[\xi_l, t]   &= - \curlz {\v H}_{u,l}                     & (\neweq a) \cr
+\pd[D_l, t]     &= - \div   {\v H}_{u,l}
+                   - \delsq E_l - \delsq \Phi_l              & (\cureq b) \cr
+}$$
+ 
+Since the quantities $D_l$ are not all independent, it is convenient to work
+with the $L-1$ independent quantities $\Dcap_{l+\half}$ at the interior
+half-levels. We can express $D$ in terms of $\Dcap$ as follows:
+ 
+$$ D_l = 2 \Dcap_{l-\half} + D_{l-1}
+       = \sum_{l'=1}^{l-1} 2 \Dcap_{l'+\half} + D_1
+$$
+ 
+Now we compute the vertically integrated divergence
+ 
+$$ \sum_{l'=1}^L D_{l'}\Dp_{l'} = \sum_{l'=1}^{L-1}
+   2 \Dcap_{l'+\half}(p_{L+\half} - p_{l'+\half}) + D_1 \, p_{L+\half}= 0
+$$
+ 
+This gives the following expression for $D_1$ in terms of $\Dcap$
+ 
+$$
+D_1 = \sum_{l'=1}^{L-1} 2 \Dcap_{l'+\half}
+        \left({p_{l'+\half} \over p_{L+\half}} - 1\right)
+$$
+ 
+Substituting back in the expression for $D_l$, we obtain
+ 
+$$\eqalignno{
+D_l &=  \sum_{l'=1}^{l-1} 2 \Dcap_{l'+\half}
+      + \sum_{l'=1}^{L-1} 2 \Dcap_{l'+\half}
+          \left({p_{l'+\half} \over p_{L+\half}} - 1\right)\cr
+\noalign{\hbox{or}}
+D_l &=  \sum_{l'=1}^{L-1}
+          2 \left({p_{l'+\half} \over p_{L+\half}}\right) \Dcap_{l'+\half}
+      - \sum_{l'=l}^{L-1} 2 \Dcap_{l'+\half}\cr
+}$$
+ 
+Defining a column vector of length $L-1$:
+$ \Dcapvec = (\Dcap_{1+\half},\ldots,\Dcap_{L-\half})$,
+we can write the above relation in matrix form as
+ 
+$$ \Dvec = \Mx[\Dcap,D] \> \Dcapvec
+$$
+ 
+where $\Mx[\Dcap,D]$ is an $L \times (L-1)$ matrix defined by
+ 
+$$ \left[\Mx[\Dcap,D]\right]_{l,l'} = \cases{
+2\left({p_{l'+\half} \over p_{L+\half}}    \right)     &if $l'<l$;    \cr
+2\left({p_{l'+\half} \over p_{L+\half}} - 1\right)     &if $l' \ge l$.\cr}
+$$
+ 
+$$  \Mx[\Dcap,D] = \pmatrix{
+2\Bigl({p_{1+\half}\over p_{L+\half}}-1\Bigr)&
+2\Bigl({p_{2+\half}\over p_{L+\half}}-1\Bigr)& \cdots&
+2\Bigl({p_{L-\half}\over p_{L+\half}}-1\Bigr)\cr
+2\Bigl({p_{1+\half}\over p_{L+\half}}  \Bigr)&
+2\Bigl({p_{2+\half}\over p_{L+\half}}-1\Bigr)& \cdots&
+2\Bigl({p_{L-\half}\over p_{L+\half}}-1\Bigr)\cr
+2\Bigl({p_{1+\half}\over p_{L+\half}}  \Bigr)&
+2\Bigl({p_{2+\half}\over p_{L+\half}}  \Bigr)& \cdots&
+2\Bigl({p_{L-\half}\over p_{L+\half}}-1\Bigr)\cr
+\vdots&\vdots&\ddots&\vdots\cr
+2\Bigl({p_{1+\half}\over p_{L+\half}}  \Bigr)&
+2\Bigl({p_{2+\half}\over p_{L+\half}}  \Bigr)& \cdots&
+2\Bigl({p_{L-\half}\over p_{L+\half}}  \Bigr)\cr
+}$$
+ 
+The above $L \times (L-1)$ matrix has a generalized left inverse which may be
+obtained as follows:
+ 
+$$ \Dcap_{l'+\half} = \half D_{l'+1} - \half D_{l'}
+  = \sum_{l''=1}^L \half (\delta_{l'',l'+1} - \delta_{l'',l'}) D_{l''}
+$$
+ 
+In matrix form, this may be written as
+ 
+$$ \Dcapvec = \Mx[D,\Dcap] \> \Dvec
+$$
+ 
+where $\Mx[D,\Dcap]$ is an $(L-1) \times L$ matrix defined by
+ 
+$${\left[ \Mx[D,\Dcap] \right]}_{l',l''} =
+  \cases{ -\half & if $l''=l'$;\cr
+          +\half & if $l''=l'+1$;\cr
+          0      & otherwise.\cr}
+$$
+ 
+$$  \Mx[D,\Dcap] = \pmatrix{
+-\half& +\half&      0& \cdots&      0&      0\cr
+\noalign{\smallskip}
+     0& -\half& +\half& \cdots&      0&      0\cr
+\vdots& \vdots& \vdots& \ddots& \vdots& \vdots\cr
+     0&      0&      0& \cdots& -\half& +\half\cr
+}$$
+ 
+$\Mx[D,\Dcap]$ has the following property: $\Mx[D,\Dcap] \> \Mx[\Dcap,D] = 1$.
+\medskip
+ 
+Next we write the hydrostatic relation (3d) as
+ 
+$$ \Phicap_{l'+\half} = - C_p \zetacap_{l'+\half} \Thetabar_{l'+\half}
+                      = - C_p \sum_{l''=1}^L
+\half\,\zetacap_{l'+\half}(\delta_{l'',l'+1}+\delta_{l'',l'})\Theta_{l''}
+$$
+ 
+Defining a column vector of length $L-1$:
+$\Phicapvec = (\Phicap_{1+\half},\ldots,\Phicap_{L-\half})$,
+and a column vector $\Tvec$ of length $L$,
+we can write the above equation in matrix form as
+ 
+$$ \Phicapvec = \Mx[\Theta,\Phicap] \> \Tvec
+$$
+ 
+where $\Mx[\Theta,\Phicap]$ is an $(L-1) \times L$ matrix defined by
+ 
+$${\left[ \Mx[\Theta,\Phicap] \right]}_{l',l''} =
+  \cases{ -\half C_p \zetacap_{l'+\half} & if $l''=l'+1$ or $l''=l'$;\cr
+          0                              & otherwise.\cr}
+$$
+ 
+$$  \Mx[\Theta,\Phicap] = \pmatrix{
+-\half C_p\zetacap_{1+\half}& -\half C_p\zetacap_{1+\half}& 0& \cdots& 0& 0\cr
+0& -\half C_p\zetacap_{2+\half}& -\half C_p\zetacap_{2+\half}& \cdots& 0& 0\cr
+\vdots& \vdots& \vdots& \ddots& \vdots& \vdots\cr
+0& 0& 0& \cdots& -\half C_p\zetacap_{L-\half}& -\half C_p\zetacap_{L-\half}\cr
+}$$
+ 
+ 
+\Section 4. Time integration.
+ 
+\Subsection a. Semi-implicit leap-frog scheme.
+ 
+We will use a leap-frog time-stepping scheme, but the terms associated with
+gravity waves will be treated implicitly.  Using superscripts to denote the
+time-step, we write (for a generic prognostic quantity $q$)
+ 
+$$ q^{n+1} = q^{n-1} + 2 \Dt \tt[q,n] \eqno (\neweq)
+$$
+ 
+where $\Dt$ denotes the time-step, and $(\partial q/\partial t)^n$ denotes an
+appropriately defined time-tendency for $q$.
+ 
+Let $\alpha$ (such that $0 \le \alpha \le 1$) denote the ``implicitness'' of
+the time-stepping scheme. We add scale-selective ($\deleight$) damping terms
+to (3), and define the time-tendencies as follows
+ 
+$$\eqalignno{
+\tt[\xivec,n]   &= - \gamma_u \deleight
+             \left(\alpha \xivec^{n+1} + (1-\alpha) \xivec^{n-1}\right)
+                   - \curlz {\vec {\v H}}_u^n &(\neweq a)\cr
+\tt[\Dcapvec,n] &= - \delsq \Mx[\Theta,\Phicap]
+             \left(\alpha \Tvec^{n+1} + (1-\alpha) \Tvec^{n-1}\right)
+                  - \gamma_u \deleight
+             \left(\alpha \Dcapvec^{n+1} + (1-\alpha) \Dcapvec^{n-1}\right)\cr
+                &\qquad +\Mx[D,\Dcap](- \div {\vec {\v H}}_u^n
+                                      - \delsq{\vec E}^n) &(\cureq b)\cr
+\tt[\Tvec,n]    &= - \Mx[\Dcap,H]
+               \left(\alpha \Dcapvec^{n+1} + (1-\alpha) \Dcapvec^{n-1}\right)
+                   - \gamma_T \deleight
+               \left(\alpha \Tvec^{n+1} + (1-\alpha) \Tvec^{n-1}\right)
+                   - {\vec H}_{T'}^n \cr
+                & &(\cureq c)\cr
+}$$
+ 
+where ${\vec \xi}$, ${\vec {\v H}}_u$, ${\vec E}$, and ${\vec H}_{T'}$
+are vectors of length $L$, and $\Mx[\Dcap,H] = \Mx[D,H] \> \Mx[\Dcap,D]$.
+ 
+It is convenient to define the ``explicit time-tendencies''
+ 
+$$\eqalignno{
+\Xvec_\xi^n &= - \curlz {\vec {\v H}}_u^n - \gamma_u \deleight \xivec^{n-1}\cr
+\Xvec_D^n   &= - \div   {\vec {\v H}}_u^n - \delsq {\vec E}^n
+               - \delsq \Mx[\Theta,\Phi] \Tvec^{n-1}
+               - \gamma_u \deleight \Dvec^{n-1}\cr
+\Xvec_T^n   &= - {\vec H}_{T'}^n - \Mx[D,H] \Dvec^{n-1}
+               - \gamma_T \deleight \Tvec^{n-1}\cr
+}$$
+ 
+where $\Mx[\Theta,\Phi] = \Mx[\Dcap,D] \Mx[\Theta,\Phicap] $.
+\smallskip
+ 
+This allows us to rewrite the time-tendency equations (\cureq) as
+ 
+$$\eqalignno{
+\tt[\xivec,n]   &= - \gamma_u \deleight \alpha (\xivec^{n+1} - \xivec^{n-1})
+                   + \Xvec_\xi^n &(\neweq a)\cr
+\tt[\Dcapvec,n] &= - \delsq \Mx[\Theta,\Phicap] \,
+                     \alpha (\Tvec^{n+1} - \Tvec^{n-1})
+                   - \gamma_u \deleight
+                     \alpha (\Dcapvec^{n+1} - \Dcapvec^{n-1})
+                   + \Mx[D,\Dcap] \Xvec_D^n \cr
+                & &(\cureq b)\cr
+\tt[\Tvec,n]    &= - \Mx[\Dcap,H] \alpha (\Dcapvec^{n+1} - \Dcapvec^{n-1})
+                   - \gamma_T \deleight
+                     \alpha (\Tvec^{n+1} - \Tvec^{n-1})+\Xvec_T^n&(\cureq c)\cr
+}$$
+ 
+Assuming that we expand our variables in terms of eigenfunctions of the
+$\delsq$ operator, we can define the following ``implicit correction factors''
+ 
+$$ \gamma_u^{corr} \equiv {1 \over 1 + \alpha 2 \Dt \gamma_u \deleight}
+$$
+$$ \gamma_T^{corr} \equiv {1 \over 1 + \alpha 2 \Dt \gamma_T \deleight}
+$$
+ 
+We then use (\releq{-2}) to rewrite (\cureq) as
+ 
+$$\eqalignno{
+\tt[\xivec,n]   &=   \gamma_u^{corr} \Xvec_\xi^n &(\neweq a)\cr
+\tt[\Dcapvec,n] &= - \gamma_u^{corr} \delsq \Mx[\Theta,\Phicap]
+                       (\alpha 2 \Dt) \tt[\Tvec,n]
+                    + \gamma_u^{corr} \Mx[D,\Dcap] \Xvec_D^n &(\cureq b)\cr
+\tt[\Tvec,n]    &= - \gamma_T^{corr} \Mx[\Dcap,H]
+                       (\alpha 2 \Dt) \tt[\Dcapvec,n]
+                    + \gamma_T^{corr} \Xvec_T^n &(\cureq c)\cr
+}$$
+ 
+We can now solve (\cureq b,c) for the $\Dcap$ tendency
+ 
+$$\eqalignno{
+\tt[\Dcapvec,n] &= \quad (\alpha 2 \Dt)^2 \gamma_u^{corr} \gamma_T^{corr}
+                    \delsq \Mx[\Theta,\Phicap] \Mx[\Dcap,H] \tt[\Dcapvec,n]\cr
+        &\quad - \gamma_u^{corr} \gamma_T^{corr} \delsq \Mx[\Theta,\Phicap]
+                   (\alpha 2 \Dt) \Xvec_T^n
+                 + \gamma_u^{corr} \Mx[D,\Dcap] \Xvec_D^n\cr
+}$$
+ 
+or
+ 
+$$\eqalignno{
+\tt[\Dcapvec,n] &= {\left[1 - (\alpha 2 \Dt)^2 \gamma_u^{corr} \gamma_T^{corr}
+                     \delsq \Mx[\Theta,\Phicap] \Mx[\Dcap,H] \right]}^{-1}\cr
+                &\qquad  \left( - \gamma_u^{corr} \gamma_T^{corr}
+                         \delsq \Mx[\Theta,\Phicap] (\alpha 2 \Dt) \Xvec_T^n
+                       + \gamma_u^{corr} \Mx[D,\Dcap] \Xvec_D^n\ \right)
+                         &(\neweq)\cr
+}$$
+ 
+Using the identity $\Mx[D,\Dcap] \> \Mx[\Dcap,D] = 1$,
+we can write
+ 
+$$ \Mx[\Theta,\Phicap] = \Mx[D,\Dcap] \Mx[\Dcap,D] \Mx[\Theta,\Phicap]
+                       = \Mx[D,\Dcap] \Mx[\Theta,\Phi]
+$$
+ 
+which allows us to rewrite (\cureq) as
+ 
+$$\eqalignno{
+\tt[\Dvec,n] &= \Mx[\Dcap,D]
+                 {\left[1 - (\alpha 2 \Dt)^2 \gamma_u^{corr} \gamma_T^{corr}
+                     \delsq \Mx[\Theta,\Phicap] \>
+                            \Mx[\Dcap, H] \right]}^{-1} \Mx[D,\Dcap]\cr
+             &\quad \left( - \gamma_u^{corr} \gamma_T^{corr}
+                    \delsq \Mx[\Theta,\Phi] (\alpha 2 \Dt) \Xvec_T^n
+                    + \gamma_u^{corr} \Xvec_D^n\ \right) &(\neweq)\cr
+}$$
+ 
+Equations (\releq{-2} a,c), along with (\cureq) constitute the prognostic
+equations of the time-stepping scheme.
+ 
+ 
+\Subsection b. Time-filtering.
+ 
+Since the leap-frog scheme produces a computational mode, a Robert time-filter
+(e.g. see Haltiner and Williams, p.~147) is used to damp it out. The leap-frog
+scheme as described in the previous section is modified as follows (for a
+generic prognostic quantity $q$):
+ 
+$$ q^{n+1} = q_\ast^{n-1} + 2 \Dt \tt[q,n] \eqno (\neweq)
+$$
+ 
+where $q_\ast$ denotes the filtered value of $q$ obtained as follows
+ 
+$$ q_\ast^n = (1 - 2\epsilon) q^n + \epsilon(q^{n+1} + q^{n-1})
+$$
+ 
+Here $\epsilon$ is a small positive fraction, typically of $O(0.01)$ for
+meteorological applications.
+ 
+ 
+\Section 5. Horizontal discretization.
+ 
+The model uses a truncated series of spherical harmonics to represent the
+horizontal variation of a quantity $q(\lambda,\phi,p,t)$. The spherical
+harmonics $\Ymn[m,n]$ are defined as
+ 
+$$ \Ymn[m,n](\lambda,\mu) = \Pmn[m,n](\mu) e^{im\lambda}
+$$
+ 
+where $\mu \equiv \sin\phi$, and $\Pmn[m,n]$ are the associated Legendre
+polynomials. The normalization conditions are
+ 
+$$\eqalignno{
+\half\int_{-1}^1 d\mu\> \Pmn[m,n] \Pmn[m',n'] &= \delta_{n,n'}\cr
+{1 \over 4\pi} \int_{-1}^1 d\mu \int_0^{2\pi} d\lambda\>
+                   \Ymn[m,n]^\ast \Ymn[m',n'] &= \delta_{m,m'} \delta_{n,n'}\cr
+}$$
+ 
+Some useful expression for $\Pmn[m,n]$ are
+ 
+$$        \Pmn[0,0] = 1; \qquad \Pmn[0,1] = \sqrt3 \mu;
+   \qquad \Pmn[0,2] = {\sqrt5 \over \> 2} (3 \mu^2 - 1)
+$$
+ 
+We expand $q$ in terms of the spherical harmonics as
+ 
+$$\eqalignno{
+q(\lambda,\mu,p,t) &= \sum_{n=0}^N \; \sum_{m=-\min(n,M)}^{+\min(n,M)}
+                      q_{m,n}(p,t) \> \Ymn[m,n](\lambda,\mu) &(\neweq a)\cr
+q_{m,n}            &= {1 \over 4\pi} \int_{-1}^1 d\mu \int_0^{2\pi} d\lambda\>
+                      \Ymn[m,n]^\ast \> q(\lambda,\mu,p,t) &(\cureq b)\cr
+}$$
+ 
+where $M$ and $N$ determine the order of the zonal and the meridional
+truncation respectively. The choice $M = N$ corresponds to {\it triangular}
+spectral truncation of order $N$. Note that for real $q$, we have the
+property that $q_{-m,n} = (-1)^m q_{m,n}^\ast$. Therefore, we only need to
+store the values of $q_{m,n}$ for $m \ge 0$.
+ 
+For all the linear terms in the prognostic equations discussed in the previous
+section, it is quite straightforward to obtain a separate time-tendency
+equation for each spectral coefficient $q_{m,n}$. Since $\Ymn[m,n]$ are
+eigenfunctions of the $\delsq$ operator, with eigenvalues $(- n(n+1)/ a^2)$,
+it is very easy to compute the horizontal velocity $\uvec$ from $\xi$ and $D$,
+by using the streamfunction $\psi$ and velocity potential $\chi$ defined as
+follows:
+ 
+$$ \xi = \delsq \psi; \qquad D = \delsq \chi; \qquad
+   \uvec = \kvec \times \delh \psi + \delh \chi
+$$
+ 
+The quadratic nonlinear products that occur in the prognostic equations are
+evaluated using the {\it transform method} (e.g., see Haltiner and Williams,
+pp.~193--201). To summarize this method--- consider a quadratic product of the
+form $(qr)$. Given the spectral coefficients $q_{m,n}$ and $r_{m,n}$, we wish
+to evaluate the spectral coefficients of the product ${(qr)}_{m,n}$. We choose
+a $(\lambda_j,\mu_k)$ longitude/sine-latitude grid in physical space, where
+$j=1,\ldots,K_1$, and $k=1,\ldots,K_2$. We choose the $K_1$ longitudes to be
+equally spaced. The $K_2$ latitudes (referred to as ``gaussian'' latitudes)
+are chosen to be gaussian quadrature points for the associated Legendre
+polynomials. i.e.
+ 
+$$ \half\int_{-1}^1 d\mu\> \Pmn[m,n] \, \Pmn[m',n'] =
+   \half\sum_{k=1}^{K_2} \> G_k \, \Pmn[m,n](\mu_k) \, \Pmn[m',n'](\mu_k),
+   \qquad \hbox{for all $n,n' \le N$;}
+$$
+ 
+where $G_k$ are the weights associated with each quadrature point $\mu_k$ (cf.
+Press et al, pp.~121--126). To avoid aliasing, $K_1$ and $K_2$ must satisfy
+the following constraints:
+ 
+$$ K_1 \ge 3M + 1; \qquad K_2 \ge {3N + 1 \over 2}
+$$
+ 
+The physical space values $q_{j,k}$ and $r_{j,k}$ at the grid-points
+$(\lambda_j,\mu_k)$ are computed using (\cureq a). Then the quadratic term
+$(qr)$ is transformed to spectral space as follows:
+ 
+$$ {(qr)}_{m,n} = {1 \over 2K_1} \sum_{k=1}^{K_2} \> G_k \>
+       \sum_{j=1}^{K_1} \Ymn[m,n]^\ast(\lambda_j,\mu_k) \> q_{j,k} \> r_{j,k}
+$$
+ 
+Thus the transforms between spectral and physical representations essentially
+involve a discrete Legendre transform combined with a discrete Fourier
+transform.
+ 
+ 
+\Section 6. Miscellaneous details.
+ 
+\Subsection a. Passive tracers.
+ 
+A conserved passive tracer $q$ is assumed to be governed by the equation
+ 
+$$ \pd[q,t] = - \div(q\uvec) -  \pd[(\omega q), p]
+$$
+ 
+It is discretised in a manner very similar to the $\Theta$ equation, and the
+prognostic equation is written as
+ 
+$$ \tt[q_l,n] = \gamma_T^{corr} \left[ - \div(q_l^n\uvec_l^n)
+                  -  \vdiv{V_q^n}  - \gamma_T \deleight q_l^{n-1} \right]
+$$
+ 
+ 
+\Subsection b. Choice of reference stratification.
+ 
+For numerical stability, $\Theta^R(p)$ should preferably be chosen such that
+the reference values of static stability $\{-(\partial\Theta^R/\partial p)\}$
+are typically larger than the values of static stability likely to be
+encountered during time-integrations with the model (Simmons~et~al, 1978).
+Before we define $\Theta^R(p)$, we define a ``standard'' vertical profile
+$\Theta^S(p)$. This ``standard'' profile may be some representation of the
+globally averaged vertical stratification such as the U.S. Standard
+Atmosphere.  We use $\Theta^S$ to construct $\Theta^R$ as follows:
+ 
+$$ \Theta^R_L = \Theta^S_L; \qquad
+   \Thetacap^R_{l+\half} = s^R \, \Thetacap^S_{l+\half}
+$$
+ 
+i.e. $\Theta^R$ coincides with $\Theta^S$ at the surface, but the increase of
+$\Theta^R$ with decreasing pressure is steeper than that of $\Theta^S$ by a
+``steepness'' factor $s^R$. One would typically choose $s^R > 1$.
+ 
+The standard profile $\Theta^S$ is also used to define a standard height $z^S$
+as follows:
+ 
+$$ g z^S_L =   C_p (1-\zeta_L) \Theta^S_l; \qquad
+   g z^S_l = 2 C_p \zetacap_{l+\half} \Thetabar^S_{l+\half} + g z_{l+1}
+$$
+ 
+The standard height values may be useful for the purpose of displaying
+diagnostics.
+ 
+ 
+\Subsection c. Forcing/damping terms.
+ 
+We had previously introduced the scale-selective $\deleight$ damping term
+during our discussion of the semi-implicit scheme. Now we discuss that and
+other damping terms in some more detail. We redefine the ``explicit
+time-tendencies'' as follows:
+ 
+$$\eqalignno{
+X_{\xi,l}^n    &= \cdots - \gamma(\delsq+{2\over a^2})^4 \xi_l^{n-1}
+                         - \eta_{u,l} \xi_l^{n-1}
+                         + \curlz \vdiv{{\v V}_{\nu u}^{n-1}} \cr
+X_{D,l}^n      &= \cdots - \gamma(\delsq+{2\over a^2})^4 D_l^{n-1}
+                         - \eta_{u,l} D_l^{n-1}
+                         + \div   \vdiv{{\v V}_{\nu u}^{n-1}} \cr
+X_{\Theta,l}^n &= \cdots - \gamma(\delsq)^4 \Theta_l^{n-1}
+                         - \eta_{T,l} (\Theta_l^{n-1} - \Theta^M_l)\cr
+}$$
+ 
+where ($\cdots$) denotes the adiabatic explicit tendencies, i.e., without any
+damping at all; $\gamma$ is the scale-selective $\deleight$ damping
+coefficient (usually expressed in units of $a^8/sec$), $\eta_u$ is a pressure-
+dependent Rayleigh friction coefficient, $\eta_T$ is a pressure-dependent
+Newtonian cooling coefficient. $\Theta^M$ is a specified ``mean'' potential
+temperature distribution that the Newtonian cooling relaxes $\Theta$ back to.
+ 
+Note that there is a subtle difference in the way that the $\deleight$ damping
+acts on $\xi$ or $D$ as compared to $\Theta$, i.e., we have made the following
+substitutions: $\gamma_u \deleight \to \gamma (\delsq+2a^{-2})^4$ and $\gamma_T
+\deleight \to \gamma(\delsq)^4$. The above scheme, which is motivated by the
+properties of horizontal viscous mixing on a sphere, ensures that a state of
+solid-body rotation is not affected by the horizontal scale-selective damping.
+Also note that all the damping terms involve values of the prognostic quantity
+at time step $n-1$. The damping terms are not treated using a leap-frog scheme
+because it would lead to numerical instabilities.
+ 
+${\v V}_{\nu u}$ is the vertical viscous stress, defined as follows:
+ 
+$$\eqalignno{
+{\v V}_{\nu u,l+\half} &= \nu_{l+\half} {\uvec_{l+1} - \uvec_l \over
+                                         \half \Dp_{l+1} + \half \Dp_l} \cr
+{\v V}_{\nu u,\half}   &= 0 \cr
+{\v V}_{\nu u,L+\half} &= - \Dp_L \>  \eta_{sd} \> \uvec \cr
+\nu_{l+\half}          &= \nu_0 {\left(\pd[p,z]\right)}_l^2
+                        = \nu_0 {\left({\half \Dp_{l+1} + \half \Dp_l \over
+                                 z^S_{l+1} - z^S_l}\right)}^2 \cr
+}$$
+ 
+where $\eta_{sd}$ is the surface drag coefficient, and $\nu_0$ is a
+height-independent ``vertical'' kinematic viscosity.
+ 
+ 
+\Section 7. Fortran implementation.
+ 
+\Subsection a. Overview.
+ 
+The model described so far has been implemented as set of Fortran77
+subroutines. The code has been written with simplicity, rather than
+efficiency, in mind. A simple storage scheme is used for the spectral
+coefficients, which leads to about 50\% redundancy in memory usage.  The
+execution speed should not be too bad, because an effort has been made to
+ensure that the major ``innermost'' loops of the spectral transform routines
+automatically vectorize on vector-processors. One important feature of the
+time-marching routines in module {\it prognos} is that they carry out spectral
+transforms over all the latitudes at the same time. This keeps the code simple
+and efficient, but the table of Legendre polynomials needed for this procedure
+becomes rather large at high orders of spectral truncation.
+ 
+The fortran source code is spread out over the following files:
+ 
+{\it prognos.F, splib.F, mcons.h, mgrid.h, tmarch.h, spcons.h, spgrid.h,
+sppoly.h, spfftb.h, {\rm and} ftable.h.}
+ 
+The two ``{\sl .F}'' files contain Fortran source code interspersed with C
+preprocessor directives. (On UNIX systems, the {\sl f77} command automatically
+invokes the C preprocessor on such files). There are two source modules: {\it
+prognos} and {\it splib}. The module {\it splib} deals exclusively with
+spectral transforms, and is self-contained. The module {\it prognos}
+implements the time-stepping scheme for the model, and uses some of the
+routines available in module {\it splib}. {\sl It also uses a subroutine from
+the NAG library to invert the implicit correction matrix.}
+ 
+The ``{\sl .h}'' files are ``include'' files used by the ``{\sl .F}'' modules.
+There are two types of include files--- C-parameter include files and Fortran
+declarative include files. The former contain definitions of C preprocessor
+parameters, and need to be included only once in the whole file, preferably at
+the very beginning of the file. The latter type of include files usually
+contain declarations of Fortran COMMON variables, and would need need to be
+included in the declarative part of every Fortran function/subroutine that has
+occasion to use them.
+ 
+There are two C-parameter include files: {\it mcons.h} and {\it spcons.h}.
+The file {\it mcons.h} contains important C preprocessor definitions for
+module {\it prognos}. Therefore, any program that uses routines from module
+{\it prognos} should begin with the following line---
+ 
+{\sl \#include "mcons.h"}
+ 
+Similarly, any program using routines from module {\it splib} should
+``include'' the file {\it spcons.h} at the very beginning, unless {\it
+mcons.h} has already been included. (Including {\it mcons.h} automatically
+causes {\it spcons.h} to be included.)
+ 
+The remaining include files contain Fortran declarations. The include file
+{\it mgrid.h} contains several useful COMMON variables of the primitive
+equation model, which are described in the preface to module {\it prognos}.
+Similarly, the include file {\it spgrid.h} contains several useful variables
+related to the horizontal truncation and the spectral transforms, which are
+described in the preface to module {\it splib}. (Including {\it mgrid.h}
+automatically causes {\it spgrid.h} to be included.)
+ 
+The declarative include file {\it tmarch.h} contains COMMON variables dealing
+with the time-stepping scheme, but they would rarely be needed by other
+programs. The include files {\it sppoly.h, spfftb.h,} and {\it ftable.h} are
+meant primarily for internal use by module {\it splib}.
+ 
+Appendix B contains a Fortran to Symbols ``dictionary,'' which lists the
+symbolic equivalents of most Fortran variable names.
+ 
+\Subsection b. Module {\rm splib}.
+ 
+Module {\it splib} contains numerous routines dealing with spectral
+transforms. Only the most commonly used routines, viz., the ones used by
+module {\it prognos}, are described below.  To use these routines, the
+following conventions must be used:
+ 
+\item{i)} A spectral space variable $q_{m,n}$ should be declared as
+ 
+COMPLEX QSP(0:M1MAX, 0:N1MAX)
+ 
+\item{ii)} A physical space variable $q_{j,k}$ should be declared as
+ 
+REAL QPH(K1MAX, K2MAX)
+ 
+ 
+The major subroutines of module {\it splib} may be described as follows (where
+the variables in parantheses denote arguments to the subroutine, $q, r$ denote
+generic scalars, $\uvec = u{\v i} + v{\v j}$ denotes a generic vector field,
+and ``$\gets$'' denotes the assignment operator):
+ 
+\smallskip
+\litem SPINI$(M,N,a):$ Initializes the spectral truncation order to $(M,N)$ and
+the planetary radius to $a$ \smallskip
+ 
+\litem ZEROSP$(q_{m,n},N): q_{m,n} \gets 0$ \smallskip
+ 
+\litem SPCOPY$(r_{m,n},q_{m,n},N): r_{m,n} \gets q_{m,n}$ \smallskip
+ 
+\litem DELSQ$(r_{m,n},q_{m,n},N): r_{m,n} \gets \delsq q_{m,n}$ \smallskip
+ 
+\litem IDELSQ$(r_{m,n},q_{m,n},N): r_{m,n} \gets \delh^{-2} q_{m,n}$ \smallskip
+ 
+\litem PHYSIC$(r_{j,k},q_{m,n}): r_{j,k} \gets (q)_{j,k}$ \smallskip
+ 
+\litem HVELOC$(u_{j,k},v_{j,k},\psi_{m,n},\chi_{m,n}):
+ \uvec_{j,k} \gets {(\kvec \times \delh \psi + \delh \chi)}_{j,k}$ \smallskip
+ 
+\litem SPECTR($r_{m,n},q_{j,k}): r_{m,n} \gets r_{m,n} + (q)_{m,n}$ \smallskip
+ 
+\litem DIVERG$(r_{m,n},u_{j,k},v_{j,k}):
+               r_{m,n} \gets r_{m,n} + (\div   \uvec)_{m,n}$ \smallskip
+ 
+\litem CURLZ$(r_{m,n},u_{j,k},v_{j,k}):
+               r_{m,n} \gets r_{m,n} + (\curlz \uvec)_{m,n}$ \smallskip
+ 
+In short, SPINI initializes all spectral transform operations, SPCOPY copies
+spectral representations, and DELSQ\slash IDELSQ apply the
+Laplacian/inverse-Laplacian operators respectively to spectral
+representations. PHYSIC converts spectral representations to physical
+representations, and HVELOC computes the physical velocity, given the spectral
+streamfunction and velocity potential. The last three routines (SPECTR,
+DIVERG, CURLZ) convert from physical to spectral representation, and {\sl
+accumulate}. ZEROSP should be used to set the spectral representation to zero
+before accumulation, if necessary. SPECTR converts from physical to spectral
+representation, DIVERG converts the divergence of a physical space vector
+field to spectral space, and CURLZ does the same for the $\curlz$ of a
+physical space vector field. The divergence and $\curlz$ are computed through
+integration by parts (cf. Haltiner and Williams, p.~194).
+ 
+Module {\it splib} also provides an error exit routine, SPERR, which takes two
+string arguments--- the name of the calling subroutine and an error message.
+SPERR simply displays the two strings and then aborts the program.
+ 
+(In case you are wondering as to why some of the subroutines take $N$ as an
+argument, when its value has already been specified through a call to SPINI---
+those subroutines can also take $N+1$ as an argument, to handle the
+exceptional case of the spectral representation of a vector component, which
+is of one meridional order higher than the spectral representation of a
+scalar. But for ordinary usage, $N$ can simply be thought of as being a
+redundant argument)
+ 
+ 
+\Subsection c. Module {\rm prognos}.
+ 
+Module {\it prognos} contains subroutines for initializing the planetary
+parameters and the vertical resolution. It also contains the time-marching and
+time-filtering routines. Before we describe these routines, it is useful to
+define the {\it composite level variable} ${\v P}_l = (P_{1,l}, P_{2,l},
+P_{3,l}, \ldots) \equiv (\xi_l, D_l, \Theta_l, \ldots)$, where $(\ldots)$
+denotes the concentrations of passive traces (if any). i.e. We then use the
+notation ${\vec {\v P}}$ to denote the spectral representation of ${\v P}$ at
+all the levels taken together. To use these routines, the following
+conventions must be used:
+ 
+\item{i)} A spectral space variable $q_{m,n,l}$ should be declared as
+ 
+COMPLEX QSP(0:M1MAX, 0:N1MAX, L1MAX)
+ 
+\item{ii)} A physical space variable $q_{j,k,l}$ should be declared as
+ 
+REAL QPH(K1MAX, K2MAX, L1MAX)
+ 
+\item{iii)} A spectral composite level variable $P_{m,n,i,l}$ should be
+declared as
+ 
+COMPLEX PSP(0:M1MAX, 0:N1MAX, NPGQ, L1MAX)
+ 
+where $i=1$ denotes $\xi$, $i=2$ denotes $D$, $i=3$ denotes $\Theta$, and
+values of $i>3$ denote passive tracers (if any); NPGQ $\equiv 3+$ NTRACE,
+where NTRACE is the number of passive tracers.
+ 
+The major subroutines of module {\it prognos} may be described as follows
+(where the variables in parantheses denote arguments to the subroutine, ${\vec
+{\v P}}, {\vec {\v Q}}$ denote generic composite level variables):
+ 
+\litem PLINI$(\Omega,R,C_p,q):$ Initializes the planetary parameters
+ 
+\litem VERINI$(L,\Dp_l,\Theta^S_l,s^R,\gamma,\Theta^M_l,\eta_{T,l},\eta_{u,l},
+\eta_{sd},\nu_0):$ Initializes the number of levels, level thicknesses,
+standard temperature profile, and forcing/damping details
+ 
+\litem DDTINI$(\Dt,\alpha):$ Initializes the semi-implicit time-stepping
+scheme
+ 
+\litem DDTPGQ$({\vec {\v Q}}, {\vec {\v P}}^{n-1}, {\vec {\v P}}^n):
+{\vec {\v Q}} \gets \tt[{\vec {\v P}},n]_{ad.}$. i.e., DDTPGQ computes the
+``adiabatic'' time-tendency (We put ``'' around {\sl adiabatic} because the
+effects of scale-selective damping, which is the only damping term that is
+treated semi-implicitly, are also included.)
+ 
+\litem DDTFRC$({\vec {\v Q}}, {\vec {\v P}}^{n-1}, {\vec {\v P}}^n):
+{\vec {\v Q}} \gets {\vec {\v Q}} + (\hbox{forcing terms})$. i.e. DDTFRC adds
+the explicit forcing\slash damping terms to the time-tendency ${\vec {\v Q}}$.
+ 
+\litem DDTIMP$({\vec {\v Q}}):{\vec {\v Q}} \gets (\hbox{implicitly corrected }
+{\vec {\v Q}})$. i.e. DDTIMP makes implicit corrections to the explicit
+time-tendency ${\vec {\v Q}}$.
+ 
+\litem ROBFIL$(q_{m,n}^{n-1},q_{m,n}^n,q_{m,n}^{n+1},\epsilon): q_{m,n}^n
+\gets (1 - 2\epsilon)q_{m,n}^n+\epsilon(q_{m,n}^{n+1}+q_{m,n}^{n-1})$. i.e.,
+ROBFIL applies the Robert time-filter.
+ 
+ 
+\Subsection d. Compilation and customization.
+ 
+Both {\it prognos} and {\it splib} contain Fortran subroutines/functions, but
+no MAIN programs. They may be concatenated together with a main program to
+form an executable model. The concatenated source code may be compiled with an
+{\sl f77} command on UNIX systems (or {\sl cf77} on UNICOS). To customize the
+model for different resolutions etc., many of the important C preprocessor
+parameters may be re-defined in the compilation command line itself. The
+important customization parameters are defined below:
+ 
+\litem{DPRECISION:} This parameter, if defined, indicates that the default
+floating point precision on the machine for REAL variables is equivalent to
+REAL*8. This parameter is needed because some of the initializations need to
+be carried out at double precision on 32-bit machines. This could be avoided
+on 64-bit machines (such as the Cray) by defining this parameter.
+ 
+\litem{UDEF:} The modules {\it splib} and {\it prognos} can be compiled with
+the {\sl f77 -u} option on UNIX systems, because all variables and functions
+are declared explicitly before being used. If the MAIN program also follows
+this convention, the {\sl-u} option could be used to detect bugs arising from
+the use of undefined variables. But a small number of ``dummy'' declarations
+had to be introduced to be able to do this on some UNIX f77 compilers, perhaps
+because of a bug in the f77 compiler. These dummy declarations generate errors
+without the {\sl-u} option. The C preprocessor parameter UDEF is provided so
+that these these ``dummy'' declarations may be enabled only when needed.
+Therefore, the UDEF option should be defined if and only if the {\sl f77 -u}
+option is used to compile the program.
+ 
+\litem{N1MAX:} This is the maximum order of triangular truncation (i.e. order
+of Legendre polynomials). The default value is 21.
+ 
+\litem{M1MAX:} This is the maximum value of zonal wavenumber resolved by the
+truncation. The default value is N1MAX.
+ 
+\litem{K1MAX:} This is the number of equally spaced longitudes in the
+transform grid [should be the lowest integral power of 2 $\ge$ (3*N1MAX+1)].
+The default value is 64.
+ 
+\litem{K2MAX:} This is the number of gaussian latitudes in the transform grid
+[should be the lowest odd integer $\ge$ (3*N1MAX+1)/2]. The default value is
+33. (K2MAX is always chosen to be odd, so that the equator can be one of the
+gaussian latitudes)
+ 
+\noindent [Other typical choices of (N1MAX, M1MAX, K1MAX, K2MAX) could be (10,
+10, 32, 17) or (21, 21, 64, 33) or (42, 42, 128, 65) or (85, 85, 256, 129)]
+ 
+\litem{L1MAX:} This is the maximum number of pressure-levels $(\ge2)$. The
+default value is 20.
+ 
+\litem{FIXTRUC:} This option, if defined, fixes the horizontal/vertical
+resolution of the model. i.e. The number of levels and the spectral truncation
+are fixed. By default, this option is not defined, and the resolution is
+allowed to vary within the limits of available storage. But by defining
+FIXTRUNC, one can force the counts of many DO loops to become constants, and
+this may help improve speed of execution (but there are no guarantees).
+ 
+\litem{NTRACE:} This is the number of passive tracers $(\ge0)$. The default
+value is 0.
+ 
+\litem{MLOW:} Cut-off value of zonal wavenumber $m$ that denotes ``low order
+zonal truncation''. For truncations with very few zonal wavenumbers ($M \le$
+MLOW), transforms can be performed more efficiently by reversing the order of
+certain nested DO loops at the heart of the Legendre transform. But the choice
+of MLOW would be very much machine dependent. The default value is 4.
+ 
+\noindent e.g. One may use the commands
+ 
+{\sl cat main.F prognos.F splib.F $>$ model.F}
+ 
+{\sl f77 -O -DL1MAX=5 -DN1MAX=42 -DK1MAX=128 -DK2MAX=65 model.F -lnag}
+ 
+to compile a version of the model with upto 5 pressure levels and horizontal
+truncation upto T42, on a Sun workstation. The first line of the main program
+{\sl main.F} should be {\sl \#include "mcons.h"}. (If the NAG library is not
+available, it may be substituted with routines from the LINPACK library. A
+module called {\sl linpack.F}, containing selected LINPACK routines, is
+provided to simulate the NAG routines used by module {\sl prognos}. This
+module may be compiled separately to form {\sl linpack.o}, and the {\sl -lnag}
+option on the above compile command line may simply be substituted with {\sl
+linpack.o}.)
+ 
+\noindent One may use the commands
+ 
+{\sl cat main.F prognos.F splib.F $>$ model.F}
+ 
+{\sl cf77 -DDPRECISION -DFIXTRUNC -DM1MAX=0 -DK1MAX=1 model.F -lnag}
+ 
+to compile a $N=21$ axisymmetric version of the model, with 20 pressure levels
+and fixed truncation, on a Cray running UNICOS.
+ 
+ 
+\Subsection e. Initialization and time-marching.
+ 
+First, the horizontal truncation should be initialized through a call to
+routine SPINI. Then the planetary parameters should be initialized by calling
+PLINI. This should be followed by a call to VERINI to initialize the vertical
+resolution, and the forcing/damping parameters.
+ 
+The time-marching sequence is initialized by a call to DDTINI. If one already
+has available the values of prognostic variables $({\vec {\v P}}^{n-1},{\vec
+{\v P}}^n)$ at two consecutive time-steps, one may use the call
+DDTINI$(\Dt,\alpha)$ to initialize the semi-implicit leap-frog time-marching,
+with time-step $\Dt$.  Then for each time-step, one would need to execute the
+following sequence of instructions:
+ 
+CALL DDTPGQ$({\vec {\v Q}}, {\vec {\v P}}^{n-1}, {\vec {\v P}}^n)$
+ 
+CALL DDTFRC$({\vec {\v Q}}, {\vec {\v P}}^{n-1}, {\vec {\v P}}^n)$
+ 
+$\langle$ {\sl Other explicit forcing terms may be added to ${\vec {\v Q}}$ at
+this point} $\rangle$
+ 
+CALL DDTIMP$({\vec {\v Q}})$
+ 
+${\vec {\v P}}^{n+1} \gets {\vec {\v P}}^{n-1} + 2\Dt\, {\vec {\v Q}}$
+ 
+CALL ROBFIL$(q_{m,n}^{n-1},q_{m,n}^n,q_{m,n}^{n+1},\epsilon)$ {\sl for each
+constituent $q$ in ${\vec {\v P}}^n$ }
+ 
+But at the very beginning of model integrations, one may have only the initial
+condition ${\vec {\v P}}^0$ available. In that case, one may ``cheat'' the
+time-marching routines by initializing with the call
+DDTINI$(\half\Dt,\alpha)$. Then, for the first time-step only, one may execute
+the following sequence of instructions:
+ 
+CALL DDTPGQ$({\vec {\v Q}}, {\vec {\v P}}^0, {\vec {\v P}}^0)$
+ 
+CALL DDTFRC$({\vec {\v Q}}, {\vec {\v P}}^0, {\vec {\v P}}^0)$
+ 
+$\langle$ {\sl Other explicit forcing terms may be added to ${\vec {\v Q}}$ at
+this point} $\rangle$
+ 
+CALL DDTIMP$({\vec {\v Q}})$
+ 
+${\vec {\v P}}^1 \gets {\vec {\v P}}^0 + \Dt\, {\vec {\v Q}}$
+ 
+\vfill\eject
+ 
+ 
+\Appendix A. Symbols and notation.
+ 
+ 
+\Subsection a. Symbols.
+ 
+(Note: The word ``horizontal'' is used here to denote motions along isobaric
+surfaces, which are assumed to deviate only very little from the true
+horizontal)
+ 
+\v i, \v j, \v k are the local eastward, northward, and upward unit vectors.
+S.I. units are used to express almost all the quantities, except for $\gamma$,
+and except where otherwise noted.
+ 
+\halign{\indent#\hfil&\quad\hfil#\hfil\quad&\quad#\hfil\cr
+$t$ &:& time (in $s$)\cr
+$\lambda$ &:& longitude (in $rad$)\cr
+$\phi$ &:& latitude (in $rad$)\cr
+$\mu = \sin\phi$ &:& sine-latitude\cr
+$z$ &:& height (in $m$)\cr
+$p$ &:& pressure (in $Pa$)\cr
+$\uvec = u\v i+v\v j$ &:& horizontal velocity (in $m/s$)\cr
+$u$ &:& zonal velocity (in $m/s$)\cr
+$v$ &:& meridional velocity (in $m/s$)\cr
+$\omega = dp/dt$ &:& ``pressure velocity'' (in $Pa/s$)\cr
+$T$ &:& temperature (in $K$)\cr
+$a$ &:& planetary radius (in $m$)\cr
+$\Omega$ &:& angular velocity of planetary rotation (in $1/s$)\cr
+$f = 2\Omega \sin\phi$ &:& the coriolis parameter (in $1/s$)\cr
+$g$ &:& gravitational acceleration at planetary surface (in $m^2/s$)\cr
+$\Phi = gz$ &:& geopotential height (in $m^2/s^2$)\cr
+$R$&:& gas constant (per unit mass) for dry air (in $J/\{kgK\}$)\cr
+$C_p$&:& specific heat (per unit mass) at constant pressure (in $J/\{kgK\}$)\cr
+$C_v$&:& specific heat (per unit mass) at constant volume (in $J/\{kgK\}$)\cr
+$\kappa = C_p/C_v$ &:& a ratio of specific heats\cr
+$p_s$ &:& the (constant) reference surface pressure (in $Pa$)\cr
+$\zeta = {(p/p_s)}^\kappa$ &:& an auxiliary vertical coordinate\cr
+$\Theta = T{(p_s/p)}^\kappa$ &:& potential temperature (in $K$)\cr
+$s^R$ &:& steepness factor for $\Theta^R$\cr
+$\Theta^R$ &:& reference potential temperature profile (in $K$)\cr
+$\Theta^S$ &:& standard potential temperature profile (in $K$)\cr
+$z^S$ &:& standard height values at pressure levels (in $m$)\cr
+$\Theta^M$ &:& ``mean'' potential temperature profile (in $K$)\cr
+$\xi = \curlz\uvec$ &:& relative vorticity (in $1/s$)\cr
+$D = \div\uvec$ &:& divergence (in $1/s$)\cr
+${\v P} = (\xi,D,\Theta,\ldots)$ &:& composite level variable\cr
+$\psi = \nabla_H^{-2} \xi$ &:& streamfunction (in $m^2/s$)\cr
+$\chi = \nabla_H^{-2} D$ &:& velocity potential (in $m^2/s$)\cr
+$E = \half \uvec^2$ &:& kinetic energy (per unit mass, in $m^2/s^2$)\cr
+$\alpha$ &:& ``implicitness'' factor $(0 \le \alpha \le 1)$\cr
+$\epsilon$ &:& Robert filter factor\cr
+$m$ &:& zonal wavenumber\cr
+$n$ &:& meridional index of spherical harmonic $(\mid m \mid \le n)$\cr
+$M$ &:& zonal wavenumber truncation order $(\mid m \mid \le M)$\cr
+$N$ &:& meridional truncation order $(n \le N)$\cr
+$\Pmn[m,n](\phi)$ &:& associated Legendre polynomial\cr
+$\Ymn[m,n](\lambda,\phi) = \Pmn[m,n]e^{im\lambda}$ &:& spherical harmonic\cr
+$K_1$ &:& number of longitudes in the transform grid\cr
+$K_2$ &:& number of gaussian-latitudes in the transform grid\cr
+$G_k$ &:& gaussian quadrature weight at $\phi = \phi_k$\cr
+$\gamma$ &:& $\deleight$ damping coefficient (in units of $a^8/s$)\cr
+$\eta_u$ &:& pressure-dependent Rayleigh friction coefficient (in $1/s$)\cr
+$\eta_T$ &:& pressure-dependent Newtonian cooling coefficient (in $1/s$)\cr
+$\eta_{sd}$ &:& surface friction coefficient (in $1/s$)\cr
+$\nu_0$ &:& height-independent ``vertical'' kinematic viscosity (in $m^2/s$)\cr
+}
+ 
+\Subsection b. Operators.
+ 
+Vector quantities are shown in boldface. e.g. $\v V = (V_\lambda,V_\phi)$
+ 
+$$\eqalignno{
+\delh  &=  \v i{1 \over a\cos\phi}{\partial\over\partial\lambda} +
+           \v j{1 \over a        }{\partial\over\partial\phi}\cr
+\delsq &= {1 \over a^2\cos^2\phi}{\partial^2\over{\partial\lambda}^2} +
+          {1 \over a^2\cos\phi  }{\partial\over\partial\phi}\cos\phi
+                                 {\partial\over\partial\phi}\cr
+\div  \v V &= {1 \over a\cos\phi}\pd[V_\lambda,\lambda] +
+          {1 \over a\cos\phi}{\partial\over\partial\phi}\cos\phi V_\phi\cr
+\curlz\v V &= (\kvec\times\delh)\cdot\v V
+        = {1 \over a\cos\phi}\pd[V_\phi,\lambda] -
+          {1 \over a\cos\phi}{\partial\over\partial\phi}\cos\phi V_\lambda\cr
+}$$
+ 
+\vfill\eject
+ 
+ 
+\Appendix B. Fortran to Symbols dictionary.
+ 
+ 
+\halign{\indent#\hfil$\to$&\quad$#$\hfil\cr
+\omit&\cr
+A0     & a \cr
+A0INV  & a^{-1} \cr
+A0Q    & a^2 \cr
+A0QINV & a^{-2} \cr
+\omit&\cr
+CIM    & i\,m \cr
+COSINV & 1/\cos\phi_k \cr
+COSPHI & \cos\phi_k \cr
+CP     & C_p \cr
+\omit&\cr
+D2DCAP & \Mx[D,\Dcap] \cr
+D2TT   & - \Mx[D,H] = - \Mx[\omega,H] \> \Mx[D,\omega] \cr
+D2W    & \Mx[D,\omega] \cr
+DCAP2D & \Mx[\Dcap,D] \cr
+DEL8DF & \gamma \cr
+DP     & \Dp_l \cr
+DPGQSP & \partial{\vec {\v P}}/\partial t \cr
+DT     & \Dt \cr
+DTFAC  & \alpha 2\Dt \cr
+\omit&\cr
+F0     & 2\Omega \cr
+FSP01  & 2\Omega / \sqrt3 \cr
+\omit&\cr
+G      & \half G_k \qquad \langle \hbox{note factor of } \half \rangle \cr
+G0     & g \cr
+\omit&\cr
+HDP    & \half \Dp_l \cr
+\omit&\cr
+IMPCOR & \hbox{implicit correction matrix} \cr
+IMPFAC & \alpha \cr
+IMPLCT &  \alpha \cr
+\omit&\cr
+J      & j \cr
+JDIV   & i=2 \qquad (D) \cr
+JPOT   & i=3 \qquad (\Theta) \cr
+JVOR   & i=1 \qquad (\xi) \cr
+\omit&\cr
+K      & k \cr
+K1     & K_1 \cr
+K1MAX  & \hbox{maximum value of } K_1 \cr
+K2     & K_2 \cr
+K2MAX  & \hbox{maximum value of } K_2 \cr
+KAPPA  & \kappa \cr
+\omit&\cr
+L      & l \cr
+L1     & L \cr
+L1MAX  & \hbox{maximum value of } L \cr
+LAMBDA & \lambda_j \cr
+\omit&\cr
+M      & m \cr
+M1     & M \cr
+M1MAX  & \hbox{maximum value of } M \cr
+MU     & \mu_k \cr
+\omit&\cr
+N      & n \cr
+N1     & N \cr
+N1MAX  & \hbox{maximum value of } N \cr
+N2     & N+1 \cr
+NLEV   & L \cr
+NNT2DT & \Mx[\Dcap,D] \> \Mx[\Theta,\Phicap] \cr
+\omit&\cr
+OMEGA0 & \Omega \cr
+\omit&\cr
+PGQSP0 & {\vec {\v P}}^{n-1} \cr
+PGQSP1 & {\vec {\v P}}^n \cr
+PHI    & \phi_k \cr
+PHLV   & p_{l+\half} \cr
+PKCHLV & \zetacap_{l+\half} \cr
+PKLV   & \zeta_l \cr
+PLV    & p_l \cr
+PSURF  & p_s \cr
+PTHICK & \Dp_l \cr
+\omit&\cr
+QHDAMP & \gamma \cr
+\omit&\cr
+RADIUS & a \cr
+RGAS   & R \cr
+ROBFAC & \epsilon \cr
+\omit&\cr
+SFRIC  & \eta_{sd} \cr
+\omit&\cr
+T2GPCP & \Mx[\Theta,\Phicap] \cr
+TD8COR & 1/\left\{1 + \gamma (\delsq)^4 \right\} \cr
+TD8FAC & \gamma (\delsq)^4 \cr
+TDAMP  & \eta_{T,l} \cr
+TMNLV  & \Theta^M_{0,n,l} \cr
+TRADEQ & \Theta^M_{k,l} \cr
+TREFLV & \Theta^R_l \cr
+TRFFAC & s^R \cr
+TRLXLV & \eta_{T,l} \cr
+TSTDLV & \Theta^S_l \cr
+TSTEEP & s^R \cr
+TZSTD  & \Theta^S_l \cr
+\omit&\cr
+UD8COR & 1/\left\{1 + \gamma (\delsq+2a^{-2})^4 \right\} \cr
+UD8FAC & \gamma (\delsq+2a^{-2})^4 \cr
+UDAMP  & \eta_{u,l} \cr
+URLXLV & \eta_{u,l} \cr
+USDRAG & \eta_{sd} \cr
+\omit&\cr
+VERVIS & \nu_0 \cr
+VVISC  & \nu_l \cr
+\omit&\cr
+W2TT   & - \Mx[\omega,H] \cr
+\omit&\cr
+ZSTDLV & z^S_l \cr
+\omit&\cr
+}
+ 
+\vfill\eject
+ 
+ 
+\Appendix C. Modifications to allow forcing at bottom boundary.
+ 
+ 
+Instead of setting the vertically integrated divergence to zero, one could
+choose to specify the geopotential $\Phi$ near the bottom boundary. This
+boundary condition may be appropriate for, say, a model of the middle
+atmosphere, where the lower boundary forcing due to the troposphere is
+specified. We choose to set the pressure-velocity $\omega$ to zero at the
+upper boundary, but at the lower boundary we specify the following conditions:
+ 
+$$ {\overline \uvec}_{L+\half} = \uvec_L, \quad
+    {\Thetabar'}_{L+\half} = {\Theta'}_L, \quad
+    \Phi_L = C_p \zetacap_{L+\half} \Theta_L + \Phi_s(\lambda,\phi,t)
+$$
+ 
+where $\zetacap_{L+\half} \equiv (1-\zeta_L)$, and $\Phi_s$ is some specified
+function.
+ 
+We also assume that $\Thetacap^R_{L+\half}$ has some specified value. For
+convenience, one may even choose to set $\Thetacap^R_{L+\half} =
+\Thetacap^R_{L-\half}$. We re-define $\Wvec$ to be vector of length $L$, i.e.,
+$\Wvec = (\omega_{1+\half},\ldots,\omega_{L+\half})$. This allows us to
+express $\Hvec$ as
+ 
+$$ \Hvec = \Mx[\omega,H] \> \Wvec
+$$
+ 
+where $\Mx[\omega,H]$ is re-defined to be an $L \times L$ matrix with the
+following structure:
+ 
+$$  \Mx[\omega,H] = \pmatrix{
+\Thetacap^R_{1+\half}\over\Dp_1&0                              &\cdots&0&0&0\cr
+\Thetacap^R_{1+\half}\over\Dp_2&\Thetacap^R_{2+\half}\over\Dp_2&\cdots&0&0&0\cr
+\vdots&\vdots&\ddots&\vdots&\vdots&\vdots\cr
+0&0&\cdots
+&\Thetacap^R_{L-1-\half}\over\Dp_{L-1}&\Thetacap^R_{L-\half}\over\Dp_{L-1}&0\cr
+0&0&\cdots&0&\Thetacap^R_{L-\half}\over\Dp_L&\Thetacap^R_{L+\half}\over\Dp_L\cr
+}$$
+ 
+We also re-define $\Mx[D,\omega]$ to be an $L \times L$ matrix. (The extension
+is straightforward.) We then define the compound matrix
+ 
+$$\Mx[D,H] = \Mx[\omega,H] \> \Mx[D,\omega]
+$$
+ 
+We also define a new quantity $\Phitilde_l \equiv \Phi_l - \Phi_s$. We then
+write
+ 
+$$\eqalignno{
+\Phitilde_l &= - 2\Phicap_{l+\half} + \Phitilde_{l+1}
+             = - \sum_{l'=l}^{L-1}2\Phicap_{l'+\half}
+               + C_p \zetacap_{L+\half} \Theta_L\cr
+            &=   \sum_{l'=l}^{L-1}2C_p\zetacap_{l'+\half}\Thetabar_{l'+\half}
+               + C_p \zetacap_{L+\half} \Theta_L
+             =   C_p \zetacap_{l+\half} \Theta_l + \sum_{l'=l+1}^L
+                   C_p (\zetacap_{l'-\half}+\zetacap_{l'+\half})\Theta_{l'}\cr
+}$$
+ 
+Defining a column vector of length $L$:
+$\Phitildevec = (\Phitilde_1,\ldots,\Phitilde_L)$,
+we can write the above equation in matrix form as
+ 
+$$ \Phitildevec = \Mx[\Theta,\Phitilde] \> \Tvec
+$$
+ 
+where $\Mx[\Theta,\Phitilde]$ is an $L \times L$ matrix defined by
+ 
+$${\left[ \Mx[\Theta,\Phitilde] \right]}_{l,l'} =
+  \cases{ C_p (\zetacap_{l'-\half}+\zetacap_{l'+\half}) & if $l'>l$;\cr
+          C_p  \zetacap_{l'+\half}                      & if $l'=l$;\cr
+          0                                             & otherwise.\cr}
+$$
+ 
+$$  \Mx[\Theta,\Phitilde] = \pmatrix{
+C_p\zetacap_{1+\half}&C_p(\zetacap_{1+\half}+\zetacap_{2+\half})&
+               \cdots&C_p(\zetacap_{L-\half}+\zetacap_{L+\half})\cr
+0&C_p\zetacap_{2+\half}&
+               \cdots&C_p(\zetacap_{L-\half}+\zetacap_{L+\half})\cr
+\vdots& \vdots& \ddots& \vdots\cr
+0&0&            \cdots&C_p\zetacap_{L+\half}\cr
+}$$
+ 
+We define the following ``explicit time-tendencies'':
+ 
+$$\eqalignno{
+\Xvec_D^n &= - \div {\vec {\v H}}_u^n - \delsq {\vec E}^n
+             - \delsq \Mx[\Theta,\Phitilde] \Tvec^{n-1}
+             - \gamma_u \deleight \Dvec^{n-1} - \delsq \Phi_s^n\cr
+\Xvec_T^n &= - {\vec H}_{T'}^n - \Mx[D,H] \Dvec^{n-1}
+             - \gamma_T \deleight \Tvec^{n-1}\cr
+}$$
+ 
+Note that the explicit $D$ tendency for each of the $L$ levels has a $(-
+\delsq \Phi_s^n)$ term in it, and that is the only form in which $\Phi_s$
+enters the prognostic equations. So the lower boundary condition on $\Phi$ is
+equivalent to a vertically uniform explicit forcing term in $D$ tendency
+equation. So it may be convenient to assume that $\Phi_s \equiv 0$, and
+specify a vertically uniform explicit forcing to simulate the lower boundary
+condition on $\Phi$.
+ 
+Proceeding along similar lines as in the case with vertically integrated
+divergence set to zero, we obtain the following prognostic equations for $D$
+and $\Theta$:
+ 
+$$\eqalignno{
+\tt[\Dvec,n] &= {\left[1 - (\alpha 2 \Dt)^2 \gamma_u^{corr} \gamma_T^{corr}
+                    \delsq \Mx[\Theta,\Phitilde] \>
+                           \Mx[D,H]\right]}^{-1}\cr
+             &  \quad \left( - \gamma_u^{corr} \gamma_T^{corr}
+                      \delsq \Mx[\Theta,\Phitilde] (\alpha 2 \Dt) \Xvec_T^n
+                      + \gamma_u^{corr} \Xvec_D^n\ \right) \cr
+\tt[\Tvec,n] &= - \gamma_T^{corr} \Mx[D,H]
+                    (\alpha 2 \Dt) \tt[\Dvec,n]
+                + \gamma_T^{corr} \Xvec_T^n \cr
+}$$
+ 
+The treatment of $\xi$ is the same as for the case with vertically integrated
+divergence set to zero.
+ 
+ 
+\vfill\eject
+ 
+\References
+ 
+\bref Haltiner, G.J., and R.T. Williams/1980/ Numerical Prediction and Dynamic
+Meteorology, {\rm second edition}. John Wiley \& Sons, 477pp.
+ 
+\bref Holton, J.R./1979/ An Introduction to Dynamic Meteorology, {\rm second
+edition}. Academic Press, 391pp.
+ 
+\pref Lorenz, E.N./1960/ Energy and numerical weather prediction. Tellus, 12,
+364-373.
+ 
+\bref Press, W.H., B.P. Flannery, S.A. Teukolsky, and W.T. Vetterling/1986/
+Numerical Recipes: the art of scientific computing. Cambridge University
+Press, 818pp.
+ 
+\pref Simmons, A.J., B.J.Hoskins, and D.M.Burridge/1978/ Stability of the
+semi-implicit method of time integration. \MWR, 106, 405-412.
+ 
+\bye
+ 

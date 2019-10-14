@@ -1,0 +1,57 @@
+N                       OLD DATA?
+0.0                     UC
+0.0                     VC
+0.0                     UT
+0.0                     VT
+0.0                     SS
+-0.10                   SD
+2.0E-7                  WE MAG
+70.                     NUMBER OF X GRIDPOINTS IN WAVE
+70.                     NUMBER OF Y GRIDPOINTS IN WAVE
+500.0                   H0
+540000                  XCEN
+400000                  SIGX
+ 20000                  YCEN
+ 40000                  SIGY
+ 0.10                   M/DAY QFMAX
+ 0.60                   M/WINTER FREEZING
+-0.60                   M/SUMMER MELTING
+  100                   STRSPR
+  160                   STRSUM
+  220                   STRFLL
+    0                   STRWIN
+  960                   NOUT
+  960                   NFLOUT
+ 7680                   NTOT, 240 = 1 YEAR
+0.115                   SCRIT
+  240                   T AVERAGE
+2.0E+4                  DELX
+2.0E+4                  DELY
+1.31485E+5              DELT
+3.453E+1                SREF
+-1.0E-1                 SDREF
+ 0.0E+0                 SSREF
+8.0E+4                  AHM
+0.0E-4                  AVM
+4.0E+2                  AHS
+3.0E-4                  AVS
+-1.4E-4                 F
+9.80                    G
+7.E-12                  BETA              BAROTROPIc
+ucrefyr
+vcrefyr
+utrefyr
+vtrefyr
+ssrefyr
+sdrefyr
+flmrefyr
+flsrefyr
+ucavrefyr
+vcavrefyr
+utavrefyr
+vtavrefyr
+ssavrefyr
+sdavrefyr
+flmavrefyr
+flsavrefyr
+HARRY

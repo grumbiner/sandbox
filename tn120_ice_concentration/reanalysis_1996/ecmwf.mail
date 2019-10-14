@@ -1,0 +1,207 @@
+From ern@ecmwf.co.uk Fri Dec  9 06:46 EST 1994
+Received: from scylla.ecmwf.co.uk by hp20 with SMTP
+	(1.38.193.4/16.2) id AA02633; Fri, 9 Dec 1994 06:46:26 -0500
+Return-Path: <ern@ecmwf.co.uk>
+Received: from vidar (vidar.ecmwf.co.uk) by ecmwf.co.uk (4.1/SMI-4.1-MHS-7.0)
+	id AA19128; Fri, 9 Dec 94 11:58:09 GMT
+	for wd21rg@hp20.wwb.noaa.gov<hp20.wwb.noaa.gov>
+Received: by vidar (920330.SGI/920502.SGI)
+	for wd21rg@hp20.wwb.noaa.gov id AA22812; Fri, 9 Dec 94 11:58:08 GMT
+From: ern@ecmwf.co.uk (Atsushi Nomura)
+Message-Id: <9412091158.ZM22810@vidar>
+Date: Fri, 9 Dec 1994 11:58:07 +0100
+In-Reply-To: Bob Grumbine <wd21rg@hp20>
+        "" (Dec  5,  3:22pm)
+References: <9412052034.AA27173@ecmwf.co.uk>
+X-Mailer: Z-Mail (2.1.4 02apr93)
+To: wd21rg@hp20
+Subject: Sea Ice data
+
+Dear Dr. Bob Grumbine,
+
+I compared your data with those made by Nationa Snow and Ice data center during
+December 1991.  It is very nice that the difference of sea ice limit(determined
+by 55% sea ice concentration) between them was very small.  I have already
+converted them until July 1993.  It is very interesting that the feature of the
+polynya over the Ross Sea in 1992 spring season was different from that of the
+other normal years.
+
+I read your document.
+(2.1) My name and organization are
+
+  Atsushi Nomura
+  ECMWF.
+
+address of ECMWF is
+  Shinfield Park, Reading,
+  Berkshire, RG2 9AX, U.K.
+
+(2.2) Our project is formally called ECMWF Re-Analysis Project, but you may not
+care for the title, I think.
+
+(2.4) I must consult with the manager about this item.  I cannot answer now.
+
+I am now writing a description about the sea ice data set that I created.  I
+have a plan to submit it to the ECMWF technical Memorandum.  A copy of the
+manuscript will be brought to Dr. Kanamitsu on next Monday.  Because Per
+Kallberg, one of reanalysis staffs, will visit Washington to discuss the
+situation of reanalysis projects and I asked him to bring my manuscript to him.
+
+With best regards.
+
+Atsushi Nomura.
+
+
+
+From wd21rg@hp20 Mon Dec  5 15:22 EST 1994
+Received: by hp20
+	(1.38.193.4/16.2) id AA23563; Mon, 5 Dec 1994 15:22:49 -0500
+Date: Mon, 5 Dec 1994 15:22:49 -0500
+From: Bob Grumbine <wd21rg@hp20>
+Return-Path: <wd21rg@hp20>
+Apparently-To: wd21rg@hp20
+
+Dear Mr. Nomura,
+
+  I'm sorry for the problems on the SSMI F-11 files.  I got caught
+by the problems of reading in HDF files and had a couple mistakes.
+
+  Proper mask files are now available in the 
+pub/nws/nmc/development/ecmwf/f11ice directory on nic.fb4.noaa.gov.
+They are named nmask.2 and smask.2.  These and the ice concentration
+files are unformatted binary files, 1 byte (8 bits, 1 character)
+per pixel.  The land masks are 0 and 1.  The concentrations are
+the usual percentage encoding with the following exceptions:
+157 still denotes land.
+200 and 224 denote bad or missing data points.
+concentrations are not capped at 100% (values up to 128 occur
+ routinely).
+
+  Further note, in my attempt to read the hdf files from the disk,
+I erred on the number of header bytes.  There are 17 fewer than I
+thought.  This accounts for the overlapped image appearance (the
+Aleutians appearing next to England).  The quick solution is
+to read in the map file as a vector of bytes, set the first 17 bytes
+of the concentration map to zero (never have ice there anyhow), 
+then sequentially (in first index then second) copy from the vector
+into the concentration map.  I will do this for our copy of the
+files.  If you don't mind waiting for this to be run (and transferred),
+I can upload to nic the revised files.
+
+  In the mean time, the rest of the files (to 9308) are on nic.  
+They must (as always) be transferred via binary ftp.
+
+
+On another matter:
+
+  I've been approached by the ISLSCP (International Satellite Land
+Surface Climatology Project) about providing sea ice concentration
+maps on monthly-averaged 1 degree lat-long grids for 1987 and 1988.
+For test purposes, I've already reformatted the monthly averages
+you've developed and created a sample description.  I would 
+definitely not like to send the documentation out with only my
+name, but also would not want to list you against your wishes.
+(For that matter, there's no need for my name to appear at all.)
+I have uploaded the documentation start and the monthly averaged
+maps to nic at pub/nws/nmc/development/ecmwf/islscp.  The averages
+are compressed tar files, so need to be transferred binary.  The
+documentation file is plain text.
+
+Sincerely,
+Bob Grumbine
+wd21rg@hp20.wwb.noaa.gov
+
+
+From ern@ecmwf.co.uk Wed Dec  7 05:56 EST 1994
+Received: from scylla.ecmwf.co.uk by hp20 with SMTP
+	(1.38.193.4/16.2) id AA18257; Wed, 7 Dec 1994 05:56:11 -0500
+Return-Path: <ern@ecmwf.co.uk>
+Received: from vidar (vidar.ecmwf.co.uk) by ecmwf.co.uk (4.1/SMI-4.1-MHS-7.0)
+	id AA05576; Wed, 7 Dec 94 11:07:25 GMT
+	for wd21rg@hp20.wwb.noaa.gov<hp20.wwb.noaa.gov>
+Received: by vidar (920330.SGI/920502.SGI)
+	for wd21rg@hp20.wwb.noaa.gov id AA10611; Wed, 7 Dec 94 11:07:22 GMT
+From: ern@ecmwf.co.uk (Atsushi Nomura)
+Message-Id: <9412071107.ZM10609@vidar>
+Date: Wed, 7 Dec 1994 11:07:22 +0100
+X-Mailer: Z-Mail (2.1.4 02apr93)
+To: wd21rg@hp20
+Subject: I found my mistake.
+
+Dear Dr. Grumbine,
+
+Sorry I forgot 17bytes shift of the data.  Considering the shift, I could get
+reasonable results.  Thank you very much.
+
+Siccerely,
+Atsushi Nomura
+ern@ecmwf.co.uk
+
+
+
+From ern@ecmwf.co.uk Wed Dec  7 04:43 EST 1994
+Received: from scylla.ecmwf.co.uk by hp20 with SMTP
+	(1.38.193.4/16.2) id AA17447; Wed, 7 Dec 1994 04:43:18 -0500
+Return-Path: <ern@ecmwf.co.uk>
+Received: from vidar (vidar.ecmwf.co.uk) by ecmwf.co.uk (4.1/SMI-4.1-MHS-7.0)
+	id AA04107; Wed, 7 Dec 94 09:54:27 GMT
+	for wd21rg@hp20.wwb.noaa.gov<hp20.wwb.noaa.gov>
+Received: by vidar (920330.SGI/920502.SGI)
+	for wd21rg@hp20.wwb.noaa.gov id AA09981; Wed, 7 Dec 94 09:54:24 GMT
+From: ern@ecmwf.co.uk (Atsushi Nomura)
+Message-Id: <9412070954.ZM9979@vidar>
+Date: Wed, 7 Dec 1994 09:54:24 +0100
+X-Mailer: Z-Mail (2.1.4 02apr93)
+To: wd21rg@hp20
+
+Dear Dr. Grumbine,
+
+I decoded some of the sea ice data and converted into 1x1 latitude/longitude
+mesh data.  However the converted data have a problem.  It seems that
+coordinates of the whole data are shifted to one direction.  For my feeling,
+    Northern hemisphere  : direction 160W
+                           amount    7-8 degrees
+    Southern hemisphere  : direction  90W
+                           amount    4-5 degrees
+I have confirmed that the land/sea mask you offered me was consistent with that
+we have. I doubt that you have some problems in convertion calculation from
+satellite orbital coordinate to polar-streographinc coordinate for sea ice data.
+
+I sent a postscript file (icemap.ps) of a sea ice coverage map that I created
+under the directory
+   /pub/nws/nmc/development/ecmwf
+
+
+Siccerely,
+Atsushi Nomura
+ern@ecmwf.co.uk
+
+
+
+From wd21rg@hp20 Wed Dec  7 09:58 EST 1994
+Received: by hp20
+	(1.38.193.4/16.2) id AA21050; Wed, 7 Dec 1994 09:58:26 -0500
+Date: Wed, 7 Dec 1994 09:58:26 -0500
+From: Bob Grumbine <wd21rg@hp20>
+Return-Path: <wd21rg@hp20>
+Apparently-To: wd21rg@hp20
+
+  Just to make sure that thI read the messages in the right order:
+The first note was about the problem with lining up the map and land mask,
+and the second was to say that you caught the prproblem that althought
+the sea ice concentrations had been shifted 17 bytes, the land mask hadn't?
+
+  The maps do look like that is the problem.  I am sorry about this
+error.  It sounds like you've gotten the byte shifting program written,
+but if not, I'm going to put the C code I used for that into the
+f11ice directory.  The arguments are oldname newname where oldname is
+the conc.930101 file c(for example) that is on the nic, and newname is
+whatever you want.  I'll also put up the script I used (yesterday) to
+cycle through all the files.  If you're moderately familiar with Unix,
+it should be easy to modify as needed.
+
+Sorry for the problems.
+Bob Grumbine
+wd21rg@hp20.wwb.noaa.gov
+
+

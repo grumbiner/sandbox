@@ -1,0 +1,20 @@
+f77=f77
+
+
+
+echo n > fin
+echo 0.3 >> fin
+./forward << fin
+cp bering for.out
+
+./mrand
+mv section forout gfile for.out
+
+./straw
+mv section bering forout gfile straw.out
+icevary < bin
+
+exit
+./forward
+mv section bering forout gfile vary.out
+

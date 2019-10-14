@@ -1,0 +1,31 @@
+README:
+
+  Source codes and scripts used in generating the new CDAS sea ice
+from the NSIDC F-11 TB CD's.  You must have the HDF libraries installed
+for the nsidc.c and nsidc.south.c programs to link and execute.
+
+0) Files need to be renamed and changed permission prior to executing the codes:
+mv nsidc.sou nsidc.south.c
+mv nsidcgri.h nsidcgrid.h
+chmod u+x filt reanl.*
+mv filtnsid.c filtnsidc.c
+
+1) Construct ice concentration grids from the NSIDC TB's:
+  Scripts reanl.X will carry this out.  They require that you
+have the programs nsidc and nsidc.south compiled already.  
+
+2) Remap the ice concentrations from the native polar stereographic
+to a 1 degree latitude-longitude grid.
+  The script filt will carry this out.  It requires programs
+ones, tfill, and filtnsidc, and wgrib (or some other grib reader) and
+1 degree sst fields.
+  The new remapping is to average concentrations from the polar stereographic
+grid on to the latitude-longitude grid.  If no polar stereographic 
+grid point falls on to a latitude-longitude grid point (which occurs 
+at high latitudes due to the convergence of the meridions), the nearest
+polar stereographic grid point is used.  The old remapping used the
+nearest neighbor concentration everywhere.
+
+
+
+

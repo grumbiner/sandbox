@@ -1,0 +1,51 @@
+From wd23kz Thu Mar  9 13:54 EST 1995
+Return-Path: <wd23kz>
+Received:  by sn4021 (5.61/CRI-80.1)
+	id AA43081; Thu, 9 Mar 95 13:54:47 -0500
+Date: Thu, 9 Mar 95 13:54:47 -0500
+From: Bert Katz <wd23kz>
+Full-Name: Bert Katz
+Message-Id: <9503091854.AA43081@sn4021>
+To: wd21rg
+Subject: Antenna-to-radiance transform
+
+C
+      REAL        TB19V(NN,MM),TB19H(NN,MM),TB22V(NN,MM)
+      REAL        TB37V(NN,MM),TB37H(NN,MM),TB85V(NN,MM),TB85H(NN,MM)
+      REAL        YES19V(NN,MM),YES19H(NN,MM)
+      REAL        YES22V(NN,MM),YES37V(NN,MM),YES37H(NN,MM)
+      REAL        YES85V(NN,MM),YES85H(NN,MM)
+C
+      DATA AP19V/0.969/,AP19H/.969/,AP22V/.974/,AP37V/.986/,AP37H/.986/,
+     1 AP85V/.988/,AP85H/.988/,BP19V/.00473/,BP19H/.00415/,BP22V/.0107/,
+     2 BP37V/.0217/,BP37H/.02612/,BP85V/.01383/,BP85H/.01947/
+C
+      C19V = 1/(AP19V*(1-BP19V))
+      C19H = 1/(AP19H*(1-BP19H))
+      C22V = 1/(AP22V*(1-BP22V))
+      C37V = 1/(AP37V*(1-BP37V))
+      C37H = 1/(AP37H*(1-BP37H))
+      C85V = 1/(AP85V*(1-BP85V))
+      C85H = 1/(AP85H*(1-BP85H))
+      D19V = C19V*BP19V
+      D19H = C19H*BP19H
+      D22V = C22V*BP22V
+      D37V = C37V*BP37V
+      D37H = C37H*BP37H
+      D85V = C85V*BP85V
+      D85H = C85H*BP85H
+C
+C
+C
+      DO 200 I=1,MM
+      DO 200 J=1,NN
+        YES19V(J,I) = C19V * TB19V(J,I) - D19V * TB19H(J,I)
+        YES19H(J,I) = C19H * TB19H(J,I) - D19H * TB19V(J,I)
+        YES22V(J,I) = C22V * TB22V(J,I) - D22V * 
+     1                (0.653 * TB19H(J,I) + 96.6)
+        YES37V(J,I) = C37V * TB37V(J,I) - D37V * TB37H(J,I)
+        YES37H(J,I) = C37H * TB37H(J,I) - D37H * TB37V(J,I)
+        YES85V(J,I) = C85V * TB85V(J,I) - D85V * TB85H(J,I)
+        YES85H(J,I) = C85H * TB85H(J,I) - D85H * TB85V(J,I)
+  200 CONTINUE
+

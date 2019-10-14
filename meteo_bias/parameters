@@ -1,0 +1,21 @@
+#!/bin/ksh
+
+count=0
+tag=19981001
+while [ $tag -le 19990930 ] 
+do
+  for parm in LAND ICEC LHTFL SHTFL ALBDO WEASD
+  do
+    for hh in 00 06 12 18
+    do
+      if [ -f flxf06.${tag}$hh ] ; then
+        wgrib flxf06.${tag}$hh | grep $parm | wgrib -i flxf06.${tag}$hh -o $parm -nh -append
+        count=`expr $count + 1`
+      else
+        echo could not find  flxf06.${tag}$hh 
+      fi
+    done
+  done
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+done

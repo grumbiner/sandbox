@@ -1,0 +1,43 @@
+# Makefile for UNICOS on Cray computers
+FFLAGS= -DDPRECISION
+HRESOL= -DN1MAX=21 -DM1MAX=21 -DK1MAX=64 -DK2MAX=33
+VRESOL= -DL1MAX=20
+ 
+# adbt.out is a test output file, containing energy conservation details.
+# Type "make adbat.out" to create it, and then compare it with adbt.out.cray
+#
+adbt.out: adiabat adbt.in
+	echo Running adiabat to produce adbt.out
+	./adiabat < adbt.in > adbt.out
+	diff adbt.out adbt.out.cray
+ 
+ptest: prognos.F splib.F prof.o linpack.o mcons.h mgrid.h
+	cat $@.F prognos.F splib.F > tem.F
+	cf77 ${FFLAGS} ${HRESOL} ${VRESOL} tem.F prof.o linpack.o -o $@
+	rm tem.F
+ 
+axisym: prognos.F splib.F linpack.o mcons.h mgrid.h
+	cat $@.F prognos.F splib.F > tem.F
+	cf77 ${FFLAGS} ${HRESOL} ${VRESOL} tem.F linpack.o -o $@
+	rm tem.F
+ 
+adiabat: prognos.F splib.F linpack.o mcons.h mgrid.h
+	cat $@.F prognos.F splib.F > tem.F
+	cf77 ${FFLAGS} ${HRESOL} ${VRESOL} tem.F linpack.o -o $@
+	rm tem.F
+ 
+mcons.h: spcons.h
+ 
+mgrid.h: spgrid.h
+ 
+prognos.o: mcons.h mgrid.h tmarch.h
+	cf77 ${FFLAGS} -c ${HRESOL} ${VRESOL} prognos.F
+ 
+splib.o: spcons.h spgrid.h sppoly.h spfftb.h ftable.h
+	cf77 ${FFLAGS} -c ${HRESOL} splib.F
+ 
+prof.o:
+	cf77 ${FFLAGS} -c prof.F
+ 
+linpack.o:
+	cf77 ${FFLAGS} -c linpack.F

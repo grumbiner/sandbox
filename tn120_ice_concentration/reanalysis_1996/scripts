@@ -1,0 +1,14 @@
+build.sh:
+  gets ice concentrations, sea surface temperatures, computes the new
+(l-l) ice fields, and goes back to fill in gaps.  -- Main, full, script.  
+
+test.dates.sh:
+  run through time, constructing ice concentration files (nout, sout) 
+where possible, and sending info to 'bad.dates' if it isn't.
+
+months.sh:
+  compute monthly average figures
+
+deltest.sh:
+  compute the differences between old and new global sea ice fields.
+

@@ -1,0 +1,60 @@
+pole2=s
+pole1=n
+CDIR=`pwd`
+
+TBDIR1=/cdrom/${pole1}3b/1992/mar
+TBDIR2=/cdrom/${pole2}3b/1992/mar
+tag=9203
+for day in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+           21 22 23 24 25 26 27 28 29 30 31 
+do
+  ${CDIR}/nsidc       $TBDIR1/${tag}$day 
+  if [ ! -d ${tag}.$pole1 ] ; then
+    mkdir ${tag}.${pole1}
+  fi
+  mv conc ${tag}.${pole1}/conc.${tag}$day
+
+  ${CDIR}/nsidc.south $TBDIR2/${tag}$day 
+  if [ ! -d ${tag}.$pole2 ] ; then
+    mkdir ${tag}.${pole2}
+  fi
+  mv conc ${tag}.${pole2}/conc.${tag}$day
+done
+
+TBDIR1=/cdrom/${pole1}3b/1992/apr
+TBDIR2=/cdrom/${pole2}3b/1992/apr
+tag=9204
+for day in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+           21 22 23 24 25 26 27 28 29 30 
+do
+  ${CDIR}/nsidc       $TBDIR1/${tag}$day 
+  if [ ! -d ${tag}.$pole1 ] ; then
+    mkdir ${tag}.${pole1}
+  fi
+  mv conc ${tag}.${pole1}/conc.${tag}$day
+
+  ${CDIR}/nsidc.south $TBDIR2/${tag}$day 
+  if [ ! -d ${tag}.$pole2 ] ; then
+    mkdir ${tag}.${pole2}
+  fi
+  mv conc ${tag}.${pole2}/conc.${tag}$day
+done
+
+TBDIR1=/cdrom/${pole1}3b/1992/may
+TBDIR2=/cdrom/${pole2}3b/1992/may
+tag=9205
+for day in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 \
+           21 22 23 24 25 26 27 28 29 30 31 
+do
+  ${CDIR}/nsidc       $TBDIR1/${tag}$day 
+  if [ ! -d ${tag}.$pole1 ] ; then
+    mkdir ${tag}.${pole1}
+  fi
+  mv conc ${tag}.${pole1}/conc.${tag}$day
+
+  ${CDIR}/nsidc.south $TBDIR2/${tag}$day 
+  if [ ! -d ${tag}.$pole2 ] ; then
+    mkdir ${tag}.${pole2}
+  fi
+  mv conc ${tag}.${pole2}/conc.${tag}$day
+done

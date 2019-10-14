@@ -1,0 +1,1 @@
+        program plot        dimension a(10,10)        do(i=1,10)        do(j=1,10)        a(i,j)= i*i - j*j*sin(float(i))        repeat        repeat        call lmac        call gopen        call gcnr2v(a,10,10)        call gclose        end        subroutine dummy        common arry(10000)        end

@@ -1,0 +1,33 @@
+yy=96
+for mo in 11
+do
+  base=${yy}$mo
+  wgrib spsg.$base > south.index
+  wgrib npsg.$base > north.index
+  for dy in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 \
+            23 24 25 26 27 28 29 30 31 
+  do
+    for pole in south north
+    do
+      if [ -f $pole ] ; then
+        rm $pole
+      fi
+      p=`echo $pole | cut -c1`
+      grep ${base}$dy ${pole}.index | wgrib -i ${p}psg.${base} -nh -o $pole
+    done
+
+   if [ -s north ] ; then
+     ./northftoxpm north nland.map n${base}${dy}.xpm 
+   fi
+   if [ -s south ] ; then
+     ./southftoxpm south sland.map s${base}${dy}.xpm
+   fi
+   xpmtogif n${base}${dy}.xpm
+   xpmtogif s${base}${dy}.xpm
+
+  done
+  ls -1 n${base}??.gif > a
+  whirlgif -o nanim.${base}.gif -i a 
+  ls -1 s${base}??.gif > a
+  whirlgif -o sanim.${base}.gif -i a 
+done

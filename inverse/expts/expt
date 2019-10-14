@@ -1,0 +1,36 @@
+f77=f77
+
+if [ ! -f forwardpc.f ] ; then
+  make pc
+fi
+
+$f77 forwardpc.f -o forpc
+$f77 strawpc.f -o strawpc
+$f77 icevarypc.f -o icevarypc
+$f77 mrandpc.f -o mrand
+
+
+if [ ! -d forward ] ; then
+  mkdir forward
+fi
+if [ ! -d straw ] ; then
+  mkdir straw
+fi
+if [ ! -d vary ] ; then
+  mkdir vary
+fi
+
+./forpc
+cp bering forward
+#vi bering
+#cp bering bering.dat
+#cp bering forin.dat
+rm bering.dat forin.dat
+./mrand
+mv section forout gfile forward
+./strawpc
+mv section bering forout gfile straw
+./icevarypc < bin
+./forpc
+mv section bering forout gfile vary
+

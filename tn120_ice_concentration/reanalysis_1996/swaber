@@ -1,0 +1,26 @@
+SDIR=/mnt/cdrom2/
+tag=971001
+while [ $tag -le 971231 ]
+do
+  mo=`echo $tag | cut -c1-4`
+  #if [ ! -f ../disk2/n3ssmi.$tag ] ; then 
+    if [ -f ${SDIR}$mo/n3ssmi.$tag ] ; then
+      dd if=${SDIR}$mo/n3ssmi.$tag of=../disk2/n3ssmi.$tag conv=swab
+    fi
+    if [ -f ${SDIR}$mo/$tag.n3s ] ; then
+      dd if=${SDIR}$mo/$tag.n3s of=../disk2/n3ssmi.$tag conv=swab
+    fi
+  #fi
+
+  #if [ ! -f ../disk2/s3ssmi.$tag ] ; then
+    if [ -f ${SDIR}$mo/s3ssmi.$tag ] ; then
+      dd if=${SDIR}$mo/s3ssmi.$tag of=../disk2/s3ssmi.$tag conv=swab
+    fi
+    if [ -f ${SDIR}$mo/$tag.s3s ] ; then
+      dd if=${SDIR}$mo/$tag.s3s of=../disk2/s3ssmi.$tag conv=swab
+    fi
+  #fi
+
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag `
+done
