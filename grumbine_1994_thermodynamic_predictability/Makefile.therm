@@ -1,23 +1,23 @@
-FC = cf77 -c -Zp -l prof 
-LD = cf77 -l prof
-CC = cc -c
-CLD = cc
-LIBDIR=/wd2/wd21/wd21rg/library
+FC = f77 -c 
+LD = f77
 
-all : once twice f0
+f0    : f0.o initf0.o f0grow.o f0temper.o f0tempo.o forcing.o albedo.o Makefile
+	$(LD) f0.o initf0.o f0grow.o f0temper.o f0tempo.o forcing.o albedo.o ../library/polarflib -o f0
 
-f0    : f0.o initf0.o f0grow.o f0temper.o forcing.o albedo.o Makefile
-	$(LD) f0.o initf0.o f0grow.o f0temper.o forcing.o albedo.o -o f0
+therm : therm.o inittherm.o grower.o temper.o Makefile 
+	$(LD) therm.o inittherm.o grower.o temper.o -o therm
 
-once : once.o
-	$(CLD) once.o -l$(LIBDIR)/polarclib -o once
-
-twice : twice.o
-	$(CLD) twice.o -l$(LIBDIR)/polarclib -o twice
- 
 clean :
 	rm *.o 
 
+therm.o   : therm.f Makefile
+	$(FC) therm.f
+inittherm.o   : inittherm.f physical.inc Makefile
+	$(FC) inittherm.f
+grower.o : grower.f Makefile
+	$(FC) grower.f
+temper.o : temper.f Makefile
+	$(FC) temper.f
 
 f0.o   : f0.f Makefile
 	$(FC) f0.f
@@ -27,7 +27,7 @@ f0grow.o : f0grow.f Makefile
 	$(FC) f0grow.f
 f0temper.o : f0temper.f Makefile
 	$(FC) f0temper.f
-albedo.o : $(HOME3)/icemodel/mpi.source/misc/albedo.f 
-	$(FC) $(HOME3)/icemodel/mpi.source/misc/albedo.f
+albedo.o : /home/seaice/icemodel/mpi.source/misc/albedo.f 
+	$(FC) /home/seaice/icemodel/mpi.source/misc/albedo.f
 forcing.o : forcing.f Makefile
 	$(FC) forcing.f
