@@ -1,0 +1,256 @@
+C     Robert Grumbine collected 6 June 1994
+
+C     Describing the atmosphere:
+      DOUBLE PRECISION matm, molair
+      PARAMETER (matm   = 5.3E18)
+      PARAMETER (molair = 29.87E-3)
+C     Equilibrium atmospheric mixing ratios.  (Not pressures)
+C       Note that pref(CO2) is fixed at the pre-industrial value.
+	pref(He)  = 5.2E-6
+	pref(Ne)  = 1.8E-5
+	pref(N2)  = 0.781
+	pref(O2)  = 0.209
+	pref(Ar)  = 9.3E-3
+	pref(Kr)  = 1.1E-6
+	pref(Xe)  = 8.6E-8
+        pref(CO2) = 355.E-6 !approximate 1990 value.
+	pref(N2O) = 3.0E-7
+	pref(temp) = 3.5
+	pref(dc14) = -100.0D-6
+
+C     Pointers for ocean chemistry
+      INTEGER nchem
+      PARAMETER (nchem = 17)
+      INTEGER He, Ne, N2, O2, Ar, Kr, Xe, CO2, N2O
+      PARAMETER (He  = 1)
+      PARAMETER (Ne  = 2)
+      PARAMETER (N2  = 3)
+      PARAMETER (O2  = 4)
+      PARAMETER (Ar  = 5)
+      PARAMETER (Kr  = 6)
+      PARAMETER (Xe  = 7)
+      PARAMETER (CO2 = 8)
+      PARAMETER (N2O = 9)
+      INTEGER temp, salt, NO3, PO4, SiO2, dc14, tco2, alk
+      PARAMETER (temp = 10)
+      PARAMETER (salt = 11)
+      PARAMETER (NO3  = 12)
+      PARAMETER (PO4  = 13)
+      PARAMETER (SiO2 = 14)
+      PARAMETER (dc14 = 15)
+      PARAMETER (tco2 = 16)
+      PARAMETER (alk  = 17)
+
+C     Define Molecular weights kg/mole for oceanographic chemicals:
+      DATA molkg(He  ) /  4.E-3/
+      DATA molkg(Ne  ) / 20.E-3/
+      DATA molkg(N2  ) / 28.E-3/
+      DATA molkg(O2  ) / 32.E-3/
+      DATA molkg(Ar  ) / 40.E-3/
+      DATA molkg(Kr  ) / 84.E-3/
+      DATA molkg(Xe  ) /131.E-3/
+      DATA molkg(CO2 ) / 44.E-3/
+      DATA molkg(N2O ) / 44.E-3/
+      DATA molkg(temp) /  1.E-3/
+      DATA molkg(salt) /  1.E-3/
+      DATA molkg(NO3 ) / 60.E-3/
+      DATA molkg(PO4 ) / 97.E-3/
+      DATA molkg(SiO2) / 64.E-3/
+      DATA molkg(dc14) / 14.E-3/
+      DATA molkg(tco2) / 44.E-3/
+      DATA molkg(alk ) /  1.E-3/
+
+C     Redfield ratios for oceanic chemicals:
+      DATA redfld(He)   /0.0/
+      DATA redfld(Ne)   /0.0/
+      DATA redfld(N2)   /0.0/
+      DATA redfld(O2)   /-172.0/ !Takahashi et al., 1985 obs
+      DATA redfld(Ar)   /0.0/
+      DATA redfld(Kr)   /0.0/
+      DATA redfld(Xe)   /0.0/
+      DATA redfld(CO2)  /122.0/
+      DATA redfld(N2O)  /0.0/
+      DATA redfld(temp) /0.0/
+      DATA redfld(salt) /0.0/
+      DATA redfld(NO3)  / 16.0/  !Takahashi et al., 1985 obs
+      DATA redfld(PO4)  /1.0/
+      DATA redfld(SiO2) /0.0/
+      DATA redfld(dc14) /0.0/
+CD      DATA redfld(tco2) /122.0/  !Takahashi et al., 1985 obs
+      DATA redfld(tco2) /134./  !Takahashi et al., 1985 obs
+      DATA redfld(alk)  / 24.0/  !Takahashi et al., 1985 obs
+
+C     Describing the molecular diffusivity across the air-sea interface:
+C     Two parameter version, where diffusion = ?
+      DATA diff(He,1)  / 2.0E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(Ne,1)  / 1.4E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(N2,1)  / 1.1E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(O2,1)  / 1.2E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(Ar,1)  / 0.8E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(Kr,1)  / 0.7E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(Xe,1)  / 0.7E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(CO2,1) / 1.0E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(N2O,1) / 1.0E-9/ !B+P, 1982, pp. 119 0 !C
+      DATA diff(temp,1) / 0.0/
+      DATA diff(salt,1) / 0.0/
+      DATA diff(NO3,1)  / 0.0/
+      DATA diff(PO4,1)  / 0.0/
+      DATA diff(SiO2,1) / 0.0/
+      DATA diff(dc14,1) / 0.0/
+      DATA diff(tco2,1) / 1.0E-9/
+      DATA diff(alk,1)  / 0.0/
+      DATA diff(He,2)  / 28.9E-3/
+      DATA diff(Ne,2)  / 28.9E-3/
+      DATA diff(N2,2)  / 26.9E-3/
+      DATA diff(O2,2)  / 27.1E-3/
+      DATA diff(Ar,2)  / 26.2E-3/
+      DATA diff(Kr,2)  / 28.9E-3/
+      DATA diff(Xe,2)  / 28.9E-3/
+      DATA diff(CO2,2) / 26.7E-3/
+      DATA diff(N2O,2) / 28.9E-3/
+      DATA diff(temp,2) / 0.0/
+      DATA diff(salt,2) / 0.0/
+      DATA diff(NO3,2)  / 0.0/
+      DATA diff(PO4,2)  / 0.0/
+      DATA diff(SiO2,2) / 0.0/
+      DATA diff(dc14,2) / 0.0/
+      DATA diff(tco2,2) / 26.7E-3/
+      DATA diff(alk,2)  / 0.0/
+
+C     Simple Henry's law for equilibrium partial pressures of gasses.
+C     Values are given for co2, although the fuller chemistry should be
+C       used instead.
+      DATA henry(He,1)  / 0.34E-3/ !B+P, 1982, pp. 112 0 !C
+      DATA henry(Ne,1)  / 0.44E-3/ !B+P, 1982, pp. 112 0 !C
+      DATA henry(N2,1)  / 0.80E-3/ !B+P, 1982, pp. 112 0 !C
+      DATA henry(O2,1)  / 1.69E-3/ !B+P, 1982, pp. 112 0 !C
+      DATA henry(Ar,1)  / 1.83E-3/ !B+P, 1982, pp. 112 0 !C
+      DATA henry(Kr,1)  / 3.8E-3/  !B+P, 1982, pp. 112 0 !C
+      DATA henry(Xe,1)  / 8.4E-3/  !B+P, 1982, pp. 112 0 !C
+      DATA henry(CO2,1) / 63.E-3/  !B+P, 1982, pp. 112 0 !C
+      DATA henry(N2O,1) / 47.E-3/  !B+P, 1982, pp. 112 0 !C
+      DATA henry(temp,1) / 1.0/
+      DATA henry(salt,1) / 1.0/
+      DATA henry(NO3,1)  / 0.0/
+      DATA henry(PO4,1)  / 0.0/
+      DATA henry(SiO2,1) / 0.0/
+      DATA henry(dc14,1) / 1.0/
+      DATA henry(tco2,1) / 1.0/
+      DATA henry(alk,1)  / 1.0/
+      DATA henry(He,2)  / - 2.53E-3/
+      DATA henry(Ne,2)  / - 7.22E-3/
+      DATA henry(N2,2)  / -18.8E-3 /
+      DATA henry(O2,2)  / -20.6E-3/
+      DATA henry(Ar,2)  / -20.1E-3/
+      DATA henry(Kr,2)  / -24.7E-3/
+      DATA henry(Xe,2)  / -27.9E-3/
+      DATA henry(CO2,2) / -32.3E-3/
+      DATA henry(N2O,2) / -33.6E-3/
+      DATA henry(temp,2) / 0.0/
+      DATA henry(salt,2) / 0.0/
+      DATA henry(NO3,2)  / 0.0/
+      DATA henry(PO4,2)  / 0.0/
+      DATA henry(SiO2,2) / 0.0/
+      DATA henry(dc14,2) / 0.0/
+      DATA henry(tco2,2) / 0.0/
+      DATA henry(alk,2)  / 0.0/
+
+C     Parameters for the CO2 transfer, formula is:
+      PARAMETER (a1 = -60.2409)
+      PARAMETER (a2 =  93.4517)
+      PARAMETER (a3 =  23.3585)
+      PARAMETER (b1 =   0.023517)
+      PARAMETER (b2 = - 0.023656)
+      PARAMETER (b3 =   0.0047036)
+
+C     Determine whether the chemicals are conservative across air-sea bndy.
+      DATA consrv(He)   /.FALSE./
+      DATA consrv(Ne)   /.FALSE./
+      DATA consrv(N2)   /.FALSE./
+      DATA consrv(O2)   /.FALSE./
+      DATA consrv(Ar)   /.FALSE./
+      DATA consrv(Kr)   /.FALSE./
+      DATA consrv(Xe)   /.FALSE./
+      DATA consrv(CO2)  /.FALSE./
+      DATA consrv(N2O)  /.FALSE./
+      DATA consrv(temp) /.FALSE./
+      DATA consrv(salt) /.TRUE./
+      DATA consrv(NO3)  /.TRUE./
+      DATA consrv(PO4)  /.TRUE./
+      DATA consrv(SiO2) /.TRUE./
+      DATA consrv(dc14) /.FALSE./
+      DATA consrv(tco2) /.FALSE./
+      DATA consrv(alk)  /.TRUE./
+
+C     Initial Conditions (Present Day ocean mean)
+      DATA ic(He)   /1.768D-9 / !B+P, 1982 saturation 0 !C
+      DATA ic(Ne)   /7.920D-9 / !B+P, 1982 saturation 0 !C
+      DATA ic(N2)   /6.248D-4 / !B+P, 1982 saturation 0 !C
+      DATA ic(O2)   /2.000D-4 / !Approx Geosecs Global Mean
+      DATA ic(Ar)   /1.702D-5 / !B+P, 1982 saturation 0 !C
+      DATA ic(Kr)   /4.180D-9 / !B+P, 1982 saturation 0 !C
+      DATA ic(Xe)   /7.224D-10/ !B+P, 1982 saturation 0 !C
+      DATA ic(CO2)  /17.64D-6 / !B+P, 1982 saturation 0 !C
+      DATA ic(N2O)  /1.410D-8 / !B+P, 1982 saturation 0 !C
+      DATA ic(temp) /3.62D0   / !Levitus
+      DATA ic(salt) /34.73D0  / !Levitus
+      DATA ic(NO3)  /33.0D-6  /
+      DATA ic(PO4)  /2.116 D-6 /!BG analysis of GEOSECS data, SCOPE16
+      DATA ic(SiO2) /150.D-6  /
+      DATA ic(dc14) /-160.D0  /
+      DATA ic(tco2) /2300.D-6 / !Approx Geosecs global mean
+      DATA ic(alk ) /2400.D-6 / !Approx Geosecs global mean
+
+C     Describing the ocean (3-domain model)
+      DATA area(1) /2.867E14 /
+      DATA area(2) /1.83E13  /
+      DATA area(3) /4.50E13  /
+      DATA rho (1) /1027.8/
+      DATA rho (2) /1027.8/
+      DATA rho (3) /1027.8/
+      PARAMETER (vt = 1.37E18) !m^3, Broecker and Peng, 1982
+      PARAMETER (at = 3.61E14) !m^2, Gill, 1982
+      PARAMETER (refdep = 3750.0)
+      PARAMETER (delpar = -70.E-3)  ! delta 14C in biogenic particles
+      PARAMETER (zfa   = 40.E-6)
+
+Math Constants: math.inc
+       PARAMETER (pi    = 3.141592654)
+       PARAMETER (rdpdg = pi / 180.)
+       PARAMETER (degprd = 180./ pi )
+
+Unit conversion constants: units.inc
+      PARAMETER (kmtonm = 1.852)
+
+Planetary constants: planetary.inc
+      PARAMETER (GRAV   = 9.8062 )    !NMC Handbook
+      PARAMETER (omega = 7.292116E-5)
+      PARAMETER (fmax = 2.* omega )
+      PARAMETER (rearth = 6.370949E6)
+      PARAMETER (secpyr = 365.2422*86400.)
+
+Physical Constants: physical.inc
+C     Parameters known to high precision
+      PARAMETER (CPAIR  = 1004.6)     !NMC Handbook
+      PARAMETER (KAPPA  = 2. / 7.)
+      PARAMETER (RGAS   = 8.31436E3 / 28.964)
+      PARAMETER (EPSI   = 0.6219886)  !CRC #72
+      PARAMETER (tkelvin = 273.15)
+      PARAMETER (TMELT  = 273.16)     !NMC Handbook
+      PARAMETER (lamc14 = 3.83E-12) ! 14C decay constant
+      PARAMETER (VAPL   = 2.5008E6 )  !Gill 0C
+      PARAMETER (SUBL   = 2.83459E6)  !Gill 0C
+      PARAMETER (SIGMA  = 5.67051E-8 )   !Stefan-Boltzmann constant
+      PARAMETER (LFUSE  = SUBL-VAPL)
+C     Parameters constrained, but not high precision
+      PARAMETER (VONKAR = 0.4)
+      PARAMETER (RHOICE = 9.1E2)
+      PARAMETER (RHOSNO = 3.3E2)
+      PARAMETER (CON    = 2.1656)
+      PARAMETER (CONSN  = 0.31)
+      PARAMETER (TFREZ  = -1.84)   !Tf for water at 34.5 psu, Gill
+      PARAMETER (CC     = 4.217E6) !Pure water, Gill
+C     Parameters not well known at all, or model-selected
+      PARAMETER (CDWAT  = 5.5E-3)
+      PARAMETER (CSENS  = 1.75E-3)
+      PARAMETER (CLAT   = 1.75E-3)

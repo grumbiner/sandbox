@@ -2,7 +2,10 @@
 C     given the salinity field and the forcing, compute the equivalent
 C       effective diffusivity which would give the field in the absence
 C       of advection.
-C     BG 2-23-90.
+C     Robert Grumbine 2-23-90.
+
+      IMPLICIT none
+
       INTEGER nx, ny
       PARAMETER (nx = 36)
       PARAMETER (ny = 36)
@@ -19,6 +22,8 @@ C     BG 2-23-90.
       CHARACTER*60 fname
       REAL secpyr
       PARAMETER (secpyr = 3.1556908E7)
+
+      REAL ahmn, ahmx 
       
       DO 10 j = 1, ny
         DO 20 k = 1, nx
@@ -71,7 +76,7 @@ C     BG 2-23-90.
             ahm(i,j) = 4.E8*(s(i,j)/secpyr-qssum(i,j))/
      1                    ( (s(i+1,j)-2.*s(i,j)+s(i-1,j)) +
      2                      (s(i,j+1)-s(i,j)*2.+s(i,j-1))     )
-            ahmean = aheman + ahm(i,j)
+            ahmean = ahmean + ahm(i,j)
             ahmx = MAX(ahmx, ahm(i,j))
             ahmn = MIN(ahmn, ahm(i,j))
  1100     CONTINUE

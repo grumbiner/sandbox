@@ -1,0 +1,54 @@
+C
+      SUBROUTINE QUEDES(QUEUE,BULHED,ITOT,kwbx)
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    QUEDES      QUEUE DESCRIPTOR
+C   PRGMMR: FARLEY           ORG: W/NMC21   DATE: 86-12-10
+C
+C ABSTRACT: AN 80-BYTE MESSAGES THAT CONTAINS INFORMATION NEEDED BY
+C   COMMUNICATIONS PEOPLE.
+C
+C PROGRAM HISTORY LOG:
+C   86-12-10  FARLEY      ORIGINAL AUTHOR
+C   93-11-01  GERALD      MODIFIED FOR GULF OF ALASKA WAVE MODEL
+C   99-05-05  Grumbine    Modified and standardized for sea ice products 
+C
+C USAGE:    CALL QUEDES(QUEUE,BULHED,ITOT)
+C   INPUT ARGUMENT LIST:
+C     BULHED   -  BULLETIN HEADER CHARACTER * 6
+C
+C   OUTPUT ARGUMENT LIST:  NONE
+C     QUEUE    -  QUEUE DESCRIPTOR CHARACTER * 1
+C     ITOT     -  TOTAL LENGTH OF BULLETIN QUEDES + (GRIB - 7777)
+C
+C ATTRIBUTES:
+C   LANGUAGE: F77, rigorously standard
+C   MACHINE:  any
+C
+C$$$
+C
+       CHARACTER*6 BULHED
+       character*4 kwbx
+       CHARACTER*1 QUEUE(80)
+       INTEGER   KARY(7)
+       INTEGER   ITIME(8)
+C
+C...... GET SYSTEM CLOCK TIME
+        CALL w3utcdat(ITIME)
+C
+
+       KARY(1) = ITIME(3)
+       KARY(2) = ITIME(5)
+       KARY(3) = ITIME(6)
+       KARY(4) = 0
+       KARY(5) = 0
+       KARY(6) = 0
+       KARY(7) = 21 + ITOT
+
+       JERR = 0
+       CALL W3FI92 (QUEUE,BULHED,KARY,kwbx,JERR)
+       IF (JERR .NE. 0) PRINT *,' w3fi92 err ',jerr
+
+       RETURN
+       END
