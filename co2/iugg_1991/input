@@ -1,0 +1,19 @@
+277.E-6          Initial CO2 in atmosphere
+13               Phosphate
+16               TCO2
+17               Alkalinity
+4                O2
+n                restart from file?
+-20000.          Start time
+20ky
+50.0             Deltaz*
+20000            How long a run?
+100              Frequency (yrs) of output
+40               Time steps per year (air-sea controled)
+1.E3             'Mixing length' m
+1.6E-4           Reference diffusivity
+
+
+
+
+200.E-6          Initial CO2 in atmosphere

@@ -1,0 +1,17 @@
+cpplib : clobber
+	f90 -c -O2 cfs.asc.read.f
+	f90 -c -O2 w3ft01.f 
+	ar rv cpplib cfs.asc.read.o w3ft01.o
+
+clobber :
+	rm *.o cpplib
+
+#   8 cfs.asc.read.f
+#   8 cfsread.f
+#  24 chal2.f
+#  24 chal3.f
+#   8 chalread.f
+#   8 icerestart.f
+#   8 mapll.c
+#   8 mapxy.c
+#   8 trans.f

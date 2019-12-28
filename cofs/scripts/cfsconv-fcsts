@@ -1,0 +1,38 @@
+#! /bin/csh -x
+#
+# Script Name: cfscon
+#
+# Purpose: Convert postscript files to gif format
+#
+# 4/96  JKelley
+# 5/1/66   JK  Add code for converting fcstial fields
+# 12/02/96 JK  Modify for use with cofs3.1 output
+# 2/14/97  JK Add code for new fields
+#  1/98  JK & BB tried to add -page 792x612 -sharpen 50% to correct error
+#                due to new pstogif converter...didn't work
+#  1/98   BB   Added -page letter to the script as per Bob's suggestion.
+#
+# Note:  Script executed remotely via remsh to polar via rsh to hp20
+# ------------------------------------------------------------------------------
+#
+# ---------------------------------------- NOWCASTS ---------------------------------------------------
+# Temperature
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-temsig01-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-temsig18-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-tem0200m-fcst.ps -page letter -rotate -90
+#
+# Salinity
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-sal0200m-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-salsig01-fcst.ps -page letter -rotate -90
+#
+# Current
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-cur0001m-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-cursig01-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-cur0200m-fcst.ps -page letter -rotate -90
+
+# Elevation
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-elev-fcst.ps -page letter -rotate -90
+#
+# Vertical cross sections
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs34-TBz-olr-fcst.ps -page letter -rotate -90
+# 

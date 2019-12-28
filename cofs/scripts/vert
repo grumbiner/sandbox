@@ -1,0 +1,52 @@
+#!/bin/ksh
+#Script to read in the layers of the otis analysis and interpolate them
+#  on to the cfs grid.  This is run automatically by the cron job which
+#  archives the otis fields in the first place.  This script can
+#  only be run by me (rmg3) but is included here for informational 
+#  purposes.
+#Robert Grumbine 15 August 1997
+
+HORIN=/dm/wd21rg/otis.cofs.z
+VERTOUT=/eldisk1/wd21rg/for.cofs
+export HORIN VERTOUT
+if [ ! -d $VERTOUT ] ; then
+  mkdir -p $VERTOUT
+fi
+if [ ! -d $HORIN ] ; then
+  echo Cannot find a directory with the horizontal input files, aborting
+  exit -1
+fi
+
+EXDIR=$HOME41/cpp
+DATADIR=$HOME41/cfs.data
+export EXDIR DATADIR
+
+#tag=`date +"%y%m%d"`
+#echo $tag
+tag=$1
+base=`echo $tag | cut -c1-4`
+dy=`echo $tag | cut -c5-6`
+
+if [ ! -d /tmp/otis ] ; then
+  mkdir -p /tmp/otis
+fi
+cd /tmp/otis
+rm *
+
+cp $EXDIR/votis ./votis
+cp $DATADIR/* .
+x=`ls -1 *gz  |wc -l`
+if [ $x -gt 0 ] ; then
+  gunzip *gz
+fi
+x=`ls -1 *Z | wc -l`
+if [ $x -gt 0 ] ; then
+  uncompress *Z
+fi
+
+# At this point have all of the layers converted.  Now it is time to
+#   assemble these in to the cofs vertical.
+tar xvf $HORIN/otis.cofs.z.$tag.tar
+./votis 
+cp tsout $VERTOUT/tsout.$tag
+

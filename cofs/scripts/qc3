@@ -1,0 +1,24 @@
+set -x
+mkdir -p /tmp/otis
+cd /tmp/otis
+
+cp $HOME41/cfs.data/* .
+cp $HOME41/cpp/qc3  .
+cp $HOME2/for.cofs/august.avg long.970731
+cp long.970731 short.970731
+cp long.970731 qc.970731
+cp $HOME2/for.cofs/tsout.97080? .
+
+base=9708
+for dy in 01 02 03 04 05 06 07 08 09
+do
+
+  dm1=`expr ${base}$dy - 1`
+  dm1=`dtgfix3 $dm1`
+  cp long.$dm1 qc.$dm1
+  time ./qc3 qc.$dm1 long.$dm1 short.$dm1 tsout.${base}$dy \
+                   long.${base}$dy short.${base}$dy 
+  mv *.${base}${dy}.asc /dm/wd21rg/for.cofs
+
+done
+

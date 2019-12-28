@@ -1,0 +1,32 @@
+C
+      SUBROUTINE UNFULLYR(IYYS)
+C     ===========================================
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    UNFULLYR
+C   PRGMMR: RIVIN            ORG: W/NMC21    DATE: 00-11-01
+C
+C ABSTRACT: CALCULATES THE 4-DIGIT YEAR
+C
+C PROGRAM HISTORY LOG:
+C
+C USAGE:    CALL UNFULLYR(IYYS)
+C   INPUT ARGUMENT LIST:
+C     IYYS - 4-digit year
+C
+C   OUTPUT ARGUMENT LIST:
+C     IYYS - 2-digit year
+C
+C   SUBPROGRAMS CALLED
+C     UNIQUE:
+C
+C ATTRIBUTES:
+C   LANGUAGE: IBM 370 VS FORTRAN
+C   MACHINE:  NAS, CRAY C-90, IBM SP
+C
+C$$$
+C
+      IYYS=MOD(IYYS,100)
+      RETURN
+      END

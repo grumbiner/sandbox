@@ -1,0 +1,15 @@
+#
+# This cron submits the daily updating of WWW site for ROFS
+#
+00 06 * * * /usr1/cfspom/WWW_cfspom/daily_update.sh > /usr1/cfspom/logs/daily_update.$$.log 2> /usr1/cfspom/logs/daily_update.$$.log
+#
+# This cron submits the daily updating of the experimental
+# website for ROFS 
+30 06 * * * /data/WWW/cofs/developmental/main/create_web_files.sh 1> /usr1/cfspom/logs/create_web_files.out 2> /usr1/cfspom/logs/create_web_files.err 
+#
+# This cron deletes any daily_update*log files that are older than 20 days
+00 08 * * * /usr1/cfspom/logs/delete_logs.sh 1> /usr1/cfspom/logs/delete_logs.out 2> /usr1/cfspom/logs/delete_logs.err  
+#
+# This cron looks for data in the COFS2 web directory that is 
+# older than 6 days, copies it an archive, and deletes it 
+#15 08 * * * /data/WWW/cofs/COFS2/developmental/main/archive_COFS2.sh 1> /data/WWW/cofs/COFS2/developmental/main/archive_COFS2.out 2> /data/WWW/cofs/COFS2/developmental/main/archive_COFS2.err
