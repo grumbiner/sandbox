@@ -1,0 +1,146 @@
+#!/bin/ksh
+
+$SMSBIN/smsinit
+ 
+set -xSa
+ 
+# #### 08/06/97 ###############################
+# SETUP SEA ICE CONCENTRATION PROCESSING CONTROL SHELL VARIABLES
+# ROBERT GRUMBINE
+# #############################################
+ 
+where=`hostname`
+CRAY3=sn4021
+CRAY4=sn9067
+CRAY5=sn9069
+export CRAY3 CRAY4 CRAY5
+ 
+CYCLE=T00Z
+cycle=t00z
+CYC=00
+CYCn=0
+
+#  ENVIR and envir should be changed to TEST and test for testing
+#  Prior to implementation, both variables are initialized to PROD
+#  and prod
+
+ENVIR=PROD
+envir=prod
+export CYCLE cycle CYC CYCn ENVIR envir
+ 
+NET=mrf
+RUN=conc
+JOB=j990l
+export NET RUN JOB
+ 
+# variables that control processing
+ 
+# Determine variable settings before testing and set them accordingly
+#    SENDCOM=YES        /com files will be overwritten
+#    SENDDBN=YES        file will be sent to OSO 
+
+SENDCOM=YES
+SENDDBN=YES
+export SENDCOM SENDDBN
+ 
+if test `hostname` = "$CRAY3"
+then
+   set +xS
+   echo "******************"
+   echo  EXECUTING ON CRAY3
+   echo "******************"
+   set -xS
+   com=/com/mrf/$envir
+   xc=xc
+   jlogfile=/nwprod/logs/jlogfile
+   NCPUS=1
+fi
+ 
+if test `hostname` = "$CRAY4"
+then
+   set +xS
+   echo "******************"
+   echo  EXECUTING ON CRAY4
+   echo "******************"
+   set -xS
+   com=/com/mrf/$envir
+   xc=x
+   jlogfile=/scom/jlogfile
+   NCPUS=1
+fi
+ 
+if test `hostname` = "$CRAY5"
+then
+   set +xS
+   echo "******************"
+   echo  EXECUTING ON CRAY5
+   echo "******************"
+   set -xS
+   com=/com/mrf/$envir
+   xc=x
+   jlogfile=/com/jlogfile
+   NCPUS=1
+fi
+export xc jlogfile NCPUS com
+ 
+ 
+# set up this job's temporary directory to store all processing
+# files in
+DATA1=/tmpnwprd
+DATA2=j990$CYCLE
+export DATA1 DATA2
+ 
+DATA1=`tmpdir /tmpnwprd`
+DATA=$DATA1/$DATA2
+export DATA
+ 
+# Make sure we are pointed at the $DATA directory
+mkdir $DATA
+cd $DATA
+ 
+PATH=$PATH:/bin:/usr/bin:/usr/ucb:/nwprod/ftplib/:.
+export PATH
+ 
+# obtain unique process id (pid)
+pid=$$
+export pid
+
+env
+reqid=`echo ${QSUB_REQID} | cut -f1 -d '.'`
+jobid="${QSUB_REQNAME}.o${reqid}"
+export reqid jobid
+ 
+#  set up ALL directories and subdirectories in this format
+#  be sure to GROUP the subdirectories together for easier
+#  reading and quicker troubleshooting
+
+#  When testing, ALL HOMExxx directories should be set to /ntprod
+HOME=/nwprod/seaice
+EXECsice=$HOME/exec
+FIXsice=$HOME/fix
+PARMsice=$HOME/parm
+export HOME EXECsice FIXsice PARMsice
+ 
+ 
+##############################################
+# SET UP UTILITY and MESSAGE LIBRARIES
+##############################################
+
+utilscript=/nwprod/util/scripts/sms
+pcom=/pcom/${NET}
+export utilscript pcom
+ 
+# run setup to initialize working directory and utility scripts
+sh $utilscript/setup.sh
+ 
+# Run setpdy and initialize PDY variables
+sh /nwprod/util/scripts/setpdy.sh
+. PDY
+
+##############################################
+# Execute the script
+##############################################
+
+/nwprod/scripts/ex990.sh.sms
+
+$SMSBIN/endt
