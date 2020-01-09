@@ -22,11 +22,13 @@ C     Robert Grumbine 2 May 1995
       PARAMETER (hb = 10.)
       
       REAL c1(500), c2(500), c3(500)
+      REAL a1, a2, a3
+      REAL sum1, sum2, sum3
       REAL f1, f2, f3
       INTEGER i, j, k
 													
       f1(k) = +gee*t(k)/tref - are*(t(k+1)-t(k))/dz
-     1 -(rho(k+1)-rho(k))/dz*(are*tnot)**2/pnot*exp(+gee*k*dz/are/tref)
+     1 -(rho(k+1)-rho(k))/dz*(are*pnot)**2/pnot*exp(+gee*k*dz/are/tref)
      2 +gee*rho(k)/(pnot*exp(-gee*k*dz/are/tref)/are/tref)
       f2(k) = ch*ua*exp(-k*dz/hb)*(20.-t(k))/(1.+are/cp)/hb
       f3(k) = (w(k+1)+w(k))/2.*pnot*gee*

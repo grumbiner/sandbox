@@ -23,13 +23,16 @@ CD      PARAMETER (ny(2) = 158)
 
       PRINT *,'What is the name of the first file?'
       READ (*,9001) fname
-      OPEN (10,FILE=fname, FORM='BINARY', STATUS='OLD')
+      OPEN (10,FILE=fname, FORM='UNFORMATTED', ACCESS='DIRECT', 
+     1   STATUS='old')
       PRINT *,'What is the name of the second file?'
       READ (*,9001) fname
-      OPEN (11,FILE=fname, FORM='BINARY', STATUS='OLD')
+      OPEN (11,FILE=fname, FORM='UNFORMATTED', ACCESS='DIRECT', 
+     1   STATUS='old')
       PRINT *,'What is the name of the climate file?'
       READ (*,9001) fname
-      OPEN (13,FILE=fname, FORM='BINARY', STATUS='OLD')
+      OPEN (13,FILE=fname, FORM='UNFORMATTED', ACCESS='DIRECT', 
+     1   STATUS='old')
 
       PRINT *,'What do you want to call the scores file?'
       READ (*,9001) fname

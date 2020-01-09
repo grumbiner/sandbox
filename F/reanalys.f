@@ -1,13 +1,4 @@
-From wd23ss Wed Dec  1 16:13 EST 1993
-Return-Path: <wd23ss>
-Received:  by sn1029.domain.domain
-	id AA88221; 5.61/CRI-%I%; Wed, 1 Dec 93 16:13:42 -0500
-Date: Wed, 1 Dec 93 16:13:42 -0500
-From: Suranjana Saha <wd23ss>
-Full-Name: Suranjana Saha
-Message-Id: <9312012113.AA88221@sn1029.domain.domain>
-Apparently-To: wd21rg
-
+!From: Suranjana Saha <wd23ss>
 	program wksnice
         parameter(itsday=1,itsmth=1,itsyr=73)
         parameter(isday=31,ismth=12,isyr=84)

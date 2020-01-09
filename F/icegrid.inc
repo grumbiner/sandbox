@@ -11,6 +11,8 @@
       PARAMETER (MM2  = M-2  )
       PARAMETER (LM2  = L-2  )
       PARAMETER (LDO  = 32*(L+M) )
+      INTEGER gridno
+      PARAMETER (gridno = 255)
 
       REAL LATMIN, DLAT, DLON, DXDEG, DX, DY, DT
       INTEGER PTYPE, proj

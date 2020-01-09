@@ -1,20 +1,11 @@
-Date:    1 June 1990, 13:45:52 EDT
-From:    RAT3     at PSUVM
-To:      RMG3
- 
-BOB,
- 
- 
-Here is my Lorenz code.  Last time I ran this, I calculated for 100,000
-iterations.  I wanted to look at the first 10000, last 10000 and all
-100000 points seperately; hence, three output files.
- 
- 
-Good luck.
- 
- 
-Bob  T
- 
+!Date:    1 June 1990, 13:45:52 EDT
+! 
+!Here is my Lorenz code.  Last time I ran this, I calculated for 100,000
+!iterations.  I wanted to look at the first 10000, last 10000 and all
+!100000 points seperately; hence, three output files.
+! 
+!Good luck.
+!Bob  T
  
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

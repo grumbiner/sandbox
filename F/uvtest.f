@@ -149,76 +149,76 @@ CD 5000 CONTINUE
  9001 FORMAT (A60)
  
       END      
-      PROGRAM uvtest
-      IMPLICIT none
-      
-      INCLUDE grid.inc
-      
-      REAL delx, f, beta, ahm, pi, href, value
-      PARAMETER (delx  =  2.0E4)
-      PARAMETER (f     = -1.4E-4)
-      PARAMETER (beta  =  7.0E-12)
-      PARAMETER (ahm   =  8.0E4)
-      PARAMETER (pi    =  3.14159264)
-      PARAMETER (href  = 500.0)
-      PARAMETER (value =  0.2E-6)
-      
-      REAL psi(nx, ny), psi2(nx, ny), psi3(nx, ny)
-      REAL ut (nx, ny), vt (nx, ny)
-      REAL ut2(nx, ny), vt2(nx, ny), vt3(nx, ny)
-      REAL delta(nx, ny), delta2(nx, ny)
-    
-      REAL we(nx, ny), dx, dy
-      INTEGER lx, ly, i, j
-      CHARACTER*60 fname
-      
-      dx = delx
-      dy = delx
-      lx = (nx-1)*2
-      ly = (ny-1)*2
-      DO 1000 i = 0, ny-1
-        DO 1010 j = 0, nx-1
-          we(i+1,j+1) = value*SIN(2.*pi*j/ly)
- 1010   CONTINUE
- 1000 CONTINUE
-C*************************************************----------++++++++++!!
-CD      PRINT *,'Calling the old scheme ',LONG(362)
-      CALL UVTROP(ut2, vt2, psi2, we, href, dx, dy, f, beta, ahm)
-CD      PRINT *,'Calling the exact soln ',LONG(362)
-      CALL vexact(vt3, we, psi3, href, dx, f, beta, ahm, nx, ny)
-CD      PRINT *,'Done with the exact sol',LONG(362)
-C*************************************************----------++++++++++!!
- 
-      PRINT *,'What would you like to call the output file for psi?'
-      READ (*,9001) fname
-      OPEN (10, FILE=fname, FORM='UNFORMATTED', STATUS='NEW')
-      PRINT *,'What do you want to call the velocity file?'
-      READ (*,9001) fname
-      OPEN (11, FILE=fname, FORM='UNFORMATTED', STATUS='NEW')
-      WRITE (10) psi2
-      WRITE (10) psi3
-      WRITE (11) vt2
-      WRITE (11) vt3
-
-      PRINT *,'What would you like to call the screen output?'
-      READ (*,9001) fname
-      OPEN (12, FILE=fname, FORM='FORMATTED', STATUS='NEW')
-      DO 6000 j = 1, ny
-CD        WRITE ( *,9005) vt2(1,j), 
-CD     1 (-3.*psi(1,j)+4.*psi(2,j)-psi(3,j))/2./dx, 
-CD     2 (-11.*psi(1,j)+18.*psi(2,j)-9.*psi(3,j)+2.*psi(4,j))/6./dx
-CD     3  , j
-        DO 6100 i = 1, nx/4
-          WRITE (*,9005) vt2(i,j), vt3(i,j), j
- 6100   CONTINUE
- 6000 CONTINUE
-C*************************************************----------++++++++++!!
- 9005 FORMAT (2(E13.6,4x),I3)
- 
-      CLOSE (10, STATUS='KEEP')
-      CLOSE (11, STATUS='KEEP')
-      CLOSE (12, STATUS='KEEP')
-
- 9001 FORMAT (A60)
- 
-      END
+!      PROGRAM uvtest
+!      IMPLICIT none
+!      
+!      INCLUDE grid.inc
+!      
+!      REAL delx, f, beta, ahm, pi, href, value
+!      PARAMETER (delx  =  2.0E4)
+!      PARAMETER (f     = -1.4E-4)
+!      PARAMETER (beta  =  7.0E-12)
+!      PARAMETER (ahm   =  8.0E4)
+!      PARAMETER (pi    =  3.14159264)
+!      PARAMETER (href  = 500.0)
+!      PARAMETER (value =  0.2E-6)
+!      
+!      REAL psi(nx, ny), psi2(nx, ny), psi3(nx, ny)
+!      REAL ut (nx, ny), vt (nx, ny)
+!      REAL ut2(nx, ny), vt2(nx, ny), vt3(nx, ny)
+!      REAL delta(nx, ny), delta2(nx, ny)
+!    
+!      REAL we(nx, ny), dx, dy
+!      INTEGER lx, ly, i, j
+!      CHARACTER*60 fname
+!      
+!      dx = delx
+!      dy = delx
+!      lx = (nx-1)*2
+!      ly = (ny-1)*2
+!      DO 1000 i = 0, ny-1
+!        DO 1010 j = 0, nx-1
+!          we(i+1,j+1) = value*SIN(2.*pi*j/ly)
+! 1010   CONTINUE
+! 1000 CONTINUE
+!C*************************************************----------++++++++++!!
+!CD      PRINT *,'Calling the old scheme ',LONG(362)
+!      CALL UVTROP(ut2, vt2, psi2, we, href, dx, dy, f, beta, ahm)
+!CD      PRINT *,'Calling the exact soln ',LONG(362)
+!      CALL vexact(vt3, we, psi3, href, dx, f, beta, ahm, nx, ny)
+!CD      PRINT *,'Done with the exact sol',LONG(362)
+!C*************************************************----------++++++++++!!
+! 
+!      PRINT *,'What would you like to call the output file for psi?'
+!      READ (*,9001) fname
+!      OPEN (10, FILE=fname, FORM='UNFORMATTED', STATUS='NEW')
+!      PRINT *,'What do you want to call the velocity file?'
+!      READ (*,9001) fname
+!      OPEN (11, FILE=fname, FORM='UNFORMATTED', STATUS='NEW')
+!      WRITE (10) psi2
+!      WRITE (10) psi3
+!      WRITE (11) vt2
+!      WRITE (11) vt3
+!
+!      PRINT *,'What would you like to call the screen output?'
+!      READ (*,9001) fname
+!      OPEN (12, FILE=fname, FORM='FORMATTED', STATUS='NEW')
+!      DO 6000 j = 1, ny
+!CD        WRITE ( *,9005) vt2(1,j), 
+!CD     1 (-3.*psi(1,j)+4.*psi(2,j)-psi(3,j))/2./dx, 
+!CD     2 (-11.*psi(1,j)+18.*psi(2,j)-9.*psi(3,j)+2.*psi(4,j))/6./dx
+!CD     3  , j
+!        DO 6100 i = 1, nx/4
+!          WRITE (*,9005) vt2(i,j), vt3(i,j), j
+! 6100   CONTINUE
+! 6000 CONTINUE
+!C*************************************************----------++++++++++!!
+! 9005 FORMAT (2(E13.6,4x),I3)
+! 
+!      CLOSE (10, STATUS='KEEP')
+!      CLOSE (11, STATUS='KEEP')
+!      CLOSE (12, STATUS='KEEP')
+!
+! 9001 FORMAT (A60)
+! 
+!      END

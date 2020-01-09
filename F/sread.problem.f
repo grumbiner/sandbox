@@ -12,7 +12,6 @@ C     Robert Grumbine 27 Sep 1995
       INTEGER i, j
       CHARACTER*60 fname
       REAL maxmag
-      SAVE taux, tauy
       
       PRINT *,'What is the name of the hellerman stress file?'
       READ (*,9001) fname
