@@ -1,0 +1,47 @@
+<HTML>
+<HEAD>
+  <TITLE>Maximal reliance on stored carbs</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<FORM NAME=energy>
+Your mass <INPUT TYPE=text NAME=mass onChange="setMass()"> <Radio button "lb" "kg"><BR>
+Your sex <INPUT Type=radio NAME="SPECIES" VALUE="M">M
+         <INPUT TYPE=radio NAME="SPECIES" VALUE="F">F<BR>
+         <BR>
+Best recent 5k time <INPUT TYPE=TEXT NAME=min5k onChange="parse5k()"><BR>
+
+</FORM>
+
+<SCRIPT Language="JavaScript">
+function setMass(){};
+function parse5k(){};
+
+function pctmax(th) {
+  return 91.24 - 3.79*th + 0.08*th*th;
+}
+function vo2maxest(min5k) {
+  return 129.73 - 3.615*min5k;
+}
+function speed_kph(o2level) {
+  return (o2level + 7.736)/3.966;
+}
+function o2level(speed_kph) {
+  return (speed_kph*3.966 - 7.736);
+}
+function required_energy(mass, o2reqt) {
+  return mass * o2reqt * 20e-3;
+}
+function energy_store(mass, sex) {
+  var base_energy = 11681/70.;
+  var energy;
+  energy = base_energy * mass;
+  if (sex == "f") {
+    energy *= .95;
+  }
+  return energy;
+}
+
+
+</SCRIPT>

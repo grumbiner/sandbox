@@ -1,0 +1,63 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="Robert Grumbine">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; U; Linux 2.2.14-5.0 i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#FF0000" alink="#000088">
+Tactical Walking
+<p>Early in the process of getting started in to running, most of us acquire
+a determination to run only.&nbsp; It's a personal triumph to complete
+that first mile, 30 minutes, whatever, without walking a single step.&nbsp;
+That getting-started way of thinking may be getting in the way of people
+racing faster times.
+<p>Tactical walking is my term for the walking I&nbsp;do in a race.&nbsp;
+As for any tactical manouver, there is a goal -- to complete the race as
+fast as possible.&nbsp; In a recent 8k cross-country race I&nbsp;did a
+fair amount of tactical walking.&nbsp; The result was that I&nbsp;finished
+ahead of a fellow who finished well ahead of me at 3000m on the track.&nbsp;
+He walked less than I&nbsp;did, but I&nbsp;finished first.&nbsp; (Overall,
+I&nbsp;was 13th of 46 in my age group.&nbsp; I'm not talking about a strictly
+back of the pack tactic.)
+<p>As one goes out to ultramarathons, which I&nbsp;did this year for the
+first time, an 'easy' 50 km trail race, the amount of walking and fraction
+of people doing it goes up.
+
+<HR>
+<FORM NAME=walk>
+Race Distance <INPUT TYPE=text VALUE=26.2 SIZE=6 NAME=distance onChange="compute()"><BR>
+Walking Pace  <INPUT TYPE=text VALUE=16 SIZE=6 NAME=wpace onChange="compute()"><BR>
+Running Pace  <INPUT TYPE=text VALUE=8 SIZE=6 NAME=rpace onChange="compute()"><BR>
+Minutes Walking<INPUT TYPE=text VALUE=1 SIZE=6 NAME=wmin onChange="compute()"><BR>
+Minutes Running<INPUT TYPE=text VALUE=10 SIZE=6 NAME=rmin onChange="compute()"> <BR>
+<INPUT TYPE=button VALUE="Compute" onClick="compute()"><BR>
+<HR>
+Number of cycles: <INPUT TYPE=text NAME=cycles><BR>
+Approximate Finishing Time: <INPUT TYPE=text NAME=finish><BR>
+  (Times over 360 minutes are rescaled to hours)<BR>
+Net pace <INPUT TYPE=text NAME=pace><BR>
+</FORM>
+
+<SCRIPT LANGUAGE="JavaScript">
+function compute() {
+  var wrate = 1./document.walk.wpace.value;
+  var rrate = 1./document.walk.rpace.value;
+  var wdist = wrate * document.walk.wmin.value;
+  var rdist = rrate * document.walk.rmin.value;
+  var prop = document.walk.distance.value/ (wdist + rdist); 
+  var cycletime = 1.*document.walk.wmin.value + 1.*document.walk.rmin.value ;  
+
+  document.walk.cycles.value = prop;
+  document.walk.finish.value = prop * cycletime; 
+  document.walk.pace.value = document.walk.finish.value / document.walk.distance.value;
+
+  if (document.walk.finish.value > 360) {
+    document.walk.finish.value /= 60;
+  }
+}
+
+</SCRIPT>
+
+</body>
+</html>

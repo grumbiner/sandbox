@@ -1,0 +1,251 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (X11; U; Linux 2.0.34 i686) [Netscape]">
+   <title>OMB Coastal Ocean Forecast System Products </title>
+</head>
+<body bgcolor="#FFFFFF">
+
+<center>
+<h1>
+<font color="#0000FF">NOAA Coastal Ocean Forecast System</font></h1></center>
+
+<center><font color="#0000FF">Real-Time Ocean Products</font>
+<p><b>Ocean Model</b></center>
+
+<p>The Coastal Ocean Forecast System (COFS) is based on an experimental,
+hydrodynamic ocean circulation model which has been developed jointly by
+the <a href="http://polar.wwb.noaa.gov">National Weather Service's Environmental
+Modeling Center</a>, the <a href="http://chartmaker.ncd.noaa.gov/csdl/Welcome.html">National
+Ocean Service's Coast Survey Development Lab</a>, <a href="http://www.aos.princeton.edu/WWWPUBLIC/htdocs.pom/">Princeton
+University</a>, and U.S. <a href="http://128.160.23.42/">Navy</a>. This
+three-dimensional model produces 24-hour simulations of temperature, salinity,
+surface elevation, and currents for a region off the U.S. East Coast from
+~30 to 47N and out to 50W. The model is driven at the ocean surface boundary
+by heat, moisture, and momentum fluxes provided by <a href="http://www.ncep.noaa.gov/">NCEP
+</a>'s
+<a href="http://www.emc.ncep.noaa.gov/mmb/research/FAQ-eta.html">Eta-32
+</a>mesoscale
+atmospheric forecast model. The ocean model is driven along its open (i.e.
+southern and eastern) boundaries by climatological estimates of temperature,
+salinity, and transport. The spatial resolution of the model varies from
+approximately 20km offshore to about 10km nearshore. The coastal boundary
+corresponds to the location of the 10m isobath. In the vertical, an 18-layer
+sigma (terrain-following) coordinate system is used with at least half
+the layers concentrated in the upper 100m. Tidal forcing is included in
+the model.
+<center>
+<p><b>Data Assimilation Cycle</b></center>
+
+<p>At 24-hour intervals, Gulf Stream north-wall-location data and satellite
+altimeter data are assimilated with an OI-based algorithm from Princeton
+University. Gulf Stream location data are provided by NAVOCEANO and sea
+surface height anomalies (SSHAs) derived from satellite altimeter data
+are provided by the NOAA Laboratory for Satellite Altimetry. These data
+are input for correction of the model's sea surface height field and assimilation
+into the subsurface temperature and salinity fields using correlation functions
+statistically derived from the model itself. Gulf Stream location data
+for the current day and TOPEX data from the prior 10-day orbital cycle,
+are used in this analysis step, which provides the input fields for the
+second analysis step.
+<p>Sea surface temperature (SST) data from in-situ and satellite observing
+platforms are assimilated into the updated fields from the first data assimilation
+step, in a nowcast/data assimilation cycle producing initial conditions
+for the 24-h forecast. In-situ observations are from fixed and drifting
+buoys, C-MAN stations, and ships. Remotely sensed observations are MCSST
+retrievals from the AVHRR sensor onboard the NOAA polar orbiting satellites.
+Surface atmospheric forcing is currently obtained from 3-hourly forecasts
+from the NCEP Eta-32 mesoscale atmospheric prediction model. In the near
+future, improved surface forcing will be obtained from 3-hourly analyses
+of the NCEP Eta Data Assimilation System (EDAS).
+<br>For more information about the data assimilation cycle contact
+<a href="mailto:Jean.Thiebaux@noaa.gov">Jean.Thiebaux@noaa.gov</a>
+or <a href="mailto:John.Kelley@noaa.gov">John.Kelley@noaa.gov</a>.
+<center>
+<p><b>Forecast Cycle</b></center>
+
+<p>The forecast cycle generates coastal ocean forecasts out to 24 hours.
+Surface forcing is obtained from the 3-hourly surface fields from <a href="http://www.ncep.noaa.gov/">NCEP
+</a>'s
+<a href="http://www.emc.ncep.noaa.gov/mmb/research/FAQ-eta.html">Eta-32
+</a>mesoscale
+atmospheric prediction model.
+<center>
+<p><b>Description of Output</b></center>
+
+<p>The majority of COFS output fields are packed in the WMO standard GRIdded
+Binary (GRIB) format or in ASCII files. Brief descriptions of the different
+types of GRIB and ASCII files are given below. Recent COFS nowcasts and
+forecasts for variables at selected levels are given below. For the information
+on degribbing <a href="http://polar.wwb.noaa.gov/cofs/gribinfo.html">click
+here</a>.
+<p><b><i>.igb</i> file</b>: This GRIB file contains nowcasts or the 24-h
+forecasts valid at 0000 UTC (8 P.M. EDT or 7 P.M. EST) on the native COFS
+grid.
+<p><b>.<i>sgb</i> file</b>: This GRIB file contains 1-h nowcasts or forecasts
+of water levels and 1m currents on the native COFS grid for the 24-h length
+of the nowcast/data assimilation or forecast cycle.
+<p><b><i>.agb </i>file</b>: This GRIB file contains 24-h average and surface
+fields of daily extremes on the native COFS grid for both the nowcasts
+or forecasts.
+<p><b><i>.stdigb </i>file</b>: This GRIB file contains 24-h forecasts valid
+at 0000 UTC on a standard lat/lon grid. The grid characteristics are the
+following: dimensions are 332 x 210 with a horizontal resolution of 0.1
+degrees with the lower left corner at 83.05 degrees W longitude and 26.35
+degrees N latitude. Variables which have been interpolated to the standard
+grid are water level and temperature, salinity and currents at 31 Z-levels.
+<p><b><i>.el, .tnc, .tmd, .tms </i>and <i>.tnu </i>files</b>: These files
+contain hourly nowcasts or forecasts of water levels or SSTs at COFS grid
+points closest to observing stations. The hourly elevation values for all
+stations along the coast are contained in the .el files while the SST values
+are separated into four files by geographic areas (ie. tmd = Middle Atlantic
+area).
+<center>
+<p><b>Plans</b></center>
+
+<p>The surface forcing for the COFS nowcast/data assimilation cycle will
+be obtained from analyzed fields of the Eta Data Assimilation System (EDAS-32).
+<p>The daily output is undergoing evaluation by marine forecasters of <a href="http://www.ncep.noaa.gov/">NCEP</a>'s
+<a href="http://www.mpc.ncep.noaa.gov/">Marine
+Prediction Center</a> in Camp Springs, MD. In addition, COFS products will
+be evaluated as part of the <a href="http://cmdp.wsicorp.com/">Coastal
+Marine Demonstration Project</a> in June and July, 1999 and February and
+March, 2000.
+<center>
+<p><b>Points of Contact at NCEP/EMC/OMB</b></center>
+
+<p>Please send comments and suggestions to Ilya Rivin <a href="mailto:irivin@ncep.noaa.gov">irivin@ncep.noaa.gov
+</a>.
+<br>
+<hr>
+<center>
+<p>* NOTICE ABOUT COFS GRAPHICAL PRODUCTS *</center>
+
+<p>The oceanographic forecast fields shown here on our unrestricted web
+site are only samples of real-time daily products. The digital fields from
+which these graphical products are made are available through <a href="http://www.noaa.gov/">NOAA
+</a>'s
+<a href="http://www.nodc.noaa.gov/">National
+Oceanographic Data Center
+</a>) in Silver Spring, MD. To access these fields,
+please contact Darrel Knoll (<a href="mailto:darrel.knoll@noaa.gov">darrel.knoll@noaa.gov
+</a>).
+<h3>
+Available maps (samples)</h3>
+
+<ul>
+<li>
+Sea Surface <i>Temperature</i>: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-temsig01-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-temsig01-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+<i>Temperature</i> at 200m Depth: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-tem0200m-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-tem0200m-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+Bottom <i>Temperature</i> Along Continental Shelf: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-temsig18-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-temsig18-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+Surface (top model layer) <i>Salinity</i>: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-salsig01-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-salsig01-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+<i>Salinity</i> at 200m Depth: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-sal0200m-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-sal0200m-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+Surface (estimated at 1m depth) <i>Current</i>: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-cur0001m-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-cur0001m-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+Surface (top model layer) <i>Current:</i> <a href="http://polar.wwb.noaa.gov/cofs/cofs34-cursig01-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-cursig01-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+<i>Current </i>at 200m Depth: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-cur0200m-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-cur0200m-fcst.gif">24
+Hour Forecast</a></li>
+
+<li>
+Surface <i>Water Level</i>: <a href="http://polar.wwb.noaa.gov/cofs/cofs34-elev-ncst.gif">Nowcast
+</a>;
+<a href="http://polar.wwb.noaa.gov/cofs/cofs34-elev-fcst.gif">24
+Hour Forecast</a></li>
+</ul>
+<a href="http://polar.wwb.noaa.gov/cofs/cofsposter1.gif">COFS Model Diagram</a><a href="http://polar.wwb.noaa.gov/cofs/cofsposter2.gif">COFS
+Data flow diagram</a>
+<h3>
+Available cross sections (samples)</h3>
+
+<ul>
+<li>
+Vertical Cross Section of Temperature Between NY &amp; Bermuda: <i>Nowcast
+</i>;
+<i>24 Hour Forecast</i></li>
+</ul>
+
+<h3>
+Marine Interpretation Message (MIM) Analysis</h3>
+
+<ul>
+<li>
+Marine Prediction Center MIM <a href="ftp://www.mpc.ncep.noaa.gov/pub/docs/mpc/NFDMIMATN.ANAL">Atlantic
+Analysis (30N - 50N W of 50W)</a></li>
+</ul>
+
+<hr>
+<center>
+<h3>
+OCEANIC OBSERVATIONS FOR COFS REGION (NW Atlantic Oean)</h3></center>
+
+<ul>
+<li>
+NOAA Oceanographic SST &amp; Water Level Observations: <i>Time Series Most
+Recent</i></li>
+
+<li>
+Locations of Surface &amp; Near Surface Water Temperature Observations
+from NOAA &amp; VOP Ships: <i>Map Yesterday</i></li>
+
+<li>
+Locations and Temperature Values of NOAA/NESDIS MCSST Retrievals<i>: Map
+Yesterday</i></li>
+</ul>
+
+<center>
+<h3>
+RELATED OCEANOGRAPHIC ANALYSES FOR COFS REGION (NW Atlantic Ocean)</h3></center>
+
+<ul>
+<li>
+NOAA/NESDIS 14KM MCSST Analysis on COFS Grid<i>: Most Recent</i></li>
+
+<li>
+U.S. NAVY Ocean Feature Analysis for NW Atlantic Ocean &amp; Gulf of Mexico
+(see 2nd image):<i>Most Recent</i></li>
+</ul>
+
+<hr><a href="http://polar.wwb.noaa.gov/Welcome.html">Return to main OMB
+page</a>
+<p>This page is maintained by: Ilya Rivin (<a href="mailto:irivin@ncep.noaa.gov">irivin@ncep.noaa.gov
+</a>).
+Last modified: <i>March 31, 2000</i>.
+</body>
+</html>

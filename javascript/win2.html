@@ -1,0 +1,55 @@
+<HTML>
+<BODY BGCOLOR="#FFDDDD">
+
+<SCRIPT LANGUAGE="JavaScript">
+// Set up the window
+var x = 220, y = 120, w = 300, h = 200;
+var dx = 5, dy = 5;
+var interval = 100;
+
+// Start the document
+
+function popup() {
+  var win = window.open("", "", "width="+w+",height="+h);
+  win.moveTo(x,y);
+  win.document.open();  // Note that you have to open the document before
+                      // you write it.
+  var doc = win.document; // Note that this assign is very important
+  doc.write('<HTML> <BODY BGCOLOR="#FFFFFF">');
+  doc.write('Simple calculator to convert inces to centimeters.  Demontstrates\
+doing so in a separate window\n');
+  doc.write("<FORM NAME=\"fred\">\n");
+  doc.write("<CENTER>");
+  doc.write("inches <INPUT TYPE=text SIZE=10 NAME=size1 onChange=\"convert()\">\n");
+  doc.write("<BR> cm <INPUT TYPE=text SIZE=10 NAME=size2 \n>");
+  doc.write('<BR><INPUT ALIGN=CENTER TYPE=button VALUE=Done onClick="self.close()"> ');
+  doc.write("</CENTER>");
+  doc.write("\<\/FORM\>\n");
+  doc.write("<SCRIPT LANGUAGE=\"JavaScript\"> \n");
+  doc.write('function convert() {\n');
+  doc.write('self.document.fred.size2.value = \
+    2.54*self.document.fred.size1.value\n');
+  doc.write("}\n");
+  doc.write('<\/SCRIPT>');
+  doc.write('</HTML> </BODY>');
+  doc.close();  // All done
+}
+function convert(dir) {
+  if (dir == 0) {
+    document.test.cm.value = 2.54 * document.test.inches.value;
+  }
+  else {
+    document.test.inches.value = document.test.cm.value / 2.54;
+  }
+}
+</SCRIPT>
+ 
+
+<FORM NAME=test>
+<INPUT TYPE=button VALUE="Inches to cm" onClick="popup()"><BR>
+<INPUT TYPE=text NAME=inches onChange="convert(0)"><BR>
+<INPUT TYPE=text NAME=cm     onChange="convert(1)"><BR>
+</FORM>
+
+</BODY>
+</HTML>
