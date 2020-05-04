@@ -1,0 +1,99 @@
+<HTML>
+  <HEAD>
+    <TITLE> Most recent 30 days of southern hemisphere sea ice images</TITLE>
+  </HEAD>
+<BODY BGCOLOR="#FFFFFF">
+
+  Using JavaScript you can control animations of the last 30 days of sea 
+ice figures in this region.  This page is for the southern hemisphere
+ice pack.  There will be a reference figure -- today's ice cover -- fixed 
+on the right of the screen.  You will need JavaScript enabled (and a 
+JavaScript-capable browser such as Netscape Navigator or MS Internet 
+Explorer) and will need to load the images (if you've got 'automatically 
+load images' set, which is the default both browsers are shipped with, 
+you don't need to do anything).  You can also get a look at last year's 
+ice cover on the same date by clicking 'last year'. <p>
+
+Robert Grumbine <A HREF="mailto:seaice@polar.wwb.noaa.gov">seaice@polar.wwb.noaa.gov</a><BR>
+Last Modified 3 December 1999.
+<HR>
+
+<IMG SRC="analysis/sh.gif" NAME=reference>
+<IMG SRC="analysis/sh.gif" NAME=animation>
+
+<SCRIPT>
+MAX_FRAMES=30;
+area="analysis/sh/sh.";
+
+var frame = 0;
+var timeout_id = null;
+var images = new Array(MAX_FRAMES);
+var today = new Date();
+var figdate = new Date();
+var secs = today.getTime() - 86400.*1000.-10.*3600.*1000; // time in milliseconds for yesterday
+for (var i = 1; i <= MAX_FRAMES; i++) {
+  figdate.setTime(secs); 
+  tag=area+figdate.getFullYear();
+  if (figdate.getMonth() + 1 < 10 ) {
+    tag += "0"+(figdate.getMonth()+1);
+  }
+  else {
+    tag += (figdate.getMonth()+1);
+  }
+  if (figdate.getDate()  < 10 ) {
+    tag += "0"+figdate.getDate() ;
+  }
+  else {
+    tag += figdate.getDate() ;
+  }
+  tag += ".gif"
+ 
+  images[MAX_FRAMES - i] = new Image();
+  images[MAX_FRAMES - i].src = tag ;
+  secs -= 86400.*1000.;
+}
+// Set up image for last year
+  ly = new Image();
+  year = today.getFullYear() - 1; 
+  month = today.getMonth() + 1;
+  day   = today.getDate() ;
+  if (month < 10) { month = "0"+month; }
+  if (day   < 10) { day   = "0"+day;   }
+  ly.src = area+year+month+day+".gif";
+
+// Now get to the functions
+function animate() {
+  document.animation.src = images[frame].src;
+  frame = (frame + 1) % MAX_FRAMES;
+  timeout_id = setTimeout("animate()", 62);
+}
+function step(size) {
+  frame = (frame + size) % MAX_FRAMES;
+  if (frame < 0) frame += MAX_FRAMES;
+  document.animation.src = images[frame].src;
+}
+function lastyear() {
+  document.animation.src = ly.src;
+}
+</SCRIPT>
+
+<FORM>
+  <INPUT TYPE=button VALUE="Animate" 
+         onClick="if (timeout_id == null) animate()">
+  <INPUT TYPE=button VALUE="Step Forward" onClick="step(1)">
+  <INPUT TYPE=button VALUE="Step Backward" onClick="step(-1)">
+  <INPUT TYPE=button VALUE="Stop" onClick="if (timeout_id) 
+         clearTimeout(timeout_id); timeout_id = null; "> 
+  <BR>
+  <INPUT TYPE=button VALUE="Ice Cover Same Time Last Year" onClick="lastyear()">
+</FORM>
+<HR>
+<A HREF="nh.html">Comparable page for Northern Hemisphere ice pack</A><BR>
+<A HREF="alaska.html">Comparable page for Alaska Region ice pack</A><BR>
+<A HREF="Analyses.html">Return to sea ice analysis page</A><BR>
+<A HREF="Welcome.html">Return to main sea ice page</A><BR>
+<A HREF="../Welcome.html">Return to main OMB page</A><BR>
+<HR>
+
+</BODY>
+</HTML>

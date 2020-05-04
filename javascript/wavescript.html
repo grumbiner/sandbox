@@ -1,0 +1,157 @@
+<HTML>
+<HEAD>
+  <TITLE> Javascript test page</TITLE>
+  <SCRIPT LANGUAGE="JavaScript">
+  function current() {
+    var d = new Date();
+    t = d.toLocaleString() ;
+    defaultStatus = t;
+    setTimeout("current()",10*1000);
+  }  
+  </SCRIPT>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" onLoad="current()">
+<H3 ALIGN=CENTER>
+Significant wave height calculator
+</H3>
+<HR>
+<FORM NAME="test">
+<CENTER>
+Unit conversion
+</CENTER>
+<CENTER>
+(Enter either one to find the other)
+</CENTER>
+
+<TABLE ALIGN=CENTER>
+<TR ALIGN=CENTER>
+  <TD>Height in Meters</TD>
+  <TD></TD>
+  <TD>Height in Feet</TD>
+</TR>
+<TR ALIGN=CENTER>
+  <TD><INPUT SIZE=7 TYPE=text NAME=v1 onChange="tofeet()"></TD>
+  <TD><INPUT TYPE=button VALUE="To Feet" onClick="tofeet()"></TD>
+  <TD><INPUT SIZE=7 TYPE=text NAME=v2 onChange="tometers()"></TD>
+</TR>
+<TR ALIGN=CENTER>
+  <TD>Speed in Meters per second</TD>
+  <TD></TD>
+  <TD>Speed in Miles per hour</TD>
+</TR>
+<TR ALIGN=CENTER>
+  <TD><INPUT SIZE=6 TYPE=text NAME=ms onChange="tomph()">
+  <INPUT TYPE=button VALUE="To MPH" onClick="tomph()"></TD>
+  <TD></TD>
+  <TD><INPUT SIZE=6 TYPE=text NAME=mph onChange="toms()"><INPUT TYPE=button VALUE="To m/s" onClick="toms()"></TD>
+</TR>
+</TABLE>
+</FORM>
+
+<SCRIPT LANGUAGE="JavaScript">
+//Note these variables are global to the script
+var ftconv  = 39.37/12;
+var mphconv = ftconv * 3600/5280;
+function tofeet() {
+  document.test.v2.value = round2(ftconv*document.test.v1.value, 2);
+}
+function tometers() {
+  document.test.v1.value = round2(document.test.v2.value/ftconv, 2);
+}
+function tomph() {
+  document.test.mph.value = round2(mphconv*document.test.ms.value, 2);
+}
+function toms() {
+  document.test.ms.value = round2(document.test.mph.value/mphconv, 2);
+}
+function round2(x,y) {
+  return Math.round(x*Math.pow(10,y))/Math.pow(10,y);
+}
+</SCRIPT>
+
+<HR>
+
+<FORM NAME="rare">
+<TABLE ALIGN=CENTER>
+<TR>
+  <TD COLSPAN=2>
+  If the significant wave height (in meters) is 
+    <INPUT TYPE=text NAME=HS onChange="rarewaves()" SIZE=4>, then:
+  </TD>
+</TR>
+<TR>
+  <TD>One wave in 3 will exceed </TD>
+    <TD><INPUT TYPE=text NAME=one3 SIZE=6></TD>
+</TR>
+<TR>
+  <TD>One wave in 10 will exceed </TD>
+    <TD><INPUT TYPE=text NAME=one10 SIZE=6></TD>
+</TR>
+<TR>
+  <TD>One wave in 100 will exceed </TD>
+    <TD><INPUT TYPE=text NAME=one100 SIZE=6></TD>
+</TR>
+<TR>
+<TD>One wave in 1000 will exceed </TD>
+  <TD><INPUT TYPE=text NAME=one1000 SIZE=6></TD>
+</TR>
+</TABLE>
+
+</FORM>
+For a typical wave period of about 10 seconds, the 1 in 100 wave will 
+occur about every 15 minutes, while the one in 1000 wave will recur about
+every 3 hours.<p>
+
+<SCRIPT LANGUAGE="JavaScript">
+//Note that it is not necessary to re-define 'round2' as the interpreter
+//  remembers it from the previous block.
+function rarewaves() {
+  var hs=document.rare.HS.value;
+  if (hs < 100) {
+    document.rare.one3.value = round2(1.1*hs, 1);
+    document.rare.one10.value = round2(2*hs, 1);
+    document.rare.one100.value = round2(3*hs, 1);
+    document.rare.one1000.value = round2(4*hs, 1);
+  }
+  else {
+    document.rare.one3.value = "";
+    document.rare.one10.value = "";
+    document.rare.one100.value = "";
+    document.rare.one1000.value = "";
+    alert("Don't be silly.  The highest observed \nindividual wave was only 35 m");
+  }
+     
+}
+</SCRIPT>
+
+<HR>
+
+<FORM NAME="fetch">
+If you're willing to make some fairly extreme assumptions, there is a 
+fairly simple relationship between wind speed and wave height.  These are:
+the wind blows for an infinitely long period at a constant speed and 
+direction, and the ocean is infinitely far from land.  <p>
+Wind speed (m/s) to find a wave height (m) for:<p>
+<CENTER>
+Speed <INPUT TYPE=text NAME=speed SIZE=5 onChange="fetchlim()"> 
+ <INPUT TYPE=button VALUE=Compute onClick="fetchlim()">
+ <INPUT TYPE=text NAME=height SIZE=5 > Height
+</CENTER>
+</FORM>
+
+<SCRIPT LANGUAGE="JavaScript">
+function fetchlim() {
+  if (document.fetch.speed.value > 0) {
+    document.fetch.height.value = round2(2.*Math.sqrt(document.fetch.speed.value),1);
+  }
+  else {
+    document.fetch.height.value = "";
+  }
+}
+</SCRIPT>
+
+<HR>
+
+</BODY>
+</HTML>

@@ -1,0 +1,21 @@
+<HTML>
+
+<SCRIPT LANGUAGE="JavaScript">
+var tmp = 0.0;
+</SCRIPT>
+
+<FORM NAME="iter">
+  <IMG SRC="aa.gif" onMouseOver="add()" onClick="add()">
+  <A HREF="aa.gif" onMouseOver="add()">image</a>
+  <INPUT TYPE=text NAME=count onClick="add()">
+  <INPUT TYPE=button Value=start onClick="add()"> 
+</FORM>
+
+<SCRIPT LANGUAGE="JavaScript">
+function add() {
+  tmp += 1.0;
+  document.iter.count.value = tmp;
+}
+</SCRIPT>
+
+</HTML>

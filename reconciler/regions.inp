@@ -1,0 +1,13 @@
+  ll.lat = 59.0;
+  ll.lon = -171.0;
+  ur.lat = 56.0;
+  ur.lon = -168.0;
+  showregion("Pribilof islands\n", ll, ur, *gfilt, *oldland);
+
+  ll.lat = 50.0;
+  ll.lon = -93.0;
+  ur.lat = 41.0;
+  ur.lon = -80.0;
+  showregion("Great Lakes\n", ll, ur, *gfilt, *oldland);
+
+

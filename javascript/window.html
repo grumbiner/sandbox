@@ -1,0 +1,45 @@
+<SCRIPT LANGUAGE="JavaScript">
+// Set up the window
+var x = 120, y = 120, w = 200, h = 200;
+var dx = 5, dy = 5;
+var interval = 200;
+var win = window.open('javascript:"<H1>BOUNCE!</H1>"', 
+                        "", "width="+w+",height="+h);
+win.moveTo(x,y);
+var intervalID = window.setInterval("bounce()",interval);
+
+// Start the document
+win.document.open();  // Note that you have to open the document before
+                      // you write it.
+win.document.write("Hello");
+win.document.write("<FORM NAME=\"fred\">\n");
+win.document.write("<INPUT TYPE=text NAME=size1 onChange=\"convert()\">\n");
+win.document.write("<INPUT TYPE=text NAME=size2 \n>");
+win.document.write("\<\/FORM\>\n");
+win.document.write("<SCRIPT LANGUAGE=\"JavaScript\"> \n");
+win.document.write("function convert() {\n");
+win.document.write("  self.document.fred.size2.value = 2.*self.document.fred.size1.value\n");
+win.document.write("}\n");
+win.document.write("\<\/SCRIPT\>\n"); 
+win.document.close();  // All done
+
+function bounce() {
+  if (win.closed) {
+    clearInterval(intervalID);
+    return;
+  }
+  
+  if ( (x + dx > screen.availWidth  - w) || (x + dx < 0) ) dx = -dx;
+  if ( (y + dx > screen.availHeight - h) || (y + dy < 0) ) dy = -dy;
+  
+  x += dx;
+  y += dy;
+
+  win.moveTo(x,y);
+}
+</SCRIPT>
+
+<FORM>
+<INPUT TYPE=button VALUE="STOP!" 
+   onClick="clearInterval(intervalID); win.close();" >
+</FORM>

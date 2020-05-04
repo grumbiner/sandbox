@@ -1,0 +1,31 @@
+<HTML>
+<BODY BGCOLOR="#FFFFFF">
+
+<FORM NAME="anim">
+<TABLE ALIGN=LEFT>
+  <TR><TD><A HREF="00op.gif" onMouseOver="disp(00)">00</A></TD></TR>
+  <TR><TD><A HREF="12op.gif" onMouseOver="disp(12)">12</A></TD></TR>
+  <TR><TD><A HREF="24op.gif" onMouseOver="disp(24)">24</A></TD></TR>
+  <TR><TD><A HREF="36op.gif" onMouseOver="disp(36)">36</A></TD></TR>
+  <TR><TD><A HREF="48op.gif" onMouseOver="disp(48)">48</A></TD></TR>
+  <TR><TD><A HREF="60op.gif" onMouseOver="disp(60)">60</A></TD></TR>
+  <TR><TD><A HREF="72op.gif" onMouseOver="disp(72)">72</A></TD></TR>
+</TABLE>
+<IMG SRC="op.gif" NAME=animation ALIGN=CENTER>
+</FORM>
+
+<SCRIPT LANGUAGE="Javascript">
+function disp(mon) {
+  image = new Image();
+  if (mon > 10) {
+    image.src=mon+"op.gif"; 
+  }
+  else {
+    image.src="00op.gif";
+  }
+  document.animation.src= image.src;
+}
+</SCRIPT>
+
+</BODY>
+</HTML>
