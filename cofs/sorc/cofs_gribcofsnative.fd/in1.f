@@ -1,0 +1,51 @@
+C
+      SUBROUTINE IN1 (LUN,
+     &                IHHREF,IDDREF,IMMREF,IYYREF,IFT,
+     &                ELB,TB,SB,UAB,VAB,UB,VB,Q2,L,W,
+     &                IM,JM,KB,LEND)
+C     ===========================================
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    IN1
+C   PRGMMR: RIVIN            ORG: W/NMC21    DATE: 00-11-01
+C
+C ABSTRACT:
+C
+C PROGRAM HISTORY LOG:
+C
+C USAGE:    
+C
+C   INPUT ARGUMENT LIST:
+C     FT22F001 - yymmddhh.grd
+C
+C   OUTPUT ARGUMENT LIST:
+C
+C   SUBPROGRAMS CALLED
+C     UNIQUE:
+C      GETLBL
+C
+C ATTRIBUTES:
+C   LANGUAGE: IBM 370 VS FORTRAN
+C   MACHINE:  NAS, CRAY C-90, IBM SP
+C
+C$$$
+C
+      DIMENSION Z(KB),ELB(IM,JM),TB(IM,JM,KB),SB(IM,JM,KB)
+      DIMENSION H(IM,JM),FSM(IM,JM),DUM(IM,JM),DVM(IM,JM),ALON(IM,JM)
+      DIMENSION ALAT(IM,JM)
+      DIMENSION UAB(IM,JM),VAB(IM,JM),UB(IM,JM,KB),VB(IM,JM,KB)
+      REAL Q2(IM,JM,KB),L(IM,JM,KB),W(IM,JM,KB)
+      REAL hh,dd,mm,yy
+      LOGICAL LEND
+      CALL GETLBL(LUN,IHHREF,IDDREF,IMMREF,IYYREF,IFT,IDGRD,IMI,JMI,
+     &            KB,LEND)
+      IF (LEND) RETURN
+      IF ((IMI.NE.IM).OR.(JMI.NE.JM)) STOP 'WRONG ARRAY DIMENSIONING'
+      READ (LUN,END=500) ELB,TB,SB,UAB,VAB,UB,VB,Q2,L,W
+C     write (*,*) (W(10,J,10),J=30,50)
+      LEND=.FALSE.
+      RETURN
+  500 LEND=.TRUE.
+      RETURN
+      END

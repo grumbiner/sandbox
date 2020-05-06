@@ -1,0 +1,41 @@
+#Robert Grumbine 28 June 2006
+
+.c :
+	$(CC) $<
+.c :
+	$(CC) $(@).c
+.f :
+	$(FC) $(@).f 
+
+
+#Makefile to construct all the sea ice suite
+
+codes = ssmibufr seaissmi icegrid filtanal ice2grib psgnorth psgsouth 
+
+$(codes): execs/$$@.x 
+
+execs/ssmibufr.x : 
+	make -f ssmibufr.fd/makefile
+
+CC=xlc -c -O2 -I ../includes
+FC=xlf -c -O2 -I ../includes
+FOBJS=wmoout QUEDES GRIBIT mapxy MAKWMO TRANST cfsread gaulat bsslz1 arcdis
+COBJS=mapxy mapll
+
+all :	ficelib cicelib
+ficelib : $(FOBJS)
+cicelib : $(COBJS)
+
+clean : 
+	rm *.o
+
+clobber : clean
+	rm ficelib cicelib
+
+$(FOBJS) : 
+	$(FC) $(@).f
+	ar rv ficelib $(@).o
+
+$(COBJS) : 
+	$(CC) $(@).c
+	ar rv cicelib $(@).o 

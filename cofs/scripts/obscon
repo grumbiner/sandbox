@@ -1,0 +1,17 @@
+#! /bin/csh -x
+#
+# Script Name: obscon
+#
+# Purpose: Convert postscript files to gif format
+#
+# 8/97  JKelley
+#
+# Note:  Script executed remotely via remsh to polar via rsh to hp20
+# ------------------------------------------------------------------------------
+#
+# Location of SST obs
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/map-curday-sstobs-locs.ps -page letter -rotate -90
+#
+# Location of NESDIS retrievals
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/map-curday-retrvls.ps -page letter -rotate -90
+# 

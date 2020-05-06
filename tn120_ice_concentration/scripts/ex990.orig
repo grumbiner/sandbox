@@ -1,0 +1,362 @@
+#!/bin/ksh
+#####################################################################
+echo "------------------------------------------------"
+echo "J990 - SSMI BUFR data is taken and  creates ICE"
+echo "Concetration Fields for the Arctic Ocean and Antarctic"
+echo "Continent and adjoining  water bodies."
+echo "------------------------------------------------"
+echo "History:  AUG 1997 - First implementation of this new script."
+echo "          NOV 1997 - Add copy to /dcom and /scom for   "
+echo "                       reliability and users           " 
+echo "          Jan 1998 - Add transmission to OSO of files in   "
+echo "                       WMO format                          "
+#####################################################################
+# Robert Grumbine 1 March 1995.
+#  1 March 1995 - Script for handling the production and 
+#  dissemination of all ssmi-derived sea ice concentration files
+#
+#  28 November 1995 - Modified for producing reanalysis files.
+#
+#  23 January 1996 - Heavily modified to try to circumvent 
+#  missing/overloaded file systems on operational cray, and to be 
+#  more robust against steps failing internal to the script.
+#
+#  2 June 1997. Modified to work from BUFR files.  Relies on 
+#  dumpscript, with no failover protection possible.
+#
+#  6 August 1997 - Script version for operations use.
+#  SDIR changed to ${NET}exec for operations conformance.
+#  CDIR changed to ${NET}fix  for operations conformance.
+#  PDY replaces tag
+#  PDYm1 replaces tagm
+#####################################################################
+
+
+cd $DATA
+
+##############################
+#
+# START FLOW OF CONTROL
+#
+# 1) Get the Date from /com/date
+# 2) Run the dumpscript to retrieve a day's data
+# 3) Process the bufr output into something readable
+# 4) Run the analysis on the files
+# 5) Copy the base analyst's grids to the running location
+# 6) Make up the grib files for the polar stereographic data and
+#    copy them to running locations
+# 7) Construct the modeller's global sea ice grid
+#
+##############################
+
+
+########################################
+msg="HAS BEGUN!"
+postmsg "$jlogfile" "$msg"
+########################################
+
+
+FILENV=$DATA/.assign.FORTRN
+pgmout=OUTPUT.$pid
+export FILENV pgmout
+
+#set MP_HOLDTIME to a larger number to speed up processing by 
+# preventing CPUs from being rescheduled as frequently
+MP_HOLDTIME=2666666
+export MP_HOLDTIME
+
+set +xS
+echo " "
+echo "##########################################"
+echo "  GET DATE FROM THE CRAY"
+echo "##########################################"
+echo " "
+set -xS
+
+cp /com/date/$CYCLE ncepdate
+
+echo "ncepdate"
+cat ncepdate
+
+
+# #################################################
+
+# Add prefix P to the date
+PDATE=P`cut -c9-14 ncepdate`
+
+# Use grep to search through date table to find production date-line
+# date-line = PDATE & day minus 1, day minus 2, ..to.. day minus 7
+DATElne=`grep $PDATE /nwprod/util/date/lookup`
+
+# Initialize PDY shell-variables
+PDYm1=999999
+
+# Cut date-line to form PDY variables
+PDYm1=`echo "$DATElne"|cut -c14-19`
+
+# Cut NMC date to form production PDY
+PDY=`cut -c9-14 ncepdate`
+
+
+echo " "
+echo PDATE="$PDATE"
+echo DATElne="$DATElne"
+echo PDY="$PDY"
+echo PDYm1="$PDYm1"
+echo " "
+
+#Establish location of com files
+COM=$com/${NET}.${PDY}
+COMm1=$com/${NET}.${PDYm1}
+DCOM=/dcom/us007003/$PDY
+SCOM=/scom/mrf/prod/${NET}.$PDY
+mkdir -p $COM
+
+export PDY PDYm1 COM COMm1 DCOM SCOM
+
+#####################################################
+
+
+#----------------------------------------------------------
+#Begin ordinary processing.
+#---------------------------------------------------------
+#Dummy variables at this point, formerly used and may be useful
+# again in the future.  Robert Grumbine 6 August 1997.
+jday=1
+refyear=1997
+
+#BUFR------------------------------------------------------
+#Run the dumpscript to retrieve a day's data
+#----------------------------------------------------------
+
+/nwprod/bufr/scripts/dumpjb ${PDY}00 12 ssmit
+
+
+
+#----------------------------------------------------------
+#Process the bufr output into something readable
+#----------------------------------------------------------
+
+pgm=`basename ssmibufr.$xc .$xc`
+export pgm; prep_step
+
+assign -a ssmit.cos -Fcos fort.14
+assign -a bufrout -s unblocked fort.51
+
+msg="pgm=ssmibufr has BEGUN!"
+postmsg "$jlogfile" "$msg"
+
+$EXECsice/ssmibufr.$xc >> $pgmout
+err=$?;export err;err_chk
+
+echo bufrout > delta
+
+
+#----------------------------------------------------------
+# Run the analysis on the files
+# Input files =  delta, $FIXsice/nland.map, $FIXsice/sland.map
+# Output files = n3ssmi.$PDY, s3ssmi.$PDY, umasksouth.$PDY,
+#      		 b3north.$PDY, b3south.$PDY
+# Arguments (currently not used) - $jday : Julian Day,
+#				   $refyear : 4 digit year
+#----------------------------------------------------------
+
+$EXECsice/seaissmi.$xc delta  $FIXsice/nland.map $FIXsice/sland.map \
+           n3ssmi.$PDY s3ssmi.$PDY umasknorth.$PDY umasksouth.$PDY \
+           b3north.$PDY b3south.$PDY $jday $refyear >> $pgmout
+err=$?;export err;err_chk
+
+#-----------------------------------------------------------
+#Copy the base analyst's grids to the running location
+#-----------------------------------------------------------
+
+
+if [ $SENDCOM = "YES" ] ; then
+  cp n3ssmi.$PDY  ${COM}/n3ssmi.$PDY
+  cp s3ssmi.$PDY  ${COM}/s3ssmi.$PDY
+  cp b3north.$PDY ${COM}/b3north.$PDY
+  cp b3south.$PDY ${COM}/b3south.$PDY
+  cp umasknorth.$PDY  ${COM}/umasknorth.$PDY
+  cp umasksouth.$PDY  ${COM}/umasksouth.$PDY
+  cp n3ssmi.$PDY  ${SCOM}/n3ssmi.$PDY
+  cp s3ssmi.$PDY  ${SCOM}/s3ssmi.$PDY
+  cp umasknorth.$PDY  ${SCOM}/umasknorth.$PDY
+  cp umasksouth.$PDY  ${SCOM}/umasksouth.$PDY
+fi
+
+#-----------------------------------------------------------
+# Make up the grib files for the polar stereographic data and
+# copy them to running locations
+#-----------------------------------------------------------
+echo $PDY | cut -c1-2  > psin
+echo $PDY | cut -c3-4  >> psin
+echo $PDY | cut -c5-6  >> psin
+
+for pole in north south
+do
+
+  pgm=`basename psg$pole.$xc .$xc`
+  export pgm; prep_step
+
+  assign -a umask$pole.$PDY -s unblocked fort.11
+  assign -a ${pole}psg.$PDY -s unblocked fort.51
+  assign -a wmo${pole}psg.$PDY -s unblocked fort.52
+
+  $EXECsice/psg${pole}.$xc < psin >> $pgmout
+  err=$?;export err;err_chk
+
+done
+
+
+if [ $SENDCOM = "YES" ] ; then
+  cp northpsg.${PDY} ${COM}/northpsg.${PDY}
+  cp southpsg.${PDY} ${COM}/southpsg.${PDY}
+  cp northpsg.${PDY} ${SCOM}/northpsg.${PDY}
+  cp southpsg.${PDY} ${SCOM}/southpsg.${PDY}
+fi
+if [ $SENDDBN = "YES" ] ; then
+  cp wmonorthpsg.$PDY $pcom/wmonorthpsg.$JOB
+  cp wmosouthpsg.$PDY $pcom/wmosouthpsg.$JOB
+  /com/status/dbn_alert TRAN $NET $JOB  $pcom/wmonorthpsg.$JOB
+  /com/status/dbn_alert TRAN $NET $JOB  $pcom/wmosouthpsg.$JOB
+fi
+
+
+
+#-----------------------------------------------------------
+# Construct the modeller's global sea ice grid
+#-----------------------------------------------------------
+# QC denotes whether or not it will be possible to produce the
+# SST-quality controlled sea ice grids for modellers.
+# This step looks for the existance of either today's or 
+# yesterday's sstgrb file from the fnl directory.
+#-----------------------------------------------------------
+
+qc=false
+if [ -s /com/fnl/prod/fnl.$PDY/gdas1.${CYCLE}.sstgrb ] ; then 
+  cp /com/fnl/prod/fnl.$PDY/gdas1.${CYCLE}.sstgrb oned
+  qc=true
+else
+  if [ -s /com/fnl/prod/fnl.$PDYm1/gdas1.${CYCLE}.sstgrb ] ; then 
+    cp /com/fnl/prod/fnl.$PDYm1/gdas1.${CYCLE}.sstgrb oned
+    qc=true
+  fi
+fi
+
+if [ $qc = "true" ] ; then
+
+###################################
+# Filter the ice concentration field (in lat-long space only so far)
+# Input files: oned, umasknorth.$PDY, umasksouth.$PDY, 
+#              $FIXsice/halfdeg.map
+# Output files: latlon.$PDY, nps.$PDY, sps.$PDY
+# Arguments:  275.3  - Ocean Temperature above which ice is assumed 
+#                         not to exist.  Degrees Kelvin.
+###################################
+
+
+  pgm=`basename filtanal.$xc .$xc`
+  export pgm; prep_step
+
+  assign -a oned -s unblocked fort.11
+
+  $EXECsice/filtanal.$xc oned umasknorth.$PDY umasksouth.$PDY latlon.$PDY \
+                nps.$PDY sps.$PDY $FIXsice/halfdeg.map 275.3 >> $pgmout
+  err=$?;export err;err_chk
+
+###################################
+# Fill in the ice concentration field with older data as required
+# Input files: $COMm1/fill.$PDYm1, latlon.$PDY, $COMm1/age.$PDYm1
+# Output Files: age.$PDY, fill.$PDY
+###################################
+
+
+  pgm=`basename icegrid.$xc .$xc`
+  export pgm; prep_step
+  $EXECsice/icegrid.$xc $COMm1/fill.$PDYm1 latlon.$PDY $COMm1/age.$PDYm1 \
+                             age.$PDY fill.$PDY >> $pgmout
+  err=$?;export err;err_chk
+  
+#Engrib the lat-long file
+  echo $PDY > ein
+
+  pgm=`basename ice2grib.$xc .$xc`
+  export pgm; prep_step
+
+  assign -a fill.$PDY   -s unblocked fort.11
+  assign -a eng.$PDY    -s unblocked fort.51
+  assign -a wmoglobice.$PDY -s unblocked fort.52
+
+  $EXECsice/ice2grib.$xc < ein >> $pgmout
+  err=$?;export err;err_chk
+
+
+  if [ $SENDCOM = "YES" ] ; then
+    cp eng.$PDY    ${COM}/eng.$PDY
+    cp latlon.$PDY age.$PDY fill.$PDY ${COM}
+    cp eng.$PDY    ${SCOM}/eng.$PDY
+    cp latlon.$PDY age.$PDY fill.$PDY ${SCOM}
+    cp latlon.$PDY ${DCOM}/wgrbbul/eng.latlon
+    cp eng.$PDY    ${DCOM}/wgrbbul/engice.grb
+  fi
+  if [ $SENDDBN = "YES" ] ; then
+    cp wmoglobice.$PDY $pcom/wmoglobice.$JOB
+    /com/status/dbn_alert TRAN $NET $JOB $pcom/wmoglobice.$JOB
+  fi
+
+ else
+   msg="Job J990L cannot produce qc'd sea ice concentration field due"
+   postmsg "$jlogfile" "$msg"
+   msg="to absence of SST file for $PDY and $PDYm1 cycle $CYCLE"
+   postmsg "$jlogfile" "$msg"
+
+fi 
+#end of producing qc'd files
+  
+  
+#scriptrc update
+#If qc for global modeler's field failed, return 2
+#Otherwise, return 0
+
+if [ $qc = "true" ] ; then
+  scriptrc=0
+  echo $scriptrc > $DATA/scriptrc
+
+  msg="HAS COMPLETED NORMALLY!"
+  echo $msg
+  postmsg "$jlogfile" "$msg"
+
+#####################################################################
+# GOOD RUN
+set +xS
+echo "**************JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+echo "**************JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+echo "**************JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+set -xS
+#####################################################################
+
+
+else
+  scriptrc=2
+  echo $scriptrc > $DATA/scriptrc
+
+#####################################################################
+# FAILED
+set +xS
+echo "**************ABNORMAL TERMIMATION JOB $JOB ON THE CRAY"
+echo "**************ABNORMAL TERMIMATION JOB $JOB ON THE CRAY"
+echo "**************ABNORMAL TERMIMATION JOB $JOB ON THE CRAY"
+set -xS
+#####################################################################
+
+
+fi
+
+sh /nwprod/util/scripts/exsaicmrf.sh
+
+#################################
+ja -clst
+mv /com/mrf/prod/WW0990* /com/mrf/prod/mrf.$PDY
+
+############## END OF SCRIPT #######################
+

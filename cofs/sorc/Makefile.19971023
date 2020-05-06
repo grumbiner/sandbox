@@ -1,0 +1,37 @@
+CPP=g++ -O 
+#CPP=CC -F -O2
+#FC=f90 -c -ef
+
+all : subs qcavg hotis votis
+
+hotis : subs hotis.o
+	$(CPP) hotis.o $(SUBS) -lf2c -lm -o hotis
+
+votis : subs votis.o
+	$(CPP) votis.o cfs.asc.read.o cfsread.o mapll.o mapxy.o w3ft01.o -lf2c -lm -o votis
+
+qcavg : subs qc2.o
+	$(CPP) qc2.o $(SUBS) -lf2c -lm -o qcavg
+
+SUBS=icerestart.o chalread.o cfs.asc.read.o cfsread.o mapll.o mapxy.o w3ft01.o
+subs : icerestart.o chalread.o cfs.asc.read.o cfsread.o mapll.o mapxy.o w3ft01.o
+
+hotis.o : metric.h grid.h grid3.h hotis.C
+	$(CPP) -c hotis.C
+
+votis.o : metric.h grid.h vector.h grid3.h votis.C
+	$(CPP) -c votis.C
+
+icerestart.o : models.ftn/icerestart.f
+	$(FC) -c models.ftn/icerestart.f
+
+chalread.o : models.ftn/chalread.f
+	$(FC) -c models.ftn/chalread.f
+
+cfsread.o : models.ftn/cfsread.f
+	$(FC) -c models.ftn/cfsread.f
+
+cfs.asc.read.o : models.ftn/cfs.asc.read.f
+	$(FC) -c models.ftn/cfs.asc.read.f
+
+

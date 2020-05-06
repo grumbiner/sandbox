@@ -1,0 +1,49 @@
+#LINUX
+CC=g++
+OPTS= -O2 -DLINUX -Wall  -I$(BASE)/v3.4.3/include
+LIBS=$(BASE)/v3.4.3/libombf_4.a
+
+#--------------------------------------
+all : assemble 
+
+$(@).o : $(@).C
+	$(CC) -c $(OPTS) $(@).C  $(LIBS)
+
+$(@) : $(@).o
+	$(CC) $(OPTS) $(@).o -o $(@) $(LIBS)
+
+assemble : assemble.C
+	$(CC) $(OPTS) assemble.C -o assemble $(LIBS)
+
+first_pass : first_pass.C
+	$(CC) $(OPTS) first_pass.C -o first_pass $(LIBS)
+
+gradharmonics : gradharmonics.C
+	$(CC) $(OPTS)   gradharmonics.C -o gradharmonics $(LIBS)
+
+varharmonics : varharmonics.C
+	$(CC) $(OPTS)   varharmonics.C -o varharmonics $(LIBS)
+
+harmonics : harmonics.C
+	$(CC) $(OPTS)   harmonics.C -o harmonics $(LIBS)
+
+second_pass : second_pass.C
+	$(CC) $(OPTS) second_pass.C -o second_pass $(LIBS)
+
+autocovar : autocovar.C
+	$(CC) $(OPTS) autocovar.C -o autocovar $(LIBS)
+
+#-------------------------------------------
+# Not part of current sequence:
+
+hist : hist.C
+	$(CC) $(OPTS)   -DDTYPE=float hist.C -o hist $(LIBS)
+
+annuals : annuals.C
+	$(CC) $(OPTS)   annuals.C -o annuals $(LIBS)
+
+postquarter : postquarter.C
+	$(CC) $(OPTS) postquarter.C -o postquarter $(LIBS) 
+
+processquarter : processquarter.C 
+	$(CC) $(OPTS) processquarter.C -o processquarter $(LIBS)

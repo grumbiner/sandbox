@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 transitional//EN"
+            "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Monthly figures for ice cover - Chapman and Walsh source</title>
+  <meta name="DC.title" content="Monthly figures for ice cover - Chapman and Walsh source">
+  <meta name="DC.description" content="Monthly figures for ice cover - Chapman and Walsh source page">
+  <meta name="DC.creator" content="MMAB Sea Ice group">
+  <meta name="DC.date.created" scheme="ISO8601" content="2003-04-07">
+  <meta name="DC.date.reviewed" scheme="ISO8601" content="2009-08-06">
+  <meta name="DC.language" scheme="DCTERMS.RFC1766" content="EN-US">
+  <meta http-equiv=Content-Type content="text/html; charset=utf-8">
+  <link href="/mmab/images/nwscwi/main.css" type="text/css" rel="STYLESHEET">
+  <link rel="icon" type="image/ico" href="/mmab/images/nwscwi/favicon.ico">
+  <link REL="SHORTCUT ICON" href="favicon.ico">
+</head>
+
+<body background="/mmab/images/nwscwi/background.gif" >
+
+<!-- Use virtual include, because this should be in a common place within your DocumentRoot. -->
+<!--#include virtual="/mmab/images/nwscwi/cwi_header.html" -->     
+
+<table cellSpacing="0" cellPadding="1" width="670" border="0">
+  <tbody>
+  <tr vAlign="top">
+    <td width="130"><BR>
+      <!--#include virtual="/seaice/seaice_menu.html" -->   
+      <!-- Use virtual include, because this should be in a common place within your DocumentRoot. -->
+    </td>
+    <td vAlign="top" width="540"><A name="contents"></A><BR>
+      <!-- This is the body content file of the current sub-directory. -->
+      <!--#include file="months_index" -->                           
+      <table cellSpacing="0" cellPadding="0" width="96%" border="0">
+        <tbody>
+        <!-- Use virtual include, because this should be in a common place within your DocumentRoot. -->
+        <!--#include virtual="/mmab/images/nwscwi/cwi_footer.html" -->  
+        <tr vAlign="top">
+          <td class="gray" colSpan="3">
+            <!-- This should be the same name of the body content file specified above. -->
+            Page last modified: <!--#flastmod file="months_index" -->  
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+
+</body>
+</html>

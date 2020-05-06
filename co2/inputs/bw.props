@@ -1,0 +1,69 @@
+CD      DATA table /75*0.0/
+
+C     Data for this table has been taken from Broecker and Peng, 1982. 
+C                                          Pedigree:
+      DATA table(O2  ,pna) /288.0E-6 /     ! B+P, pp. 340
+      DATA table(CO2 ,pna) /17.64E-6 /     ! Mongrel
+      DATA table(temp,pna) /2.1      /     ! B+P, pp. 340
+      DATA table(salt,pna) /34.932   /     ! B+P, pp. 340
+      DATA table(NO3 ,pna) /16.10E-6 /     ! B+P, pp. 340
+      DATA table(PO4 ,pna) /1.04E-6  /     ! B+P, pp. 340
+      DATA table(SiO2,pna) /12.0E-6  /     ! B+P, pp. 340
+      DATA table(dc14,pna) /-67.0    /     ! B+P, pp. 340
+      DATA table(tco2,pna) /2250.E-6 /     ! B+P, pp. 467
+      DATA table(alk ,pna) /2375.E-6 /     ! BG analy. of Geosecs
+
+      DATA table(O2  ,pcdw) /201.0E-6/     ! B+P, pp. 340
+      DATA table(CO2 ,pcdw) /17.64E-6 /     ! Mongrel
+      DATA table(temp,pcdw) /0.62    /     ! B+P, pp. 340
+      DATA table(salt,pcdw) /34.708  /     ! B+P, pp. 340
+      DATA table(NO3 ,pcdw) /32.1E-6 /     ! B+P, pp. 340
+      DATA table(PO4 ,pcdw) /2.20E-6 /     ! B+P, pp. 340
+      DATA table(SiO2,pcdw) /123.0E-6/     ! B+P, pp. 340
+      DATA table(dc14,pcdw) /-163.0  /     ! B+P, pp. 340
+      DATA table(tco2,pcdw) /2280.E-6/     ! BG analy. of Geosecs
+      DATA table(alk ,pcdw) /2395.E-6/     ! BG analy. of Geosecs
+ 
+      DATA table(O2  ,phssw) /293.0E-6/     ! B+P, pp. 340
+      DATA table(CO2 ,phssw) /17.64E-6 /     ! Mongrel
+      DATA table(temp,phssw) /-2.0    /     ! B+P, pp. 340
+      DATA table(salt,phssw) /34.700  /     ! B+P, pp. 340
+      DATA table(NO3 ,phssw) /27.5E-6 /     ! B+P, pp. 340
+      DATA table(PO4 ,phssw) /2.05E-6 /     ! B+P, pp. 340
+      DATA table(SiO2,phssw) / 70.0E-6/     ! B+P, pp. 340
+      DATA table(dc14,phssw) /-146.0/       ! B+P, pp. 340
+      DATA table(tco2,phssw) /2250.E-6/     ! B+P, pp. 340
+      DATA table(alk ,phssw) /2370.E-6/     ! BG analy of Geosecs
+      
+      DATA table(O2  ,pww) /293.0E-6/     ! B+P, pp. 340
+      DATA table(CO2 ,pww) /17.64E-6 /     ! Mongrel
+      DATA table(temp,pww) /-1.8    /     ! B+P, pp. 340
+      DATA table(salt,pww) /34.400  /     ! B+P, pp. 340
+      DATA table(NO3 ,pww) /27.5E-6 /     ! B+P, pp. 340
+      DATA table(PO4 ,pww) /2.05E-6 /     ! B+P, pp. 340
+      DATA table(SiO2,pww) / 70.0E-6/     ! B+P, pp. 340
+      DATA table(dc14,pww) /-146.0  /     ! B+P, pp. 340
+      DATA table(tco2,pww) /2250.E-6/     ! B+P, pp. 467
+      DATA table(alk ,pww) /2370.E-6/     ! BG analy. of Geosecs
+      
+      DATA table(O2  ,pmelt) /0.0E-6 /
+      DATA table(CO2 ,pmelt) /0.0E-6 /    
+      DATA table(temp,pmelt) /-2.2 /
+      DATA table(salt,pmelt) /0.0  /
+      DATA table(NO3 ,pmelt) /0.0E-6  /
+      DATA table(PO4 ,pmelt) /0.0E-6  /
+      DATA table(SiO2,pmelt) / 0.0E-6 /
+      DATA table(dc14,pmelt) /-200./
+      DATA table(tco2,pmelt) /   0.E-6 /
+      DATA table(alk ,pmelt) /   0.E-6 /
+      
+      DATA table(O2  ,piw ) /201.0E-6 / !derived from cdw property
+      DATA table(CO2 ,piw) /17.64E-6 /    !Mongrel
+      DATA table(temp,piw ) /0.62  / !derived from cdw property
+      DATA table(salt,piw ) /34.708/ !derived from cdw property
+      DATA table(NO3 ,piw ) /32.1E-6  / !derived from cdw property
+      DATA table(PO4 ,piw ) /2.20E-6  / !derived from cdw property
+      DATA table(SiO2,piw ) /123.0E-6 / !derived from cdw property
+      DATA table(dc14,piw ) /-163.0/  !derived from cdw property
+      DATA table(tco2,piw ) /2280.E-6 / !derived from cdw property
+      DATA table(alk ,piw ) /2385.E-6 / !From AA Geosecs data

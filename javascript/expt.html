@@ -1,0 +1,31 @@
+<HTML>
+<BODY BGCOLOR="#FFFFFF">
+
+<FORM NAME="anim" >
+<TABLE ALIGN=LEFT BORDER=1>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(1)">January</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(2)">February</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(3)">March</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(4)">April</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(5)">May</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(6)">June</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(7)">July</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(8)">August</A></TD></TR>
+  <TR><TD><A HREF="aa.gif" onMouseOver="disp(9)">September</A></TD></TR>
+</TABLE>
+<IMG SRC="aa.gif" NAME=animation ALIGN=CENTER>
+</FORM>
+
+<SCRIPT LANGUAGE="Javascript">
+//Note that the following does not provide re-load when mouse returns
+// to the same area.
+function disp(mon) {
+  document.animation = new Image();
+  image = new Image();
+  image.src = "sanim.990"+mon+".gif";  
+  document.animation.src= image.src;
+}
+</SCRIPT>
+
+</BODY>
+</HTML>

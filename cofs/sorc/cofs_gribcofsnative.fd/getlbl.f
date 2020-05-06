@@ -1,0 +1,44 @@
+C
+      SUBROUTINE GETLBL(LUN,IHHREF,IDDREF,IMMREF,IYYREF,IFT,IDGRD,
+     &           IM,JM,KB,EOF)
+C     ===========================================
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    GETLBL
+C   PRGMMR: RIVIN            ORG: W/NMC21    DATE: 00-11-01
+C
+C ABSTRACT: READ THE GRD FILE HEADER
+C
+C PROGRAM HISTORY LOG:
+C
+C USAGE:    CALL GETLBL(LUN,IHHREF,IDDREF,IMMREF,IYYREF,IFT,IDGRD,  
+C                       IM,JM,KB,EOF)
+C   INPUT ARGUMENT LIST:
+C     FT22F001 - yymmddhh.grd
+C
+C   OUTPUT ARGUMENT LIST:
+C
+C   SUBPROGRAMS CALLED
+C     UNIQUE:
+C      W3FS26
+C
+C ATTRIBUTES:
+C   LANGUAGE: IBM 370 VS FORTRAN
+C   MACHINE:  NAS, CRAY C-90, IBM SP
+C
+C$$$
+C
+      CHARACTER*64 HEADER    
+      LOGICAL EOF
+      EOF=.FALSE.                                   
+      READ (LUN,END=500) HEADER                     
+      WRITE(*,*) 'PROCESSING SECTION: ', HEADER
+      READ (HEADER,40) IDGRD,IM,JM,KB,IYYREF,IMMREF,IDDREF,
+     &                  IHHREF,IFT
+   40 FORMAT (1X,I3,2(1X,I4),1X,I3,1X,I4,1X,I2,1X,I2,1X,
+     &        I2,2X,I4,28X)
+      RETURN
+  500 EOF=.TRUE.
+      RETURN
+      END

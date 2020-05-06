@@ -1,0 +1,29 @@
+#! /bin/csh -x
+#
+# Script Name: cfscon-init
+#
+# Purpose: Convert postscript files to gif format
+#
+# 4/96  JKelley
+# 5/1/66   JK  Add code for converting initial fields
+# 12/02/96 JK  Modify for use with cofs3.1 output
+#
+# Note:  Script executed remotely via remsh to polar via rsh to hp20
+# ------------------------------------------------------------------------------
+# Forecast PS PLOT Files 
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-smsst-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-salt-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-temsig18-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-elev-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-cur1m-fcst.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-cursig01-fcst.ps -page letter -rotate -90
+#
+# Initial PS PLOT Files
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-smsst-init.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-salt-init.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-temsig18-init.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-elev-init.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-cur1m-init.ps -page letter -rotate -90
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-cursig01-init.ps -page letter -rotate -90
+#
+# 

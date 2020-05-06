@@ -1,0 +1,59 @@
+#!/bin/ksh
+#set -x
+
+COFSOUT=/dm/wd21rg/otis.cofs.ztest/
+OTISIN=/dm/wd21rg/otis.grib/
+export COFSOUT OTISIN
+if [ ! -d $COFSOUT ] ; then
+  mkdir -p $COFSOUT
+fi
+
+EXDIR=$HOME41/cpp
+DATADIR=$HOME41/cfs.data
+export EXDIR DATADIR
+
+#tag=`date +"%y%m%d"`
+tag=$1
+echo $tag
+base=`echo $tag | cut -c1-4`
+dy=`echo $tag | cut -c5-6`
+
+if [ ! -d /tmp/otistest ] ; then
+  mkdir -p /tmp/otistest
+fi
+cd /tmp/otistest
+rm *
+
+cp $EXDIR/htest .
+cp $DATADIR/* .
+x=`ls -1 *gz  |wc -l`
+if [ $x -gt 0 ] ; then
+  gunzip *gz
+fi
+x=`ls -1 *Z | wc -l`
+if [ $x -gt 0 ] ; then
+  uncompress *Z
+fi
+
+if [ -f $OTISIN/otis.${tag}.grib ] ; then
+  wgrib $OTISIN/otis.${tag}.grib > index
+else
+  exit -1
+fi
+#set -x
+
+for level in 1 
+do
+  x=`grep "kpds7=${level}:" index | grep TMP | wc -l`
+  y=`grep "kpds7=${level}:" index | grep SALTY | wc -l`
+  
+    if [ $x -eq 1 ] ; then
+      grep "kpds7=${level}:" index | grep TMP | wgrib $OTISIN/otis.${tag}.grib -i -o tmp.$level -nh > /dev/null
+      ./htest tmp.$level tmp $level
+     else
+      echo Should have found 1 field for level $level Temperatures, found $x
+      echo cannot retrieve this for later use.  Create a dummy level.
+    fi
+  
+done
+

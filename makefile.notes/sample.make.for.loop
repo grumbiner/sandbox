@@ -1,0 +1,11 @@
+#Demonstration of a simple for loop in a makefile
+#Robert Grumbine
+#6 August 1997
+
+user=1 2 3 4
+
+fred :
+	for a in $(user) ; do \
+	  touch a$$a ; \
+	done
+

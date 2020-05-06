@@ -1,0 +1,18 @@
+<HTML>
+<BODY>
+
+<SCRIPT LANGUAGE="JavaScript">
+function seconds() {
+/* For some reason, script does not like using 'string' */
+  document.test.secs.value =  document.test.time.value;
+}
+</SCRIPT>
+
+<FORM NAME="test">
+<INPUT TYPE=text NAME=time onChange="seconds()" >
+secs
+<INPUT TYPE=text NAME=secs >
+</FORM>
+
+</BODY>
+</HTML>

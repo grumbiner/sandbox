@@ -1,0 +1,40 @@
+#!/bin/ksh
+#arg 1 is start date, arg 2 is end date, inclusive
+
+OTISIN=/dm/wd21rg/otis
+OTISGRIB=/dm/wd21rg/otis.grib
+COFSOUT=/data/new/otis.cofs
+export COFSOUT OTISIN OTISGRIB
+if [ ! -d $OTISGRIB ] ; then
+  mkdir -p $OTISGRIB 
+fi
+
+if [ ! -d /tmp/otis ] ; then
+  mkdir -p /tmp/otis
+fi
+cd /tmp/otis
+rm *
+
+tag=$1
+
+while [ $tag -le $2 ] 
+do
+
+  rm *
+
+  if [ ! -f $OTISGRIB/otis.${tag}.grib ] ; then
+    if [ -f $OTISIN/$tag.tar ] ; then
+      tar xvf $OTISIN/$tag.tar > /dev/null
+      rm TEMP*
+      cat ???X*GRB > $OTISGRIB/otis.${tag}.grib
+     else 
+     if [ -f $OTISIN/otis.${tag}.grib ] ; then
+      cp $OTISIN/otis.${tag}.grib $OTISGRIB/otis.${tag}.grib
+     fi
+    fi
+  fi
+
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+
+done

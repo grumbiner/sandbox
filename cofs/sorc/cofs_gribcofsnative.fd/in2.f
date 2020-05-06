@@ -1,0 +1,52 @@
+C
+      SUBROUTINE IN2(LUN,ES,TS,SS,UAS,VAS,US,VS,IM,JM,KB,IFT,IAVG,NC,
+     &               MEND)
+C     ===========================================
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    IN2
+C   PRGMMR: RIVIN            ORG: W/NMC21    DATE: 00-11-01
+C
+C ABSTRACT:
+C
+C PROGRAM HISTORY LOG:
+C
+C USAGE:    CALL IN2(LUN,ES,TS,SS,UAS,VAS,US,VS,IM,JM,KB,IFT,IAVG,NC,
+C                    MEND)
+C
+C   INPUT ARGUMENT LIST:
+C     FT22F001 - yymmddhh.grd
+C
+C   OUTPUT ARGUMENT LIST:
+C
+C   SUBPROGRAMS CALLED
+C     UNIQUE:
+C      GETLBL
+C
+C ATTRIBUTES:
+C   LANGUAGE: IBM 370 VS FORTRAN
+C   MACHINE:  NAS, CRAY C-90, IBM SP
+C
+C$$$
+C
+C
+      DIMENSION ES(IM,JM),TS(IM,JM,KB),SS(IM,JM,KB),UAS(IM,JM),
+     &          VAS(IM,JM),
+     &          US(IM,JM,KB),VS(IM,JM,KB)
+
+      LOGICAL MEND
+      CALL GETLBL(LUN,IHHREF,IDDREF,IMMREF,IYYREF,IFT,IDGRD,IMI,JMI,
+     &            KB,MEND)
+      IF (MEND) RETURN
+      IF ((IMI.NE.IM).OR.(JMI.NE.JM)) STOP 'WRONG ARRAY DIMENSIONING'
+      READ (LUN,END=500) ES,TS,SS,UAS,VAS,US,VS
+      READ (LUN,END=500) IAVG,NC               
+      WRITE (*,*) 'IAVG=',IAVG,' NC=',NC
+      MEND=.FALSE.
+      RETURN
+  500 MEND=.TRUE.
+      RETURN
+      END
+      
+ 

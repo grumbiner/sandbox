@@ -1,0 +1,14 @@
+#! /bin/csh -x
+#
+# Script Name: cfscon
+#
+# Purpose: Convert postscript files to gif format
+#
+# 12/12/96 JK  Created for cofs-related obs cofs3.1 output
+#
+# Note:  Script executed remotely via remsh to polar via rsh to hp20
+# ------------------------------------------------------------------------------
+#  Interpolated NESDIS 14km MCSST analysis
+/usr/local/bin/netpbm/pstogif /data/WWW/develop/cfs/cofs-14kmcsst-anly.ps -page letter -rotate -90
+#
+# 

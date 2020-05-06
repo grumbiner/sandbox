@@ -1,0 +1,43 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Author" content="Robert Grumbine">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (X11; U; Linux 2.0.34 i686) [Netscape]">
+   <TITLE>OMB COFS Output Description</TITLE>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#FF0000" alink="#000088">
+
+<center><b>Description of COFS&nbsp;Output</b></center>
+
+<p>The majority of COFS output fields are packed in the WMO standard GRIdded
+Binary (GRIB) format or in ASCII files. Brief descriptions of the different
+types of GRIB and ASCII files are given below. For information on reading
+GRIB files, please see <a href="/gribinfo.html">click here.</a><b><i></i></b>
+<p><b><i>.igb</i> file</b>: This GRIB file contains nowcasts or the 24-h
+forecasts valid at 0000 UTC (8 P.M. EDT or 7 P.M. EST) on the native COFS
+grid.
+<p><b>.<i>sgb</i> file</b>: This GRIB file contains 1-h nowcasts or forecasts
+of water levels and 1m currents on the native COFS grid for the 24-h length
+of the nowcast/data assimilation or forecast cycle.
+<p><b><i>.agb </i>file</b>: This GRIB file contains 24-h average and surface
+fields of daily extremes on the native COFS grid for both the nowcasts
+or forecasts.
+<p><b><i>.stdigb </i>file</b>: This GRIB file contains 24-h forecasts valid
+at 0000 UTC on a standard lat/lon grid. The grid characteristics are the
+following: dimensions are 332 x 210 with a horizontal resolution of 0.1
+degrees with the lower left corner at 83.05 degrees W longitude and 26.35
+degrees N latitude. Variables which have been interpolated to the standard
+grid are water level and temperature, salinity and currents at 31 Z-levels.
+<p><b><i>.el, .tnc, .tmd, .tms </i>and <i>.tnu </i>files</b>: These files
+contain hourly nowcasts or forecasts of water levels or SSTs at COFS grid
+points closest to observing stations. The hourly elevation values for all
+stations along the coast are contained in the .el files while the SST values
+are separated into four files by geographic areas (ie. tmd = Middle Atlantic
+area).
+<p>
+<hr WIDTH="100%">
+<br><a href="/Welcome.html">Return to COFS Main Page</a>
+<br>Last Modified March 27, 2001
+</body>
+</html>

@@ -1,0 +1,17 @@
+set -x
+cd $HOME2/for.cofs
+
+#cp $HOME41/cfs.data/* .
+cp $HOME41/cpp/qc3  .
+
+base=9711
+for dy in 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30
+do
+
+  dm1=`expr ${base}$dy - 1`
+  dm1=`dtgfix3 $dm1`
+  cp $HOME2/for.cofs/long.$dm1 qc.$dm1
+  time ./qc3 qc.$dm1 long.$dm1 short.$dm1 tsout.${base}$dy \
+                   long.${base}$dy short.${base}$dy 
+  mv *.${base}${dy}.asc /eldisk0/wd21rg/cofs
+done

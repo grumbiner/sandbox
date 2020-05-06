@@ -1,0 +1,44 @@
+#!/bin/ksh
+#set -x
+
+COFSOUT=/dm/wd21rg/otis.cofs.ztest/
+OTISIN=/dm/wd21rg/otis.grib/
+export COFSOUT OTISIN
+if [ ! -d $COFSOUT ] ; then
+  mkdir -p $COFSOUT
+fi
+
+EXDIR=$HOME41/cpp
+DATADIR=$HOME41/cfs.data
+export EXDIR DATADIR
+
+#tag=`date +"%y%m%d"`
+tag=$1
+echo $tag
+base=`echo $tag | cut -c1-4`
+dy=`echo $tag | cut -c5-6`
+
+if [ ! -d /tmp/otistest ] ; then
+  mkdir -p /tmp/otistest
+fi
+cd /tmp/otistest
+rm *
+
+cp $EXDIR/htest2 .
+cp $DATADIR/* .
+
+#set -x
+
+x=1
+for level in 1 
+do
+  
+    if [ $x -eq 1 ] ; then
+      ./htest2 tmp.$level tmp $level
+     else
+      echo Should have found 1 field for level $level Temperatures, found $x
+      echo cannot retrieve this for later use.  Create a dummy level.
+    fi
+  
+done
+
