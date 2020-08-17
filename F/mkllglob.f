@@ -33,8 +33,8 @@ C
 C  REMARKS:
 C
 C ATTRIBUTES:
-C   LANGUAGE: CRAY FORTRAN
-C   MACHINE: CRAY4
+C   LANGUAGE: Fortran 77
+C   MACHINE: ANY
 C
 C$$$
 C     Engrib character maps already on lat-long grids.  
@@ -47,15 +47,12 @@ C     Includes for bacio
       INTEGER nactual, fdes, start, newpos, bacio
       CHARACTER*7 fname
 
+      INCLUDE "icegrid.inc"
+
       INTEGER nx, ny
-      REAL dxlat, dylat
-      PARAMETER (dxlat = 0.5)
-      PARAMETER (dylat = 0.5)
       PARAMETER (nx = 360 / dxlat)
       PARAMETER (ny = 180 / dylat)
 
-      INTEGER gridno
-      PARAMETER (gridno = 235) !NCEP grid number of this grid
       REAL outmap(nx, ny)
       LOGICAL lbm(nx, ny)
 
@@ -79,13 +76,13 @@ C     Definitions for the WMO section
       PARAMETER (linelen = wmolen/byteint)
       PARAMETER (nlines  = (griblen + 80 + 21) / wmolen + 2)
       INTEGER lwork(linelen, nlines)
+      INTEGER MOVA2I
 
 
 C     Local Utility variables      
       INTEGER i, j, cen, yy, mm, dd
       CHARACTER*8 tag
 
-COLD      READ (11) cmap
       WRITE (fname,9009)
  9009 FORMAT ("fort.11")
       newpos = 0
@@ -108,7 +105,7 @@ COLD      READ (11) cmap
 
       DO 1000 j = 1, ny
         DO 1100 i = 1, nx
-          outmap(i,j) = FLOAT(ICHAR(cmap(i,j))) / 100.
+          outmap(i,j) = FLOAT(MOVA2I(cmap(i,j))) / 100.
  1100   CONTINUE
  1000 CONTINUE
 
@@ -126,12 +123,12 @@ C     Last argument is power in multiplying (data)*10**x prior to gribbing.
         ierr = bacio(BAOPEN_WONLY + BAWRITE + BACLOSE, start, newpos,
      1                SIZEOF_CHARACTER, lgrib, nactual, fdes, fname,
      2                grib)
-COLD        CALL WRYTE(51, lgrib, grib)
-CTEST        PRINT *,'Calling wmoout, linelen, nlines, byteint, lgrib = ',
-CTEST     1                           linelen, nlines, byteint, lgrib
-        OPEN(wmounit, ACCESS='DIRECT',RECL=wmolen)
-        CALL wmoout(BULHEAD, KW, yy, mm, dd, 0, lwork, linelen, nlines,
-     1                 grib, lgrib, wmounit)
+
+        IF (WMO) THEN
+          OPEN(wmounit, ACCESS='DIRECT',RECL=wmolen)
+          CALL wmoout(BULHEAD, KW, yy, mm, dd, 0, lwork, linelen, 
+     1                   nlines, grib, lgrib, wmounit)
+        ENDIF
        ELSE
         PRINT *,'Error ',ierr,' constructing grib message in mkllglob'
       ENDIF

@@ -1,0 +1,33 @@
+/* 8 Jun 2001 */
+Don, here's the NT2 code and all the other files needed
+
+Thorsten
+------------------------------
+I attach the C-file together with the atmospheric data tables.
+
+So you should receive a total of 10 files:
+nt2.c
+7 files *.tab
+2 landmask files (I know you don't need them, they simply have
+    the name as used in the program)
+
+The c-code is written to read the NSIDC CD-data, i.e full hemisphere
+with the 294 byte hdf-header (I know that is not the way hdf data are
+supposed to be read). Althgough it should be rather simple to change it
+for different data formats. Basically, all that has to be changed would
+be the xsize and ysize in the beginning of the main-routine, and the
+subroutines get_tbs and get_msk.
+
+To compile it type
+cc nt2.c -n32  -lm -o nt2.out
+
+and then something like
+nt2.out 990307 n
+
+where here 990307 is the cddate and n the hemisphere.
+The output is, in this case:
+
+n990307.nt2 which is a short integer array (just intarr for IDL)
+
+Please note that in the subroutine get_tbs no paths are set, so the
+program assumes that the CD data are your hard drive.
