@@ -1,0 +1,5 @@
+echo Change path for new system
+sleep 5
+caredit *.oin
+make bathyread
+./bathyread

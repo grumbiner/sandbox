@@ -1,0 +1,26 @@
+      INTEGER L, M, LM, MM, LP, MP, LMDP, LDO, LM2, MM2 
+      PARAMETER (L = 74)
+      PARAMETER (M = 14)
+      PARAMETER (LM = L-1)
+      PARAMETER (MM = M-1)
+      PARAMETER (LP = L+1)
+      PARAMETER (MP = M+1)
+      PARAMETER (LMDP = LP*MP)
+      PARAMETER (MM2  = M-2  )
+      PARAMETER (LM2  = L-2  )
+      PARAMETER (LDO  = 16*(L+M) )
+      REAL LATMIN, DLAT, DLON, DXDEG, DX, DY, DT
+      INTEGER PTYPE
+      REAL POLEI, POLEJ
+      PARAMETER (LATMIN = -81.25)
+      PARAMETER (DLAT   =   2.5 )
+      PARAMETER (DLON   =   5.0 )
+      PARAMETER (PTYPE  = 2     )
+      PARAMETER (POLEI  = 28.   )
+      PARAMETER (POLEJ  = 26.   )
+      PARAMETER (DXDEG  = 111.1E+3)
+      PARAMETER (DX     = DXDEG*DLON )
+      PARAMETER (DY     = DXDEG*DLAT )
+      PARAMETER (DT     = 4.32E4  )
+      INTEGER NLEVEL
+      PARAMETER (NLEVEL = 7)

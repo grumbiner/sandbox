@@ -1,0 +1,90 @@
+#QSUB -lT 75
+#QSUB -lM  1Mw
+#QSUB -me
+
+#BASE=$HOME3
+BASE=/data/forecasts/ice.model/cray3
+RHOME=$BASE/icemodel
+IHOME=$BASE/icemodel/mpi.source
+DHOME=$BASE/data
+OHOME=$BASE/others
+PHOME=$BASE/library
+FORO=$BASE/icefore
+
+export RHOME IHOME DHOME FORO PHOME OHOME pole 
+
+set -x
+cd ${RHOME}/bc
+
+make clobber
+
+FC='cf77 -c '
+LD='segldr '
+FC='f77 -c '
+LD=f77
+export FC LD
+
+#-------------Should be no changes needed below here --------------
+
+
+chmod 644 ${IHOME}/icegrid.inc
+cp ${IHOME}/icegrid.$pole ${IHOME}/icegrid.inc
+chmod 644 ${IHOME}/icegrid.inc
+
+#Make the bathymetry file
+cp $DHOME/bathy.lin bathy.bin
+make -i bathy
+#assign -a bathy.$pole fort.12
+./bathy
+cp bathy.out bathy.$pole
+rm bathy
+
+# Create the mask file
+touch maskin
+#  '3' selects that we're working with the zmask 1x1 file.
+echo "3" > maskin
+echo ${DHOME}/zmask.reform >> maskin
+if [ -f maskfull ] ; then
+  rm maskfull maskout
+fi
+make -i masker
+cp bathy.$pole bathy
+time masker < maskin > maskrun
+
+
+if [ $? -ne 0 ] ; then
+  exit -1
+fi
+mv maskfull ${FORO}/mask.$pole
+rm masker
+
+
+
+# Create the file listing latitudes and longitudes on the ice grid.
+make -i listpts
+listpts > ${FORO}/list.$pole
+mv latlongpts ${FORO}/latlong.$pole
+rm listpts
+
+# Create the ocean t, s files
+cp maskout MASK
+for fn in outliers tsdeep tsshal SALTOUT TEMPOUT
+do
+  if [ -f $fn ] ; then
+    rm $fn
+  fi
+done
+
+make -i ocean
+time ocean < ${pole}.oin > oceanout
+
+cp MASK tsdeep tsshal bathy.$pole ${RHOME}/running/$pole
+mv MASK tsdeep tsshal oceanout outliers bathy.$pole $pole
+rm ocean
+
+if [ -f SALTOUT ] ; then
+  rm SALTOUT TEMPOUT
+fi
+
+chmod 644 ${FORO}/mask* ${FORO}/latlong* ${FORO}/list*
+

@@ -1,0 +1,24 @@
+#Makefile For creating boundary conditions for the sea ice model
+#Robert Grumbine
+#Last Modified 21 December 1995
+
+OHOME=~rmg3/others
+LIBDIR=~rmg3/library
+RHOME=~rmg3/icemodel
+
+OTHDIR=$OHOME
+LIBDIR=$PHOME
+SDIR=$RHOME
+
+export OTHDIR LIBDIR SDIR OHOME LIBDIR RHOME
+
+for pole in north south
+do
+  if [ -f ../mpi.source/icegrid.inc ] ; then
+    chmod u+w ../mpi.source/icegrid.inc 
+    rm ../mpi.source/icegrid.inc
+  fi
+  cp ../mpi.source/icegrid.$pole ../mpi.source/icegrid.inc
+
+  make -i
+done  

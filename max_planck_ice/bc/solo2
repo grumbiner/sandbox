@@ -1,0 +1,38 @@
+#!/bin/ksh
+#Makefile For creating boundary conditions for the sea ice model
+#Robert Grumbine
+#Last Modified 21 December 1995
+
+if [ -f /etc/linux ] ; then
+  OTHDIR=/home/wd21rg/archive/lib
+  LIBDIR=/home/wd21rg/archive/lib
+  SDIR=/home/wd21rg/archive/icemodel/
+  FFC='f77 -c -O2'
+  FLD='f77'
+else
+  OTHDIR=/u/wx21rg/nfsuser/lib
+  LIBDIR=$OTHDIR
+  SDIR=/u/wx21rg/nfsuser/icemodel
+  FFC='xlf -c -O2'
+  FLD='xlf'
+fi
+
+OHOME=$OTHDIR
+RHOME=$SDIR
+
+#Should need no changes below here --------------------------
+export OTHDIR LIBDIR SDIR OHOME RHOME FFC FLD
+
+for pole in north south ak
+do
+  make clean
+  if [ -f ../mpi.source/icegrid.inc ] ; then
+    chmod u+w ../mpi.source/icegrid.inc 
+    rm ../mpi.source/icegrid.inc
+  fi
+  cp ../mpi.source/icegrid.$pole ../mpi.source/icegrid.inc
+  chmod u+w ../mpi.source/icegrid.inc
+
+  make -i 
+
+done

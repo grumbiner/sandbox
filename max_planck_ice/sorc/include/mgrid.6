@@ -1,0 +1,9 @@
+C     Meteorological model dependent variables
+      REAL dlatm, dlonm, dtm
+      INTEGER nwave, mwave, kdim
+      PARAMETER (dlatm  = 1.0     )
+      PARAMETER (dlonm  = 1.0     )
+      PARAMETER (dtm    = 6.*3600.)
+      PARAMETER (nwave  = 170      )
+      PARAMETER (mwave  = (nwave+1)*(nwave+2))
+      PARAMETER (kdim   = 28       )

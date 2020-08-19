@@ -1,0 +1,16 @@
+#@$-r  case11_102
+#@$-lt 200
+#@$-lm 10mw
+#@$-s  /bin/csh
+#@$
+#
+cd ~posefnoc/gs
+set echo
+#cp ~cheng/ocean45/file1.f    /scr/posey 
+#cp /u/a/posefnoc/pips2_4c.f         /scr/posey
+#cp ~cheng/pips2/trans_1.f     /scr/posey
+foreach file (*.f)
+set filel = $file:r.L
+cf77  -Zv  -Wd"-l $filel -q t"  -Wf"-a stack -o zeroinc -d p -e z -m 4"  $file  -o $file:r.out
+end
+exit

@@ -1,0 +1,13 @@
+-119.5597          Longitude of lower left corner
+ 60.3392           Longitude of upper right corner
+25.0095            Latitude of lower left corner
+24.0292            Latitude of upper right corner
+ 1                 Projection type
+90.                Reference lat
+-80.               Reference longitude
+del22
+1                  Assign -s unblocked? (0 = no, 1 = yes)
+1                  Number of frames
+6.25               Contour increment
+-25.0              Minimum
+ 50.0              Maximum

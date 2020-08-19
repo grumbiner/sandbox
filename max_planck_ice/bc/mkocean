@@ -1,0 +1,6 @@
+OTHDIR=$HOME/cray3/others
+export OTHDIR
+f77 tsmaker.o levitus.o layers.o adj6.o regrid.o arcdis.o \
+      mapxy.o tsexam.o tfreez.o  \
+     $OTHDIR/others.lib -o ocean
+

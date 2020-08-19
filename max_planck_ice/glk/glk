@@ -1,0 +1,21 @@
+#!/bin/bash
+FC='f77 -c -O2 '
+LD='f77 -lm'
+#IHOME=/ptmpa/ptmp1/wd21rg/icemodel/mpi.source
+#IHOME=/wd2/wd21/wd21rg/icemodel/mpi.source
+IHOME=/data/forecasts/ice.model/crays/icemodel/mpi.source
+SDIR=$IHOME
+export FC LD IHOME SDIR 
+
+cd $SDIR
+for pole in glk
+do
+  export pole
+  if [ -f icegrid.inc ] ; then 
+    chmod 644 icegrid.inc
+    rm icegrid.inc
+  fi
+  make -i
+  mv stossel /data/forecasts/ice.model/crays/execs/stossel.$pole
+  make clean
+done
