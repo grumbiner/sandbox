@@ -6,39 +6,52 @@ import numpy as np
 #   purposes, but in truth, it could be anything. 
 # exponential(delta) is fine (and will give very strange results in the 
 #   evolution -- try it)
-#RMS:
-def score(delta, start, end, tolerance = 0):
-    return score_rms(delta, start, end, tolerance)
+#Interface to various scoring methods:
+def score(obs, pred, delta, start, end, tolerance = 0):
+    #return score_loss(obs, pred, delta, start, end, tolerance)
+    return score_mae(delta, start, end, 3.0)
 
 #RMS -- default score
 def score_rms(delta, start, end, tolerance = 0):
     tmp = delta[start:end]
     tmp *= tmp
-    return sqrt(sum(tmp)/(end-start+1))
+    return sqrt(sum(tmp)/(end-start))
 
 #Mean
 def score_mean(delta, start, end, tolerance = 0):
     tmp = delta[start:end]
-    return abs(sum(tmp)/(end-start+1))
+    return abs(sum(tmp)/(end-start))
 
 #Mean absolute error
 def score_mae(delta, start, end, tolerance = 0):
     tmp = abs(delta[start:end])
-    return (sum(tmp)/(end-start+1))
+    count = len(tmp)
+    if (tolerance != 0.0):
+      count = 0
+      for k in range(0, end-start):
+        if (tmp[k] < tolerance):
+          tmp[k] = 0.0
+        else:
+          count += 1
+    return (sum(tmp)/count)
 
 #Mean3
 def score_mean3(delta, start, end, tolerance = 0):
     tmp = delta[start:end]
-    return pow(abs(sum(tmp*tmp*tmp)/(end-start+1)),1./3.)
+    return pow(abs(sum(tmp*tmp*tmp)/(end-start)),1./3.)
 
 #Mean4
 def score_mean4(delta, start, end, tolerance = 0):
     tmp = delta[start:end]
-    return pow(abs(sum(tmp*tmp*tmp*tmp)/(end-start+1)),1./4.)
+    return pow(abs(sum(tmp*tmp*tmp*tmp)/(end-start)),1./4.)
 
-#def score_nwins()
-#    tmp = delta[start:end]
-#    return abs(sum(tmp)/(end-start+1))
+#Number of losses -- fewer is better
+def score_loss(obs, pred, delta, start, end, tolerance):
+    count = 0
+    for k in range (start, end):
+       if (abs(delta[k]) > abs(obs[k]) ):
+         count += 1
+    return count
     
 
 #make a prediction from variables in the matchup x, using constants in the list y
@@ -126,7 +139,7 @@ class critter:
            pred[k-start] = predict1(matchups[k],self.weights)
    
         deltas = obs-pred
-        self.score = score(deltas, 0, ndelta)
+        self.score = score(obs, pred, deltas, 0, ndelta)
         return(self.score)
 
     #Show the parameters and the prediction:

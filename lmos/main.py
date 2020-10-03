@@ -11,7 +11,7 @@ nparameters = 6
 
 npopulation = 10
 #genmax = int(10*4500) #running ~ 60 seconds for 4500 generations.
-genmax = int(2*4500) #running ~ 60 seconds for 4500 generations.
+genmax = int(30*4500) #running ~ 60 seconds for 4500 generations.
 
 train_start = int(0)
 train_end   = int(364)
@@ -142,19 +142,24 @@ for gen in range(0,genmax):
             bests[nbests].init(population[kbest].weights, population[kbest].sdevs)
             nbests += 1
     if (kbest != 0):
-        print("new best ",gen, kbest, smin, score_best, smin/score_gfs, flush=True)
+        if (score_gfs != 0):
+          print("new best ",gen, kbest, smin, score_best, smin/score_gfs, flush=True)
+        else:
+          print("new best ",gen, kbest, smin, score_best, flush=True)
         population[kbest].show()
         
 
 ######################## ######################## ########################
-print("best score in training period: ",score_best,score_best/score_gfs,"\n")
+if (score_gfs != 0):
+  print("best score in training period ",gen, kbest, smin, score_best, smin/score_gfs, flush=True)
+else:
+  print("best score in training period ",gen, kbest, smin, score_best, flush=True)
 print("score in the untrained period: ",population[kbest].skill(matchup_set, train_end+1, nobs))
 
 print("found ",nbests,"new bests along the way\n")
 for k in range (0, nbests):
   bests[k].show()
   print("\n")
-
 
 
 print("Forecasts in the training period:")
