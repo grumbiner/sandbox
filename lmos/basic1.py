@@ -10,13 +10,14 @@ nparameters = 6
 #nparameters = 12
 
 npopulation = 10
-genmax = int(20*4200) #running ~ 60 seconds for 4200 generations.
+#genmax = int(10*4500) #running ~ 60 seconds for 4500 generations.
+genmax = int(30*4500) #running ~ 60 seconds for 4500 generations.
 
 train_start = int(0)
 train_end   = int(364)
 np.random.seed(0)    # for reproducibility
 
-from evolution2 import *
+from evolution1 import *
 
 ######################## ######################## ########################
 # Now bring in the data for real work:
@@ -72,11 +73,8 @@ print("uncorrected score in evaluation period: ",
          population[0].skill(matchup_set, train_end+1, nobs), flush=True )
 population[0].show_fcst(matchup_set, train_start, train_end)
 
-#print(scoreall(obs, pred, delta, start, end, 0.))
-
-#population[0].weights[0] = -2.0
-#population[0].show_fcst(matchup_set, train_start, train_end)
-
+population[0].weights[0] = -2.0
+population[0].show_fcst(matchup_set, train_start, train_end)
 population[0].weights[0] = 0.0
 
 print("\n",flush=True)
