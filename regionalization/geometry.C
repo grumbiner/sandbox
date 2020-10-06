@@ -329,7 +329,7 @@ void boundaryFill(const int x, const int y, const unsigned char fill,
     return;
   }
  
-  if ( (field[x+y* field.xpoints()] == undef) ) {
+  if (field[x+y* field.xpoints()] == undef) {
     field[x+y* field.xpoints()] = fill;
     boundaryFill(x+1, y, fill, boundary, undef, field);
     boundaryFill(x, y+1, fill, boundary, undef, field);

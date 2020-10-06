@@ -2,8 +2,9 @@ from math import *
 import numpy as np
 
 ######################################################################
-from scores import *
+import sys
 
+from scores import *
 
 ######################################################################
 #make a prediction from variables in the matchup x, using constants in the list y
@@ -34,9 +35,9 @@ class matchup:
         self.length = len(values)
     
     #display element by element the values of the matchup
-    def show(self):
+    def show(self, fout = sys.stdout):
         for k in range(0,self.length):
-            print(k,self.values[k])
+            print(k,self.values[k], file = fout)
     
     #extract the k-th parameter from the values tuple
     def __getitem__(self,k):
@@ -64,11 +65,13 @@ class critter:
         #self.show()
 
     #display element by element the weights and sdevs
-    def show(self):
+    def show(self, fout = sys.stdout):
         n =  self.length
+        print("score ","{:.3f}".format(self.score), " ", file = fout, end='')
         for k in range(0,n):
-        #for k in range(0,1):
-            print(k,self.weights[k], self.sdevs[k])
+            print("{:.3f}".format(self.weights[k]), " " 
+                  "{:.3f}".format(self.sdevs[k]),   " ", file = fout, end='')
+        print(flush = True, file = fout)
             
     #Function to evolve the next generations -- mutation only in this one
     def evolve(self):

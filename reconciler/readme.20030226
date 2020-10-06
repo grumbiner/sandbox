@@ -1,0 +1,7 @@
+First step: build regfill and run to produce initial mask file
+  g++ regfill.C -Wall -DLINUX -DFAMILY=llgrid -DTARGET=global_15th -I shorelines/ -DFLIP -O2; rm nohup.out
+nohup time ./a.out shorelines/gshhs_f.b fout a.xpm &
+
+Second: 
+  Make bathy
+nohup time ./bathy hi etopo2/etopo2.raw outm120 outm120.xpm -120. 0 > trym120 &

@@ -1,0 +1,101 @@
+ &buoyboxes
+
+   boxminlat(1) =  30.0,boxmaxlat(1) =  90.0,
+   boxminlon(1) =-180.0,boxmaxlon(1) = 180.0,
+
+   boxminlat(2) = -30.0,boxmaxlat(2) =  30.0,
+   boxminlon(2) =-180.0,boxmaxlon(2) = 180.0,
+
+   boxminlat(3) = -90.0,boxmaxlat(3) = -30.0,
+   boxminlon(3) =-180.0,boxmaxlon(3) = 180.0,
+
+   boxminlat(4) =  30.0,boxmaxlat(4) =  90.0,
+   boxminlon(4) =   0.0,boxmaxlon(4) =  90.0,
+
+   boxminlat(5) =  30.0,boxmaxlat(5) =  90.0,
+   boxminlon(5) =  90.0,boxmaxlon(5) = 180.0,
+
+   boxminlat(6) =  30.0,boxmaxlat(6) =  90.0,
+   boxminlon(6) =-180.0,boxmaxlon(6) = -95.0,
+
+   boxminlat(7) =  30.0,boxmaxlat(7) =  90.0,
+   boxminlon(7) = -95.0,boxmaxlon(7) =   0.0,
+
+   boxminlat(8) =   0.0,boxmaxlat(8) =  30.0,
+   boxminlon(8) =  20.0,boxmaxlon(8) = 120.0,
+
+   boxminlat(9) =   0.0,boxmaxlat(9) =  30.0,
+   boxminlon(9) = 120.0,boxmaxlon(9) = 180.0,
+
+   boxminlat(10)=   0.0,boxmaxlat(10)=  30.0,
+   boxminlon(10)=-180.0,boxmaxlon(10)=-120.0,
+
+   boxminlat(11)=   0.0,boxmaxlat(11)=  30.0,
+   boxminlon(11)=-120.0,boxmaxlon(11)= -60.0,
+
+   boxminlat(12)=   0.0,boxmaxlat(12)=  30.0,
+   boxminlon(12)= -60.0,boxmaxlon(12)=  20.0,
+
+   boxminlat(13)= -30.0,boxmaxlat(13)=   0.0,
+   boxminlon(13)=  20.0,boxmaxlon(13)= 120.0,
+
+   boxminlat(14)= -30.0,boxmaxlat(14)=   0.0,
+   boxminlon(14)= 120.0,boxmaxlon(14)= 180.0,
+
+   boxminlat(15)= -30.0,boxmaxlat(15)=   0.0,
+   boxminlon(15)=-180.0,boxmaxlon(15)=-120.0,
+
+   boxminlat(16)= -30.0,boxmaxlat(16)=   0.0,
+   boxminlon(16)=-120.0,boxmaxlon(16)= -60.0,
+
+   boxminlat(17)= -30.0,boxmaxlat(17)=   0.0,
+   boxminlon(17)= -60.0,boxmaxlon(17)=  20.0,
+
+   boxminlat(18)= -90.0,boxmaxlat(18)= -30.0,
+   boxminlon(18)=   0.0,boxmaxlon(18)=  60.0,
+
+   boxminlat(19)= -90.0,boxmaxlat(19)= -30.0,
+   boxminlon(19)=  60.0,boxmaxlon(19)= 120.0,
+
+   boxminlat(20)= -90.0,boxmaxlat(20)= -30.0,
+   boxminlon(20)= 120.0,boxmaxlon(20)= 180.0,
+
+   boxminlat(21)= -90.0,boxmaxlat(21)= -30.0,
+   boxminlon(21)=-180.0,boxmaxlon(21)=-120.0,
+
+   boxminlat(22)= -90.0,boxmaxlat(22)= -30.0,
+   boxminlon(22)=-120.0,boxmaxlon(22)= -60.0,
+
+   boxminlat(23)= -90.0,boxmaxlat(23)= -30.0,
+   boxminlon(23)= -60.0,boxmaxlon(23)=   0.0,
+
+   boxminlat(24)=  30.0,boxmaxlat(24)=  45.0,
+   boxminlon(24)= 105.0,boxmaxlon(24)= 160.0,
+
+   boxminlat(25)=  30.0,boxmaxlat(25)=  45.0,
+   boxminlon(25)= 160.0,boxmaxlon(25)=-160.0,
+
+   boxminlat(26)=  30.0,boxmaxlat(26)=  45.0,
+   boxminlon(26)=-160.0,boxmaxlon(26)=-100.0,
+
+   boxminlat(27)=  30.0,boxmaxlat(27)=  45.0,
+   boxminlon(27)= -80.0,boxmaxlon(27)= -40.0,
+
+   boxminlat(28)=  15.0,boxmaxlat(28)=  30.0,
+   boxminlon(28)= 105.0,boxmaxlon(28)= 160.0,
+
+   boxminlat(29)=  15.0,boxmaxlat(29)=  30.0,
+   boxminlon(29)= 160.0,boxmaxlon(29)=-160.0,
+
+   boxminlat(30)=  15.0,boxmaxlat(30)=  30.0,
+   boxminlon(30)=-160.0,boxmaxlon(30)=-100.0,
+
+   boxminlat(31)=  15.0,boxmaxlat(31)=  30.0,
+   boxminlon(31)=-100.0,boxmaxlon(31)= -80.0,
+
+   boxminlat(32)=  15.0,boxmaxlat(32)=  30.0,
+   boxminlon(32)= -80.0,boxmaxlon(32)= -15.0,
+
+   boxminlat(33)= -15.0,boxmaxlat(33)=  15.0,
+   boxminlon(33)=-120.0,boxmaxlon(33)= -75.0 
+ /

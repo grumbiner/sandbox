@@ -1,0 +1,37 @@
+Robert Grumbine 19 August 2003
+
+  The script build_mask.sh will carry out all the makes and executables needed
+to build a mask file in Hycom .a, .b format.  The file paveout contains the
+bathymetry as a C-unformatted floating point array (in fortran order) and the 
+mask as a C-unformatted unsigned character array (in fortran order).
+
+  To run on a grid of your choice, you must re-link your grid.b file to 
+fort.61, and your grid.a to fort.061a.  Once this is done, you should be
+able to execute the programs without difficulty.
+
+  Flag values are:
+ 0  coast (from paving)
+ 1  boundary
+ 3  undefined
+ 5  land
+15  ocean
+16  final_ocean (from paving)
+17  water (non-ocean)
+
+Robert Grumbine 19 August 2003
+
+Notes:
+  The finer the resolution coastline file you use, the longer it takes to
+run the program.
+
+  If the coastline file is too coarse, some of the coastline polygons 
+do not close in grid space and will leak land (or lake) over a large area.
+For the 1/3rd degree hycom grid, 4 km coastline is needed (at 85 North
+1/3rd degree longitude is about 3.2 km).
+
+  For paver: if the grid is specified as degrees east only, then the 
+straits file must also have degrees east.  Ex: The strait of Gibraltar 
+at 5.6 W needs to be listed at 354.4 E if the grid is specified as the 
+standard hycom 1/3rd grid, longitudes from 260-ish to 380-ish east.  
+Same rule for specifying the central ocean point to fill from.
+

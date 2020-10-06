@@ -4,19 +4,21 @@ import csv
 import matplotlib
 import matplotlib.pyplot as plt
 
+from evolution2 import *
+
 # Some global parameters:
 nobs = 579
 nparameters = 6
 #nparameters = 12
 
 npopulation = 10
-genmax = int(20*4200) #running ~ 60 seconds for 4200 generations.
+genmax = int(2*4200) #running ~ 60 seconds for 4200 generations.
 
 train_start = int(0)
 train_end   = int(364)
 np.random.seed(0)    # for reproducibility
 
-from evolution2 import *
+fgood = open("goods","w")
 
 ######################## ######################## ########################
 # Now bring in the data for real work:
@@ -52,15 +54,21 @@ csvfile.close()
 ######################## ######################## ########################
 #Active program -- initialize and seed the population
 population = []
-bests      = []       # Save all then-best versions
 for k in range (0,npopulation):
     population.append(critter(nparameters))
 
+bests      = []       # Save all then-best versions
+goods      = []       # Save everything better than raw gfs
+
 weights = np.zeros((nparameters))
 sdevs   = np.zeros((nparameters))
+
 bests.append(critter(nparameters))
+goods.append(critter(nparameters))
 bests[0].init(weights, sdevs)
+goods[0].init(weights, sdevs)
 nbests = 1
+ngoods = 1
 
 #for reference, take the raw gfs output's score:
 population[0].init(weights, sdevs)
@@ -117,7 +125,6 @@ nbests += 1
 population[kbest].show()
 print("initial kbest, smin = ",kbest, smin, flush=True)
 
-
 ######################## ######################## ########################
 #      Now carry out the (mutation-only) evolution
 #swap best in to all slots
@@ -126,7 +133,6 @@ print("initial kbest, smin = ",kbest, smin, flush=True)
 #repeat until limit of generations or happy
 
 for gen in range(0,genmax):
-    #print("generation ", gen, flush=True)
 
     population[0].copy(population[kbest])
     population[0].score = population[kbest].score
@@ -137,12 +143,22 @@ for gen in range(0,genmax):
         population[k].copy(population[0])
         population[k].evolve()
         population[k].skill(matchup_set, train_start, train_end)
+        #Save all the new best ones:
         if (population[k].score < score_best):
             kbest = k
             smin = population[k].score
             bests.append(critter(nparameters))
             bests[nbests].init(population[kbest].weights, population[kbest].sdevs)
             nbests += 1
+        #Save the ones that are better than the raw gfs
+        if (population[k].score < score_gfs):
+            kgood = k
+            goods.append(critter(nparameters))
+            goods[ngoods].score = population[k].score
+            goods[ngoods].init(population[kgood].weights, population[kgood].sdevs)
+            #goods[ngoods].show(fgood)
+            population[k].show(fgood)
+            ngoods += 1
     if (kbest != 0):
         if (score_gfs != 0):
           print("new best ",gen, kbest, smin, score_best, smin/score_gfs, flush=True)
@@ -158,8 +174,12 @@ else:
   print("best score in training period ",gen, kbest, smin, score_best, flush=True)
 print("score in the untrained period: ",population[kbest].skill(matchup_set, train_end+1, nobs))
 
-print("found ",nbests,"new bests along the way\n")
+print("found ",ngoods," good solutions")
+#for k in range (0, ngoods):
+#  goods[k].show(fgood)
+
 for k in range (0, nbests):
+  print("best k ",k,bests[k].score)
   bests[k].show()
   print("\n")
 
