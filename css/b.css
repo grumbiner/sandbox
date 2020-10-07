@@ -1,0 +1,42 @@
+body {
+	font-family: "times-new-roman";
+	font-size: 14pt;
+	color: #000000;
+	background: #FFFFFF;
+}
+
+a:link    { color: #0000CC; }
+a:visited { color: #0000CC; }
+a:active  { color: #0000CC; }
+a:hover   { color: #FF0000; }
+a {
+	font-style: italic;
+}
+
+table {
+	#font-family: "helvetica";
+	color: #000055;
+	font-size: larger;
+	background: #DDDDFF;
+}
+thead {
+	font-family: "helvetica";
+}
+#table:hover { color: #0000FF; }
+#td:hover {color: #00FF00; }
+
+ul {
+	#font-family: "courier";
+	color: #550000;
+}
+#li:hover {
+#	color: #FF0000;
+#}
+
+.test {
+	#background: #DDDDDD;
+        #font-family: "helvetica";
+        #font-size: 12pt;
+        #text-decoration: bold;
+        color: #00FF00;
+}

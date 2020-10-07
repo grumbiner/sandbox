@@ -1,0 +1,182 @@
+
+body {
+	background: #FFFFFF;
+}
+
+a:link    { color: #0000CC; }
+a:visited { color: #0000CC; }
+a:active  { color: #0000CC; }
+a:hover   { color: #FF0000; }
+
+td.list {
+	font-family: "arial";
+	font-size: 10pt;
+}
+a.list:link    { color: #0000CC; }
+a.list:visited { color: #0000CC; }
+a.list:active  { color: #0000CC; }
+a.list:hover   { color: #FF0000; }
+
+td.headerlabel {
+	font-family: "arial";
+	font-size: 10pt;
+	color: #000000;
+}
+
+td.headernav {
+	font-family: "arial";
+	font-size: 10pt;
+	color: #000000;
+}
+
+a.headernav:link    { color: #0000CC; }
+a.headernav:visited { color: #0000CC; }
+a.headernav:active  { color: #0000CC; }
+a.headernav:hover   { color: #FF0000; }
+
+td.headervalue {
+	font-family: "arial";
+	font-size: 10pt;
+	color: #000000;
+}
+a.headervalue:link    { color: #0000CC; }
+a.headervalue:visited { color: #0000CC; }
+a.headervalue:active  { color: #0000CC; }
+a.headervalue:hover   { color: #FF0000; }
+
+div.composehdr,td.composehdr {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: bold;
+	color: #000000;
+}
+
+td.composetext {
+	font-family: "arial";
+	font-size: 10pt;
+	color: #000000;
+}
+a.composetext:link    { color: #0000CC; }
+a.composetext:visited { color: #0000CC; }
+a.composetext:active  { color: #0000CC; }
+a.composetext:hover   { color: #FF0000; }
+
+div.attachtext {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: normal;
+	color: #000000;
+}
+
+div.prefstext {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: normal;
+	color: #000000;
+}
+
+td.tools {
+	font-family: "arial";
+	font-weight: normal;
+	font-size: 9pt;
+	color: #FFFFFF;
+}
+a.tools:link    { color: #FFFFFF; }
+a.tools:visited { color: #FFFFFF; }
+a.tools:active  { color: #FFFFFF; }
+a.tools:hover   { color: #FF0000; }
+
+div.login {
+	font-family: "arial";
+	font-weight: bold;
+	font-size: 10pt;
+}
+
+a.tab-active {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: bold;
+	text-decoration: none;
+}
+a.tab-active:link    { color: #FFFFFF; }
+a.tab-active:visited { color: #FFFFFF; }
+a.tab-active:active  { color: #FFFFFF; }
+a.tab-active:hover   { color: #FF0000; }
+
+a.tab-inactive {
+	font-family: "arial";
+	font-size: 9pt;
+	font-weight: normal;
+	text-decoration: underline;
+}
+a.tab-inactive:link    { color: #FFFFFF; }
+a.tab-inactive:visited { color: #FFFFFF; }
+a.tab-inactive:active  { color: #FFFFFF; }
+a.tab-inactive:hover   { color: #FF0000; }
+
+td.ea {
+	font-family: "arial";
+	font-size: 10pt;
+}
+a.ea:link    { color: #0000CC; }
+a.ea:visited { color: #0000CC; }
+a.ea:active  { color: #0000CC; }
+a.ea:hover   { color: #FF0000; }
+
+td.eahelp {
+	font-family: "arial";
+	font-size: 9pt;
+}
+
+td.noim {
+	font-family: "arial";
+	font-size: 10pt;
+}
+
+div.welcomemsg {
+	font-family: "arial";
+	font-size: 12pt;
+	font-weight: bold;
+}
+
+div.welcomequota {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: normal;
+}
+
+a.applinks {
+	font-family: "arial";
+	font-size: 9pt;
+}
+
+div.error,td.error {
+	font-family: "arial";
+	font-size: 10pt;
+	font-weight: bold;
+	text-decoration: none;
+	color: #FF0000;
+}
+
+div.success,td.success {
+	font-family: "arial";
+	font-size: 10pt;
+	text-decoration: none;
+	color: #000000;
+}
+
+div.logoutheading {
+	font-family: "arial";
+	font-size: 15pt;
+	text-decoration: bold;
+	color: #003366;
+}
+
+div.logoutmsg {
+	font-family: "arial";
+	font-size: 12pt;
+	text-decoration: bold;
+	color: #003366;
+}
+
+    

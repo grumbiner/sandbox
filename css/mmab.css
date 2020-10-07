@@ -1,0 +1,13 @@
+body {
+	#font-family: "times-new-roman";
+	#font-size: 14pt;
+	color: #000000;
+	background: #FFFFFF;
+}
+
+a:hover   { color: #FF0000; }
+#a:link    { color: #0000CC; }
+#a:visited { color: #0000CC; }
+#a:active  { color: #0000CC; }
+#a { font-style: italic; }
+

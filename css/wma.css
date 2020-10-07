@@ -1,0 +1,77 @@
+/* default style sheet to use in all pages */
+body {
+  color: #000;
+  background: #FFF;
+  font-family: verdana, helvetica, sans-serif;
+  font-size: 83%;
+  text-align: justify;
+  /* text-indent: 5%; */
+}
+
+h1{
+  font-size: 120%;
+/*
+  border-width: thin;
+  padding: 1;
+*/
+  align: center;
+}
+
+h2{
+  font-size: 110%;
+/* - I don't like all these boxes in general
+  padding: 1;
+  padding-left: 10;
+  padding-right: 10;
+  border-width: thin;
+*/
+}
+
+h3{
+  font-size: 100%;
+/*
+  border-width: thin;
+  padding: 1;
+*/
+  align: center;
+}
+
+a:link{ color: #00F}
+
+a[href^="http://"] {
+    background: url(http://upload.wikimedia.org/wikipedia/commons/6/64/Icon_External_Link.png)     center right no-repeat;
+    padding-right: 13px;
+}
+
+a:visited, a:active { color: #009}
+
+/* this shouldn't be necessary, but W3 says netscape needs this */
+td, th {
+  font-size: 83%;
+}
+
+.over-ride {
+  font-family: verdana, helvetica, sans-serif;
+  font-size: 83%;
+  align: center;
+}
+
+/* not debugged */
+table{
+}
+
+/* ditto */
+h4 {
+  font-family: verdana, helvetica, sans-serif;
+  font-size: 90%;
+}
+
+img { /* doesn't seem to work */
+  border-style: none;
+}
+
+.centered {text-align: center;} /* to center anything */
+
+.emph{font-weight: bold;}
+
+.readonly{background: #EEE;}
