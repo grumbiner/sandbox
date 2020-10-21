@@ -1,0 +1,59 @@
+#fix months, days, years here
+yy=$1
+mo=$2
+dy=$3
+
+if [ $dy -lt 10 ] ; then
+  dy=`echo 0$dy`
+fi
+if [ $mo -eq 01 -a $dy -eq 32 ] ; then
+  mo=02
+  dy=01
+fi
+if [ $mo -eq 02 -a $dy -eq 29 ] ; then
+  mo=03
+  dy=01
+fi
+if [ $mo -eq 03 -a $dy -eq 32 ] ; then
+  mo=04
+  dy=01
+fi
+if [ $mo -eq 04 -a $dy -eq 31 ] ; then
+  mo=05
+  dy=01
+fi
+if [ $mo -eq 05 -a $dy -eq 32 ] ; then
+  mo=06
+  dy=01
+fi
+if [ $mo -eq 06 -a $dy -eq 31 ] ; then
+  mo=07
+  dy=01
+fi
+if [ $mo -eq 07 -a $dy -eq 32 ] ; then
+  mo=08
+  dy=01
+fi
+if [ $mo -eq 08 -a $dy -eq 32 ] ; then
+  mo=09 
+  dy=01
+fi
+if [ $mo -eq 09 -a $dy -eq 31 ] ; then
+  mo=10 
+  dy=01
+fi
+if [ $mo -eq 10 -a $dy -eq 32 ] ; then
+  mo=11 
+  dy=01
+fi
+if [ $mo -eq 11 -a $dy -eq 31 ] ; then
+  mo=12 
+  dy=01
+fi
+if [ $mo -eq 12 -a $dy -eq 32 ] ; then
+  mo=01 
+  dy=01
+  yy=`expr $yy + 1`
+fi
+
+echo $yy$mo$dy

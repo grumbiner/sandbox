@@ -1,0 +1,32 @@
+Via E-mail from Achim Stoessel, 1992:
+
+With the corrections in GROWTH, the snow volume becomes somewhat exaggerated,
+indeed, especially during longer integrations. The values you achieved with
+those corrections are o.k. In order to avoid exaggerated snow thicknesses,
+I recently introduced a snow to ice conversion whenever the draft of the ice-
+plus-snow column exceeds the ice thickness. This was specifically introduced
+at the end of GROWTH in the following way:
+
+C-----------------------------------------------------------------------
+C  Determine ice draft and snow to ice conversion
+C-----------------------------------------------------------------------
+      DO 140 J=1,MM
+      DO 140 I=0,L
+       HDRAFT(I,J)=(RHOSNO*HSN(I,J,LNEW)+RHOICE*H(I,J,LNEW))/RHOWAT
+  140 CONTINUE
+      CALL VECMINC(HDRAFT,H(0,0,LNEW),TMP2)
+      CALL VECMAXC(HDRAFT,H(0,0,LNEW),TMP)
+      DO 141 J=1,MM
+      DO 141 I=0,L
+       HSN(I,J,LNEW)=HSN(I,J,LNEW)-(HDRAFT(I,J)-TMP2(I,J))*RHOICE/RHOSNO
+       H(I,J,LNEW)=TMP(I,J)
+  141 CONTINUE
+      RETURN
+      END
+
+When using this extension, be sure to define the dimension for HDRAFT.
+I've used this formulation for my recent experiments with large-scale drag
+coefficients primarily to avoid unreasonable high freeboards. Referring to
+former applications (Leppaeranta, 1983; Stoessel, 1985), the supplement is
+anyhow physically more reasonable, specifically due to the reasons you
+mentioned.

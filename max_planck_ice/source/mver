@@ -1,0 +1,4 @@
+for pole in north south glk
+do
+  mv stossel.$pole ~/execs/stossel.${pole}.12
+done
