@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg 
+  PUBLIC "-//W3C//DTD SVG 20001102//EN"
+  "http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd">
+<BODY>
+<svg xmlns="http://www.w3.org/2000/svg">
+  <desc> Three shapes</desc>
+  <rect fill="green" x="1cm" y="1cm" width="3cm" height="3cm"/>
+  <circle fill="blue"  cx="3cm" cy="2cm" r="4cm"/>
+  <polygon fill="blue" points="110,160 50,300 180,290"/>
+</svg>
+</BODY>

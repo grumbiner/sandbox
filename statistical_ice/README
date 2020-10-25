@@ -1,0 +1,33 @@
+Statistical support routines:
+    4 -rw-r--r--    1 rmg3     ice           913 Jun 10  2002 iagree.o
+    4 -rw-r--r--    1 rmg3     ice           773 Jun 10  2002 sumx.o
+    4 -rw-r--r--    1 rmg3     ice           779 Jun 10  2002 sumx2.o
+    4 -rw-r--r--    1 rmg3     ice          1176 Jun 10  2002 correl.o
+    4 -rw-r--r--    1 rmg3     ice           787 Jun 10  2002 sumxy.o
+
+Land Masks (for comparison to Walsh Climatology)
+  180 -r--r--r--    1 rmg3     ice        179108 Jun 14  2002 nlandncep.grib
+  704 -r--r--r--    1 rmg3     ice        716100 Jun 14  2002 nland
+  124 -r--r--r--    1 rmg3     ice        122558 Jun 14  2002 slandncep.grib
+  484 -r--r--r--    1 rmg3     ice        489900 Jun 14  2002 sland
+
+Climatological annual average:
+  704 -rw-r--r--    1 rmg3     ice        716100 Jun 10  2002 nhyearav.bin
+
+Average of a specific year:
+  704 -rw-r--r--    1 rmg3     ice        716100 Jun 10  2002 nhall.avg2000.bin
+
+Climatological year:
+/usr1/sdb/iceclimate/nhavclimo.bin (float, northgrid)
+
+    8 -r--r--r--    1 rmg3     ice          4169 Jun 10  2002 scorer3.C
+    8 -r--r--r--    1 rmg3     ice          4375 Jun 10  2002 scorer3b.C
+    4 -r-xr-xr-x    1 rmg3     ice          1087 Jun 14  2002 model.sh*
+    4 -r-xr-xr-x    1 rmg3     ice           808 Jun 14  2002 yearsouth.sh*
+    4 -rwxr-xr-x    1 rmg3     ice           212 Jul 11  2002 hist.pl*
+    8 -r--r--r--    1 rmg3     ice          6731 Aug  6  2002 scoremodel.C
+    4 -rwxr-xr-x    1 rmg3     ice           296 Aug 23  2002 sc.pl*
+    8 -r--r--r--    1 rmg3     ice          8168 Aug 23  2002 null.C
+   12 -r--r--r--    1 rmg3     ice          8573 Sep 18  2002 null.del.C
+   12 -r--r--r--    1 rmg3     ice          8257 Sep 20  2002 analog.C
+   12 -r--r--r--    1 rmg3     ice          8596 Sep 20  2002 fcst.analog.C

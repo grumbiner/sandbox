@@ -1,0 +1,24 @@
+#Globe:
+'set lon 30 420'
+#NA-big:
+'set lon 180 360'
+'set lat   0  90'
+#NA-small:
+'set lon 180 310'
+'set lat  20  85'
+#Great Lakes
+'set lat  40  50'
+'set lon 266 285'
+
+
+#Big Trout Et al'
+'set lon 210 310'
+'set lat 30 80'
+
+#Lake Chad - Lake Tana - Red Sea - Persian Gulf
+'set lon 0 65'
+'set lat 0 30'
+
+#Black + Caspian
+'set lon  10 70'
+'set lat  30 50'
