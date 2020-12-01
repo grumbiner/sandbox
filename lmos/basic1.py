@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 # Some global parameters:
 nobs = 579
 nparameters = 6
-#nparameters = 12
 
 npopulation = 10
-#genmax = int(10*4500) #running ~ 60 seconds for 4500 generations.
-genmax = int(30*4500) #running ~ 60 seconds for 4500 generations.
+per_second = 60     # estimate of number of generations per second
+genmax = int(60*per_second)
 
 train_start = int(0)
 train_end   = int(364)
