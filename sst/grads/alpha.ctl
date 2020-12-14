@@ -1,0 +1,88 @@
+DSET dood_harmonics_out
+options yrev
+UNDEF 0
+TITLE harmonics
+TITLE  Shannon Information
+XDEF 1440 LINEAR  0.125 0.25
+YDEF  720 LINEAR -89.875 0.25
+ZDEF  1 LINEAR   1 1
+TDEF  1 LINEAR  21sep00 1dy
+VARS 77
+variance 0 254 255
+ampl1 0 254 255
+phase1 0 254 255
+ampl2 0 254 255
+phase2 0 254 255
+ampl3 0 254 255
+phase3 0 254 255
+ampl4 0 254 255
+phase4 0 254 255
+ampl5 0 254 255
+phase5 0 254 255
+ampl6 0 254 255
+phase6 0 254 255
+ampl7 0 254 255
+phase7 0 254 255
+ampl8 0 254 255
+phase8 0 254 255
+ampl9 0 254 255
+phase9 0 254 255
+ampl10 0 254 255
+phase10 0 254 255
+ampl11 0 254 255
+phase11 0 254 255
+ampl12 0 254 255
+phase12 0 254 255
+ampl13 0 254 255
+phase13 0 254 255
+ampl14 0 254 255
+phase14 0 254 255
+ampl15 0 254 255
+phase15 0 254 255
+ampl16 0 254 255
+phase16 0 254 255
+ampl17 0 254 255
+phase17 0 254 255
+ampl18 0 254 255
+phase18 0 254 255
+ampl19 0 254 255
+phase19 0 254 255
+ampl20 0 254 255
+phase20 0 254 255
+ampl21 0 254 255
+phase21 0 254 255
+ampl22 0 254 255
+phase22 0 254 255
+ampl23 0 254 255
+phase23 0 254 255
+ampl24 0 254 255
+phase24 0 254 255
+ampl25 0 254 255
+phase25 0 254 255
+ampl26 0 254 255
+phase26 0 254 255
+ampl27 0 254 255
+phase27 0 254 255
+ampl28 0 254 255
+phase28 0 254 255
+ampl29 0 254 255
+phase29 0 254 255
+ampl30 0 254 255
+phase30 0 254 255
+ampl31 0 254 255
+phase31 0 254 255
+ampl32 0 254 255
+phase32 0 254 255
+ampl33 0 254 255
+phase33 0 254 255
+ampl34 0 254 255
+phase34 0 254 255
+ampl35 0 254 255
+phase35 0 254 255
+ampl36 0 254 255
+phase36 0 254 255
+ampl37 0 254 255
+phase37 0 254 255
+ampl38 0 254 255
+phase38 0 254 255
+ENDVARS
