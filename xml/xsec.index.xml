@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<index><title>Cross Section View Product Index</title><topic>cross-section salinity, temperature, velocity, height, elevation, sea, sea surface</topic><status>Developmental</status><contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact><parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>26 N</name><full>salinity_x26N.html</full><graphic>salinity_x26N.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>69 W</name><full>salinity_x69W.html</full><graphic>salinity_x69W.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>salinity_xEEq.html</full><graphic>salinity_xEEq.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Equatorial</name><full>salinity_xEquator.html</full><graphic>salinity_xEquator.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 20</name><full>salinity_xGFO20.html</full><graphic>salinity_xGFO20.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>salinity_xGFO25.html</full><graphic>salinity_xGFO25.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>salinity_xMia-Bda.html</full><graphic>salinity_xMia-Bda.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>salinity_xNYC-Bda.html</full><graphic>salinity_xNYC-Bda.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>salinity_xWEq.html</full><graphic>salinity_xWEq.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>26 N</name><full>salinity_26N.html</full><graphic>salinity_26N.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>69 W</name><full>salinity_69W.html</full><graphic>salinity_69W.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>salinity_Eeq.html</full><graphic>salinity_Eeq.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Equatorial</name><full>salinity_equator.html</full><graphic>salinity_equator.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 20</name><full>salinity_GFO_20.html</full><graphic>salinity_GFO_20.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>salinity_GFO_25.html</full><graphic>salinity_GFO_25.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>salinity_Mia_Bda.html</full><graphic>salinity_Mia_Bda.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>salinity_NYC_Bda.html</full><graphic>salinity_NYC_Bda.jpg</graphic></parmline>
+<parmline><parm>Salinity</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>salinity_Weq.html</full><graphic>salinity_Weq.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>26 N</name><full>temp_x26N.html</full><graphic>temp_x26N.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>69 W</name><full>temp_x69W.html</full><graphic>temp_x69W.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>temp_xEEq.html</full><graphic>temp_xEEq.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Equatorial</name><full>temp_xEquator.html</full><graphic>temp_xEquator.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 20</name><full>temp_xGFO_20.html</full><graphic>temp_xGFO_20.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 25</name><full>temp_xGFO_25.html</full><graphic>temp_xGFO_25.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>temp_xMia_Bda.html</full><graphic>temp_xMia_Bda.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>temp_xNYC-Bda.html</full><graphic>temp_xNYC-Bda.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>temp_WEq.html</full><graphic>temp_WEq.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>26 N</name><full>temp_26N.html</full><graphic>temp_26N.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>69 W</name><full>temp_69W.html</full><graphic>temp_69W.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>temp_Eeq.html</full><graphic>temp_Eeq.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Equatorial</name><full>temp_equator.html</full><graphic>temp_equator.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 20</name><full>temp_GFO_20.html</full><graphic>temp_GFO_20.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Geosat Follow-On section 25</name><full>temp_GFO_25.html</full><graphic>temp_GFO_25.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>temp_Mia_Bda.html</full><graphic>temp_Mia_Bda.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>temp_NYC_Bda.html</full><graphic>temp_NYC_Bda.jpg</graphic></parmline>
+<parmline><parm>temp</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>temp_Weq.html</full><graphic>temp_Weq.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>26 N</name><full>velocity_x26N.html</full><graphic>velocity_x26N.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>69 W</name><full>velocity_x69W.html</full><graphic>velocity_x69W.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>velocity_xEEq.html</full><graphic>velocity_xEEq.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>velocity_xEquator.html</full><graphic>velocity_xEquator.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>velocity_xGFO_20.html</full><graphic>velocity_xGFO_20.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>velocity_xGFO_25.html</full><graphic>velocity_xGFO_25.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>velocity_xMia_Bda.html</full><graphic>velocity_xMia_Bda.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>velocity-xNYC_Bda.html</full><graphic>velocity_xNYC-Bda.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>velocity_xWEq.html</full><graphic>velocity_xWEq.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>26 N</name><full>velocity_26N.html</full><graphic>velocity_26N.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>69 W</name><full>velocity_69W.html</full><graphic>velocity_69W.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>velocity_Eeq.html</full><graphic>velocity_Eeq.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Eastern Equatorial</name><full>velocity_equator.html</full><graphic>velocity_equator.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>velocity_GFO_25.html</full><graphic>velocity_GFO_25.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Geosat Follow-On Section 25</name><full>velocity_GFO_25.html</full><graphic>velocity_GFO_25.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Miami-Bermuda</name><full>velocity_Mia_Bda.html</full><graphic>velocity_Mia_Bda.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>New York City-Bermuda</name><full>velocity_NYC_Bda.html</full><graphic>velocity_NYC_Bda.jpg</graphic></parmline>
+<parmline><parm>velocity</parm><valid>11 April 2003</valid><name>Western Equatorial</name><full>velocity_Weq.html</full><graphic>velocity_Weq.jpg</graphic></parmline>
+</index>

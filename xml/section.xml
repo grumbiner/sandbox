@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="section.xsl" type="text/xsl" ?>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">10 March 2004</constructed>
+    <valid range1="00" range2="168">10 March 2004</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic_list>
+    <graphic source="Fig1.png"/> <valid time="00">10 March 2004</valid>
+    <graphic source="Fig2.png"/>
+    <graphic source="Fig3.png"/>
+  </graphic_list>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Transatlantic</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="32.0389" lon="-80"/>
+      <loc lat="31.7943" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>

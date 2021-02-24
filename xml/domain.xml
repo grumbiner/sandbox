@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="domain2d.xsl" type="text/xsl" ?>
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>Globe</name>
+    <area >500e6 km^2</area>
+    <bounds>
+      <loc lat="-90" lon="0"/>
+      <loc lat="-90" lon="360"/>
+      <loc lat="+90" lon="0"/>
+      <loc lat="+90" lon="360"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
