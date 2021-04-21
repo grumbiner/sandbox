@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="papers.xsl" type="text/xsl" ?>
+
+<paper>
+
+<title>flux stuff</title>
+
+<contact>Yung.Chao@noaa.gov</contact>
+
+<authors>
+  <person>
+    <name>YY Chao</name>
+    <employer>NOAA/NWS</employer>
+    <site>Camp Springs, MD</site>
+    <email>Yung.Chao@noaa.gov</email>
+  </person>
+  <person>
+    <name>Carlos Lozano</name>
+    <title>Physical Scientist</title>
+    <employer>UCAR Visiting Scientist</employer>
+    <site>Camp Springs, MD</site>
+    <email>Carlos.Lozano@noaa.gov</email>
+  </person>
+</authors>
+
+<topic>
+fluxes
+</topic>
+
+<abstract>
+bunches of stuff about fluxes
+</abstract>
+
+<status>
+draft
+</status>
+
+<date>
+18 February 2004
+</date>
+
+<fulldoc>FluxRep2.pdf</fulldoc>
+
+</paper>
