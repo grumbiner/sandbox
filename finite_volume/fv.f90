@@ -3,7 +3,7 @@ PROGRAM fv
   IMPLICIT none
 
   INTEGER ratio
-  PARAMETER (ratio = 512)
+  PARAMETER (ratio = 64)
   INTEGER nx, ny, nz
   PARAMETER (nx = 1*ratio)
   PARAMETER (ny = 1*ratio)
@@ -14,7 +14,6 @@ PROGRAM fv
   PARAMETER (r  = 289.)
   PARAMETER (k  = 0.026) !thermal conductivity of air
   REAL dt
-  PARAMETER (dt = 0.01) !sec
 
 ! From -Wall, allocatable permits proper treatment of larger arrays
   REAL, allocatable :: dx(:, :, :), dy(:, :, :), dz(:, :, :)
@@ -43,22 +42,43 @@ PROGRAM fv
   CALL initial_vels(u,v,w,nx,ny,nz)
 
   rho = 1.0  ! kg/m^3
+  rho(nx/2, ny/2, nz/2) = 1. + 1./16.
+  PRINT *,0,mass(rho, vol, nx, ny, nz), MAXVAL(rho), MINVAL(rho), MAXLOC(rho)
 
-  DO i = 1, 10
+  dt = 1.e-4
+
+  OPEN(10, FILE="fout", FORM="UNFORMATTED", STATUS="UNKNOWN", ACCESS="STREAM")
+  OPEN(11, FILE="slices", FORM="UNFORMATTED", STATUS="UNKNOWN", ACCESS="STREAM")
+  DO i = 1, 6400
     CALL step(u, v, w, ax, ay, az, vol, rho, dt, nx, ny, nz)
-    PRINT *,i,mass(rho, vol, nx, ny, nz)
+    IF (MOD(i-1,10) == 0) THEN
+      PRINT *,i,mass(rho, vol, nx, ny, nz), MAXVAL(rho), MINVAL(rho), MAXLOC(rho)
+      WRITE (10) rho(:,32, 32)
+      WRITE (11) rho(:,:,32)
+    ENDIF
   ENDDO
-!  PRINT *,"i = ",i
 
 END
 REAL FUNCTION mass(rho, vol, nx, ny, nz)
   IMPLICIT none
   INTEGER, intent(in) ::  nx, ny, nz
   REAL, intent(in)    :: rho(nx, ny, nz), vol(nx, ny, nz)
-!  REAL tmp(nx, ny, nz)
+  REAL(SELECTED_REAL_KIND(24,10)) :: tot
+  INTEGER i, j, k
+  tot = 0.0
+  DO k = 1, nz
+    DO j = 1, ny
+      DO i = 1, nx
+        tot = tot + rho(i,j,k)*vol(i,j,k)
+      ENDDO
+    ENDDO
+  ENDDO
+
 !  tmp = rho*vol
 ! faster than above (cuts ~80%):
-  mass =  SUM(rho*vol)
+!  mass =  SUM(rho*vol)
+! ... but wrong, as accumulating 100,000,000 sums in single precision is not pretty.
+  mass = tot
 END FUNCTION mass
   
 SUBROUTINE initial_vels(u,v,w,nx,ny,nz)
@@ -69,11 +89,17 @@ SUBROUTINE initial_vels(u,v,w,nx,ny,nz)
   INTEGER i, j, k
   REAL x,y,z
   REAL cx, cy, cz
-  REAL dx, sigma
+  REAL dx, sigma, u0
 
-!  RETURN
+  u = 0.05
+  !u(nx/2,ny/2,nz/2) = 0.025
+  v = 0.05
+  w = 0.05
+  RETURN
 
+  u0 = 0.05  ! for CFL condition, dt = 0.01, dx = 1.e-3
   dx = 1.e-3
+  PRINT *,'half-crossing time ', nx/2.*dx/u0
   sigma = FLOAT(nx)/6.*dx
   cz = FLOAT(nz)/2.*dx
   cy = FLOAT(ny)/2.*dx
@@ -83,8 +109,8 @@ SUBROUTINE initial_vels(u,v,w,nx,ny,nz)
     DO j = 1, ny
       y = FLOAT(j)*dx
       DO i = 1, nx
-        x = FLOAT(j)*dx
-        u(i,j,k) = exp(-(  (x-cx)**2/2./sigma**2 + (y-cy)**2/2./sigma**2 + (z-cz)**2/2./sigma**2 ))
+        x = FLOAT(i)*dx
+        u(i,j,k) = u0*exp(-(  (x-cx)**2/2./sigma**2 + (y-cy)**2/2./sigma**2 + (z-cz)**2/2./sigma**2 ))
         v(i,j,k) = u(i,j,k)
         w(i,j,k) = v(i,j,k)
       ENDDO
@@ -124,38 +150,39 @@ SUBROUTINE step(u, v, w, ax, ay, az, vol, rho, dt, nx, ny, nz)
   drho = 0.0
 
 ! u
-  DO k = 1, nz
-    DO j = 1, ny
+  DO k = 2, nz-1
+    DO j = 2, ny-1
       DO i = 2, nx-1
         drho(i,j,k) =                                               &
            -( (rho(i+1,j,k)+rho(i,j,k))/2. * u(i+1,j,k)*ax(i+1,j,k) - &
               (rho(i-1,j,k)+rho(i,j,k))/2. * u(i  ,j,k)*ax(i  ,j,k)   )
+!           -( rho(i,j,k) * u(i+1,j,k)*ax(i+1,j,k) - &
+!              rho(i,j,k) * u(i  ,j,k)*ax(i  ,j,k)   )
       ENDDO
     ENDDO
   ENDDO
 
 ! v
-  DO k = 1, nz
-    DO j = 2, ny-1
-      DO i = 1, nx
-        drho(i,j,k) = drho(i,j,k)  - ( &
-            (rho(i,j+1,k)+rho(i,j,k))/2. * v(i,j+1,k)*ay(i,j+1,k) - &
-            (rho(i,j-1,k)+rho(i,j,k))/2. * v(i,j,k)*  ay(i,j,k)     )
-      ENDDO
-    ENDDO
-  ENDDO
+!  DO k = 2, nz-1
+!    DO j = 2, ny-1
+!      DO i = 2, nx-1
+!        drho(i,j,k) = drho(i,j,k)  - ( &
+!            (rho(i,j+1,k)+rho(i,j,k))/2. * v(i,j+1,k)*ay(i,j+1,k) - &
+!            (rho(i,j-1,k)+rho(i,j,k))/2. * v(i,j,k)*  ay(i,j,k)     )
+!      ENDDO
+!    ENDDO
+!  ENDDO
 
 ! w
-  DO k = 2, nz-1
-    DO j = 1, ny
-      DO i = 1, nx
-        drho(i,j,k) = drho(i,j,k) - ( &
-            (rho(i,j,k+1)+rho(i,j,k))/2. * w(i,j,k+1)*az(i,j,k+1) - &
-            (rho(i,j,k-1)+rho(i,j,k))/2. * w(i,j,k  )*az(i,j,k  ) )
-      ENDDO
-    ENDDO
-  ENDDO
-!  drho = drho * dt/vol
+!  DO k = 2, nz-1
+!    DO j = 2, ny-1
+!      DO i = 2, nx-1
+!        drho(i,j,k) = drho(i,j,k) - ( &
+!            (rho(i,j,k+1)+rho(i,j,k))/2. * w(i,j,k+1)*az(i,j,k+1) - &
+!            (rho(i,j,k-1)+rho(i,j,k))/2. * w(i,j,k  )*az(i,j,k  ) )
+!      ENDDO
+!    ENDDO
+!  ENDDO
 
   rho = rho + drho*dt/vol
 
