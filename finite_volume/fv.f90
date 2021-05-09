@@ -24,9 +24,9 @@ PROGRAM fv
   REAL mass
   
   ALLOCATE(dx(nx, ny, nz), dy(nx, ny, nz), dz(nx, ny, nz) )
-  dx = 1.e-3 !meters
-  dy = 1.e-3
-  dz = 1.e-3
+  dx = 1.e-0 !meters
+  dy = 1.e-0
+  dz = 1.e-0
 
 ! Precomputing area of faces and volumes of the cells (efficiency of computation)
 ! Precompute volume of cells (ditto)
@@ -45,18 +45,20 @@ PROGRAM fv
   rho(nx/2, ny/2, nz/2) = 1. + 1./16.
   PRINT *,0,mass(rho, vol, nx, ny, nz), MAXVAL(rho), MINVAL(rho), MAXLOC(rho)
 
-  dt = 1.e-4
+  !dt = 1.e-1
+  dt = 1./16.
 
   OPEN(10, FILE="fout", FORM="UNFORMATTED", STATUS="UNKNOWN", ACCESS="STREAM")
   OPEN(11, FILE="slices", FORM="UNFORMATTED", STATUS="UNKNOWN", ACCESS="STREAM")
-  DO i = 1, 6400
+  DO i = 1, 12801
     CALL step(u, v, w, ax, ay, az, vol, rho, dt, nx, ny, nz)
-    IF (MOD(i-1,10) == 0) THEN
+    IF (MOD(i-1, 16) == 0) THEN
       PRINT *,i,mass(rho, vol, nx, ny, nz), MAXVAL(rho), MINVAL(rho), MAXLOC(rho)
       WRITE (10) rho(:,32, 32)
       WRITE (11) rho(:,:,32)
     ENDIF
   ENDDO
+  PRINT *,i-1,mass(rho, vol, nx, ny, nz), MAXVAL(rho), MINVAL(rho), MAXLOC(rho)
 
 END
 REAL FUNCTION mass(rho, vol, nx, ny, nz)
@@ -110,7 +112,7 @@ SUBROUTINE initial_vels(u,v,w,nx,ny,nz)
       y = FLOAT(j)*dx
       DO i = 1, nx
         x = FLOAT(i)*dx
-        u(i,j,k) = u0*exp(-(  (x-cx)**2/2./sigma**2 + (y-cy)**2/2./sigma**2 + (z-cz)**2/2./sigma**2 ))
+        u(i,j,k) = u0*exp(-(  (x-cx)**2 + (y-cy)**2 + (z-cz)**2 )/2./sigma**2)
         v(i,j,k) = u(i,j,k)
         w(i,j,k) = v(i,j,k)
       ENDDO
@@ -154,10 +156,19 @@ SUBROUTINE step(u, v, w, ax, ay, az, vol, rho, dt, nx, ny, nz)
     DO j = 2, ny-1
       DO i = 2, nx-1
         drho(i,j,k) =                                               &
+! (a)
+!  -ax(i,j,k)* ( (rho(i+1,j,k)-rho(i-1,j,k))/2. * u(i,j,k) )
+! (1)
+!  -ax(i,j,k)* ( (rho(i+1,j,k)-rho(i-1,j,k))/2. * u(i+1,j,k) )
+! (2)
+!  -ax(i,j,k)* ( (rho(i+1,j,k)-rho(i-1,j,k))/2. * (u(i+1,j,k)+u(i,j,k))/2. )
+
+! (3)
            -( (rho(i+1,j,k)+rho(i,j,k))/2. * u(i+1,j,k)*ax(i+1,j,k) - &
               (rho(i-1,j,k)+rho(i,j,k))/2. * u(i  ,j,k)*ax(i  ,j,k)   )
-!           -( rho(i,j,k) * u(i+1,j,k)*ax(i+1,j,k) - &
-!              rho(i,j,k) * u(i  ,j,k)*ax(i  ,j,k)   )
+! (4)
+!!           -( rho(i,j,k) * u(i+1,j,k)*ax(i+1,j,k) - &
+!!              rho(i,j,k) * u(i  ,j,k)*ax(i  ,j,k)   )
       ENDDO
     ENDDO
   ENDDO
@@ -185,6 +196,11 @@ SUBROUTINE step(u, v, w, ax, ay, az, vol, rho, dt, nx, ny, nz)
 !  ENDDO
 
   rho = rho + drho*dt/vol
+
+!(5)
+  rho(nx, :, :) = rho(nx-1,:,:)
+!(5b)
+  rho(1,:,:) = rho(2,:,:)
 
   RETURN
 END SUBROUTINE step
