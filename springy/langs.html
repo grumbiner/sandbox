@@ -1,0 +1,101 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"></head><body>
+<script src="demo_files/jquery.js"></script>
+<script src="demo_files/springy.js"></script>
+<script src="demo_files/springyui.js"></script>
+<script>
+var graph = new Springy.Graph();
+
+var dennis = graph.newNode({
+  label: 'mmab clusters',
+  ondoubleclick: function() { console.log("Noodling with implementation structure!"); }
+});
+
+// People:
+var bob       = graph.newNode({label: 'bob'}, {color: '#ffff00'} );
+var vera      = graph.newNode({label: 'vera'});
+var yy        = graph.newNode({label: 'yy'});
+var vladimir  = graph.newNode({label: 'vladimir'});
+var avichal   = graph.newNode({label: 'avichal'});
+var arun      = graph.newNode({label: 'arun'});
+var carlos    = graph.newNode({label: 'carlos'});
+var ilya      = graph.newNode({label: 'ilya'});
+var bert      = graph.newNode({label: 'bert'});
+var zulema    = graph.newNode({label: 'zulema'});
+var hyun_sook = graph.newNode({label: 'hyun_sook'});
+var hae_cheol = graph.newNode({label: 'hae_cheol'});
+var bhavani   = graph.newNode({label: 'bhavani'});
+var dan       = graph.newNode({label: 'dan'});
+var todd      = graph.newNode({label: 'todd'});
+var deanna    = graph.newNode({label: 'deanna'});
+var roberto   = graph.newNode({label: 'roberto'});
+var andre     = graph.newNode({label: 'andre'});
+var sudhir    = graph.newNode({label: 'sudhir'});
+var binli     = graph.newNode({label: 'binli'});
+var henrique  = graph.newNode({label: 'henrique'});
+var liyan     = graph.newNode({label: 'liyan'});
+var jian      = graph.newNode({label: 'jian'});
+var vladimirO  = graph.newNode({label: 'vladimirO'});
+
+//Languages:
+var perl  = graph.newNode({label: 'perl'});
+var f90  = graph.newNode({label: 'f90'});
+var f77  = graph.newNode({label: 'f77'});
+var c  = graph.newNode({label: 'c'});
+var cpp  = graph.newNode({label: 'cpp'});
+var python  = graph.newNode({label: 'python'});
+var matlab  = graph.newNode({label: 'matlab'});
+var idl  = graph.newNode({label: 'idl'});
+
+//Data formats:
+var grib1  = graph.newNode({label: 'grib1'});
+var grib2  = graph.newNode({label: 'grib2'});
+var bufr  = graph.newNode({label: 'bufr'});
+var netcdf  = graph.newNode({label: 'netcdf'});
+var hdf  = graph.newNode({label: 'hdf'});
+
+//Bob
+graph.newEdge(bob, perl, {color: '#0000FF'});
+graph.newEdge(bob, f90, {color: '#0000FF'});
+graph.newEdge(bob, f77, {color: '#0000FF'});
+graph.newEdge(bob, c, {color: '#0000FF'});
+graph.newEdge(bob, cpp, {color: '#0000FF'});
+graph.newEdge(bob, grib1, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(bob, grib2, {color: '#0000FF'}, {weight: '3'} );
+graph.newEdge(bob, bufr, {color: '#0000FF'}, {weight: '0.1'} );
+graph.newEdge(bob, netcdf, {color: '#0000FF'}, {weight: '0.5'} );
+graph.newEdge(bob, hdf, {color: '#0000FF'}, {weight: '0.1'} );
+
+//Todd:
+graph.newEdge(todd, f90, {color: '#0000FF'});
+graph.newEdge(todd, f77, {color: '#0000FF'});
+graph.newEdge(todd, python, {color: '#0000FF'});
+graph.newEdge(todd, matlab, {color: '#0000FF'});
+
+//Vladimir:
+graph.newEdge(vladimir, f77, {color: '#0000FF'});
+graph.newEdge(vladimir, idl, {color: '#0000FF'});
+
+//Vera:
+graph.newEdge(vera, bufr, {color: '#0000FF'}, {weight: '1.0'} );
+graph.newEdge(vera, f77, {color: '#0000FF'}, {weight: '1.0'} );
+graph.newEdge(vera, grib1, {color: '#0000FF'}, {weight: '1.0'} );
+graph.newEdge(vera, grib2, {color: '#0000FF'}, {weight: '0.5'} );
+
+
+//Waves-sub1
+
+jQuery(function(){
+  var springy = window.springy = jQuery('#springydemo').springy({
+    graph: graph,
+    nodeSelected: function(node){
+      console.log('Node selected: ' + JSON.stringify(node.data));
+    }
+  });
+});
+</script>
+
+<canvas id="springydemo" width="960" height="480">
+
+
+</canvas></body></html>

@@ -1,0 +1,103 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"></head><body>
+<script src="demo_files/jquery.js"></script>
+<script src="demo_files/springy.js"></script>
+<script src="demo_files/springyui.js"></script>
+<script>
+var graph = new Springy.Graph();
+
+var dennis = graph.newNode({
+  label: 'Implementation structure',
+  ondoubleclick: function() { console.log("Noodling with implementation structure!"); }
+});
+
+var bob         = graph.newNode({label: 'bob'});
+
+var ice_analy   = graph.newNode({label: 'ice_analy'});
+var kiss        = graph.newNode({label: 'kiss'});
+  var xingren  = graph.newNode({label: 'xingren'});
+  graph.newEdge(kiss, xingren, {color: '#00FF00'}, {weight: '1'});
+var ice_drift   = graph.newNode({label: 'ice_drift'});
+  graph.newEdge(ice_drift, xingren, {color: '#00FF00'}, {weight: '1'});
+var rtg_low   = graph.newNode({label: 'rtg_low'});
+  var bert  = graph.newNode({label: 'bert'});
+  graph.newEdge(rtg_low, bert, {color: '#00FF00'}, {weight: '1'});
+var rtg_high  = graph.newNode({label: 'rtg_high'});
+  var diane  = graph.newNode({label: 'diane'});
+  graph.newEdge(rtg_high, bert, {color: '#00FF00'}, {weight: '1'});
+  graph.newEdge(rtg_high, diane, {color: '#00FF00'}, {weight: '0.1'});
+var rtofs_gsf = graph.newNode({label: 'rtofs_gsf'});
+var mmablib   = graph.newNode({label: 'mmablib'});
+var lands     = graph.newNode({label: 'lands'});
+var vessel_icing         = graph.newNode({label: 'vessel_icing'});
+var global_visibility    = graph.newNode({label: 'global_visibility'});
+
+var interns = graph.newNode({label: 'interns'});
+  var hannah = graph.newNode({label: 'hannah'});
+  var mary   = graph.newNode({label: 'mary'});
+  graph.newEdge(interns, hannah, {color: '#00FF00'}, {weight: '1'});
+  graph.newEdge(interns, mary, {color: '#00FF00'}, {weight: '1'});
+var wigos   = graph.newNode({label: 'wigos'});
+  var jeff  = graph.newNode({label: 'jeff'});
+  graph.newEdge(wigos, jeff, {color: '#00FF00'}, {weight: '1'});
+var walcc   = graph.newNode({label: 'walcc'});
+  var andre = graph.newNode({label: 'andre'});
+  graph.newEdge(walcc, andre, {color: '#00FF00'}, {weight: '1'});
+var chief   = graph.newNode({label: 'chief'});
+var library = graph.newNode({label: 'library'}); 
+var flake     = graph.newNode({label: 'flake'});
+  var yihua = graph.newNode({label:'yihua'});
+  graph.newEdge(flake, yihua, {color: '#00FF00'}, {weight: '1'});
+
+// connect to me:
+graph.newEdge(kiss,      bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(ice_analy, bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(ice_drift,  bob, {color: '#0000FF'},{ weight: '1' });
+graph.newEdge(mmablib, bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(lands, bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(rtg_low,    bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(rtg_high, bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(vessel_icing,    bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(global_visibility, bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(rtofs_gsf,   bob, {color: '#0000FF'}, {weight: '1'} );
+
+graph.newEdge(interns,   bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(mary,   bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(hannah,   bob, {color: '#0000FF'}, {weight: '1'} );
+
+graph.newEdge(wigos,     bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(wigos,     chief, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(walcc,     bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(flake,   bob, {color: '#0000FF'}, {weight: '1'} );
+
+graph.newEdge(chief,     bob, {color: '#0000FF'}, {weight: '1'} );
+graph.newEdge(library,   bob, {color: '#0000FF'}, {weight: '1'} );
+
+// Inter-project arcs
+graph.newEdge(ice_analy, kiss,    {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(mmablib, ice_analy, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(mmablib, rtofs_gsf, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(mmablib, ice_drift, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(lands, ice_analy,   {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(rtg_high, ice_analy,{color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(lands, rtg_low,  {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(lands, rtg_high, {color: '#6A4A3C'}, {weight: '1'} );
+
+graph.newEdge(wigos, chief,   {color:  '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(walcc, interns, {color:  '#6A4A3C'}, {weight: '1'} );
+
+
+jQuery(function(){
+  var springy = window.springy = jQuery('#springydemo').springy({
+    graph: graph,
+    nodeSelected: function(node){
+      console.log('Node selected: ' + JSON.stringify(node.data));
+    }
+  });
+});
+</script>
+
+<canvas id="springydemo" width="960" height="800">
+
+
+</canvas></body></html>
