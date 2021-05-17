@@ -41,7 +41,7 @@ def score(obs, pred, delta, start, end, metric = 0, tolerance = 0):
       return score_rms(delta, start, end)
       #return score_loss(delta, start, end, tolerance)
     elif (metric == VICKIE):
-      return score_mae(delta, start, end, 3.0)
+      return score_mae(delta, start, end, tolerance = 3.0)
     else:
       print("unknown metric ",metric, " continuing with RMS", flush=True)
       return score_rms(delta, start, end)

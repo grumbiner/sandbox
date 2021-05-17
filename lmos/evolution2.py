@@ -65,7 +65,7 @@ class critter:
     #display element by element the weights and sdevs
     def show(self, fout = sys.stdout):
         n =  self.length
-        print("k (value, sd)")
+        print("k (value, sd)", file = fout)
         for k in range(0,n):
             #print("{:.3f}".format(self.weights[k]), " sd: " 
             #      "{:.3f}".format(self.sdevs[k]),   " ", file = fout, end='')
