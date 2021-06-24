@@ -1,0 +1,26 @@
+set term png
+set grid
+set xrange [80:320]
+set xtic 20
+set ytic 0.1
+
+set out "19v.png"
+ plot "t19v" using 1:6 with lp title "water", "t19v" using 1:7 with lp title "ice", "t19v" using 1:8 with lp title "land", "t19v" using 1:9 with lp title "coast"
+
+set out "19h.png"
+ plot "t19h" using 1:6 with lp title "water", "t19h" using 1:7 with lp title "ice", "t19h" using 1:8 with lp title "land", "t19h" using 1:9 with lp title "coast"
+
+set out "22v.png"
+ plot "t22v" using 1:6 with lp title "water", "t22v" using 1:7 with lp title "ice", "t22v" using 1:8 with lp title "land", "t22v" using 1:9 with lp title "coast"
+
+set out "37v.png"
+ plot "t37v" using 1:6 with lp title "water", "t37v" using 1:7 with lp title "ice", "t37v" using 1:8 with lp title "land", "t37v" using 1:9 with lp title "coast"
+
+set out "37h.png"
+ plot "t37h" using 1:6 with lp title "water", "t37h" using 1:7 with lp title "ice", "t37h" using 1:8 with lp title "land", "t37h" using 1:9 with lp title "coast"
+
+set out "85v.png"
+ plot "t85v" using 1:6 with lp title "water", "t85v" using 1:7 with lp title "ice", "t85v" using 1:8 with lp title "land", "t85v" using 1:9 with lp title "coast"
+
+set out "85h.png"
+ plot "t85h" using 1:6 with lp title "water", "t85h" using 1:7 with lp title "ice", "t85h" using 1:8 with lp title "land", "t85h" using 1:9 with lp title "coast"
