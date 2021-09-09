@@ -1,0 +1,212 @@
+CD      PROGRAM ISTEST (INPUT, OUTPUT, TAPE2, TAPE4, TAPE3) 
+        PROGRAM ISTEST
+  
+C================================================================== 
+C 
+C          PROGRAM: ELASTST 
+C             FROM: ELAST 
+C               DATE = 19 AUG 85
+C 
+C                   THIS MODEL OF THE ICE SHEET USES THE
+C                   REVISED NUMERICAL SCHEMA OF 10 FEB 84.
+C                   MODIFIED ACCORDING TO 2-18-84 NOTES.
+C                   VOLUME COMPUTATION CORRECTED 2-25-84. BG
+C                   CHANGES IN NO ICE SHEET CASES MADE 3-25-84
+C                   FIRN LINE CALCULATIONS CORRECTED 3/25 TO 4/2/84 BG
+C                   TEMPERATURE DEPENDANT ACCUMULATION INTRODUCED 
+C                       4-18-84 BG
+C                   CORRECTIONS 4-23-84.  BG
+C                   REDERIVED ISSB+1 PT CAL 4/27/84 
+C         4-30-84   BEDROCK EXTRAP MOVED OUTSIDE ITERATION LOOP 
+C                   EPSI FUDGE FACTOR AND XNAUT REMOVED 5-15-84 
+C                   MOST PARAMETER STATEMENTS REMOVED 5-15-84 
+C                   MOST CONSTANTS NOW INITIALIZED IN ISINIT 5-18-84
+C                   CLEANUP OF ISHEET JUNE 6 84 
+C                   REDERIVED BEDROCK EXTRAPOLATION 6-12-84 
+C                   THICKNESSES REPLACED WITH MAX(0,H+H') 6-12-84 
+C                   SMALL ICE SHEET CASE ADDED 6-12-84
+C                   SPECIAL TREATMENT OF ACCUM AT ISSB+1 DROPPED 6-13 
+C                   ALTERNATE SET-UP MODES DROPPED 6-13-84
+C                   ISSB, ISNB COMPUTATIONS CORRECTED-USE BHAT 6-13 
+C                   WHEN ICE SHEET MOVES, SET HVIRT=H(ISSB+1) 6-14-84 
+C                   SET H(ISSB+1)=HVIRT JUST BEFORE BEDROCK EXTRAP. 
+C                   THIS WILL ALLOW THE SHEET TO MOVE FORWARD DUE TO
+C                   MASS FLUX. 6-14-84
+C                   FORCING CORRECTED TO NOTES OF EB 6-7-84, ON 6-15-84 
+C                   UJM1,VJM1 REMOVED 6-21-84 
+C                   BEDROCK EXTRAPOLATION MOVED BEFORE THE H EXTRAP 6-21
+C                   ZETA MULTIPLIER ADDED FOR MASS FLUX AT ISSB+1 6-28
+C                   ACCUMULATION FOR T*>0 MODIFIED 6-29-84
+C                   ITERATION LOOP CONTROL REINTRODUCED 7-1-84. 
+C                   TWO-LAYER BEDROCK MODEL ADDED 7-5-84. 
+C                   SINGLE VISCOUS LAYER IN FRONT OF THE ICE SHEET. 7-25
+C     PARABOLIC SET UP. 
+C     CONTROL OF WHETHER TO USE ELASTIC RESPONSE ADDED 8-15-85,BG 
+C     USE SINE TRANSFORMS IN HPEXT, THEY ARE FASTER. 8-19-85 BG 
+C================================================================== 
+  
+      INTEGER MXSB
+      PARAMETER (MXSB  = 160) 
+  
+      COMMON /ISCOM/ HGT(0:MXSB,0:1), H, HP,
+     1      ACMRAT, SLOPE, TIMELP, OSCARG, TIMSTP, GRDSTP,
+     2      SNLAMP, SNLMPT, SNLXIN, TRIPS, RNETAC, POLFLX,
+     3      MSNAUT, MAPRIM, OUTDAT, DX, DT, DHPDT(0:MXSB),HPCALL, 
+     4      ISSB
+  
+      INTEGER I, J, H, HP, TRIPS, HPCALL, ISSB
+      REAL HGT, ACMRAT, SLOPE, SNLXIN 
+      REAL DX, DT, TIME, GRDSTP 
+      REAL DHPDT, MSNAUT, MAPRIM
+  
+      COMMON /FTCOM/HK(-MXSB-2:MXSB+1), HPK(-MXSB-2:MXSB+1) 
+      REAL HK, HPK
+      LOGICAL  OUTHGT, OUTVOL, OUTDAT, OUTHK, NOICE 
+      REAL CALTIM, FNLTIM, TIMSTP 
+      REAL SNLAMP, SNLMPT, OSCARG 
+      REAL LENGTH, PEAK, MHP, A, B, C 
+  
+C------------------------------------------------------------------ 
+  
+      TRIPS= -1 
+      CALL PMDARRY(2*MXSB+4,4)
+  
+      READ (*,9006) GRDSTP
+      READ (*,9006) TIMSTP
+      DX = GRDSTP * 111111.111111 
+      DT = TIMSTP * 31557600.0
+  
+      READ (*,9007) OUTDAT
+      READ (*,9007) OUTHGT
+      READ (*,9007) OUTVOL
+      READ (*,9007) OUTHK 
+      READ (*,9007) NOICE 
+  
+      READ (*,9006) CALTIM
+      READ (*,9006) FNLTIM
+  
+C     INITIALIZE THE BEDROCK SUBROUTINE 
+      CALL HPEXIN 
+C     INITIALIZE THE ISHEET SUBROUTINE
+      CALL ISHEET (0.0) 
+  
+C------------------------------------------------------------------ 
+  
+      IF(.NOT. NOICE) THEN
+C     INITIAL CONDITIONS FOR PARABOLIC ICE SHEET
+      LENGTH=1800000.0
+      PEAK  =3800.0 
+      MHP   =400.0
+      I     =INT(LENGTH/DX) 
+      C     =MHP
+      B     =(3.*C+4.*PEAK)/LENGTH
+      A     =-4.*(C+PEAK)/LENGTH**2 
+      DO 100 J=0,I
+        HGT(J,H)=A*(J*DX)**2+B*J*DX+C 
+        HGT(J,HP)=.3*HGT(J,H) 
+ 100  CONTINUE
+      DO 110 J=I+1,MXSB 
+        HGT(J,H)=0.0
+        HGT(J,HP)=0.0 
+ 110  CONTINUE
+       ELSE 
+C     NO ICE INITIAL CONDITION. 
+      DO 200 I=0,MXSB 
+        HGT(I,H)=0.0
+        HGT(I,HP)=0.0 
+ 200  CONTINUE
+      ENDIF 
+  
+C     PRINT OUT THE INITIAL CONDITIONS
+      IF (OUTDAT) THEN
+        J=MXSB
+ 1000   IF ((HGT(J,0)+HGT(J,1).LE.0.0).AND.(J.GT.1)) THEN 
+          J=J-1 
+          GO TO 1000
+        ENDIF 
+        DO 1100 I=0,MIN(J+5,MXSB) 
+          IF (MOD(I,50).EQ.0) WRITE (*,9001) 0
+          WRITE (*,9002) I,(11.6+GRDSTP*I),(I*DX/1000.0),HGT(I,0),
+     1        HGT(I,1),HGT(I,0)+HGT(I,1)
+ 1100   CONTINUE
+      ENDIF 
+C 
+C     WRITE THE INITIAL HEIGHTS OUT TO TAPE 2 IF OUTHGT TRUE
+      IF (OUTHGT) THEN
+        WRITE(2,9005) 0.0 
+        WRITE(2,9003) ((INT(HGT(I+J,0)),J=0,9),I=0,MXSB-10,10)
+        WRITE(2,9003) ((INT(HGT(I+J,1)),J=0,9),I=0,MXSB-10,10)
+      ENDIF 
+  
+C     CAL THE INITIAL VOLUME AND WRITE TO TAPE 4 IF OUTVOL TRUE 
+C     USE THE TRAPEZOIDAL RULE TO COMPUTE THE 'VOLUME'. 
+      IF (OUTVOL) THEN
+        WRITE (4,9004) HINTEG(1),0.0,0.0,0.0,0.0,0.0
+      ENDIF 
+  
+C------------------------------------------------------------------ 
+  
+C-----BEGIN MAIN TIME EXTRAPOLATION LOOP
+C     CALL THE BEDROCK EXTRAPOLATION ROUTINE SINCE THERE IS A LOAD
+C       AT THE BEGINNING OF THE RUN.
+      CALL HPEXT
+      DO 10000 TIME=CALTIM, FNLTIM, CALTIM
+  
+        CALL ISHEET ( CALTIM )
+  
+C       WRITE OUT HEIGHTS, ETC TO OUTPUT IF OUTDAT=TRUE.
+        IF (OUTDAT) THEN
+          J=MXSB
+ 1400     IF ((HGT(J,H)+HGT(J,HP).LE.0.0).AND.(J.GT.1)) THEN
+            J=J-1 
+            GO TO 1400
+          ENDIF 
+          DO 1500 I=0,MIN(J+5,MXSB) 
+            IF (MOD(I,50).EQ.0) WRITE(*,9001) TIME
+            WRITE (*,9002) I,(11.6+GRDSTP*I),(I*DX/1000.0),HGT(I,H),
+     1        HGT(I,HP),HGT(I,H)+HGT(I,HP)
+ 1500     CONTINUE
+        ENDIF 
+  
+C-------WRITE HEIGHT PROFILE OUT TO TAPE 2 IF OUTHGT TRUE 
+        IF (OUTHGT) THEN
+          WRITE (2,9005) SNLXIN 
+          WRITE(2,9003) ((INT(HGT(I+J,H)),J=0,9),I=0,MXSB-10,10)
+          WRITE(2,9003) ((INT(HGT(I+J,HP)),J=0,9),I=0,MXSB-10,10) 
+        ENDIF 
+  
+C-------CAL ICE VOL AND WRITE TO TAPE 4 IF OUTVOL TRUE
+C-------USE THE TRAPEZOIDAL RULE
+        IF (OUTVOL) THEN
+          WRITE (4,9004) HINTEG(1),POLFLX,MSNAUT,MAPRIM,RNETAC, 
+     1    ISSB*DX/1000. 
+        ENDIF 
+  
+      IF (OUTHK) THEN 
+        WRITE (3,9011) (HK(I),
+     1      HPK(I),I=-MXSB-1,-MXSB+6) 
+      ENDIF 
+  
+10000 CONTINUE
+C-----END OF MAIN TIME EXTRAPOLATION LOOP 
+  
+ 9001 FORMAT ('1', 2X, 'TIME : ', F7.1, ' YRS', / 
+     1  3X,'GRID',5X,'CLAT',3X,'DISTANCE',18X,'HEIGHT',19X,'DEPTH', 
+     2  18X,'THICKNESS',/,3X,'POINT',4X,'DEGS',6X,'KM', 
+     3  3(24X,'M')) 
+  
+ 9002 FORMAT (3X,I3,6X,F4.1,3X,F8.3,3(5X,F20.10)) 
+  
+ 9003 FORMAT (18(10(1X,I6),/))
+  
+ 9004 FORMAT (E25.12) 
+  
+ 9005 FORMAT (E20.12) 
+  
+ 9006 FORMAT (F14.4)
+  
+ 9007 FORMAT(L14) 
+  
+ 9011 FORMAT (16(1X,F7.3),/)
+  
+      END 
