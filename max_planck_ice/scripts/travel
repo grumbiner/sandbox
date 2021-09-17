@@ -1,0 +1,151 @@
+#Pack up the ice model for travelling
+#Robert Grumbine
+#prior to 14 February 1997
+
+if [ -f /etc/sys_hp ] ; then
+  BASE=$HOME
+  DHOME=$BASE/data
+ elif [ -f /etc/linux ] ; then
+  BASE=$HOME
+  DHOME=/data/climate
+ else
+  BASE=$HOME3
+  DHOME=$HOME3/data
+fi
+
+tardir=/tmp
+
+#No changes below this point ----------------------------
+
+RHOME=$BASE/icemodel
+OHOME=$BASE/others
+PHOME=$BASE/library
+
+
+if [ $1 = pack ] ; then
+#still need to pack up top level jcl/command files.
+
+  cd $OHOME
+  tar -cvf others.tar *.f
+  mv others.tar $tardir
+  cd $PHOME
+  tar -cvf polarflib.tar *.f
+  tar -cvf polarclib.tar *.c
+  mv polarclib.tar polarflib.tar $tardir
+
+  if [ $2 != light ] ; then
+    cd $DHOME
+    tar -cvf data.tar *.LEVITUS zmask.reform
+    mv data.tar $tardir
+  fi
+
+  cd $RHOME
+  tar -cvf analy.tar   analy
+  tar -cvf bc.tar      bc/*.f bc/Makefile bc/*.oin bc/*.jcl
+  tar -cvf ic.tar      ic/*.f ic/*.c ic/*.h ic/Makefile
+  tar -cvf meteo.tar   meteo
+  tar -cvf model.tar   mpi.source
+  tar -cvf running.tar running/*.jcl running/*/run*
+  tar -cvf control.tar *.jcl build 
+
+  if [ $RHOME != $tardir ] ; then
+    mv analy.tar bc.tar ic.tar meteo.tar model.tar running.tar \
+       control.tar $tardir
+    cd $tardir
+  fi
+
+  tar -cvf icenv.tar analy.tar bc.tar ic.tar meteo.tar model.tar running.tar control.tar others.tar polarclib.tar polarflib.tar
+ 
+  rm analy.tar bc.tar ic.tar meteo.tar model.tar running.tar control.tar
+  rm others.tar polarclib.tar polarflib.tar 
+
+  if [ $2 != light ] ; then
+    tar rvf icenv.tar data.tar
+    rm data.tar
+  fi 
+
+  exit
+fi
+
+if [ $1 = unpack ] ; then
+  tar -xvf icenv.tar
+  if [ $? -eq 0 ] ; then
+    rm icenv.tar
+  fi
+
+  mkdir $OHOME
+  mv ${RHOME}/others.tar $OHOME
+  cd $OHOME
+  tar -xvf others.tar 
+  if [ $? -eq 0 ] ; then
+    rm others.tar
+  fi
+  cd $RHOME
+
+  mkdir $PHOME
+  mv ${RHOME}/polarflib.tar $PHOME
+  mv ${RHOME}/polarclib.tar $PHOME
+  cd $PHOME
+  tar -xvf polarflib.tar
+  if [ $? -eq 0 ] ; then
+    rm polarflib.tar
+  fi
+  tar -xvf polarclib.tar
+  if [ $? -eq 0 ] ; then
+    rm polarclib.tar
+  fi
+  cd $RHOME
+
+  if [ $2 != light ] ; then
+    mkdir $DHOME
+    mv ${RHOME}/data.tar $DHOME
+    cd $DHOME
+    tar -xvf data.tar 
+    if [ $? -eq 0 ] ; then
+      rm data.tar
+    fi
+    cd $RHOME
+  fi
+
+  tar -xvf analy.tar
+  if [ $? -eq 0 ] ; then
+    rm analy.tar
+  fi
+
+  tar -xvf bc.tar   
+  if [ $? -eq 0 ] ; then
+    rm bc.tar
+  fi
+
+  tar -xvf ic.tar   
+  if [ $? -eq 0 ] ; then
+    rm ic.tar
+  fi
+
+  tar -xvf meteo.tar   
+  if [ $? -eq 0 ] ; then
+    rm meteo.tar
+  fi
+
+  tar -xvf model.tar 
+  if [ $? -eq 0 ] ; then
+    rm model.tar
+  fi
+
+  tar -xvf running.tar 
+  if [ $? -eq 0 ] ; then
+    rm running.tar
+  fi
+
+  tar -xvf control.tar 
+  if [ $? -eq 0 ] ; then
+    rm control.tar
+  fi
+
+#Make editing the build and *oin files mandatory
+  chmod u+w build bc/*oin
+  vi build bc/*oin
+  chmod u-w build bc/*oin 
+
+  exit
+fi

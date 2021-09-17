@@ -1,0 +1,27 @@
+#!/bin/sh
+
+#Control forecast/hindcast 
+
+tag=$1
+for tag in 980501 980502 980503 980504 980505 980506 980507 980508 980509 \
+           980510 
+do
+  yy=`echo $tag | cut -c1-2`
+  mm=`echo $tag | cut -c3-4`
+  dd=`echo $tag | cut -c5-6`
+  
+  RUNDIR=/data/forecasts/new/icetest
+  FBASE=/data/meteo/${yy}${mm}
+  EXDIR=~rmg3/icemodel/execs
+  REFDIR=~rmg3/icemodel/running
+  OUTBASE=$RUNDIR
+  HINDBASE=$RUNDIR/hind
+  SSDIR=/data/forecasts/new/ssmi
+  if [ ! -d $FBASE ] ; then
+    mkdir -p $FBASE
+  fi
+  export RUNDIR FBASE EXDIR REFDIR OUTBASE HINDBASE SSDIR tag
+
+  time $REFDIR/hind.jcl > hind.$tag 2> hind2.$tag
+
+done

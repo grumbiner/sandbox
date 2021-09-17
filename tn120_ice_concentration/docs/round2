@@ -1,0 +1,89 @@
+Round 2 codes:
+This involves changes which must all be done concurrently to produce the
+higher resolution sea ice fields, and correctly produce the lower resolution
+sea ice fields.
+
+ex990.sh.sms :
+  deletes exsaic script, unrelated to sea ice processing.
+  produce higher resolution sea ice fields
+  produce old resolution fields from this new input
+  use high resolution SST analysis (0.5 degree now)
+
+seaice_ssmibufr.fd:
+  high resoution output added
+  includes all satellites in output
+
+seaice_seaissmi.cd: replace seaice_seaissmi.fd
+  Source code split in to logical groups
+  Many code modifications to produce new, higher resolution, 12.7 km sea
+    ice concentrations from ssmi information.
+
+seaice_filtanal.Cd : replaces seaice_filtanal.fd
+  change to 12.7 km and 5' grids from 25.4 km and 30' grids
+  change a logical test to be less verbose
+  remove unused variables
+
+seaice_icegrid.Cd : replaces seaice_icegrid.fd
+  change to 5' global grid from 30'
+  handle case of there being no prior global analysis field
+
+
+Executable	time (s) 	Max resident set size (kb)
+seaice_ssmibufr	180		  2,972
+seaice_seaissmi	 28		 83,328
+seaice_filtanal	 21		111,452
+seaice_icegrid	  4.4		334,732
+
+ex990 total	300		334,732
+(includes dumpjb, and codes from round1; dumpjb is most of the time)
+
+
+Fixed fields:
+
+New seaice fixed files -------------------------------------
+seaice_nland127.map : 
+  byte array of land mask flags
+  derived from GMT land and water mapping
+  points that were 'ice' covered in summer masked out to coast.
+
+seaice_sland127.map : 
+  byte array of land mask flags
+  derived from GMT land and water mapping
+  points that were 'ice' covered in summer masked out to coast.
+
+seaice_gland5min    :
+  byte array of land mask flags
+  derived from GMT land and water mapping
+  points that can not be filled from an ocean point on the 12.7 km grids
+    masked out as 151 (unfillable ocean) -- these may be fillable in the
+    future as higher resolution and better algorithms become available.
+    50907 such points.
+  'land' points that can be filled from an ocean point of the 12.7 km grid
+    masked as 150 (fillable land).  These exist because of differences in
+    locating bounding points of polygon segments from GMT.  
+    9611 such points
+
+seaice_newland.pct :
+  floating point array of fraction of 30 minute grid cell which can be filled
+    by information from ocean points on the 5 minute grid.
+
+Revised files -------------------------------------
+
+seaice_nland.map :
+seaice_sland.map :
+  25.4 km byte array of land mask flags
+  any point that can be filled with any unmasked (not land or coast) 
+     point from the higher resolution grid is marked ocean.  This will not
+     accurately represent the land, as it over-ascribes ocean.
+  some points may display as land now, that used to be ocean.  These are
+     due to the unfillable (due to contamination) points now known on the
+     higher resolution grid.
+ 
+seaice_newland :
+  30 minute (1/2 degree) byte array of land mask flags
+  any point that can be filled with any unmasked (not land or coast) 
+     point from the higher resolution grid is marked ocean.  This will not
+     accurately represent the land, as it over-ascribes ocean.
+
+
+    

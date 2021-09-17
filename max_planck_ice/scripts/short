@@ -1,0 +1,40 @@
+#!/bin/sh
+
+#Control forecast/hindcast 
+
+tag=$1
+tagm=`expr $tag - 1`
+tagm=`dtgfix3 $tagm`
+
+#for tag in 980502 980503 980504 980505 980506 980507 980508 980509 980510 
+#do
+#Hindcast runs from yesterday's data:
+  tag=$tagm
+  yy=`echo $tag | cut -c1-2`
+  mm=`echo $tag | cut -c3-4`
+  dd=`echo $tag | cut -c5-6`
+  
+  RUNDIR=/data/forecasts/new/icetest
+  FBASE=/data/meteo/${yy}${mm}
+  EXDIR=~rmg3/icemodel/execs
+  REFDIR=~rmg3/icemodel/running
+  OUTBASE=$RUNDIR
+  HINDBASE=$RUNDIR/hind
+  SSDIR=/data/forecasts/new/ssmi
+  if [ ! -d $FBASE ] ; then
+    mkdir -p $FBASE
+  fi
+  export RUNDIR FBASE EXDIR REFDIR OUTBASE HINDBASE SSDIR tag
+
+  time $REFDIR/hind.jcl > hind.$tag 2> hind2.$tag
+
+#Forecast runs from today, and needs to have a different directory for the
+#   met files, else the 12 hour hcst will override the 12 hr forecast.
+  tag=$1
+  FBASE=/mnt/disk4/meteo/${yy}${mm}
+  if [ ! -d $FBASE ] ; then
+    mkdir -p $FBASE
+  fi
+  time $REFDIR/fcst.jcl > fcst.$tag 2> fcst2.$tag
+
+#done

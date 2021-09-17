@@ -1,0 +1,206 @@
+#Makefile to update a mirror version of the ice model relative to a primary
+#  Copy which is held elsewhere on the same (possibly NFS mounted) system.
+#Outdated in terms of which files are checked, with respect to current
+#  (19 February 1997) model code.
+#Robert Grumbine
+#LAST MODIFIED 25 November 1994
+ 
+icemodel : toplevel mpi.source bc analy ic running meteo
+
+toplevel : analy.jcl ic.jcl model.jcl met.jcl travel build
+
+mpi.source : mpi.source/mgrid.inc mpi.source/physical.inc mpi.source/oml.inc \
+             mpi.source/rheology.inc mpi.source/icegrid.north \
+             mpi.source/icegrid.south mpi.source/icegrid.glk \
+             mpi.source/ICEMODEL.f mpi.source/Makefile
+
+bc : bc/listpts.f bc/bc.jcl bc/layers.f bc/masker.f bc/mclean.f bc/regrid.f\
+     bc/tsexam.f bc/tsmaker.f bc/adj6.f bc/Makefile \
+     bc/glk.oin bc/north.oin bc/south.oin
+
+analy : analy/mapbuoy.f analy/mapvec.f analy/mappip.f analy/metplt.f \
+        analy/FX.f analy/FY.f analy/mapcont.f analy/Makefile \
+        analy/northin analy/southin analy/glkin \
+        analy/map2.f analy/corners.f analy/mapim.f analy/magnify.f \
+        analy/mapim2.f 
+
+ic : ic/mpipip.f ic/icessmi.h ic/ssmi.h ic/pipstrt.f ic/foregrids.h \
+     ic/icegrids.h ic/foreicenh.c ic/nsidcnh.c ic/foreicesh.c \
+     ic/nsidcsh.c ic/nsidc.h ic/mpi.f ic/restsh.f ic/restnh.f \
+     ic/restpip.f ic/Makefile
+
+running : running/fullfore.jcl \
+          running/glk/runparm.glk running/glk/runzero.glk \
+          running/north/runparm.north running/north/runzero.north \
+          running/south/runparm.south running/south/runzero.south
+
+meteo : meteo/thregt.f meteo/twoget.f meteo/getold.f meteo/getflx.f \
+        meteo/forfld.f meteo/terp.f meteo/Makefile
+ 
+
+
+#Sources in the mpi.source directory:
+mpi.source/mgrid.inc : $(REFHOME)/mpi.source/mgrid.inc
+	echo 'cp $(REFHOME)/mpi.source/mgrid.inc ./mpi.source ' >> upexec
+mpi.source/physical.inc : $(REFHOME)/mpi.source/physical.inc
+	echo 'cp $(REFHOME)/mpi.source/physical.inc ./mpi.source ' >> upexec
+mpi.source/oml.inc : $(REFHOME)/mpi.source/oml.inc
+	echo 'cp $(REFHOME)/mpi.source/oml.inc ./mpi.source ' >> upexec
+mpi.source/rheology.inc : $(REFHOME)/mpi.source/rheology.inc
+	echo 'cp $(REFHOME)/mpi.source/rheology.inc ./mpi.source ' >> upexec
+mpi.source/icegrid.north : $(REFHOME)/mpi.source/icegrid.north
+	echo 'cp $(REFHOME)/mpi.source/icegrid.north ./mpi.source ' >> upexec
+mpi.source/icegrid.south : $(REFHOME)/mpi.source/icegrid.south
+	echo 'cp $(REFHOME)/mpi.source/icegrid.south ./mpi.source ' >> upexec
+mpi.source/icegrid.glk : $(REFHOME)/mpi.source/icegrid.glk
+	echo 'cp $(REFHOME)/mpi.source/icegrid.glk ./mpi.source ' >> upexec
+mpi.source/ICEMODEL.f : $(REFHOME)/mpi.source/ICEMODEL.f
+	echo 'cp $(REFHOME)/mpi.source/ICEMODEL.f ./mpi.source ' >> upexec
+mpi.source/Makefile : $(REFHOME)/mpi.source/Makefile
+	echo 'cp $(REFHOME)/mpi.source/Makefile ./mpi.source ' >> upexec
+
+#items in the main directory
+analy.jcl : $(REFHOME)/analy.jcl
+	echo 'cp $(REFHOME)/analy.jcl . ' >> upexec
+ic.jcl : $(REFHOME)/ic.jcl
+	echo 'cp $(REFHOME)/ic.jcl . ' >> upexec
+model.jcl : $(REFHOME)/model.jcl
+	echo 'cp $(REFHOME)/model.jcl . ' >> upexec
+bc.jcl : $(REFHOME)/bg.jcl
+	echo 'cp $(REFHOME)/bc.jcl . ' >> upexec
+met.jcl : $(REFHOME)/met.jcl
+	echo 'cp $(REFHOME)/met.jcl . ' >> upexec
+travel : $(REFHOME)/travel
+	echo 'cp $(REFHOME)/travel   . ' >> upexec
+build : $(REFHOME)/build
+	echo 'cp $(REFHOME)/build . ' >> upexec
+
+#Boundary condition construction:
+bc/listpts.f : $(REFHOME)/bc/listpts.f
+	echo ' cp $(REFHOME)/bc/listpts.f  bc/listpts.f ' >> upexec
+bc/bc.jcl : $(REFHOME)/bc/bc.jcl
+	echo ' cp $(REFHOME)/bc/bc.jcl  bc/bc.jcl ' >> upexec
+bc/layers.f : $(REFHOME)/bc/layers.f
+	echo ' cp $(REFHOME)/bc/layers.f  bc/layers.f ' >> upexec
+bc/masker.f : $(REFHOME)/bc/masker.f
+	echo ' cp $(REFHOME)/bc/masker.f  bc/masker.f ' >> upexec
+bc/mclean.f : $(REFHOME)/bc/mclean.f
+	echo ' cp $(REFHOME)/bc/mclean.f  bc/mclean.f ' >> upexec
+bc/regrid.f : $(REFHOME)/bc/regrid.f
+	echo ' cp $(REFHOME)/bc/regrid.f  bc/regrid.f ' >> upexec
+bc/tsexam.f : $(REFHOME)/bc/tsexam.f
+	echo ' cp $(REFHOME)/bc/tsexam.f  bc/tsexam.f ' >> upexec
+bc/tsmaker.f : $(REFHOME)/bc/tsmaker.f
+	echo ' cp $(REFHOME)/bc/tsmaker.f  bc/tsmaker.f ' >> upexec
+bc/adj6.f : $(REFHOME)/bc/adj6.f
+	echo ' cp $(REFHOME)/bc/adj6.f  bc/adj6.f ' >> upexec
+bc/Makefile : $(REFHOME)/bc/Makefile
+	echo ' cp $(REFHOME)/bc/Makefile  bc/Makefile ' >> upexec
+bc/glk.oin : $(REFHOME)/bc/glk.oin
+	echo ' cp $(REFHOME)/bc/glk.oin  bc/glk.oin ' >> upexec
+bc/north.oin : $(REFHOME)/bc/north.oin
+	echo ' cp $(REFHOME)/bc/north.oin  bc/north.oin ' >> upexec
+bc/south.oin : $(REFHOME)/bc/south.oin
+	echo ' cp $(REFHOME)/bc/south.oin  bc/south.oin ' >> upexec
+
+#Analysis routines:
+analy/mapbuoy.f : $(REFHOME)/analy/mapbuoy.f
+	echo ' cp $(REFHOME)/analy/mapbuoy.f analy/mapbuoy.f ' >> upexec
+analy/mapvec.f : $(REFHOME)/analy/mapvec.f
+	echo ' cp $(REFHOME)/analy/mapvec.f analy/mapvec.f ' >> upexec
+analy/mappip.f : $(REFHOME)/analy/mappip.f
+	echo ' cp $(REFHOME)/analy/mappip.f analy/mappip.f ' >> upexec
+analy/metplt.f : $(REFHOME)/analy/metplt.f
+	echo ' cp $(REFHOME)/analy/metplt.f analy/metplt.f ' >> upexec
+analy/FX.f : $(REFHOME)/analy/FX.f
+	echo ' cp $(REFHOME)/analy/FX.f analy/FX.f ' >> upexec
+analy/FY.f : $(REFHOME)/analy/FY.f
+	echo ' cp $(REFHOME)/analy/FY.f analy/FY.f ' >> upexec
+analy/mapcont.f : $(REFHOME)/analy/mapcont.f
+	echo ' cp $(REFHOME)/analy/mapcont.f analy/mapcont.f ' >> upexec
+analy/map2.f : $(REFHOME)/analy/map2.f
+	echo ' cp $(REFHOME)/analy/map2.f analy/map2.f ' >> upexec
+analy/corners.f : $(REFHOME)/analy/corners.f
+	echo ' cp $(REFHOME)/analy/corners.f analy/corners.f ' >> upexec
+analy/mapim.f : $(REFHOME)/analy/mapim.f
+	echo ' cp $(REFHOME)/analy/mapim.f analy/mapim.f ' >> upexec
+analy/magnify.f : $(REFHOME)/analy/magnify.f
+	echo ' cp $(REFHOME)/analy/magnify.f analy/magnify.f ' >> upexec
+analy/mapim2.f : $(REFHOME)/analy/mapim2.f
+	echo ' cp $(REFHOME)/analy/mapim2.f analy/mapim2.f ' >> upexec
+analy/Makefile : $(REFHOME)/analy/Makefile
+	echo ' cp $(REFHOME)/analy/Makefile analy/Makefile ' >> upexec
+analy/northin : $(REFHOME)/analy/northin
+	echo ' cp $(REFHOME)/analy/northin analy/northin ' >> upexec
+analy/southin : $(REFHOME)/analy/southin
+	echo ' cp $(REFHOME)/analy/southin analy/southin ' >> upexec
+analy/glkin : $(REFHOME)/analy/glkin
+	echo ' cp $(REFHOME)/analy/glkin analy/glkin ' >> upexec
+
+#Initial conditions files:
+ic/icessmi.h : $(REFHOME)/ic/icessmi.h
+	echo ' cp $(REFHOME)/ic/icessmi.h ic/icessmi.h ' >> upexec
+ic/foregrids.h : $(REFHOME)/ic/foregrids.h
+	echo ' cp $(REFHOME)/ic/foregrids.h ic/foregrids.h ' >> upexec
+ic/icegrids.h : $(REFHOME)/ic/icegrids.h
+	echo ' cp $(REFHOME)/ic/icegrids.h ic/icegrids.h ' >> upexec
+ic/ssmi.h : $(REFHOME)/ic/ssmi.h
+	echo ' cp $(REFHOME)/ic/ssmi.h ic/ssmi.h ' >> upexec
+ic/nsidc.h : $(REFHOME)/ic/nsidc.h
+	echo ' cp $(REFHOME)/ic/nsidc.h ic/nsidc.h ' >> upexec
+ic/foreicenh.c : $(REFHOME)/ic/foreicenh.c
+	echo ' cp $(REFHOME)/ic/foreicenh.c ic/foreicenh.c ' >> upexec
+ic/nsidcnh.c : $(REFHOME)/ic/nsidcnh.c
+	echo ' cp $(REFHOME)/ic/nsidcnh.c ic/nsidcnh.c ' >> upexec
+ic/foreicesh.c : $(REFHOME)/ic/foreicesh.c
+	echo ' cp $(REFHOME)/ic/foreicesh.c ic/foreicesh.c ' >> upexec
+ic/nsidcsh.c : $(REFHOME)/ic/nsidcsh.c
+	echo ' cp $(REFHOME)/ic/nsidcsh.c ic/nsidcsh.c ' >> upexec
+ic/mpipip.f : $(REFHOME)/ic/mpipip.f 
+	echo ' cp $(REFHOME)/ic/mpipip.f ic/mpipip.f ' >> upexec
+ic/pipstrt.f : $(REFHOME)/ic/pipstrt.f 
+	echo ' cp $(REFHOME)/ic/pipstrt.f ic/pipstrt.f ' >> upexec
+ic/mpi.f : $(REFHOME)/ic/mpi.f 
+	echo ' cp $(REFHOME)/ic/mpi.f ic/mpi.f ' >> upexec
+ic/restsh.f : $(REFHOME)/ic/restsh.f 
+	echo ' cp $(REFHOME)/ic/restsh.f ic/restsh.f ' >> upexec
+ic/restnh.f : $(REFHOME)/ic/restnh.f 
+	echo ' cp $(REFHOME)/ic/restnh.f ic/restnh.f ' >> upexec
+ic/restpip.f : $(REFHOME)/ic/restpip.f 
+	echo ' cp $(REFHOME)/ic/restpip.f ic/restpip.f ' >> upexec
+ic/Makefile : $(REFHOME)/ic/Makefile
+	echo ' cp $(REFHOME)/ic/Makefile ic/Makefile ' >> upexec
+
+#Running files
+running/glk/runzero.glk : $(REFHOME)/running/glk/runzero.glk
+	echo ' cp $(REFHOME)/running/glk/runzero.glk running/glk ' >> upexec
+running/glk/runparm.glk : $(REFHOME)/running/glk/runparm.glk
+	echo ' cp $(REFHOME)/running/glk/runparm.glk running/glk ' >> upexec
+running/north/runzero.north : $(REFHOME)/running/north/runzero.north
+	echo ' cp $(REFHOME)/running/north/runzero.north running/north ' >> upexec
+running/north/runparm.north : $(REFHOME)/running/north/runparm.north
+	echo ' cp $(REFHOME)/running/north/runparm.north running/north ' >> upexec
+running/south/runzero.south : $(REFHOME)/running/south/runzero.south
+	echo ' cp $(REFHOME)/running/south/runzero.south running/south ' >> upexec
+running/south/runparm.south : $(REFHOME)/running/south/runparm.south
+	echo ' cp $(REFHOME)/running/south/runparm.south running/south ' >> upexec
+
+running/fullfore.jcl : $(REFHOME)/running/fullfore.jcl
+	echo ' cp $(REFHOME)/running/fullfore.jcl running' >> upexec
+
+
+#Meteorological routines:
+meteo/thregt.f : $(REFHOME)/meteo/thregt.f
+	echo ' cp $(REFHOME)/meteo/thregt.f meteo ' >> upexec
+meteo/twoget.f : $(REFHOME)/meteo/twoget.f
+	echo ' cp $(REFHOME)/meteo/twoget.f meteo ' >> upexec
+meteo/getold.f : $(REFHOME)/meteo/getold.f
+	echo ' cp $(REFHOME)/meteo/getold.f meteo ' >> upexec
+meteo/getflx.f : $(REFHOME)/meteo/getflx.f
+	echo ' cp $(REFHOME)/meteo/getflx.f meteo ' >> upexec
+meteo/forfld.f : $(REFHOME)/meteo/forfld.f
+	echo ' cp $(REFHOME)/meteo/forfld.f meteo ' >> upexec
+meteo/terp.f : $(REFHOME)/meteo/terp.f
+	echo ' cp $(REFHOME)/meteo/terp.f meteo ' >> upexec
+meteo/Makefile : $(REFHOME)/meteo/Makefile
+	echo ' cp $(REFHOME)/meteo/Makefile meteo ' >> upexec

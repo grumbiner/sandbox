@@ -1,0 +1,34 @@
+PDIR=`pwd`
+for base in $HOME3
+do
+
+  for tag in mrf others others/unused.q library skile2 grib drift score drift.score \
+   ssmi sst bgmisc finished misc control bin \
+   biblio data loose topo ocean iscp glakes great.lakes great.lakes/rumer \
+   icemodel icemodel/running icemodel/running/north icemodel/running/south \
+   icemodel/running/glk icemodel/ic icemodel/bc \
+   icemodel/analy icemodel/meteo icemodel/mpi.source icemodel/mpi.source/therm \
+   icemodel/mpi.source/dynam icemodel/mpi.source/io icemodel/mpi.source/misc \
+   icemodel/misc 
+  do
+
+  ODIR=$base/$tag
+  
+  if [ $PDIR !=  $ODIR ] ; then
+    if [ -d $ODIR ] ; then
+      if [ -f $1 ] ; then
+        if [ -f $ODIR/$1 ] ; then
+          cmp $1 $ODIR/$1
+          if [ $? -eq 0 ] ; then
+            chmod u+w $1
+            echo $ODIR matches, removing $1
+            rm $1
+          fi
+        # else
+        #  mv $1 $ODIR
+        fi
+      fi
+    fi
+  fi
+  done
+done

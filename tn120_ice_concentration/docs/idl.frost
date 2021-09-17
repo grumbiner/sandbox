@@ -1,0 +1,189 @@
+From owner-emc@ncep.noaa.gov  Fri Apr 11 10:31:22 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h3BEVLo22110
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 11 Apr 2003 10:31:21 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h3BEVIuN018957
+	for <grumbine@ncep.noaa.gov>; Fri, 11 Apr 2003 10:31:18 -0400
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HD6OC700.GRK; Fri, 11 Apr 2003 10:31:19 -0400 
+Received: from nems.noaa.gov ([205.156.4.217]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          ESMTP id HD6OC600.GEC; Fri, 11 Apr 2003 10:31:18 -0400 
+Received: by nems.noaa.gov; id KAA15957; Fri, 11 Apr 2003 10:25:34 -0400 (EDT)
+Received: from tstunx38.ncep.noaa.gov(140.90.193.252) by gummo.nems.noaa.gov via csmap (V4.1)
+	id srcEAA3WaajF; Fri, 11 Apr 03 10:25:34 -0400
+Received: from sgi72.wwb.noaa.gov (sgi72.wwb.noaa.gov [140.90.193.211])
+	by tstunx38.wwb.noaa.gov (8.11.6/8.11.6) with ESMTP id h3BEPPv12629;
+	Fri, 11 Apr 2003 10:25:25 -0400
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id KAA69918
+	for emc-outgoing; Fri, 11 Apr 2003 10:24:57 -0400 (EDT)
+Message-ID: <3E96D256.7A04A5B3@noaa.gov>
+Date: Fri, 11 Apr 2003 10:33:59 -0400
+From: "Billy Newell" <Billy.Newell@noaa.gov>
+Organization: NOAA/NWS/NCEP/EMC
+X-Mailer: Mozilla 4.73 [en] (Win98; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: Contractors of EMC <emc-contractors@sgi72.wwb.noaa.gov>,
+   Federal Employee of EMC <emc@sgi72.wwb.noaa.gov>,
+   Visiting Scientist of EMC <emc-visitors@sgi72.wwb.noaa.gov>
+Subject: [Fwd: IDL Available]
+Content-Type: multipart/mixed;
+ boundary="------------358AB3801CE2D6B173600D84"
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Billy Newell" <Billy.Newell@noaa.gov>
+X-MailScanner-Information: Testing Virus Scanner - postmaster@loft.ncep.noaa.gov
+X-MailScanner: Found to be clean
+Status: RO
+
+This is a multi-part message in MIME format.
+--------------358AB3801CE2D6B173600D84
+Content-Type: multipart/alternative;
+ boundary="------------0CF95737F2D592B2F6439B2F"
+
+
+--------------0CF95737F2D592B2F6439B2F
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+
+ena cantu wrote:
+
+> Mr. Newell, IDL is now available on the frost and snow machines.
+> Information for configuration and access can be obtained from  the
+> Frost/Snow User Manual at
+> http://ibmdocs.ncep.noaa.gov/userman/idl.configuration.and.access.html. I
+> would like to send a MOTD to notify users of availability.  Please let
+> me know the when your initial testing is completed and the general
+> notification can be sent. Thank you. Ena Cantu(301) 763-8000
+> x7123edcantu21@hotmail.com
+>
+>
+> -----------------------------------------------------------------------
+> MSN 8 helps ELIMINATE E-MAIL VIRUSES. Get 2 months FREE*.
+
+--------------0CF95737F2D592B2F6439B2F
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+&nbsp;
+<p>ena cantu wrote:
+<blockquote TYPE=CITE>
+<div style='background-color:'>Mr. Newell,&nbsp;IDL is now available on
+the frost and snow machines.&nbsp; Information for configuration and access
+can be obtained from&nbsp; the Frost/Snow User Manual at <a href="http://ibmdocs.ncep.noaa.gov/userman/idl.configuration.and.access.html">http://ibmdocs.ncep.noaa.gov/userman/idl.configuration.and.access.html</a>.&nbsp;I
+would like to send a MOTD to notify users of availability.&nbsp; Please
+let me know the when your initial testing is completed and the general
+notification can be sent.&nbsp;Thank you.&nbsp;Ena Cantu(301) 763-8000
+x7123<a href="mailto:edcantu21@hotmail.com">edcantu21@hotmail.com</a></div>
+
+<p><br>
+<hr>MSN 8 helps <a href="http://g.msn.com/8HMBENUS/2743">ELIMINATE E-MAIL
+VIRUSES. </a>Get 2 months FREE*.</blockquote>
+</html>
+
+--------------0CF95737F2D592B2F6439B2F--
+
+--------------358AB3801CE2D6B173600D84
+Content-Type: text/x-vcard; charset=us-ascii;
+ name="Billy.Newell.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Description: Card for Billy Newell
+Content-Disposition: attachment;
+ filename="Billy.Newell.vcf"
+
+begin:vcard 
+n:Newell;Billy
+tel;fax:301-763-8545
+tel;work:301-763-8000 x7206
+x-mozilla-html:FALSE
+org:NOAA/NWS/NCEP;Environmental Modeling Center
+version:2.1
+email;internet:Billy.Newell@noaa.gov
+title:Computer Specialist
+adr;quoted-printable:;;NOAA Science Center=0D=0A5200 Auth Road, Room 209;Camp Springs;MD;20746;
+end:vcard
+
+--------------358AB3801CE2D6B173600D84--
+
+From list  Mon Apr 28 20:57:26 2003
+Return-Path: <list@polar.ncep.noaa.gov>
+Received: (from list@localhost)
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) id h3T0vPH30124;
+	Mon, 28 Apr 2003 20:57:25 -0400
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h3T0vOo30121
+	for <list@polar.wwb.noaa.gov>; Mon, 28 Apr 2003 20:57:24 -0400
+Received: from lnx154.ncep.noaa.gov (lnx154.wwb.noaa.gov [140.90.192.75])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h3T0vIuN027617
+	for <list@polar.wwb.noaa.gov>; Mon, 28 Apr 2003 20:57:18 -0400
+Received: (from woconnor@localhost)
+	by lnx154.ncep.noaa.gov (8.11.6/8.11.6) id h3T0vNr21079
+	for list@polar.wwb.noaa.gov; Mon, 28 Apr 2003 20:57:23 -0400
+Date: Mon, 28 Apr 2003 20:57:23 -0400
+From: "William  O' Connor" <woconnor@lnx154.ncep.noaa.gov>
+Message-Id: <200304290057.h3T0vNr21079@lnx154.ncep.noaa.gov>
+To: list@polar.wwb.noaa.gov
+Subject: FULL IDL frost
+Status: RO
+
+                                               Apr. 28, 2003 
+Memo 
+To:     All
+From:   Bill O'Connor
+Subj:   IDL on frost/snow
+
+Now IDL graphics has been installed on frost/snow.  The proceedure 
+for using it is explained on their web page:
+
+http://ibmdocs.ncep.noaa.gov/userman/idl.configuration.and.access.html 
+
+which was updated today because it previously contained erroneous 
+information about the nodes with IDL on frost and snow.
+
+To use IDL as explained in the above documentation:
+1. add the following lines to your .profile file
+
+.  /usrx/local/rsi/idl_5.5/bin/idl_setup.ksh
+export LM_LICENSE_FILE='1700@hanfs1'
+
+2. Run the .profile with
+. .profile
+or log out and log in again. 
+
+IDL can only be accessed from node f2n2 on frost and s2n2 on snow.
+To access from frost, first telnet to frost, and then do a 
+telnet f2n2 
+and give your account name and password again. 
+To access from snow, first telnet to snow, and then do a 
+telnet s2n2
+and give your account name and password again.   
+
+You can execute idl with the command 
+idl
+but if you are using idl in a script, give the full pathway
+name above. 
+This is all I did and I got it to run.  If you have any questions
+feel free to ask me. 
+Bill
+*********************************************************************
+     WILLIAM P OCONNOR
+     NOAA/NWS/NCEP/EMC/
+     MARINE MODELING AND ANALYSIS BRANCH 
+     MAIL CODE W/NP21 
+     5200 AUTH ROAD  RM 209   
+     CAMP SPRINGS MD 20746 
+
+     Phone   301-763-8000 Ext 7245 
+     fax     301-763-8545  
+     e-mail  william.oconnor@noaa.gov    
+*********************************************************************
+

@@ -1,0 +1,134 @@
+2001 Mar 17 ampltoxpm.C phasetoxpm.C
+  produce graphics of amplitude and phase files
+
+2002 Jul 19 sorensen.tar
+  figures on bad scan line problem from Sorensen
+
+-------------------------------------------------------
+
+2003 Jan 23 connolley/
+  William Connolley info comparing BAS and AWI obs with MMAB ice cover maps
+
+2003 Jan 28 regional.reanalysis/
+  Regional reanalysis files
+     link to /usr1/data/2d/reg.reanaly
+     full output /usr1/data/3d/reg.reanalysis, /usr1/data2/1970s/reg.reanaly/,
+       /usr1/data2/reg.reanalysis/
+
+2003 Apr 3 first.C first.sh icessmi85.h
+  For more 85GHz experiments
+
+2003 May 15 bufr.sh
+  Debufrize a tank (only)
+
+2003 Jul 17 lltest
+  Script for 3 ssmi processing
+
+2003 Oct 22 flopsub.C
+  Functions (only) for computing floppiness, with and without flag value
+
+2003 Oct 24 ice.gs aa.gs arctic.gs arctic.ctl aa.ctl grib.notes
+  control files for making grads plots
+  notes on how to use grib in grads 
+
+2003 Nov 10 rtxpm.C
+  Fairly general 'read a concentration file and produce a graphic' program
+
+2003 Dec 5 toxpm.C
+  Even more general 'read a concentration file and produce a graphic' program
+  
+---------------
+2004 Jan 22 asi-n6250-20030714_visual2.png
+  Sample of Kalesch figure from high res satellite
+
+2004 Feb 18 modis.ims.2004
+  IMS project plan (Tom Schott forward)
+
+2004 Feb 25 kalesch
+  2003 Jul 18 email from L. Kalesch on their AMSR ice
+
+2004 Mar 16 stats.c
+  Check some statistics and do some qc on ssmi (n3ssmi) data files
+
+2004 Mar 30 analy
+  Yet another (bootstrap, ex) list of things to try/think about
+
+2004 Apr 2 stats.funs.C
+  correlation, dot product, gram-schmidt orthogonalization on mvectors
+
+2004 Apr 2 seaice_users.html
+  list of some sea ice users
+
+2004 Apr 20 qc/
+  quality control on n3ssmi-type files
+
+2004 Apr 21 intersatellite/
+  regress between the 3 (then) satellites and check that they give same 
+answers where they should.
+
+2004 Apr 27 unfillable.C unfillable
+  Program to see which points on the globe (land masked) cannot be filled
+by ice concentrations from the ps grids.
+  Sample output of same.
+
+2004 Apr 30 weather_count.C
+  Compare two data files and construct graphic of relative weather counts
+
+2004 May 5 questions, jif.notes.20040505
+  questions (unasked, unanswered) on operations and codes
+  jif notes for the 2004 resolution improvement implementation
+
+2004 May 7 round1.codes
+  more notes for jif
+
+2004 May 7 psg.sh
+  script to just grib the psgrids
+
+2004 May 19 fix.jif
+  notes on jiffing the new fixed fields
+
+2004 May 19 debufr.sh
+  script to just de-bufr the data tanks
+
+2004 May 20 round2.codes, round2
+  more notes on resolution implementation
+
+2004 Jun 10 modis
+  daac info for/from modis
+
+2004 Jun 16 iceclimate/
+  Files/work from 9 Dec 1998 to above date on sea ice climatology
+
+2004 Jun 22 find.graphics.sh
+  Search for which graphics are missing from ftp archive
+
+2004 Jun 23 4km/
+  try to match locations with nesdis 4 km grid
+
+2004 Jul 13 time_interp.C
+  interpolate in time on sea ice grids
+
+2004 Jul 13 north.leastsq.C
+  Use IBM essl library to do N-th order polynomial regression for 
+sea ice parameters
+
+2004 Jul 13 simple_getcell.C
+  Read in a GRIDTYPE of VARTYPE and give value at input lat-long location
+
+2004 Jul 30 ssmi.cluster.C, ssmi.cluster.sh
+  Sample of genetically looking for clusters in brightness temperature space on ssmi data
+
+2004 Jul 30 land.os/
+  Land mask-related files, but not land masks, from 19 Nov 1998 to 30 Jul 2004
+
+2004 Aug 3 display.land.C
+  Flag information on land maps
+
+2004 Aug 12 biologists
+  email from biologists about the sea ice concentration product
+
+2004 Aug 25 Weddell.html rotation.html
+  Weddell sea (polynya) page
+  rotation - explain about the rotation of magnified images
+
+
