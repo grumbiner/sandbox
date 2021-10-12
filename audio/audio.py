@@ -32,11 +32,11 @@ note  = np.sin(freq*t*2*np.pi)
 
 freq = 442
 ##note += np.sin(freq*t*2*np.pi) * 0.125
-note += np.sin(freq*t*2*np.pi) 
+note += np.sin(freq*t*2*np.pi) * 0.0 
 #
 freq *= 438
 ##note += np.sin(freq*t*2*np.pi) * 0.125
-note += np.sin(freq*t*2*np.pi) * 1.0
+note += np.sin(freq*t*2*np.pi) * 0.0
 
 #freq -= 2
 #note += np.sin(freq*t*2*np.pi) * 0.5
