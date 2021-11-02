@@ -1,0 +1,164 @@
+	$(CC) $(CFLAGS) grid8b.C -I $(INCDIR) $(LIB) -DGRIDTYPE=northgrid -o grid.north
+	$(CC) $(CFLAGS) grid8b.C -I $(INCDIR) $(LIB) -DGRIDTYPE=northhigh -o grid.northhigh
+	$(CC) $(CFLAGS) grid8b.C -I $(INCDIR) $(LIB) -DGRIDTYPE=southgrid -o grid.south
+	$(CC) $(CFLAGS) grid8b.C -I $(INCDIR) $(LIB) -DGRIDTYPE=southhigh -o grid.southhigh
+	$(FC) $(FFLAGS) -o  $(@) $(OBJS) $(LIBS)
+	$(CC) $(CFLAGS) amsre_binary.c
+	$(CC) $(CFLAGS) gac_binary.c
+	$(CC) $(CFLAGS) reduce.C -I $(INCDIR) $(LIB) -DGRIDLOW=global_ice -DGRIDHIGH=global_12th -o seaice_global_reduce 
+	$(CC) $(CFLAGS) reduce.C -I $(INCDIR) $(LIB) -DGRIDLOW=northgrid -DGRIDHIGH=northhigh -o seaice_north_reduce 
+	$(CC) $(CFLAGS) reduce.C -I $(INCDIR) $(LIB) -DGRIDLOW=southgrid -DGRIDHIGH=southhigh -o seaice_south_reduce 
+	$(CC) $(LDOPTS) $< -o $@ $(LIBS)
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=global_12th $(LIB) -I$(INCDIR) -o seaice_fglobal5minxpm
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=global_ice $(LIB) -I$(INCDIR) -o seaice_fglobalxpm
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=northgrid $(LIB) -I$(INCDIR) -o seaice_fnorthxpm
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=northhigh $(LIB) -I$(INCDIR) -o seaice_fnorth12xpm
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=southgrid $(LIB) -I$(INCDIR) -o seaice_fsouthxpm
+	$(CC) $(OPTS) seaice_fxpm.C -DGRIDTYPE=southhigh $(LIB) -I$(INCDIR) -o seaice_fsouth12xpm
+	$(CC) $(OPTS) seaice_posteriori.C -DGLOBAL=global_12th -DNORTH=northhigh -DSOUTH=southhigh $(LIB) -I$(INCDIR) -o seaice_posteriori_5min.x
+	$(CC) $(OPTS) seaice_posteriori.C -DGLOBAL=global_ice -DNORTH=northgrid -DSOUTH=southgrid $(LIB) -I$(INCDIR) -o seaice_posteriori_30min.x
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=global_12th $(LIB) -I$(INCDIR) -o seaice_global5minxpm
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=global_ice $(LIB) -I$(INCDIR) -o seaice_globalxpm
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=northgrid $(LIB) -I$(INCDIR) -o seaice_northxpm
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=northhigh $(LIB) -I$(INCDIR) -o seaice_north12xpm
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=southgrid $(LIB) -I$(INCDIR) -o seaice_southxpm
+	$(CC) $(OPTS) seaice_xpm.C -DGRIDTYPE=southhigh $(LIB) -I$(INCDIR) -o seaice_south12xpm
+	$(CC) -O2 binary.c -I $(INCDIR)
+	$(CC) -O2 ssmisu_binary.c -I $(INCDIR)
+	$(CC) -c -DGRIDTYPE=global_12th $(OPTS) $<
+	$(CC) -c -DGRIDTYPE=great_lakes_wave $(OPTS) $< -o $(@)
+	$(CC) -c -I $(INCDIR) filt3.C 
+	$(CC) -c -I$(INCDIR) seaice_edge.C  -DANALYSIS=global_12th -DMODEL=global_12th 
+	$(CC) -c fill.C -I $(INCDIR) 
+	$(CC) fill.o $(LIBS) -o seaice_icegrid
+	$(CC) filt3.o -o seaice_filtanal $(LIBS) 
+	$(CC) seaice_edge.o -o seaice_edge $(LIBS)
+	$(CC) seaice_monitor.C -I $(INCDIR) -DGRIDTYPE=global_12th -DDATTYPE="unsigned char" $(LIBS) -o seaice_monitor_c12th
+	$(CLD) amsr.main.o $(LIBS) -o seaice_seaiamsr
+	$(CLD) blend.o $(LIBS) -o  seaice_blend
+	$(CLD) gacfilt.o $(LIBS) -o seaice_avhrrfilter
+	$(CLD) ssmi.main.o $(LIBS) -o seaice_seaissmi
+	$(CLD) ssmis.main.o $(LIBS) -o seaice_seaissmis
+	$(FC) $(FFLAGS) amsr_decode.f
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
+	$(FC) $(MMABLIB)/GRIBIT.f 
+	$(FC) mkllglob.f 
+	$(FC) mkllglob.f -o mkllglob5.o
+	$(FC) psgrib.f $(MMABLIB)/GRIBIT.f -I $(INC)
+	$(FC) ssmi.bufr.f
+	$(FC) ssmisu_decode.f
+	$(FLD) amsr_decode.o amsre_binary.o -o $(@) $(LIBS)
+	$(FLD) mkllglob.o GRIBIT.o $(LIBS) -o seaice_ice2grib
+	$(FLD) mkllglob5.o GRIBIT.o $(LIBS) -o seaice_ice2grib5min
+	$(FLD) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgnorth
+	$(FLD) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgnorth12
+	$(FLD) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgsouth
+	$(FLD) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgsouth12
+	$(FLD) ssmi.bufr.o binary.o $(LIBS) -o seaice_ssmibufr
+	$(FLD) ssmisu_decode.o ssmisu_binary.o $(LIBS) -o seaice_ssmisubufr
+	$(RPP) amsr.main.C 
+	$(RPP) blend.C 
+	$(RPP) gacfilt.C 
+	$(RPP) ssmi.main.C 
+	$(RPP) ssmis.main.C 
+	-rm -f $(CMD) $(CMD).prof
+	-rm -f $(OBJS)
+	-rm -f $(SRCS) makefile
+	-rm -f $(SRCS) makefile.readamsre
+	ln -sf $(INC)/icegrid.north icegrid.inc
+	ln -sf $(INC)/icegrid.north12 icegrid.inc
+	ln -sf $(INC)/icegrid.south icegrid.inc
+	ln -sf $(INC)/icegrid.south12 icegrid.inc
+	ln -sf $(INCDIR)/icegrid.global icegrid.inc
+	ln -sf $(INCDIR)/icegrid.global5min icegrid.inc
+	rm -f icegrid.inc
+	rm -f mkllglob.o icegrid.inc
+	rm -f mkllglob5.o icegrid.inc
+ 
+  
+       -L/usrx/local/64bit/lib -ljasper -lpng -lz
+$(CMD).prof:	$(OBJS)
+$(CMD):		$(OBJS)
+CC = gcc
+CC = gcc -I $(BASE)/mmab/$(VER)/include/
+CC=g++
+CC=g++ -O2 -Wall -DLINUX
+CC=g++ -Wall -DLINUX -O2
+CC=g++ -Wall -O2 -DLINUX -DGRIDTYPE=global_12th
+CC=gcc -c -O2 -DLINUX
+CC=gcc -c -O2 -q64 -DLINUX
+CFLAGS = -DLINUX -Wall -O2 -c -q64
+CFLAGS = -O2 -DLINUX -c -Wall -I $(BASE)/mmab/$(mmablib_ver)/include
+CLD=g++
+CLD=g++ -O2 -Wall -DTEAM2 -DLINUX -DCPLUS
+CMD =	    seaice_avhrrbufr
+CMD =	seaice_grib2
+FC =           ifort
+FC = ifort
+FC=ifort -O2 -c
+FC=ifort -c -O2
+FC=ifort -c -O2 -I$(INCDIR) 
+FFLAGS =        $(INC)
+FFLAGS = -O3 
+FFLAGS= -O2 -c 
+FLD = ifort
+FLD=ifort
+GRIBIT.o : $(MMABLIB)/GRIBIT.f
+INC = /nwprod/lib/incmod/g2_4 
+INC=$(BASE)/mmab/$(VER)/include
+INCDIR=$(BASE)/mmab/$(VER)/include
+INCDIR=$(BASE)/mmab/$(VER)/include/
+LDFLAGS =	
+LDFLAGS = 
+LDOPTS=
+LIB=$(BASE)/mmab/$(VER)/libombc_4.a $(BASE)/mmab/$(VER)/libombf_4.a
+LIB=$(BASE)/mmab/$(VER)/libombf_4.a
+LIB=$(BASE)/mmab/$(VER)/libombf_4.a -lm
+LIBS =	   -L/nwprod/lib -lw3nco_d -lw3emc_d -lbufr_d_64 
+LIBS =	-L/nwprod/lib -lw3nco_4 -lbufr_4_64
+LIBS = $(BASE)/mmab/$(VER)/libombf_4.a -lm
+LIBS = -L /nwprod/lib $(BASE)/mmab/$(VER)/libombf_4.a -lw3nco_4 -lbacio_4
+LIBS = -L$(BASE)/mmab/$(VER) -L/nwprod/lib -lombf_4 -lbacio_4 -lw3nco_4 
+LIBS = -L$(BASE)/mmab/$(VER)/ -lombf_4 -L/nwprod/lib -lbacio_4 -lw3nco_4
+LIBS = -L/nwprod/lib -lg2_4 -lw3nco_4 -lbacio_4\
+LIBS = -L/nwprod/lib -lw3nco_4 -lbufr_4_64
+LIBS=$(BASE)/mmab/$(VER)/libombc_4.a $(BASE)/mmab/$(VER)/libombf_4.a -lm
+LIBS=$(BASE)/mmab/$(VER)/libombf_4.a
+LIBS=$(BASE)/mmab/$(VER)/libombf_4.a -lm
+MMABLIB=$(BASE)/mmab/$(VER)/sorc/
+OBJS=	gac_readsst.o gac_binary.o
+OBJS=	seaice_grib2.o
+OPTS=-Wall -O2 -DLINUX
+OPTS=-Wall -O2 -DLINUX -I $(BASE)/mmab/$(VER)/include
+PROFLIB =	-lprof
+PROFLIB =  
+RPP=g++ -c -Wall -O2 -DLINUX -I $(INCDIR) 
+RPP=g++ -c -Wall -O2 -I $(INCDIR) -DTEAM2 -DLINUX -DCPLUS
+RPP=g++ -c -Wall -O2 -I$(INCDIR) -DHIRES -DTEAM2 -DLINUX -DCPLUS
+RPP=g++ -c -Wall -O2 -I$(INCDIR) -DTEAM1 -DLINUX 
+RPP=g++ -c -Wall -O2 -I$(INCDIR) -DTEAM2 -DLINUX -DCPLUS
+SHELL=		/bin/sh
+SHELL=/bin/sh
+SRCS=	gac_readsst.f gac_binary.c
+SRCS=	seaice_grib2.f
+VER=$(mmablib_ver)
+all : grid.northhigh grid.southhigh grid.north grid.south
+all : imsice imsice_gl 
+all : noice noice_gl 
+all : psgsouth psgsouth12
+all : seaice_north_reduce seaice_south_reduce seaice_global_reduce
+all : seaice_northxpm seaice_southxpm seaice_north12xpm seaice_south12xpm seaice_globalxpm seaice_global5minxpm
+all : seaice_posteriori_30min.x seaice_posteriori_5min.x
+all:		$(CMD)
+all: psgnorth psgnorth12
+all: seaice_edge
+all: seaice_filtanal 
+all: seaice_ice2grib seaice_ice2grib5min
+amsr.main.o : amsr.main.C amsr_getfld.C amsr_hires.C amsr_team2.C amsr_icetools.C pole_fill.C amsr_process_bufr.C
+amsre_binary.o : amsre_binary.c 
+blend.o : blend.C 
+clean:
+clobber:	clean
+void:	clobber
+

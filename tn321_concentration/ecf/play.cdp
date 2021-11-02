@@ -1,0 +1,5 @@
+cd /sms/smsnets/defs/
+play -r /prod00/mmab00 prod00/mmab00.def
+play -r /prod00/mmab00/seaice00 prod00/mmab00/seaice00.def
+play -r /prod00/mmab00/seaice00/jice_conc_analysis_00 prod00/mmab00/seaice00/jice_conc_analysis_00.def
+

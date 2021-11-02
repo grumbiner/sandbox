@@ -57,7 +57,7 @@ class note(music):
     self.frequency = frequency
     self.volume    = volume
     ts = np.linspace(0, duration, int(duration*self.fs), False)
-    self.note = np.sin(self.frequency*ts*2.*np.pi)
+    self.note = np.sin(self.frequency*ts*2.*np.pi)**1
     self.note -= self.note.min()
     self.note *= self.volume
 
@@ -195,11 +195,10 @@ x = np.append(n[0].note,n[1].note)
 for i in range (2,len(n)):
   x = np.append(x, n[i].note)
   
-#fig, ax = plt.subplots()
-#n=8000
-#ax.plot(x[n:n+8000])
-#ax.grid()
-#plt.savefig("twinkle.png")
+fig, ax = plt.subplots()
+ax.plot(x[0:len(x):480])
+ax.grid()
+plt.savefig("twinkle.png")
 #exit(0)
 
 # Convert for play:
