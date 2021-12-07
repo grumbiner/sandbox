@@ -1,0 +1,40 @@
+set grid
+set pointsize 0.5
+set yrange [-0.2:-0.1]
+set term png
+#set out "g6_9pr.png"
+#plot "lr" using 3:8
+set out "g6_9gr.png"
+plot "lr" using 3:9
+
+#set out "g7_3pr.png"
+#plot "lr" using 3:12
+set out "g7_3gr.png"
+plot "lr" using 3:13
+
+#set out "g10pr.png"
+#plot "lr" using 3:16
+set yrange [-0.15:-0.05]
+set out "g10gr.png"
+plot "lr" using 3:17
+
+#set out "g18pr.png"
+#plot "lr" using 3:20
+#set yrange [-0.15:-0.05]
+#set out "g18gr.png"
+#plot "lr" using 3:21
+
+#set out "g24pr.png"
+#plot "lr" using 3:24
+set yrange [0.04:+0.08]
+set out "g24gr.png"
+plot "lr" using 3:25
+
+#set out "g37pr.png"
+#plot "lr" using 3:28
+set yrange [+0.05:+0.10]
+set out "g37gr.png"
+plot "lr" using 3:29
+
+quit
+
