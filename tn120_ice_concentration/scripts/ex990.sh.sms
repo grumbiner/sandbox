@@ -1,0 +1,387 @@
+#!/bin/ksh
+#####################################################################
+echo "------------------------------------------------"
+echo "J990 - SSMI BUFR data is taken and  creates ICE"
+echo "Concetration Fields for the Arctic Ocean and Antarctic"
+echo "Continent and adjoining  water bodies."
+echo "------------------------------------------------"
+echo "History:  AUG 1997 - First implementation of this new script."
+echo "          NOV 1997 - Add copy to /dcom and /scom for   "
+echo "                       reliability and users           " 
+echo "          Jan 1998 - Add transmission to OSO of files in   "
+echo "                       WMO format                          "
+echo "          Sep 1998 - Rename WMO files so that they'll actually transmit"
+echo "                   - Y2K changes"
+#####################################################################
+# Robert Grumbine 1 March 1995.
+#  1 March 1995 - Script for handling the production and 
+#  dissemination of all ssmi-derived sea ice concentration files
+#
+#  28 November 1995 - Modified for producing reanalysis files.
+#
+#  23 January 1996 - Heavily modified to try to circumvent 
+#  missing/overloaded file systems on operational cray, and to be 
+#  more robust against steps failing internal to the script.
+#
+#  2 June 1997. Modified to work from BUFR files.  Relies on 
+#  dumpscript, with no failover protection possible.
+#
+#  6 August 1997 - Script version for operations use.
+#
+#  3 February 2000 - Conversion to IBM SP.  New file management (ln)
+#    and argument changes for seaissmi and filtanal
+#
+# 13 April 2001 - Update land mask usage
+#
+#  7 October 2003 - Add generation of graphics for web
+#
+# 20 May 2004     - Update to new, higher resolution, ice analysis
+#
+#####################################################################
+
+set -x
+cd $DATA
+
+##############################
+#
+# START FLOW OF CONTROL
+#
+# 1) Get the Date from /com/date
+#    -- Now done in J-job, not here.
+# 2) Run the dumpscript to retrieve a day's data
+# 3) Process the bufr output into something readable
+# 4) Run the analysis on the files
+# 5) Copy the base analyst's grids to the running location
+# 6) Make up the grib files for the polar stereographic data and
+#    copy them to running locations
+# 7) Construct the modeller's global sea ice grid
+#
+##############################
+
+
+########################################
+msg="HAS BEGUN!"
+postmsg "$jlogfile" "$msg"
+########################################
+
+#----------------------------------------------------------
+#Begin ordinary processing.
+#---------------------------------------------------------
+#Dummy variables at this point, formerly used and may be useful
+# again in the future.  Robert Grumbine 6 August 1997.
+jday=1
+refyear=2000
+
+#BUFR------------------------------------------------------
+#Run the dumpscript to retrieve a day's data
+#----------------------------------------------------------
+
+/nwprod/ush/dumpjb ${PDY}00 12 ssmit
+
+#----------------------------------------------------------
+#Process the bufr output into something readable
+#----------------------------------------------------------
+
+export pgm=seaice_ssmibufr
+. prep_step
+
+ln -s ssmit.ibm fort.14
+ln -s bufrout fort.51
+
+startmsg
+$EXECsice/seaice_ssmibufr >> $pgmout 2> errfile
+export err=$?;err_chk
+
+echo bufrout > delta
+
+#----------------------------------------------------------
+# Run the analysis on the files
+# Input files =  delta, $FIXsice/seaice_nland127.map, $FIXsice/seaice_sland127.map
+# Output files = n3ssmi.$PDY, s3ssmi.$PDY, umasknorth.$PDY, umasksouth.$PDY
+# Arguments (currently not used) - $jday : Julian Day,
+#				   $refyear : 4 digit year
+#				   246      : satellite number
+#----------------------------------------------------------
+export pgm=seaice_seaissmi
+. prep_step
+
+startmsg
+$EXECsice/seaice_seaissmi delta $FIXsice/seaice_nland127.map \
+           $FIXsice/seaice_sland127.map \
+           n3ssmi.$PDY s3ssmi.$PDY umasknorth12.$PDY umasksouth12.$PDY \
+           $jday $refyear 246 >> $pgmout 2>errfile
+export err=$?;err_chk
+#-----------------------------------------------------------
+#Produce the old resolution files
+#-----------------------------------------------------------
+$EXECsice/seaice_north_reduce umasknorth12.$PDY umasknorth.$PDY \
+          $FIX/seaice_nland127.map $FIX/seaice_nland.map 
+$EXECsice/seaice_south_reduce umasksouth12.$PDY umasksouth.$PDY \
+          $FIX/seaice_sland127.map $FIX/seaice_sland.map 
+
+#-----------------------------------------------------------
+#Construct the graphics for DMZ display
+#-----------------------------------------------------------
+$EXECsice/seaice_north12xpm umasknorth12.$PDY $FIXsice/seaice_nland127.map nh12.$PDY.xpm
+convert nh12.$PDY.xpm nh12.$PDY.gif
+
+$EXECsice/seaice_south12xpm umasksouth12.$PDY $FIXsice/seaice_sland127.map sh12.$PDY.xpm
+convert sh12.$PDY.xpm sh12.$PDY.gif
+
+$EXECsice/seaice_northxpm umasknorth.$PDY $FIXsice/seaice_nland.map nh.$PDY.xpm
+convert nh.$PDY.xpm nh.$PDY.gif
+
+$EXECsice/seaice_southxpm umasksouth.$PDY $FIXsice/seaice_sland.map sh.$PDY.xpm
+convert sh.$PDY.xpm sh.$PDY.gif
+
+
+#-----------------------------------------------------------
+#Copy the base analyst's grids to the running location
+#-----------------------------------------------------------
+
+if [ $SENDCOM = "YES" ]
+then
+  cp n3ssmi.$PDY  ${COMOUT}/n3ssmi.$PDY
+  cp s3ssmi.$PDY  ${COMOUT}/s3ssmi.$PDY
+  cp umasknorth12.$PDY  ${COMOUT}/umasknorth12.$PDY
+  cp umasksouth12.$PDY  ${COMOUT}/umasksouth12.$PDY
+  cp umasknorth.$PDY  ${COMOUT}/umasknorth.$PDY
+  cp umasksouth.$PDY  ${COMOUT}/umasksouth.$PDY
+  cp nh12.$PDY.gif    ${COMOUT}/nh12.$PDY.gif
+  cp sh12.$PDY.gif    ${COMOUT}/sh12.$PDY.gif
+  cp nh.$PDY.gif      ${COMOUT}/nh.$PDY.gif
+  cp sh.$PDY.gif      ${COMOUT}/sh.$PDY.gif
+
+  if [ $SENDDBN = "YES" ]
+  then
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/nh12.${PDY}.gif
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/sh12.${PDY}.gif
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/nh.${PDY}.gif
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/sh.${PDY}.gif
+  fi
+fi
+
+#-----------------------------------------------------------
+# Make up the grib files for the polar stereographic data and
+# copy them to running locations
+#-----------------------------------------------------------
+# Get the century from /com/date's file
+echo $PDY | cut -c1-2 > psin
+echo $PDY | cut -c3-4  >> psin
+echo $PDY | cut -c5-6  >> psin
+echo $PDY | cut -c7-8  >> psin
+cat psin
+
+for pole in north12 south12 north south
+do
+
+  export pgm=seaice_psg$pole
+  . prep_step
+
+  rm fort.*
+  ln -s umask${pole}.$PDY        fort.11
+  ln -s ${pole}psg.$PDY          fort.51
+  ln -s wmo${pole}psg.${PDY}.grb fort.52
+
+  startmsg
+  $EXECsice/seaice_psg${pole} < psin >> $pgmout 2>errfile
+  export err=$?;err_chk
+done
+
+if [ $SENDCOM = "YES" ]
+then
+  cp north12psg.${PDY} ${COMOUT}/north12psg.${PDY}
+  cp south12psg.${PDY} ${COMOUT}/south12psg.${PDY}
+  cp northpsg.${PDY} ${COMOUT}/northpsg.${PDY}
+  cp southpsg.${PDY} ${COMOUT}/southpsg.${PDY}
+  if [ $SENDDBN = "YES" ]
+  then
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/northpsg12.${PDY}
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/southpsg12.${PDY}
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/northpsg.${PDY}
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/southpsg.${PDY}
+  fi
+fi
+if [ $SENDDBN = "YES" ]
+then
+  cp wmonorthpsg.${PDY}.grb $pcom/wmonorthpsg.${job}
+  cp wmosouthpsg.${PDY}.grb $pcom/wmosouthpsg.${job}
+  $DBNROOT/bin/dbn_alert GRIB $NET $job  $pcom/wmonorthpsg.${job}
+  $DBNROOT/bin/dbn_alert GRIB $NET $job  $pcom/wmosouthpsg.${job}
+fi
+
+
+
+#-----------------------------------------------------------
+# Construct the modeller's global sea ice grid
+#-----------------------------------------------------------
+# QC denotes whether or not it will be possible to produce the
+# SST-quality controlled sea ice grids for modellers.
+# This step looks for the existance of either today's or 
+# yesterday's sstgrb file from the fnl directory.
+#-----------------------------------------------------------
+
+qc=false
+if [ -s /com/fnl/prod/sst.$PDY/sst2dvar_grb_0.5 ]
+then 
+  cp /com/fnl/prod/sst.$PDY/sst2dvar_grb_0.5 oned
+  qc=true
+else
+  if [ -s /com/fnl/prod/sst.$PDYm1/sst2dvar_grb_0.5 ]
+  then 
+    cp /com/fnl/prod/sst.$PDYm1/sst2dvar_grb_0.5 oned
+    qc=true
+  fi
+fi
+
+if [ $qc = "true" ]
+then
+
+  ###################################
+  # Filter the ice concentration field (in lat-long space only so far)
+  # Input files: oned, umasknorth.$PDY, umasksouth.$PDY, 
+  #              $FIXsice/seaice_halfdeg.map
+  # Output files: latlon.$PDY, nps.$PDY, sps.$PDY
+  # Arguments:  275.3  - Ocean Temperature above which ice is assumed 
+  #                         not to exist.  Degrees Kelvin.
+  ###################################
+
+
+  export pgm=seaice_filtanal
+  . prep_step
+
+  $EXECutil/wgrib oned | grep TMP | $EXECutil/wgrib -i oned -o sst -nh -bin
+  if [ ! -s sst ]
+  then
+    echo failed to get an sst field!
+  fi  
+  
+  startmsg
+  $EXECsice/seaice_filtanal sst umasknorth12.${PDY} umasksouth12.${PDY} \
+        latlon.$PDY nps.$PDY sps.$PDY $FIXsice/seaice_gland5min 275.3 \
+        $FIXsice/seaice_nland127.map $FIXsice/seaice_sland127.map \
+        >> $pgmout 2>errfile
+  export err=$?;err_chk
+
+  ###################################
+  # Fill in the ice concentration field with older data as required
+  # Input files: $COMm1/fill.$PDYm1, latlon.$PDY, $COMm1/age.$PDYm1
+  # Output Files: age.$PDY, fill.$PDY
+  ###################################
+
+
+  export pgm=seaice_icegrid
+  . prep_step
+ 
+  startmsg
+  
+  $EXECsice/seaice_icegrid $COMOUTm1/engice.${cycle}.fill5min latlon.$PDY \
+                           $COMOUTm1/engice.${cycle}.age \
+                           age.$PDY fill5min.$PDY >> $pgmout 2>errfile
+  export err=$?;err_chk
+  #Construct 30' grids:
+  $EXECsice/seaice_global_reduce fill5min.$PDY fill.$PDY \
+            $FIX/seaice_gland5min $FIX/seaice_newland
+
+  #Construct graphic of modeler's grids:
+  $EXECsice/seaice_global5minxpm fill5min.$PDY $FIXsice/seaice_gland5min \
+                             global5min.$PDY.xpm
+  $EXECsice/seaice_globalxpm fill.$PDY $FIXsice/seaice_newland global.$PDY.xpm
+  convert -flip global5min.$PDY.xpm global5min.$PDY.gif
+  convert -flip global.$PDY.xpm global.$PDY.gif
+  
+  
+  #Engrib the 30' lat-long file
+  #Put the 4 digit year date in file ein
+  cat /com/date/$cycle | cut -c7-14 > ein
+
+  export pgm=seaice_ice2grib
+  . prep_step
+
+  rm fort.*
+  ln -s fill.$PDY             fort.11
+  touch eng.$PDY
+  ln -s eng.$PDY              fort.51
+  ln -s wmoglobice.${PDY}.grb fort.52
+
+  startmsg
+  $EXECsice/seaice_ice2grib < ein >> $pgmout
+  export err=$?;err_chk
+
+  #Engrib the 5' lat-long file
+  #Put the 4 digit year date in file ein
+  cat /com/date/$cycle | cut -c7-14 > ein
+
+  export pgm=seaice_ice2grib5min
+  . prep_step
+
+  rm fort.*
+  ln -s fill5min.$PDY             fort.11
+  touch eng5min.$PDY
+  ln -s eng5min.$PDY              fort.51
+#Note that there is no wmo file
+  startmsg
+  $EXECsice/seaice_ice2gribb5min< ein >> $pgmout
+  export err=$?;err_chk
+
+  if [ $SENDCOM = "YES" ]
+  then
+    cp eng5min.$PDY    ${COMOUT}/engice5min.${cycle}.grb
+    cp latlon.$PDY ${COMOUT}/engice.${cycle}.latlon
+    cp age.$PDY ${COMOUT}/engice.${cycle}.age
+    cp fill5min.$PDY ${COMOUT}/engice.${cycle}.fill5min
+    cp global5min.$PDY.gif ${COMOUT}/global5min.$PDY.gif
+
+    cp eng.$PDY    ${COMOUT}/engice.${cycle}.grb
+    cp fill.$PDY ${COMOUT}/engice.${cycle}.fill
+    cp global.$PDY.gif ${COMOUT}/global.$PDY.gif
+    if [ $SENDDBN = "YES" ]
+    then
+      $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/engice5min.${cycle}.grb
+      $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/global5min.$PDY.gif
+      $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/engice.${cycle}.grb
+      $DBNROOT/bin/dbn_alert MODEL OMBICE $job ${COMOUT}/global.$PDY.gif
+    fi
+  fi
+  
+  if [ $SENDDBN = "YES" ]
+  then
+    cp wmoglobice.${PDY}.grb $pcom/wmoglobice.${job}
+    $DBNROOT/bin/dbn_alert GRIB $NET $job $pcom/wmoglobice.${job}
+  fi
+
+else
+   msg="Job $job cannot produce qc'd sea ice concentration field due"
+   postmsg "$jlogfile" "$msg"
+   msg="to absence of SST file for $PDY and $PDYm1 cycle $cycle"
+   postmsg "$jlogfile" "$msg"
+
+fi 
+#end of producing qc'd files
+
+if [ $qc = "true" ]
+then
+  msg="HAS COMPLETED NORMALLY!"
+  echo $msg
+  postmsg "$jlogfile" "$msg"
+
+   #####################################################################
+   # GOOD RUN
+   set +x
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   set -x
+   #####################################################################
+else
+   #####################################################################
+   # FAILED
+   set +x
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   set -x
+   #####################################################################
+fi
+
+############## END OF SCRIPT #######################

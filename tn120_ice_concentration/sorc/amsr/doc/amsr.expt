@@ -1,0 +1,107 @@
+From Paul.Haggerty@noaa.gov  Thu Aug 19 13:22:49 2004
+Return-Path: <Paul.Haggerty@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.ncep.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.12.11/8.12.10) with ESMTP id i7JHMlgi006567
+	for <wd21rg@polar.ncep.noaa.gov>; Thu, 19 Aug 2004 13:22:48 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i7JHMJeO015026
+	for <grumbine@ncep.noaa.gov>; Thu, 19 Aug 2004 13:22:19 -0400
+Resent-Date: Thu, 19 Aug 2004 13:22:19 -0400
+Resent-Message-Id: <200408191722.i7JHMJeO015026@mx1.ncep.noaa.gov>
+Received: from nes3.nesdis.noaa.gov ([140.90.231.133]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I2PEXY00.E68 for <Robert.Grumbine@noaa.gov>; Thu, 19 Aug 2004
+          13:22:46 -0400 
+Received: from noaa.gov ([140.90.208.227]) by
+          nes3.nesdis.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I2PEXU00.Q3D for
+          <nesdis.osdpd.ipd.modis.operations@noaa.gov>; Thu, 19 Aug 2004
+          13:22:42 -0400 
+Message-ID: <4124E1E2.860F2F52@noaa.gov>
+Date: Thu, 19 Aug 2004 13:22:42 -0400
+From: "Paul Haggerty" <Paul.Haggerty@noaa.gov>
+Organization: NOAA
+X-Sender: "Paul Haggerty" <Paul.Haggerty@nes3.nesdis.noaa.gov>
+X-Mailer: Mozilla 4.79 [en]C-CCK-MCD NOAA-IPD1  (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: MODIS Operations <nesdis.osdpd.ipd.modis.operations@noaa.gov>
+Subject: NRTPE: AMSR-E data available
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Precedence: list
+Resent-From: nesdis.osdpd.ipd.modis.operations@noaa.gov
+Status: RO
+
+Here are the filenames (and parameters contained) for the new AMSR-E
+data products.
+
+If anyone would like to begin receiving these products, send a request
+to Gene.Legg@noaa.gov
+
+If you are already receiving MODIS data from us, and would like a 
+sample of these products, let us know that as well.
+
+Anyone with access to our Nanuk fileserver are welcome to come
+and fetch samples from the "/pub/pm1/AMSRE" directory
+----------------------------------------------------------------
+
+
+Level 2 Land Product:
+AMSR_E_L2_Land_B01_YYYYMMDDHHMMSS_[A|D].hdf
+
+YYYYMMDDHHMMSS = Year Month Day Hour Minute Second
+[A|D] represents either an Ascending or Descending Orbit.
+
+example:  AMSR_E_L2_Land_B01_200408191249_D.hdf
+
+Contains:
+     Soil moisture
+     Vegetation Water Content
+     Land surface temperature
+     Surface Type
+
+----------------------------------------------------------------
+
+Level 2 Ocean Product:
+AMSR_E_L2_Ocean_B01_YYYYMMDDHHMMSS_[A|D].hdf
+
+YYYYMMDDHHMMSS = Year Month Day Hour Minute Second
+[A|D] represents either an Ascending or Descending Orbit.
+
+example:  AMSR_E_L2_Ocean_B01_200408191249_D.hdf
+
+Contains:
+     Very low resolution sea surface temperature
+     Low resolution sea surface temperature
+     Low resolution wind
+     Med resolution wind
+     Med resolution vapor
+     High resolution cloud
+
+----------------------------------------------------------------
+
+Level 3 Daily Ocean Product:
+AMSR_E_L3_DailyOcean_B01_YYYYMMDD.hdf
+
+YYYYMMDD = Year Month Day
+
+example:  AMSR_E_L2_Ocean_B01_200408.hdf
+
+Contains:
+     Very low resolution sea surface temperature
+     Low resolution sea surface temperature
+     Low resolution wind
+     Med resolution wind
+     Med resolution vapor
+     High resolution cloud
+
+-- 
+
+
+Paul Haggerty
+Science and Technology Corporation
+NESDIS/NOAA
+Phone: 301-457-5258 x142
+E-mail: Paul.Haggerty@noaa.gov
+

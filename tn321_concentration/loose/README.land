@@ -1,0 +1,31 @@
+Land Masks updated 19 May 2004.  Older masks are in old.12april2001
+
+Land mask files were updated on this server 12 April 2001.  The
+old files are still present in the directory 'old.land'.
+Details of the April 2001 changes are discussed at 
+  http://polar.wwb.noaa.gov/seaice/support/land.html
+
+Format is 'unsigned char' or 'byte'.  (Values are coded to a single octet)
+  seaice_nland.map - northern hemisphere 25.4 km polar stereographic grid
+  seaice_sland.map - southern hemisphere 25.4 km polar stereographic grid
+  seaice_nland127.map - northern hemisphere 12.7 km polar stereographic grid
+  seaice_sland127.map - southern hemisphere 12.7 km polar stereographic grid
+  seaice_newland      - global 0.5 degree latitude-longitude grid.
+  seaice_gland5min    - global 5 minute latitude-longitude grid.
+
+The polar stereographic grids are true at 60 N/S
+Orientation is along 80 W in the Northern Hemisphere, 60 W in the Southern
+
+  Flag values which may be encountered:
+In the grib file, flags are:
+0.00 -- Ocean
+1.57 -- Land
+1.95 -- Coast
+
+In the unsigned character files, they are:
+000 -- Ocean
+157 -- Land
+195 -- Coast
+
+Robert Grumbine
+Robert.Grumbine@noaa.gov

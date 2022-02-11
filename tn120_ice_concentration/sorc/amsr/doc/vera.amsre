@@ -1,0 +1,14 @@
+9 Apr 2009
+
+Hi Bob,
+Form Walter's information and after a discussion with Jeff Ator, I have decoded AMSR-e
+"2" channel "4" spot sounding sequence(89 GHz/HORN-B) data. The code, script, makefile
+and readme are located on cirrus at: /marine/save/wx21vg/amsre/btmps .
+sorc  - decodsat.f
+make - make.decodsat
+script - decodsat.sh
+exec  - decodsat.x
+readme - readme
+Let me know if you see an error.
+Cheers,
+Vera

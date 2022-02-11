@@ -1,0 +1,489 @@
+From ArcticInfo@arcus.org  Fri Mar  5 22:07:30 2004
+Return-Path: <ArcticInfo@arcus.org>
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2637UFj024797
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 5 Mar 2004 22:07:30 -0500
+Received: from lnx337.wwb.noaa.gov ([140.90.193.252]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HU4WOI00.R1I for <wd21rg@polar.wwb.noaa.gov>; Fri, 5 Mar 2004
+          22:07:30 -0500 
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by lnx337.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2637RTX007896
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 5 Mar 2004 22:07:27 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i263disf027541
+	for <grumbine@ncep.noaa.gov>; Fri, 5 Mar 2004 22:39:44 -0500
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HU4WOF00.G1W for <Robert.Grumbine@loft.ncep.noaa.gov>; Fri, 5
+          Mar 2004 22:07:27 -0500 
+Received: from mx-east2.nems.noaa.gov ([140.90.121.149]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HU4WOD00.3BK; Fri, 5 Mar 2004 22:07:25 -0500 
+Received: from mail.arcus.org(209.165.164.5) by mx-east2.nems.noaa.gov via csmap 
+	 id 591cdac6_6f1d_11d8_915b_003048245fe6_26852;
+	Fri, 05 Mar 2004 22:21:25 -0500 (EST)
+Received: from 209.165.164.9 (chinook.arcus.org [209.165.164.9]) BY mail.arcus.org ([209.165.164.5])
+ WITH SMTP (4D WebSTAR V Mail (5.3.2)); Fri, 05 Mar 2004 18:04:57 -0900
+Date: Fri, 5 Mar 2004 18:00:00 -0900
+Message-Id: <p06020427bc6d60b6ba5f@[209.165.164.25]>
+Subject: AMSR-E Snow and Ice Products Now Available From NSIDC
+From: "ArcticInfo" <arcticInfo@mail.arcus.org>
+To: ArcticInfo <arcticinfo@arcus.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii" ; format="flowed"
+X-NCEP-MailScanner-Information: Please contact ncep.helpdesk@noaa.gov for info
+X-NCEP-MailScanner: Found to be clean
+X-NCEP-MailScanner-SpamCheck: 
+Status: RO
+
+AMSR-E Snow and Ice Products Now Available
+National Snow and Ice Data Center (NSIDC)
+
+For further information, please go to:
+http://nsidc.org/data/amsr/
+
+or to:
+http://nsidc.org/data/amsr_validation
+
+or to:
+http://nsidc.org
+------------------------------------
+
+Dear Colleague,
+
+The Advanced Microwave Scanning Radiometer - Earth Observing System
+(AMSR-E) is a passive microwave instrument launched aboard NASA's Aqua
+Satellite on 4 May 2002. As of 1 March 2004, daily Level-2B and Level-3
+products are available from the National Snow and Ice Data Center
+(NSIDC), beginning with dates from 18 February 2004. The following snow
+and sea ice products should be of particular interest to the cryospheric
+community:
+
+- AMSR-E/Aqua L3 Global Snow Water Equivalent EASE-Grids
+- AMSR-E/Aqua 5-Day L3 Global Snow Water Equivalent EASE-Grids
+- AMSR-E/Aqua Monthly L3 Global Snow Water Equivalent EASE-Grids
+- AMSR-E/Aqua Daily L3 6.25 km 89 GHz Brightness Temperature (Tb) Polar
+Grids
+- AMSR-E/Aqua Daily L3 12.5 km Tb, Sea Ice Conc., & Snow Depth Polar
+Grids
+- AMSR-E/Aqua Daily L3 25 km Tb, Sea Ice Temperature, & Sea Ice Conc.
+Polar Grids
+
+5-day and monthly Snow Water Equivalent products will be available 3
+March and 9 April, respectively. For more information and instructions
+for ordering these and other AMSR-E data products, including the L1A raw
+observation counts, L2A brightness temperatures, and L2B and L3 products
+related to land, rainfall, and oceans, please visit the following web
+site:
+http://nsidc.org/data/amsr
+
+NSIDC also distributes AMSR-E validation data.  For further details,
+please see:
+http://nsidc.org/data/amsr_validation
+
+If you have any questions, please contact NSIDC User Services.
+
+Regards,
+
+John Maurer
+NSIDC User Services
+CIRES 449 UCB
+University of Colorado
+Boulder, CO  80309-0449
+Phone: 303-492-6199
+E-mail: (nsidc@nsidc.org)
+
+--------------------------------------------------------------------
+ArcticInfo is administered by the Arctic Research Consortium of the
+United States (ARCUS). Please visit us on the World Wide Web at:
+http://www.arcus.org
+
+At any time you may:
+Subscribe to ArcticInfo by sending an email to arcticinfo-sub@arcus.org.
+Include your name, affiliation, address, phone, fax and email address in
+the body of the email.  Subscribers to ArcticInfo will automatically
+receive the newsletter, Witness the Arctic. If you would prefer not to
+receive Witness the Arctic, specify in your e-mail.
+
+Unsubscribe by sending an email to arcticinfo-unsub@arcus.org.
+
+Subscribe and unsubscribe actions are automatic. Barring mail system
+failure you should receive responses from our system as confirmation to
+your requests.
+
+If you have information you would like to post to the mailing list send
+the message to list@arcus.org.
+
+You can search back issues of ArcticInfo by content or date at
+http://www.arcus.org/ArcticInfo/fr_Search.html
+
+If you have any questions please contact the list administrator at:
+
+list@arcus.org
+ARCUS
+3535 College Road, Suite 101
+Fairbanks, AK 99709-3710
+907/474-1600
+907/474-1604 fax
+
+Arctic Info is funded by the National Science Foundation as a service to
+the research community through Cooperative Agreement OPP-0101279 with
+ARCUS. Any information, opinions, findings, and conclusions or
+recommendations expressed in this material are those of the information
+sources and do not necessarily reflect the views of the National Science
+Foundation or ARCUS.
+
+
+
+
+From Ralph.R.Ferraro@noaa.gov  Fri Mar 12 09:04:09 2004
+Return-Path: <Ralph.R.Ferraro@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2CE48Fj018614
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 12 Mar 2004 09:04:09 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i2CEaOTJ001123
+	for <grumbine@ncep.noaa.gov>; Fri, 12 Mar 2004 09:36:24 -0500
+Received: from mail.orbit.nesdis.noaa.gov ([140.90.107.8]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HUGV2V00.330; Fri, 12 Mar 2004 09:04:07 -0500 
+Received: from noaa.gov ([129.2.125.60]) by
+          mail.orbit.nesdis.noaa.gov (Netscape Messaging Server 4.15) with
+          ESMTP id HUGUS200.JS0; Fri, 12 Mar 2004 08:57:38 -0500 
+Message-ID: <4051C31D.8070200@noaa.gov>
+Date: Fri, 12 Mar 2004 09:03:09 -0500
+From: "Ralph R Ferraro" <Ralph.R.Ferraro@noaa.gov>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.0.1) Gecko/20020823 Netscape/7.0
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+To: William Gemmill <William.Gemmill@noaa.gov>, Bert Katz <Bert.Katz@noaa.gov>,
+        Stephen Lord <Stephen.Lord@noaa.gov>,
+        Robert Grumbine <Robert.Grumbine@noaa.gov>,
+        Fuzhong Weng <Fuzhong.Weng@noaa.gov>,
+        Banghua Yan <Banghua.Yan@noaa.gov>,
+        Paul S Chang <Paul.S.Chang@noaa.gov>,
+        Walter Wolf <Walter.Wolf@noaa.gov>,
+        John Janowiak <john.janowiak@noaa.gov>, Gene Legg <Gene.Legg@noaa.gov>,
+        Ramesh Sinha <Ramesh.Sinha@noaa.gov>,
+        Paul Haggerty <Paul.Haggerty@noaa.gov>,
+        Arthur Hou <hou@gmao.gsfc.nasa.gov>,
+        Robert Adler <Robert.Adler@gsfc.nasa.gov>,
+        George Huffman from home <keghuffman@verizon.net>,
+        Robert Joyce <Robert.Joyce@noaa.gov>,
+        John Paquette <John.Paquette@noaa.gov>,
+        George Serafino <George.Serafino@noaa.gov>,
+        Stan Kidder <kidder@CIRA.colostate.edu>
+CC: "wanchun.chen <wanchun.chen@noaa.govcdean" <cdean@his.gov>
+Subject: Improved Access to AMSR-E L2 and L3 products (non-real time)
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Status: RO
+
+
+
+Thanks to the efforts of Wanchun Chen, we are pleased to report new locations for the AMSR-E L2 and L3 products.  This still originate from the AMSR-E science
+team:
+
+Here is new place we put retrieved AMSR-E  L2 and L3 data.
+There are time delay. For example, March 10th data won't be
+in their server until 11:50pm tonight.
+
+Due to space constraint, we can only keep 2 or 3 days of data:
+ftp://ftp.orbit.nesdis.noaa.gov/pub/corp/scsb/wchen/AMSR-E/input/
+
+Sample IDL decoders(will add snow and ice part soon):
+ftp://ftp.orbit.nesdis.noaa.gov/pub/corp/scsb/wchen/AMSR-E/code/
+
+This is the linkk to the images we plot:
+http://www.orbit.nesdis.noaa.gov/corp/scsb/wchen/AMSR-E/
+
+Cheers,
+Wanchun
+
+
+
+
+
+-- 
+*************************************************************
+Ralph Ferraro, Physical Scientist
+NOAA/NESDIS                                                                                                
+Center for SaTellite Applications & Research (STAR)                                                                                 
+Satellite Climate Studies Branch &
+The Cooperative Institute for Climate Studies (Univ. of MD)
+Phone: (301)-405-0893 (College Park)
+       (301)-763-8251 x147 (Camp Springs)    
+Email: Ralph.R.Ferraro@noaa.gov                                                             
+http://orbit-net.nesdis.noaa.gov/arad2/microwave.html                                        
+http://orbit-net.nesdis.noaa.gov/arad2/MSPPS/index.html                         
+*************************************************************
+        
+
+
+From owner-climlist@lnxpd06.ocs.LSU.EDU  Wed Mar  3 13:16:17 2004
+Return-Path: <owner-climlist@lnxpd06.ocs.LSU.EDU>
+Received: from listserv.lsu.edu (lnxpd06.ocs.lsu.edu [130.39.175.26])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i23IGGFj011722
+	for <rmg3@POLAR.WWB.NOAA.GOV>; Wed, 3 Mar 2004 13:16:16 -0500
+Received: from lnxpd06.ocs.lsu.edu (listserv.lsu.edu [130.39.175.26])
+	by listserv.lsu.edu (8.11.6/8.11.6) with ESMTP id i23IBrK16777;
+	Wed, 3 Mar 2004 12:11:53 -0600
+Received: from LISTSERV.LSU.EDU by LISTSERV.LSU.EDU (LISTSERV-TCP/IP release
+          1.8e) with spool id 2328 for CLIMLIST@LISTSERV.LSU.EDU; Wed, 3 Mar
+          2004 12:11:48 -0600
+Received: from mistral.srcc.lsu.edu (mistral.srcc.lsu.edu [130.39.188.225]) by
+          listserv.lsu.edu (8.11.6/8.11.6) with ESMTP id i23IBmK16715 for
+          <climlist@lnxpd06.ocs.lsu.edu>; Wed, 3 Mar 2004 12:11:48 -0600
+Received: from srcc.lsu.edu (climlist.srcc.lsu.edu [130.39.189.216]) by
+          mistral.srcc.lsu.edu (SGI-8.9.3/8.9.3) with ESMTP id MAA82375 for
+          <climlist@listserv.lsu.edu>; Wed, 3 Mar 2004 12:10:17 -0600 (CST)
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2.1) Gecko/20030225
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Message-ID:  <40462368.7040504@srcc.lsu.edu>
+Date:         Wed, 3 Mar 2004 12:26:48 -0600
+Reply-To: CLIMLIST <climlist@SRCC.LSU.EDU>
+Sender: CLIMLIST Climatology Distribution List <CLIMLIST@lnxpd06.ocs.LSU.EDU>
+From: CLIMLIST <climlist@SRCC.LSU.EDU>
+Organization: Southern Regional Climate Center
+Subject: AMSR-E L2B and L3 products now available from NSIDC
+To: CLIMLIST@lnxpd06.ocs.LSU.EDU
+Precedence: list
+Status: RO
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+CLIMLIST Mailing Number 04-03-05
+Origin: NSIDC User Services <nsidc@sitka.colorado.edu>
+  >>>>> DO NOT USE REPLY FUNCTION <<<<<
+  >>>>> REPEAT - DO NOT USE REPLY! <<<<<
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Dear colleague,
+
+The Advanced Microwave Scanning Radiometer - Earth Observing System
+(AMSR-E) is a passive microwave instrument launched aboard NASA's Aqua
+Satellite on 4 May 2002. Daily Level-2B and Level-3 products are now
+available from the National Snow and Ice Data Center (NSIDC), beginning
+with dates from 18 February 2004.  These derived geophysical AMSR-E
+products include measurements of:
+
+-land: soil moisture, land surface temperature, vegetation water content.
+-oceans: sea surface temperature, near-surface wind speed, columnar
+water vapor, and columnar cloud liquid water.
+-rainfall: rate, type, and accumulation.
+-snow: snow water equivalent.
+-sea ice: sea ice concentration, snow depth over sea ice, and ice
+surface temperature.
+
+5-day, weekly, and monthly products will be available soon (3 March, 7
+March, and 9 April, respectively). For more information and instructions
+for ordering these and other AMSR-E data products, including the
+Level-1A raw observation counts and Level-2A brightness temperatures,
+please visit the following web site:
+
+        http://nsidc.org/data/amsr/
+
+NSIDC also distributes AMSR-E validation data.  See
+"http://nsidc.org/data/amsr_validation" for more
+details.  If you have any questions, please contact NSIDC User Services.
+
+Regards,
+John Maurer
+NSIDC User Services
+________________________________________________________________________
+   NSIDC User Services            Phone: +1 303-492-6199
+   CIRES, 449 UCB                 Fax: +1 303-492-2468
+   University of Colorado         Email: nsidc@nsidc.org
+   Boulder, CO 80309-0449, USA    WWW URL: http://nsidc.org
+
+   National Snow and Ice Data Center * Distributed Active Archive Center
+               * World Data Center for Glaciology, Boulder *
+________________________________________________________________________
+
+From Paul.Haggerty@noaa.gov  Thu Aug 19 13:22:49 2004
+Return-Path: <Paul.Haggerty@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.ncep.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.12.11/8.12.10) with ESMTP id i7JHMlgi006567
+	for <wd21rg@polar.ncep.noaa.gov>; Thu, 19 Aug 2004 13:22:48 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i7JHMJeO015026
+	for <grumbine@ncep.noaa.gov>; Thu, 19 Aug 2004 13:22:19 -0400
+Resent-Date: Thu, 19 Aug 2004 13:22:19 -0400
+Resent-Message-Id: <200408191722.i7JHMJeO015026@mx1.ncep.noaa.gov>
+Received: from nes3.nesdis.noaa.gov ([140.90.231.133]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I2PEXY00.E68 for <Robert.Grumbine@noaa.gov>; Thu, 19 Aug 2004
+          13:22:46 -0400 
+Received: from noaa.gov ([140.90.208.227]) by
+          nes3.nesdis.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I2PEXU00.Q3D for
+          <nesdis.osdpd.ipd.modis.operations@noaa.gov>; Thu, 19 Aug 2004
+          13:22:42 -0400 
+Message-ID: <4124E1E2.860F2F52@noaa.gov>
+Date: Thu, 19 Aug 2004 13:22:42 -0400
+From: "Paul Haggerty" <Paul.Haggerty@noaa.gov>
+Organization: NOAA
+X-Sender: "Paul Haggerty" <Paul.Haggerty@nes3.nesdis.noaa.gov>
+X-Mailer: Mozilla 4.79 [en]C-CCK-MCD NOAA-IPD1  (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: MODIS Operations <nesdis.osdpd.ipd.modis.operations@noaa.gov>
+Subject: NRTPE: AMSR-E data available
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Precedence: list
+Resent-From: nesdis.osdpd.ipd.modis.operations@noaa.gov
+Status: RO
+
+Here are the filenames (and parameters contained) for the new AMSR-E
+data products.
+
+If anyone would like to begin receiving these products, send a request
+to Gene.Legg@noaa.gov
+
+If you are already receiving MODIS data from us, and would like a 
+sample of these products, let us know that as well.
+
+Anyone with access to our Nanuk fileserver are welcome to come
+and fetch samples from the "/pub/pm1/AMSRE" directory
+----------------------------------------------------------------
+
+
+Level 2 Land Product:
+AMSR_E_L2_Land_B01_YYYYMMDDHHMMSS_[A|D].hdf
+
+YYYYMMDDHHMMSS = Year Month Day Hour Minute Second
+[A|D] represents either an Ascending or Descending Orbit.
+
+example:  AMSR_E_L2_Land_B01_200408191249_D.hdf
+
+Contains:
+     Soil moisture
+     Vegetation Water Content
+     Land surface temperature
+     Surface Type
+
+----------------------------------------------------------------
+
+Level 2 Ocean Product:
+AMSR_E_L2_Ocean_B01_YYYYMMDDHHMMSS_[A|D].hdf
+
+YYYYMMDDHHMMSS = Year Month Day Hour Minute Second
+[A|D] represents either an Ascending or Descending Orbit.
+
+example:  AMSR_E_L2_Ocean_B01_200408191249_D.hdf
+
+Contains:
+     Very low resolution sea surface temperature
+     Low resolution sea surface temperature
+     Low resolution wind
+     Med resolution wind
+     Med resolution vapor
+     High resolution cloud
+
+----------------------------------------------------------------
+
+Level 3 Daily Ocean Product:
+AMSR_E_L3_DailyOcean_B01_YYYYMMDD.hdf
+
+YYYYMMDD = Year Month Day
+
+example:  AMSR_E_L2_Ocean_B01_200408.hdf
+
+Contains:
+     Very low resolution sea surface temperature
+     Low resolution sea surface temperature
+     Low resolution wind
+     Med resolution wind
+     Med resolution vapor
+     High resolution cloud
+
+-- 
+
+
+Paul Haggerty
+Science and Technology Corporation
+NESDIS/NOAA
+Phone: 301-457-5258 x142
+E-mail: Paul.Haggerty@noaa.gov
+
+From Paul.Haggerty@noaa.gov  Thu Aug  5 11:25:02 2004
+Return-Path: <Paul.Haggerty@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.ncep.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.12.11/8.12.10) with ESMTP id i75FP2dn025807
+	for <wd21rg@polar.wwb.noaa.gov>; Thu, 5 Aug 2004 11:25:02 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i75FObSF027147
+	for <grumbine@ncep.noaa.gov>; Thu, 5 Aug 2004 11:24:37 -0400
+Resent-Date: Thu, 5 Aug 2004 11:24:37 -0400
+Resent-Message-Id: <200408051524.i75FObSF027147@mx1.ncep.noaa.gov>
+Received: from nes3.nesdis.noaa.gov ([140.90.231.133]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I1ZC5F00.G17 for <Robert.Grumbine@noaa.gov>; Thu, 5 Aug 2004
+          11:24:51 -0400 
+Received: from noaa.gov ([140.90.208.227]) by
+          nes3.nesdis.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I1ZC5900.SKJ for
+          <nesdis.osdpd.ipd.modis.operations@noaa.gov>; Thu, 5 Aug 2004
+          11:24:45 -0400 
+Message-ID: <4112513C.9D5034F7@noaa.gov>
+Date: Thu, 05 Aug 2004 11:24:44 -0400
+From: "Paul Haggerty" <Paul.Haggerty@noaa.gov>
+Organization: NOAA
+X-Sender: "Paul Haggerty" <Paul.Haggerty@nes3.nesdis.noaa.gov>
+X-Mailer: Mozilla 4.79 [en]C-CCK-MCD NOAA-IPD1  (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: MODIS Operations <nesdis.osdpd.ipd.modis.operations@noaa.gov>
+Subject: AMSRE L2 OCEAN and Land Products
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Precedence: list
+Resent-From: nesdis.osdpd.ipd.modis.operations@noaa.gov
+Status: RO
+
+We've completed work on the AMSRE L2 products for the Oceans and 
+Land products.  We are in the final stages of integrating them with
+our automated distribution system and should be able to make them
+available in NRT by next week.
+
+Below is a list of the products that will be made available:
+
+Land:
+
+Soil moisture
+Vegetation Water Content
+Land surface temperature
+Surface Type
+
+Ocean2:
+
+Very_low_res_sst
+Low_res_sst
+Med_res_wind
+Med_res_vapor
+High_res_cloud
+
+Ocean3: (Daily only)
+
+Very_low_res_sst
+Low_res_sst
+Low_res_wind
+Med_res_wind
+Med_res_vapor
+High_res_cloud
+
+
+
+-- 
+
+
+Paul Haggerty
+Science and Technology Corporation
+NESDIS/NOAA
+Phone: 301-457-5258 x142
+E-mail: Paul.Haggerty@noaa.gov
+
