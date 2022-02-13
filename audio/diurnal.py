@@ -6,17 +6,19 @@ from music import *
 from harmonic import *
 
 #--------------------------------------------------------
+vol = 1
 
 # 'instrument' -- to be a class
 # Annual and its harmonics
-ampls = [21.7, 0.62, 0.42, 0.32, 0.31, 0.27, 0.22, 0.22, 0.21]
-harms = [1, 3, 2, 5, 9, 7, 6, 4, 13]
+ampls = [7.00, 1.383, 0.427, 0.271]
+harms = [1, 2, 3, 4 ]
+#ampls = [7.00, .0100 ]
+#harms = [1, 2 ]
 ampl_fundamental = ampls[0]
 ampl_min = min(ampls)
 
-vol = 1
-n = []
 base = note(music.quarter_note, note.parse('C4'), vol)
+n = []
 for i in range(len(ampls)):
   n.append(note())
 n[0].set( base )

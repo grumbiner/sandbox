@@ -66,6 +66,7 @@ class note(music):
     self.volume    = x.volume
     self.note[:]   = x.note[:]
 
+  #for harmonic additions
   def add_overtone(self, harmonic, proportion):
     freq = harmonic * self.frequency
     ts   = np.linspace(0, self.duration, int(self.duration*self.fs), False)
@@ -73,6 +74,16 @@ class note(music):
     tmp -= tmp.min()
     tmp *= self.volume*proportion
     self.note += tmp
+
+  #sounds near original frequency
+  def add_ratio(self, ratio, proportion):
+    freq = self.frequency*ratio
+    ts   = np.linspace(0, self.duration, int(self.duration*self.fs), False)
+    tmp  = np.sin(freq*ts*2.*np.pi)
+    tmp -= tmp.min()
+    tmp *= self.volume*proportion
+    self.note += tmp
+
 
   def shift(self, name, y):
     y.duration  = self.duration

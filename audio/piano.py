@@ -6,32 +6,47 @@ from music import *
 from harmonic import *
 
 #--------------------------------------------------------
+def power(a, omega = 1.):
+  return(a**2)
 
+#--------------------------------------------------------
 # 'instrument' -- to be a class
-# Annual and its harmonics
-ampls = [21.7, 0.62, 0.42, 0.32, 0.31, 0.27, 0.22, 0.22, 0.21]
-harms = [1, 3, 2, 5, 9, 7, 6, 4, 13]
-ampl_fundamental = ampls[0]
-ampl_min = min(ampls)
+# diurnal and its neighbors
+vol       = 1
+harm_base = 365
+ampl_base = 7.00
+#ampls     = [7.00, 0.46, 1.117, 0.714, 0.218]
+#harms     = [365,   367,   366,   364,   363]
+#ampls     = [7.00,  7.0, 7.0 ]
+#harms     = [365,   383, 347 ]
+ampls     = [7.00]
+harms     = [365]
+ampl_min  = min(ampls)
+volsum = 0.0
+for k in range(0,len(ampls)):
+  volsum += power(ampls[k])
 
-vol = 1
+base      = note(music.quarter_note, note.parse('C4'), ampls[0]**2/volsum )
+
 n = []
-base = note(music.quarter_note, note.parse('C4'), vol)
 for i in range(len(ampls)):
   n.append(note())
 n[0].set( base )
 
 #Now append the overtones:
 for k in range(1, len(harms) ):
+  base.add_ratio(harms[k]/harm_base, ampls[k]**2/volsum) 
+
   #base.add_overtone(harms[k], (ampls[k]/ampl_min) )
   #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 )
-  # A^2/omega^2 weight
   #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k] )
-  base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k]**2 )
-  base.normalize(vol)
+  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k]**2 )
+
+  #base.normalize(vol)
   n[k].set( base )
 
 #This establishes C4 on the new instrument, which can(?) then be shifted in to other notes
+base.normalize(vol)
 for k in range(0, len(harms)):
   n[k].normalize(vol)
 
