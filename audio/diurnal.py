@@ -3,20 +3,16 @@ import numpy as np
 import simpleaudio as sa
 #--------------------------------------------------------
 from music import *
-from harmonic import *
+#from harmonic import *
 
 #--------------------------------------------------------
-vol = 1
-
 # 'instrument' -- to be a class
-# Annual and its harmonics
+# Diurnal cycle and its harmonics
 ampls = [7.00, 1.383, 0.427, 0.271]
 harms = [1, 2, 3, 4 ]
-#ampls = [7.00, .0100 ]
-#harms = [1, 2 ]
-ampl_fundamental = ampls[0]
 ampl_min = min(ampls)
 
+vol = 1
 base = note(music.quarter_note, note.parse('C4'), vol)
 n = []
 for i in range(len(ampls)):
@@ -25,11 +21,7 @@ n[0].set( base )
 
 #Now append the overtones:
 for k in range(1, len(harms) ):
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min) )
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 )
-  # A^2/omega^2 weight
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k] )
-  base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k]**2 )
+  base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k] )
   base.normalize(vol)
   n[k].set( base )
 

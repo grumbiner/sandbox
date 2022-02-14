@@ -48,17 +48,30 @@ class music:
 
 class note(music):
 
+  def parse(name):
+  #name as in C#4 (c sharp, 4th octave, i.e. middle C sharp)
+  # C = first tone, cycle (c,d,e,f,g,a,b)
+    octave = int(name[-1])
+    x = music.tones[name[0:-1] ]
+    #debug print(name, octave, x, music.cref, flush=True)
+    freq = music.cref
+    n = octave-4
+    freq *= 2**(n)
+    freq *= 2**(x/12.)
+    return freq
+
+
   # volume = range [0,1] real
-  def  __init__(self, duration = music.quarter_note, frequency = music.cref, volume = 0.5):
-    #print("in init, note", flush=True)
+  def  __init__(self, duration = music.quarter_note, frequency = music.cref, volume = 1.0 ):
+    #debug print("in init, note", flush=True)
     self.duration  = duration
     self.frequency = frequency
     self.volume    = volume
     ts = np.linspace(0, duration, int(duration*self.fs), False)
-    self.note = np.sin(self.frequency*ts*2.*np.pi)
+    self.note  = np.sin(self.frequency*ts*2.*np.pi)
     self.note -= self.note.min()
     self.note *= self.volume
-    #print("init freq",self.frequency, flush=True)
+    #debug print("init freq",self.frequency, flush=True)
 
   def set(self, x):
     self.duration  = x.duration
@@ -84,7 +97,6 @@ class note(music):
     tmp *= self.volume*proportion
     self.note += tmp
 
-
   def shift(self, name, y, length = music.quarter_note):
     relength = length / self.duration
     #debug print("shift ",length, self.duration, relength, flush=True)
@@ -93,12 +105,11 @@ class note(music):
     y.frequency = note.parse(name)
     y.note      = np.zeros((len(self.note)))
     ratio = y.frequency/self.frequency
-    #print("y ",y.frequency, self.frequency, ratio, len(self.note), len(y.note), flush=True )
+    #debug print("y ",y.frequency, self.frequency, ratio, len(self.note), len(y.note), flush=True )
 
     for k in range(0,len(self.note*relength)):
       y.note[k] = self.note[ int(k*ratio+0.5) % len(self.note) ]
      
-
   def normalize(self, mag):
     delta = self.note.max() - self.note.min()
     self.note -= self.note.min()
@@ -112,29 +123,13 @@ class note(music):
     tmp *= mag
     self.note += tmp
 
-  def parse(name):
-  #name as in C#4 (c sharp, 4th octave, i.e. middle C sharp)
-  # C = first tone, cycle (c,d,e,f,g,a,b)
-    octave = int(name[-1])
-    x = music.tones[name[0:-1] ]
-    #print(name, octave, x, music.cref, flush=True)
-    freq = music.cref
-    n = octave-4
-    freq *= 2**(n)
-    freq *= 2**(x/12.)
-    return freq
-
   def from_csv(self, ampls, mag):
-    #print("ampls range: ",ampls.max(), ampls.min(), flush=True )
+    #debug print("ampls range: ",ampls.max(), ampls.min(), flush=True )
     ampls -= ampls.min()
     ampls /= ampls.max() # [0,1]
     ampls *= mag * (music.max_volume - 1)
     ampls += 1
 
-    #ampls = np.exp(ampls)
-    #ampls -= ampls.min()
-    #ampls /= ampls.max()
-    #ampls *= music.max_volume
     self.note      = ampls
     self.duration  = len(ampls/music.fs)
     self.frequency = 0
@@ -142,7 +137,7 @@ class note(music):
     return self
 
   def extend(self, ratio):
-    ampls = self.note
+    ampls          = self.note
     self.note      = np.zeros((len(self.note))*ratio)
     self.duration *= ratio
     for k in range(0,len(self.note) ):
@@ -163,13 +158,12 @@ class note(music):
     volsum = 0.
     for i in range(len(harms)):
       volsum += note.power(self.ampls[i])
-    print("harmonics ",self.ampls, len(self.ampls), volsum )
+    #debug print("harmonics ",self.ampls, len(self.ampls), volsum, flush=True )
     #Assumes that the base tone is already in place
     for i in range(1,len(harms)):
       self.add_overtone(harms[i], note.power(ampls[i])/volsum)
     self.normalize(1.)
       
-
 # Amplitudes and relative frequencies close to each other
   def from_piano(self, ampls, harms):
     self.ampls = ampls
@@ -178,7 +172,7 @@ class note(music):
     volsum = 0.
     for i in range(len(harms)):
       volsum += note.power(self.ampls[i])
-    print("piano ",self.ampls, len(self.ampls) )
+    #debug print("piano ",self.ampls, len(self.ampls), flush=True )
     for i in range(1, len(harms)):
       self.add_ratio(harms[i]/harm_base, note.power(ampls[i])/volsum)
     self.normalize(1.)

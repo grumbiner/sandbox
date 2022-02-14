@@ -2,6 +2,8 @@ from math import *
 import numpy as np
 import simpleaudio as sa
 
+#Various test computations and illustrations
+
 #fs = 44100
 fs = 48000
 seconds = 3

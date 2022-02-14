@@ -3,22 +3,19 @@ import numpy as np
 import simpleaudio as sa
 #--------------------------------------------------------
 from music import *
-from harmonic import *
 
 #--------------------------------------------------------
 # 'instrument' -- to be a class
 # diurnal and its neighbors
 vol       = 1
 harm_base = 365
-#ampls     = [7.00, 0.46, 1.117, 0.714, 0.218]
-#harms     = [365,   367,   366,   364,   363]
-#ampls     = [7.00,  7.0, 7.0 ]
-#harms     = [365,   383, 347 ]
-ampls     = [7.00]
-harms     = [365]
-ampl_min  = min(ampls)
+ampls     = [7.00, 0.46, 1.117, 0.714, 0.218]
+harms     = [365,   367,   366,   364,   363]
 
-base      = note(music.quarter_note, note.parse('C4'), ampls[0]**2/volsum )
+volsum = 0.
+for i in range(len(harms)):
+  volsum += note.power(ampls[i])
+base  = note(music.quarter_note, note.parse('C4'), note.power(ampls[0])/volsum )
 
 n = []
 for i in range(len(ampls)):
@@ -27,7 +24,7 @@ n[0].set( base )
 
 #Now append the overtones:
 for k in range(1, len(harms) ):
-  base.add_ratio(harms[k]/harm_base, ampls[k]**2/volsum) 
+  base.add_ratio(harms[k]/harm_base, note.power(ampls[k])/volsum) 
   n[k].set( base )
 
 #This establishes C4 on the new instrument, which can(?) then be shifted in to other notes

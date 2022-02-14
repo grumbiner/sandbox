@@ -1,125 +1,15 @@
 from math import *
 import numpy as np
 import simpleaudio as sa
+import csv
+
+import matplotlib
+import matplotlib.pyplot as plt
 
 #--------------------------------------------------------
-
-class music:
-  fs = 48000
- #fs = 44100
-  max_volume   = (2**15 - 1)
-
-  bpm   = 120.
-  scale = 440.                 # A above middle C 
-  cref  = scale * 2**(-9./12.) # C4, 261.63 
-  
-  quarter_note   = 60./bpm           #seconds
-  half_note      = 2.*quarter_note
-  whole_note     = 2.*half_note
-  eighth_note    = quarter_note / 2.
-  sixteenth_note = eighth_note / 2.
-
-#temper: even-temper, pentatonic, heptonic, ...
-  #map:
-  # C/B#, C#/Db, D, D#/Eb, E, F/E#, F#/Gb, G, G#/Ab, A, A#/Bb, B/Cb
-  # [0,11]
-  tones = {
-     'C'  : 0,
-     'B#' : 0,
-     'C#' : 1,
-     'Db' : 1,
-     'D'  : 2,
-     'D#' : 3,
-     'Eb' : 3,
-     'E'  : 4,
-     'E#' : 5,
-     'F'  : 5,
-     'F#' : 6,
-     'Gb' : 6,
-     'G'  : 7,
-     'G#' : 8,
-     'Ab' : 8,
-     'A'  : 9,
-     'A#' : 10,
-     'Bb' : 10,
-     'B'  : 11,
-     'Cb' : 11 
-   }
-  # C = first tone, cycle (c,d,e,f,g,a,b)
-
-#--------------------------------------------------------
-
-class note(music):
-
-  # volume = range [0,1] real
-  def  __init__(self, duration, frequency, volume):
-    self.duration  = duration
-    self.frequency = frequency
-    self.volume    = volume
-    ts = np.linspace(0, duration, int(duration*self.fs), False)
-    self.note = np.sin(self.frequency*ts*2.*np.pi)**1
-    self.note -= self.note.min()
-    self.note *= self.volume
-
-  def add_overtone(self, harmonic, proportion):
-    freq = harmonic * self.frequency
-    ts   = np.linspace(0, self.duration, int(self.duration*self.fs), False)
-    tmp  = np.sin(freq*ts*2.*np.pi)
-    tmp -= tmp.min()
-    tmp *= self.volume*proportion
-    self.note += tmp
-
-  def normalize(self, mag):
-    delta = self.note.max() - self.note.min()
-    self.note -= self.note.min()
-    if (delta != mag):
-      self.note *= (mag / delta)
-
-  #add white noise
-  def noise(self, mag):
-    tmp = np.zeros(len(self.note) )
-    tmp = np.random.uniform(low=-1., high=+1., size=len(self.note))
-    tmp *= mag
-    self.note += tmp
-
-  def parse(name):
-  #name as in C#4 (c sharp, 4th octave, i.e. middle C sharp)
-  # C = first tone, cycle (c,d,e,f,g,a,b)
-    octave = int(name[-1])
-    x = music.tones[name[0:-1] ]
-    #print(name, octave, x, music.cref)
-    freq = music.cref
-    n = octave-4
-    freq *= 2**(n)
-    freq *= 2**(x/12.)
-    return freq
-
-  def from_csv(self, ampls, mag):
-    print("ampls range: ",ampls.max(), ampls.min() )
-    ampls -= ampls.min()
-    ampls /= ampls.max() # [0,1]
-    ampls *= mag * (music.max_volume - 1)
-    ampls += 1
-    
-    #ampls = np.exp(ampls)
-    #ampls -= ampls.min()
-    #ampls /= ampls.max()
-    #ampls *= music.max_volume
-    self.note      = ampls
-    self.duration  = len(ampls/music.fs)
-    self.frequency = 0
-    self.volume    = mag
-    return self
-    
-  def extend(self, ratio):
-    ampls = self.note
-    self.note      = np.zeros((len(self.note))*ratio)
-    self.duration *= ratio
-    for k in range(0,len(self.note) ):
-      self.note[k] = ampls[int(k/ratio)]
+from music import *
         
 #--------------------------------------------------------
-import csv
 
 #amp = []
 #tau = []
@@ -131,10 +21,6 @@ import csv
 #    amp.append(  float(line[1]) )
 #    k += 1
 
-
-import matplotlib
-import matplotlib.pyplot as plt
-
 #nfold = 38
 #npts  = int(8192/nfold)
 #sums  = np.zeros((npts))
@@ -145,7 +31,6 @@ import matplotlib.pyplot as plt
 #ax.plot(sums)
 #ax.grid()
 #plt.savefig("tmp.png")
-
 
 #exit(0)
 #amplitudes = np.zeros((len(amp)))
@@ -170,7 +55,6 @@ import matplotlib.pyplot as plt
 #play_obj.wait_done()
 
 #exit(0)
-
 
 #Twinkle, Twinkle: ---------------------------------------
 vol = 0.1
@@ -214,4 +98,3 @@ play_obj.wait_done()
 #note.parse('C4')
 #d = note.parse('D4')
 #print('cref = ',music.cref, music.scale)
-
