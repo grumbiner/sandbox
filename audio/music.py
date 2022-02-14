@@ -85,15 +85,17 @@ class note(music):
     self.note += tmp
 
 
-  def shift(self, name, y):
-    y.duration  = self.duration
+  def shift(self, name, y, length = music.quarter_note):
+    relength = length / self.duration
+    #debug print("shift ",length, self.duration, relength, flush=True)
+    y.duration  = length
     y.volume    = self.volume
     y.frequency = note.parse(name)
     y.note      = np.zeros((len(self.note)))
     ratio = y.frequency/self.frequency
     #print("y ",y.frequency, self.frequency, ratio, len(self.note), len(y.note), flush=True )
 
-    for k in range(0,len(self.note)):
+    for k in range(0,len(self.note*relength)):
       y.note[k] = self.note[ int(k*ratio+0.5) % len(self.note) ]
      
 
@@ -145,5 +147,40 @@ class note(music):
     self.duration *= ratio
     for k in range(0,len(self.note) ):
       self.note[k] = ampls[int(k/ratio)]
+
+# Spectral power for an amplitude and frequency:
+  def power(a, omega = 1.):
+  #a
+  #a**2
+  #a**2/omega
+  #a**2/omega**2
+    return(a**2)
+
+# Given amplitudes and base frequency, composite a note for this 'instrument'
+  def from_harmonics(self, ampls, harms):
+    self.ampls = ampls
+    self.harms = harms
+    volsum = 0.
+    for i in range(len(harms)):
+      volsum += note.power(self.ampls[i])
+    print("harmonics ",self.ampls, len(self.ampls), volsum )
+    #Assumes that the base tone is already in place
+    for i in range(1,len(harms)):
+      self.add_overtone(harms[i], note.power(ampls[i])/volsum)
+    self.normalize(1.)
+      
+
+# Amplitudes and relative frequencies close to each other
+  def from_piano(self, ampls, harms):
+    self.ampls = ampls
+    self.harms = harms
+    harm_base = harms[0]
+    volsum = 0.
+    for i in range(len(harms)):
+      volsum += note.power(self.ampls[i])
+    print("piano ",self.ampls, len(self.ampls) )
+    for i in range(1, len(harms)):
+      self.add_ratio(harms[i]/harm_base, note.power(ampls[i])/volsum)
+    self.normalize(1.)
 
 #--------------------------------------------------------
