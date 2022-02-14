@@ -6,15 +6,10 @@ from music import *
 from harmonic import *
 
 #--------------------------------------------------------
-def power(a, omega = 1.):
-  return(a**2)
-
-#--------------------------------------------------------
 # 'instrument' -- to be a class
 # diurnal and its neighbors
 vol       = 1
 harm_base = 365
-ampl_base = 7.00
 #ampls     = [7.00, 0.46, 1.117, 0.714, 0.218]
 #harms     = [365,   367,   366,   364,   363]
 #ampls     = [7.00,  7.0, 7.0 ]
@@ -22,9 +17,6 @@ ampl_base = 7.00
 ampls     = [7.00]
 harms     = [365]
 ampl_min  = min(ampls)
-volsum = 0.0
-for k in range(0,len(ampls)):
-  volsum += power(ampls[k])
 
 base      = note(music.quarter_note, note.parse('C4'), ampls[0]**2/volsum )
 
@@ -36,13 +28,6 @@ n[0].set( base )
 #Now append the overtones:
 for k in range(1, len(harms) ):
   base.add_ratio(harms[k]/harm_base, ampls[k]**2/volsum) 
-
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min) )
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 )
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k] )
-  #base.add_overtone(harms[k], (ampls[k]/ampl_min)**2 / harms[k]**2 )
-
-  #base.normalize(vol)
   n[k].set( base )
 
 #This establishes C4 on the new instrument, which can(?) then be shifted in to other notes
