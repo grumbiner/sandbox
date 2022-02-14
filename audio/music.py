@@ -62,13 +62,13 @@ class note(music):
 
 
   # volume = range [0,1] real
-  def  __init__(self, duration = music.quarter_note, frequency = music.cref, volume = 1.0 ):
+  def  __init__(self, duration = music.quarter_note, frequency = music.cref, volume = 1.0, phase = 0. ):
     #debug print("in init, note", flush=True)
     self.duration  = duration
     self.frequency = frequency
     self.volume    = volume
     ts = np.linspace(0, duration, int(duration*self.fs), False)
-    self.note  = np.sin(self.frequency*ts*2.*np.pi)
+    self.note  = np.sin(self.frequency*ts*2.*np.pi + phase)
     self.note -= self.note.min()
     self.note *= self.volume
     #debug print("init freq",self.frequency, flush=True)
@@ -152,9 +152,10 @@ class note(music):
     return(a**2/omega)
 
 # Given amplitudes and base frequency, composite a note for this 'instrument'
-  def from_harmonics(self, ampls, harms):
+  def from_harmonics(self, ampls, harms, phase):
     self.ampls = ampls
     self.harms = harms
+    self.phase = phase
     volsum = 0.
     for i in range(len(harms)):
       volsum += note.power(self.ampls[i])
