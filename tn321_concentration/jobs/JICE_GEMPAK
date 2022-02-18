@@ -1,0 +1,142 @@
+#!/bin/sh
+
+########################################
+# Generates GEMPAK grids for NCEP sea-ice analysis
+# Modified 11/19/01 J.L.Partain/MPC to add VG file creation of ice edge
+# Modified 12/12/04 J. Carr/PMB to move processing into production from OPC
+# Modified 03/12/13 C. Caruso Magee/PMB for WCOSS. Changing 
+#    /com/mrf/prod/mrf.PDY to /com/omb/prod/sice.PDY to reflect new 
+#    location of engice input file.
+########################################
+
+set -xa
+#set -xe
+# #### 08/25/1999 ###################
+# SET SHELL PROCESSING VARIABLES
+# ###################################
+export PS4='$SECONDS + ' 
+date
+# 
+# obtain unique process id (pid) and make temp directories
+#
+export pid=$$
+## RG: This breaks if not run by production
+#export DATA=/tmpnwprd1/${job}.${pid}
+#mkdir $DATA
+cd $DATA 
+
+####################################
+# File To Log Msgs
+####################################
+#if [ $envir = "prod" ]
+#  then
+#    export jlogfile=/com/logs/jlogfiles/jlogfiles.${job}.${pid}
+#  else
+#    export jlogfile=/com/logs/para/jlogfile
+#fi
+#
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z 
+
+export SENDCOM=YES
+#export SENDECF=YES
+#if [ "$envir" = "prod" ] ; then
+#  export SENDDBN=YES 
+#  export SENDDBN_NTC=YES
+#else
+#  if [ $envir = "para" ] ; then
+#    export SENDDBN=YES
+#    export SENDDBN_NTC=NO
+#    export DBN_ALERT_TYPE=TBD_PARA
+#    export DBNROOT=/nwprod/spa_util/fakedbn
+#  else
+#    export SENDDBN=NO
+#    export SENDDBN_NTC=NO
+#  fi
+#fi
+
+#
+# Set up model and cycle specific variables
+#
+#export NET=omb
+export RUN=ice
+export RUN2=sice
+export fend=00
+export finc=12
+export fstart=00
+export model=eng
+export GRIB=
+export EXT=""
+export DBN_ALERT_TYPE=ICE_GEMPAK
+
+#
+# Copy model specific GEMPAK tables into working directory
+#
+#RG: another NCO hard-wiring
+#cp /nw${envir}/seaice_concentration_analysis.${seaice_concentration_analysis_ver}/gempak/fix/*.tbl .
+cp $HOMEseaice_concentration_analysis/gempak/fix/*.tbl .
+ 
+#
+# Now set up GEMPAK/NTRANS environment
+#
+. /nwprod/gempak/.gempak
+
+###################################
+# Set up the UTILITIES
+###################################
+#These 3 should now (2016) be set by the module load prod_util:
+#export utilscript=/nwprod/util/ush
+#export utilities=/nwprod/util/ush
+#export utilexec=/nwprod/util/exec
+
+# Run setup to initialize working directory and utility scripts
+#-- replaced in operations by using module load prod_util
+#sh $utilscript/setup.sh
+# Run setpdy and initialize PDY variables
+#sh $utilscript/setpdy.sh
+sh setpdy.sh
+. ./PDY
+
+#export com=/com/${NET}/${envir}
+#export COMIN=/com/${NET}/${envir}/${RUN2}.${PDY}
+#export COMOUT=/com/nawips/${envir}/${RUN}.${PDY}
+#
+#if [ ! -f $COMOUT ] ; then
+#  mkdir -p -m 775 $COMOUT
+#fi
+ 
+env
+
+#RG: More NCO hard-coding
+########################################################
+# Execute the script.
+#/nw${envir}/seaice_concentration_analysis.${seaice_concentration_analysis_ver}/scripts/exice_nawips.sh.ecf
+########################################################
+# Execute the META file generation scripts.
+#/nw${envir}/seaice_concentration_analysis.${seaice_concentration_analysis_ver}/gempak/ush/ice/ice_edge_vgf.sh
+########################################################
+# Execute the script.
+$HOMEseaice_concentration_analysis/scripts/exice_nawips.sh.ecf
+# Execute the META file generation scripts.
+$HOMEseaice_concentration_analysis/gempak/ush/ice/ice_edge_vgf.sh
+
+###########################################################
+# Uncomment if you want to see pgmout in the job output in 
+# /com/output/prod/today.  If so, cd $DATA is required.
+###########################################################
+#cd $DATA
+#cat $pgmout
+
+# RG: still more NCO hard-coding cd /tmpnwprd1
+cd $DATA
+if [ "$KEEPDATA" != "YES" ] ; then
+  rm -rf $DATA
+fi
+
+date
