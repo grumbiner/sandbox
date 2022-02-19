@@ -69,7 +69,7 @@ class note(music):
     self.volume    = volume
     ts = np.linspace(0, duration, int(duration*self.fs), False)
     self.note  = np.sin(self.frequency*ts*2.*np.pi + phase)
-    self.note -= self.note.min()
+    #self.note -= self.note.min()
     self.note *= self.volume
     #debug print("init freq",self.frequency, flush=True)
 
@@ -84,7 +84,7 @@ class note(music):
     freq = harmonic * self.frequency
     ts   = np.linspace(0, self.duration, int(self.duration*self.fs), False)
     tmp  = np.sin(freq*ts*2.*np.pi)
-    tmp -= tmp.min()
+    #tmp -= tmp.min()
     tmp *= self.volume*proportion
     self.note += tmp
 
@@ -93,7 +93,7 @@ class note(music):
     freq = self.frequency*ratio
     ts   = np.linspace(0, self.duration, int(self.duration*self.fs), False)
     tmp  = np.sin(freq*ts*2.*np.pi)
-    tmp -= tmp.min()
+    #tmp -= tmp.min()
     tmp *= self.volume*proportion
     self.note += tmp
 
@@ -112,9 +112,15 @@ class note(music):
      
   def normalize(self, mag):
     delta = self.note.max() - self.note.min()
-    self.note -= self.note.min()
-    if (delta != mag):
-      self.note *= (mag / delta)
+    #debug print("norm: ", mag, delta,self.note.max(), self.note.min(), flush=True )
+    if (self.note.min() < -1.0):
+      self.note -= self.note.min()
+      self.note -= 1.
+
+    delta = self.note.max() - self.note.min()
+    if (self.note.max() > 1.0):
+      self.note /= self.note.max()
+    print("norm: ", mag, delta,self.note.max(), self.note.min(), flush=True )
 
   #add white noise
   def noise(self, mag):
@@ -173,7 +179,7 @@ class note(music):
     volsum = 0.
     for i in range(len(harms)):
       volsum += note.power(self.ampls[i])
-    #debug print("piano ",self.ampls, len(self.ampls), flush=True )
+    print("piano ",self.ampls, len(self.ampls), flush=True )
     for i in range(1, len(harms)):
       self.add_ratio(harms[i]/harm_base, note.power(ampls[i])/volsum)
     self.normalize(1.)
