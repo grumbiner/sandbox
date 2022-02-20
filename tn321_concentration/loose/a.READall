@@ -1,0 +1,320 @@
+README.ice  :   discusses points regaring using the sea ice data
+files.  It was last updated 25 June 1999
+  During a month, each day's GRIB file will be placed here.  After the
+  end of the month, the entire month's data will be concatenated to a
+  single file and put in the archive subdirectory.  After the end of the
+  year, the individual months will be concatenated and the file compressed.
+  (Still in the archive subdirectory).
+
+
+README.land discusses the land masks.  It was last updated 12 April 2001.
+
+
+-----
+Land mask update history
+Corner points
+8 digit date conventions
+Citing the work
+Grib1 and Grib2 comments
+
+============================================================================
+README.icedata discusses points regaring using the sea ice data
+files.  It was last updated 25 June 1999
+
+README.land discusses the land masks.  It was last updated 12 April 2001.
+
+Robert Grumbine
+Robert.Grumbine@noaa.gov
+
+2012
+... several updates since 2004, documentation to come
+
+2004
+Land masks updated
+
+1 March 2000
+  New land mask and transfer scheme from the native polar stereographic
+maps implemented in online archive.  An _a posteriori_ computation of
+the global ice fields using the new scheme is in progress.
+
+  File naming convention changed to 4 digit years (finally).  Archive
+directory will maintain old 2 digit year names until June 2000.
+
+
+9 July 1998
+The June, 1998 file was delayed but is now available.  June 5, 1998 is
+not present, though all other missing days were recovered.  
+
+Work is under way to construct a more uniform time series (both in
+processing methods and in presentation, e.g. the change from 1 to 0.5
+degrees which occurs at 31 October 1995 in the current version).
+ 
+
+15 April 1997
+Ice concentration fields for the NCEP/NCAR Climate Data Assimilation System.  
+For details of how the fields are created, request 'Automated Passive 
+Microwave Sea Ice Concentration Analysis at NCEP'. This document is
+also available as a postscript file in 
+ftp://polar.ncep.noaa.gov/pub/papers/ssmi120.ps  
+
+The data here are 1 degree grids in GRIB format for the CDAS from 1 
+January 1995 through 30 October 1995.  From 31 October 1995 onward, the
+data are 0.5 degree GRIB fields.
+
+During a month, each day's GRIB file will be placed here.  After the
+end of the month, the entire month's data will be concatenated to a 
+single file and put in the archive subdirectory.  After the end of the 
+year, the individual months will be concatenated and the file compressed.
+(Still in the archive subdirectory).
+
+Robert Grumbine 
+Robert.Grumbine@noaa.gov
+15 April 1997
+Files are named by 4 digit years (ex. ice.1995)
+
+They have been compacted using gzip.  
+
+The default resolution (ice.YYYY) files are 0.5 degree latitude-longitude,
+from 31 October 2005 to present.  1 degree before that, and please read 
+the grib headers carefully as the details of the 1 degree gridding change
+during the period available.
+
+The high resolution (5 minute lat-long) files begin with 27 August 2004.
+High resolution files are named ice5min.YYYY.gz or ice5min.YYYYMM.gz.
+Due to their size (approx 250 Mb uncompressed per month), the high 
+resolution data are available in both by-month and by-year files.
+
+File format is concatenated grib files.  See, for example, 
+ftp://polar.ncep.noaa.gov/pub/wgrib/ for a freely available grib
+reader.
+
+
+Robert Grumbine
+Reviewed 17 July 2012
+Contents of the ftp directory: -- Updated 21 March 2007
+
+  ICE CONCENTRATION GRAPHICS
+cbar.gif : Index of the color to concentration relationship
+nh.gif   : gif of most recent sea ice concentration field - in the north
+nh12.gif :     as above, but at 12.7 km resolution instead of 25.4
+ak.gif   : gif of most recent sea ice concentration field - in the Alaska Region
+sh.gif   : gif of most recent sea ice concentration field - in the south
+sh12.gif :     as above, but at 12.7 km resolution instead of 25.4
+global.gif    : 0.5 degree lat-long grid sea ice for modellers
+global5min.gif: 5 arc-minute lat-long grid sea ice for modellers 
+
+
+  ICE CONCENTRATION DATA
+northpsg.yyyymmdd : 25.4 km Grib file of northern hemisphere ice concentration.
+southpsg.yyyymmdd : 25.4 km Grib file of southern hemisphere ice concentration. 
+north12psg.yyyymmdd : 12.7 km Grib file of northern hemisphere ice concentration.
+south12psg.yyyymmdd : 12.7 km Grib file of southern hemisphere ice concentration. 
+../cdas/eng.yyyymmdd : 30 minute lat-long grib file of global ice for modellers
+../cdas/eng5min.yyyymmdd : 5 minute lat-long grib file of global ice for modellers
+
+  ICE DRIFT MODEL OUTPUT -- Is available from the operational server
+ftpprd.ncep.noaa.gov.  
+Please see http://polar.ncep.noaa.gov/mmab/translation.shtml for details
+drift.out: Most recent ice drift model output.  
+ak.out   : Most recent Alaska Region drift model output
+
+
+../wgrib/: Wes Ebisuzaki's grib reader.  Most current version is at 
+        wesley.ncep.noaa.gov.  pub/wgrib.
+
+archive/  : Directory with a monthly archive of ice concentrations.
+  These are the grib'bed daily fields (northpsg, southpsg) that
+  have been concatenated and unix compressed.
+
+nh/		: Northern hemisphere ice concentration figures.  
+sh/		: Southern hemisphere ice concentration figures.
+alaska/		: Alaska Region ice concentration figures.
+ross/		: Ross Sea ice concentration figures.
+amery/		: Amery Sea ice concentration figures.
+weddell/	: Weddell Sea ice concentration figures.
+All have subdirectories by year, 1998-previous year 
+
+
+Land masks were updated 19 May 2004
+support/  : Directory with various support files for users of the 
+  ice concentration data fields.  This includes:
+ssmi.corners   : Specifications of the sea ice concentration gridding.
+seaice_nland.map      : Raster map, 385x465, of 25.4 km northern hemisphere land mask.
+seaice_sland.map      : Raster map, 345x355, of 25.4 km southern hemisphere land mask. 
+seaice_newland    : Raster map, 720x360, of global 0.5 degree land mask.
+seaice_gland5min  : Raster map, 4320x2160 of global 5 minute land mask.
+seaice_sland127.map   : Raster map of 12.7 km southern hemisphere land mask.
+seaice_nland127.map   : Raster map of 12.7 km northern hemisphere land mask.
+onedeg.map     : Raster map, 360x180, of global land mask -- for old (pre-10/31/1995)
+
+publications/  : Technical notes regarding the drift model, ssmi ice concentration
+   analysis, and sea ice model.
+
+  Effective 5 June 1997 the northpsg and southpsg files went to a range
+of 0 to 2.24 (formerly 0 to 224) to accord with GRIB standards and the
+form of the eng files.  The archives will be brought in line with the
+standard when time permits.
+25 June 1999
+Reviewed 17 July 2012
+
+Notes on using the sea ice data grids:
+
+  northpsg.yymmdd   --  25.4 km northern hemisphere sea ice analyst's grid
+  north12psg.yymmdd --  12.7 northern hemisphere sea ice analyst's grid
+  southpsg.yymmdd   --  25.4 km southern hemisphere sea ice analyst's grid
+  south12psg.yymmdd --  12.7 km southern hemisphere sea ice analyst's grid
+  eng.yymmdd        --  global 0.5 degree modeller's grid.
+  eng5min.yymmdd    --  global 5 minute modeller's grid.
+
+  The analyst's grids are 25.4 km or 12.7 km polar stereographic grids.  The
+modeller's grids are 0.5 degree or 5 minute latitude-longitude projection.
+The polar stereographic grids are true at 60 N/S
+Orientation is along 80 W in the Northern Hemisphere, 60 W in the Southern
+
+  Values are stored as fractional concentration -- 0.00 to 1.00 for ice
+cover.  In the analyst's grids, values of up to 1.28 are possible, and
+seem to relate to physical processes.  Most users will want to reset
+all values between 1.00 and 1.28 to 1.00.  In the modeller's grid,
+this is already done.  
+
+  Flag values which may be encountered:
+1.57 -- Land
+1.66 -- Bad data
+1.77 -- Weather
+1.95 -- Coast
+2.24 -- No data
+
+  The modeller's grid will not display any of these, but the analyst's grid
+will.
+
+  The modeller's grid set ice concentrations to zero over land currently
+until August 10, 2004, when it reverted to the practice of showing the
+land flags.  This has not always been the case, and the archive has not yet been 
+corrected to reflect this current practice.  Ice concentrations over 
+'coastal' points are and always have been given.  In ideal circumstances,
+these values would not be used.  In order to aid usage of the grids, 
+the land masks are available in ftp://polar.ncep.noaa.gov/seaice/ice/support/
+
+  See README.land for notes on the land masks and grids.
+
+  More detail regarding the production of these data files is given in
+OMB Tech. Note 120, which is available as a postscript file in
+ftp://polar.ncep.noaa.gov/seaice/ssmi/ssmi120.ps
+
+Robert.Grumbine@noaa.gov
+Land Masks updated 19 May 2004.  Older masks are in old.12april2001
+
+Land mask files were updated on this server 12 April 2001.  The
+old files are still present in the directory 'old.land'.
+Details of the April 2001 changes are discussed at 
+  http://polar.wwb.noaa.gov/seaice/support/land.html
+
+Format is 'unsigned char' or 'byte'.  (Values are coded to a single octet)
+  seaice_nland.map - northern hemisphere 25.4 km polar stereographic grid
+  seaice_sland.map - southern hemisphere 25.4 km polar stereographic grid
+  seaice_nland127.map - northern hemisphere 12.7 km polar stereographic grid
+  seaice_sland127.map - southern hemisphere 12.7 km polar stereographic grid
+  seaice_newland      - global 0.5 degree latitude-longitude grid.
+  seaice_gland5min    - global 5 minute latitude-longitude grid.
+
+The polar stereographic grids are true at 60 N/S
+Orientation is along 80 W in the Northern Hemisphere, 60 W in the Southern
+
+  Flag values which may be encountered:
+In the grib file, flags are:
+0.00 -- Ocean
+1.57 -- Land
+1.95 -- Coast
+
+In the unsigned character files, they are:
+000 -- Ocean
+157 -- Land
+195 -- Coast
+
+Robert Grumbine
+Robert.Grumbine@noaa.gov
+
+Notes on using the sea ice data grids:
+
+  northpsg.yyyymmdd is the northern hemisphere sea ice analyst's grid
+  southpsg.yyyymmdd is the southern hemisphere sea ice analyst's grid
+  eng.yyyymmdd      is the global 0.5 degree modeller's grid.
+  north12psg.yyyymmdd is the high resolution (12.7 km) ice analyst grid
+  south12psg.yyyymmdd is the high resolution (12.7 km) ice analyst grid
+  eng5min.yyyymmdd    is the high resolution (5 arc minute) modeller's grid
+
+  The analyst's grids are 25.4 km polar stereographic grids.  The
+modeller's grid is a 0.5 degree latitude-longitude projection.
+
+  Values are stored as fractional concentration -- 0.00 to 1.00 for ice
+cover.  In the analyst's grids, values of up to 1.28 are possible, and
+seem to relate to physical processes.  Most users will want to reset
+all values between 1.00 and 1.28 to 1.00.  In the modeller's grid,
+this is already done.  
+
+  Flag values which may be encountered:
+1.57 -- Land
+1.95 -- Coast
+1.66 -- Weather
+2.24 -- No data
+
+  The modeller's grid will not display any of these, but the analyst's grid
+will.
+
+  The modeller's grid sets ice concentrations to zero over land currently.
+This has not always been the case, and the archive has not yet been 
+corrected to reflect this current practice.  Ice concentrations over 
+'coastal' points are and always have been given.  In ideal circumstances,
+these values would not be used.  In order to aid usage of the grids, 
+the land mask is available in ftp://polar.ncep.noaa.gov/seaice/ice/halfdeg.map.
+This is a 720x360 array of unsigned characters, which carry the flags
+noted above for land and coast masking.  The grid for 1 degree ice
+cover analyses (note, this is only for Dec 1, 1991 to Oct 30, 1995, the
+period I produced the files) is onedeg.map in the same directory.
+Grib versions of these will be placed in this directory under the names 
+halfdeg.grib and onedeg.grib.
+
+  The land masks for the analyst's grids are in 
+ftp://polar.ncep.noaa.gov/seaice/ice/nland.psg and sland.psg.
+
+  More detail regarding the production of these data files is given in
+OMB Tech. Note 120, which is available as a postscript file in
+ftp://polar.ncep.noaa.gov/seaice/ssmi/ssmi120.ps
+
+
+Update 17 July 2012
+Grid for the SSMI-derived ice concentrations:
+ Feb 26  1996
+Robert Grumbine
+
+Polar Stereographic
+True latitude 60 (North or South)
+Resolution 25.4 km
+
+Reference longitude 80W in northern hemisphere
+Reference longitude 100E in southern hemisphere
+
+Earth: radius 6378.273 km, 
+       eccentricity of ellipsoid squared 0.006693883 
+
+Corner points on the ice maps, latitude, longitude
+Latitude is negative south, longitude is negative west.
+
+Northern hemisphere
+  1,   1  25.00 -119.55
+  1, 465  24.46  139.07
+385,   1  24.56  -39.85
+385, 465  24.02   60.33
+
+Southern hemisphere
+  1,   1 -36.90 -220.19
+  1, 355 -37.80 -120.76
+345,   1 -31.09 -307.14
+345, 355 -31.85  -31.88
+
+In I, J space, the grids are:
+Northern Hemisphere:
+385, 465; pole at 191, 231 (numbered from 1 to N, Fortran convention)
+
+Southern Hemisphere:
+345, 355; pole at 151, 181 (numbered from 1 to N, Fortran convention)

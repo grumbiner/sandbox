@@ -1,0 +1,5 @@
+all : global
+
+
+global : global.C
+	mpic++ -Wall -O2 -I /Users/rmg3/usrlocal/mmablib/include $< -o $(@) 
