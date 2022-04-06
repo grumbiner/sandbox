@@ -16,10 +16,10 @@ seaice_posteriori.Cd/seaice_posteriori_5min.x \
 seaice_reduce.Cd/seaice_south_reduce \
 seaice_reduce.Cd/seaice_north_reduce \
 seaice_monitor.Cd/seaice_monitor_c12th \
-seaice_regions.Cd/grid.south \
-seaice_regions.Cd/grid.north \
-seaice_regions.Cd/grid.southhigh \
-seaice_regions.Cd/grid.northhigh \
+seaice_regions.Cd/seaice_regions.south \
+seaice_regions.Cd/seaice_regions.north \
+seaice_regions.Cd/seaice_regions.southhigh \
+seaice_regions.Cd/seaice_regions.northhigh \
 seaice_filtanal.Cd/seaice_filtanal \
 seaice_imsice.Cd/imsice_gl \
 seaice_imsice.Cd/imsice \

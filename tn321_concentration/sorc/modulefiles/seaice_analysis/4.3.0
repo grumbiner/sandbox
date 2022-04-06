@@ -15,6 +15,7 @@ module-whatis   " ice concentration analysis whatis description"
 ## module load /nwpara2/lib/modulefiles/mmab/$mmablib_ver
 
 set ver 4.3.0
+set lname seaice_analysis
 #NCO Compilation modules
 module load EnvVars/1.0.2 ips/18.0.1.163  impi/18.0.1
 #mmab module
@@ -24,7 +25,7 @@ module load mmab/3.5.0
 module load w3nco/2.0.6 w3emc/2.3.0
 module load bufr/11.2.0 bacio/2.0.2
 
-#module load png/v1.2.44
-#module load z/v1.2.6
-#module load jasper/v1.900.1
-#module load g2/v2.5.0
+module load libpng/1.2.44
+module load zlib/1.2.11
+module load jasper/1.900.1
+module load g2/3.1.0
