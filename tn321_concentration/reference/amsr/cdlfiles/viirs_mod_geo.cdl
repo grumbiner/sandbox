@@ -1,0 +1,256 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       viirs_mod_geo.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for VIIRS MOD GEO file.
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       VIIRS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for VIIRS granule data:
+//
+//           $ ncgen -b -k3 viirs_mod_geo.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Chen Zhang, PSGS, 12/29/09
+//                     Chen.Zhang@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+
+
+netcdf viirs_mod_geo {
+
+//---------
+dimensions:
+//---------
+
+      Granule = 1;
+      Scan = 48;
+      Coordinate = 3;
+      AlongTrack = 768;
+      CrossTrack = 3200;
+
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+      long  NumberOfScans(Granule);
+            NumberOfScans:long_name = "Actual number of scans in granule";
+            NumberOfScans:units = "none";
+            NumberOfScans:scale_factor = 1.0f;
+            NumberOfScans:add_offset = 0.0f;
+            NumberOfScans:parameter_type = "VIIRS data";
+            NumberOfScans:valid_range = 0, 48;
+            NumberOfScans:_FillValue = -9999;
+
+      ubyte ModeGran(Granule);
+            ModeGran:long_name = "Granule-level VIIRS operational mode";
+            ModeGran:units = "none";
+            ModeGran:scale_factor = 1.0f;
+            ModeGran:add_offset = 0.0f;
+            ModeGran:parameter_type = "VIIRS data";
+            ModeGran:valid_range = 0ub, 255ub;
+            ModeGran:_FillValue = 255ub;
+
+      ubyte ModeScan(Scan);
+            ModeScan:long_name = "Scan-level VIIRS operational mode";
+            ModeScan:units = "none";
+            ModeScan:scale_factor = 1.0f;
+            ModeScan:add_offset = 0.0f;
+            ModeScan:parameter_type = "VIIRS data";
+            ModeScan:valid_range = 0ub, 255ub;
+            ModeScan:_FillValue = 255ub;
+
+      ubyte QF1_SCAN_VIIRSSDRGEO(Scan);
+            QF1_SCAN_VIIRSSDRGEO:long_name = "Scan-level quality flag";
+            QF1_SCAN_VIIRSSDRGEO:units = "none";
+            QF1_SCAN_VIIRSSDRGEO:scale_factor = 1.0f;
+            QF1_SCAN_VIIRSSDRGEO:add_offset = 0.0f;
+            QF1_SCAN_VIIRSSDRGEO:parameter_type = "VIIRS data";
+            QF1_SCAN_VIIRSSDRGEO:valid_range = 0ub, 255ub;
+            QF1_SCAN_VIIRSSDRGEO:_FillValue = 255ub;
+
+      int64 StartTime(Scan);
+            StartTime:long_name = "Start time of scan in IET (1/1/1958)";
+            StartTime:units = "microsecond";
+            StartTime:scale_factor = 1.0f;
+            StartTime:add_offset = 0.0f;
+            StartTime:parameter_type = "VIIRS data";
+            StartTime:valid_range = 0L, 1000000000000000000L;
+            StartTime:_FillValue = -9999L;
+
+      int64 MidTime(Scan);
+            MidTime:long_name = "Mid-Time of scan in IET (1/1/1958)";
+            MidTime:units = "microsecond";
+            MidTime:scale_factor = 1.0f;
+            MidTime:add_offset = 0.0f;
+            MidTime:parameter_type = "VIIRS data";
+            MidTime:valid_range = 0L, 1000000000000000000L;
+            MidTime:_FillValue = -9999L;
+
+      float SCSolarZenithAngle(Scan);
+            SCSolarZenithAngle:long_name = "Angle from normal to solar vector";
+            SCSolarZenithAngle:units = "degree";
+            SCSolarZenithAngle:scale_factor = 1.0f;
+            SCSolarZenithAngle:add_offset = 0.0f;
+            SCSolarZenithAngle:parameter_type = "VIIRS data";
+            SCSolarZenithAngle:valid_range = 0.0f, 180.0f;
+            SCSolarZenithAngle:_FillValue = -9999.0f;
+
+      float SCSolarAzimuthAngle(Scan);
+            SCSolarAzimuthAngle:long_name = "Angle from Diffuser to projection";
+            SCSolarAzimuthAngle:units = "degree";
+            SCSolarAzimuthAngle:scale_factor = 1.0f;
+            SCSolarAzimuthAngle:add_offset = 0.0f;
+            SCSolarAzimuthAngle:parameter_type = "VIIRS data";
+            SCSolarAzimuthAngle:valid_range = -180.0f, 180.0f;
+            SCSolarAzimuthAngle:_FillValue = -9999.0f;
+
+      float SCPosition(Scan,Coordinate);
+            SCPosition:long_name = "Spacecraft position ECR Coordinates";
+            SCPosition:units = "meter";
+            SCPosition:scale_factor = 1.0f;
+            SCPosition:add_offset = 0.0f;
+            SCPosition:parameter_type = "VIIRS data";
+            SCPosition:valid_range = 0.0f, 1000000.0f;
+            SCPosition:_FillValue = -9999.0f;
+
+      float SCVelocity(Scan,Coordinate);
+            SCVelocity:long_name = "Spacecraft velocity ECR Coordinates";
+            SCVelocity:units = "m/s";
+            SCVelocity:scale_factor = 1.0f;
+            SCVelocity:add_offset = 0.0f;
+            SCVelocity:parameter_type = "VIIRS data";
+            SCVelocity:valid_range = 0.0f, 1000000.0f;
+            SCVelocity:_FillValue = -9999.0f;
+
+      float SCAttitude(Scan,Coordinate);
+            SCAttitude:long_name = "Spacecraft attitude GRF Coordinates";
+            SCAttitude:units = "arcsecond";
+            SCAttitude:scale_factor = 1.0f;
+            SCAttitude:add_offset = 0.0f;
+            SCAttitude:parameter_type = "VIIRS data";
+            SCAttitude:valid_range = 0.0f, 1000000.0f;
+            SCAttitude:_FillValue = -9999.0f;
+
+      float Latitude(AlongTrack,CrossTrack);
+            Latitude:long_name = "Latitude of pixel (positive North)";
+            Latitude:units = "degree";
+            Latitude:scale_factor = 1.0f;
+            Latitude:add_offset = 0.0f;
+            Latitude:parameter_type = "VIIRS data";
+            Latitude:valid_range = -90.0f, 90.0f;
+            Latitude:_FillValue = -9999.0f;
+
+      float Longitude(AlongTrack,CrossTrack);
+            Longitude:long_name = "Longitude of pixel (positive East)";
+            Longitude:units = "degree";
+            Longitude:scale_factor = 1.0f;
+            Longitude:add_offset = 0.0f;
+            Longitude:parameter_type = "VIIRS data";
+            Longitude:valid_range = -180.0f, 180.0f;
+            Longitude:_FillValue = -9999.0f;
+
+      float SolarZenithAngle(AlongTrack,CrossTrack);
+            SolarZenithAngle:long_name = "Zenith angle of sun";
+            SolarZenithAngle:units = "degree";
+            SolarZenithAngle:scale_factor = 1.0f;
+            SolarZenithAngle:add_offset = 0.0f;
+            SolarZenithAngle:parameter_type = "VIIRS data";
+            SolarZenithAngle:valid_range = 0.0f, 180.0f;
+            SolarZenithAngle:_FillValue = -9999.0f;
+
+      float SolarAzimuthAngle(AlongTrack,CrossTrack);
+            SolarAzimuthAngle:long_name = "Azimuth angle of sun";
+            SolarAzimuthAngle:units = "degree";
+            SolarAzimuthAngle:scale_factor = 1.0f;
+            SolarAzimuthAngle:add_offset = 0.0f;
+            SolarAzimuthAngle:parameter_type = "VIIRS data";
+            SolarAzimuthAngle:valid_range = -180.0f, 180.0f;
+            SolarAzimuthAngle:_FillValue = -9999.0f;
+
+      float SatelliteZenithAngle(AlongTrack,CrossTrack);
+            SatelliteZenithAngle:long_name = "Zenith angle to Satellite";
+            SatelliteZenithAngle:units = "degree";
+            SatelliteZenithAngle:scale_factor = 1.0f;
+            SatelliteZenithAngle:add_offset = 0.0f;
+            SatelliteZenithAngle:parameter_type = "VIIRS data";
+            SatelliteZenithAngle:valid_range = 0.0f, 70.0f;
+            SatelliteZenithAngle:_FillValue = -9999.0f;
+
+      float SatelliteAzimuthAngle(AlongTrack,CrossTrack);
+            SatelliteAzimuthAngle:long_name = "Azimuth angle to Satellite";
+            SatelliteAzimuthAngle:units = "degree";
+            SatelliteAzimuthAngle:scale_factor = 1.0f;
+            SatelliteAzimuthAngle:add_offset = 0.0f;
+            SatelliteAzimuthAngle:parameter_type = "VIIRS data";
+            SatelliteAzimuthAngle:valid_range = -180.0f, 180.0f;
+            SatelliteAzimuthAngle:_FillValue = -9999.0f;
+
+      float Height(AlongTrack,CrossTrack);
+            Height:long_name = "Ellipsoid-Geoid separation";
+            Height:units = "meter";
+            Height:scale_factor = 1.0f;
+            Height:add_offset = 0.0f;
+            Height:parameter_type = "VIIRS data";
+            Height:valid_range = 0.0f, 1000000.0f;
+            Height:_FillValue = -9999.0f;
+
+      float SatelliteRange(AlongTrack,CrossTrack);
+            SatelliteRange:long_name = "Line of sight distance";
+            SatelliteRange:units = "meter";
+            SatelliteRange:scale_factor = 1.0f;
+            SatelliteRange:add_offset = 0.0f;
+            SatelliteRange:parameter_type = "VIIRS data";
+            SatelliteRange:valid_range = 0.0f, 1000000.0f;
+            SatelliteRange:_FillValue = -9999.0f;
+
+// This is the last array
+
+      ubyte QF2_VIIRSSDRGEO(AlongTrack,CrossTrack);
+            QF2_VIIRSSDRGEO:long_name = "Pixel-level quality flag";
+            QF2_VIIRSSDRGEO:units = "none";
+            QF2_VIIRSSDRGEO:scale_factor = 1.0f;
+            QF2_VIIRSSDRGEO:add_offset = 0.0f;
+            QF2_VIIRSSDRGEO:parameter_type = "VIIRS data";
+            QF2_VIIRSSDRGEO:valid_range = 0ub, 255ub;
+            QF2_VIIRSSDRGEO:_FillValue = 255ub;
+
+
+//------------------
+// global attributes
+//------------------
+
+        :title = "VIIRS MOD GEO granule data file" ;
+        :author = "Chen Zhang PSGS.  Chen.Zhang@noaa.gov" ;
+        :rcsId = "$Id: $" ;
+
+
+}

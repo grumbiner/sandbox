@@ -1,0 +1,54 @@
+netcdf GW1AM2_201211021124_060A_L1DLBTBR_0000000 {
+dimensions:
+	phony_dim_0 = 360 ;
+	phony_dim_1 = 3 ;
+	phony_dim_2 = 243 ;
+	phony_dim_3 = 486 ;
+	phony_dim_4 = 12 ;
+	phony_dim_5 = 16 ;
+	phony_dim_6 = 4 ;
+	phony_dim_7 = 32 ;
+	phony_dim_8 = 6 ;
+	phony_dim_9 = 2 ;
+	phony_dim_10 = 248 ;
+	phony_dim_11 = 64 ;
+	phony_dim_12 = 34 ;
+	phony_dim_13 = 46 ;
+	phony_dim_14 = 512 ;
+variables:
+// This is the first array
+	float Attitude\ Data(phony_dim_0, phony_dim_1) ;
+	ushort Brightness\ Temperature\ \(10.7GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(10.7GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(18.7GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(18.7GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(23.8GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(23.8GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(36.5GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(36.5GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(6.9GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(6.9GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(7.3GHz\,H\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(7.3GHz\,V\)(phony_dim_0, phony_dim_2) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-A\,H\)(phony_dim_0, phony_dim_3) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-A\,V\)(phony_dim_0, phony_dim_3) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-B\,H\)(phony_dim_0, phony_dim_3) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-B\,V\)(phony_dim_0, phony_dim_3) ;
+	short Earth\ Azimuth(phony_dim_0, phony_dim_2) ;
+	short Earth\ Incidence(phony_dim_0, phony_dim_2) ;
+	ubyte Land_Ocean\ Flag\ 6\ to\ 36(phony_dim_8, phony_dim_0, phony_dim_2) ;
+	ubyte Land_Ocean\ Flag\ 89(phony_dim_9, phony_dim_0, phony_dim_3) ;
+	float Latitude\ of\ Observation\ Point\ for\ 89A(phony_dim_0, phony_dim_3) ;
+	float Latitude\ of\ Observation\ Point\ for\ 89B(phony_dim_0, phony_dim_3) ;
+	float Longitude\ of\ Observation\ Point\ for\ 89A(phony_dim_0, phony_dim_3) ;
+	float Longitude\ of\ Observation\ Point\ for\ 89B(phony_dim_0, phony_dim_3) ;
+	ubyte Pixel\ Data\ Quality\ 6\ to\ 36(phony_dim_0, phony_dim_3) ;
+	ubyte Pixel\ Data\ Quality\ 89(phony_dim_0, phony_dim_3) ;
+	ubyte Scan\ Data\ Quality(phony_dim_0, phony_dim_14) ;
+	double Scan\ Time(phony_dim_0) ;
+	short Sun\ Azimuth(phony_dim_0, phony_dim_2) ;
+// This is the last array
+	short Sun\ Elevation(phony_dim_0, phony_dim_2) ;
+
+// global attributes:
+}

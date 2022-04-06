@@ -1,0 +1,31 @@
+Hi Bob,
+
+I am no longer processing SSM/IS myself. I save what's in production from /dcom/us007003/YYYYMMDD/b021 into /global/noscrub/wx22gk/ssmis/tanks/YYYYMMDD/b021. So, yes. The /nwprod/fix/bufrtab.021 is up to date with the tanks I am saving.
+
+Dennis Keyser has a utility that I use to read the BUFR data called bufrdump.datadump. It's located on Cirrus or Stratus under /meso/save/wx22dk/prepbufr/. The command is...
+
+sh /meso/save/wx22dk/prepbufr/bufrdump.datadump /path/tank <output file> .
+
+The output file will be saved in a newly created /stmp/$USER/bufrdump.datadump directory. For SSM/IS data, it takes a while to create the output file, since these tanks are usually large in size. You can use bufrtab.021 as a guide for the information you need, but the output file has a brief description of each mnemonic after the value.
+
+Hope this helps,
+Greg 
+
+
+from bufrtab.021:
+| SSMISTEM | SAID                                                              |
+| SSMISTEM | TSIG YEAR MNTH DAYS HOUR MINU 201138 202131 SECO 202000 201000    |
+*          | ----------------------- scan start time ----------------------    |
+|          |                                                                   |
+| SSMISTEM | 201132  SLNM     201000     201129   FOVN   201000  CLAT  CLON    |
+| SSMISTEM | SFLG    RFLAG   "SSMISCHN"24        "SATEPHEM"3                   |
+| SSMISTEM | TSIG    YEAR     MNTH       DAYS     HOUR   MINU                  |
+*          | --------------- orbit start time ---------------                  |
+|          |                                                                   |
+| SSMISTEM | ORBN   "WLTMSEQN"3          SSID    "MUHOSEQN"4     DIMS          |
+| SSMISTEM | "SCLINGEO"28                                                      |
+|          |                                                                   |
+|          |                                                                   |
+| SSMISCHN | CHNM  TMBR  WTCA   CTCA  
+
+15 Oct 2010

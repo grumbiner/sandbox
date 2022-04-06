@@ -1,0 +1,91 @@
+#Control files
+Makefile  : Make all the executables.  
+            Also make the travelling package (make travel)
+            Note that some routines are non-standard and internal to the 
+              crays (date, minv, fftfax, rfftmlt), so that skile2.model 
+              will not run on other machines.  sphert94a is the user of 
+              the fftfax, rfftmlt, and minv routines.  Date is a date 
+              function.
+
+skile.inc : Include file which describes the drift model and the 
+            meteorological forecast model.
+
+geo.jcl   : File which controls the execution of the model and its
+              support programs.  The 'fetch'es will run only on the
+              C-90 and Y-MP (as of 22 March 1995), and require different
+              id's on both machines  (-mVX on Y-MP, -mVS on the C-90). 
+
+#Programs: iceqc, akprep, skpoints, skile2.model
+iceqc.f    : Program (no calls) which prints out the land mask derived 
+               by the old second generation wave model from the NIC ice 
+               line.  For quality control of the ice line product by the 
+               NIC.
+
+akprep.f   : Program (no calls) which combines the skiles model output 
+               and the Thorndike and Colony model output (skile2.model) 
+               for day 6 and produces a file for guidance of the Anchorage 
+               WSFO.
+
+skpoints.f : Program (no calls) which computes the latitude and 
+               longitude of the 207 original Skiles points, and an 
+               augmented list for the southern hemisphere.
+
+skile2.f   : Program (calls the rest of the routines listed) to compute 
+               the geostrophic wind, compute the free drift ice velocity 
+               (Thorndike and Colony 1982 for the Arctic, Martinson and 
+               Wamser, 1990 for the Antarctic), and move a fictitious 
+               freely drifting floe for each forecast period.  Output 
+               consists of drift distance and direction for all virtual 
+               floes.  This includes the fixed set (computed by skpoints) 
+               and a reduced set of points from the NIC iceline file for 
+               the day.
+
+#Routines:
+sk2setup.f : Set up the locations of the drift points -- read in the 
+               skiles points file and the iceline files, remove iceline 
+               points which are closer than minsep (set in skile2, 
+               presently 50 km) km from a currently used iceline point.  
+               In the event of no skiles point file, use a few hard coded 
+               points from the Bering Sea.  Do nothing extra if there are 
+               no points in the iceline files.
+
+getsig.f   : Read in the topography, sea level pressure, and lowest 
+               layer temperature from the spectral sigma file.  Assume 
+               that the sigma file is attached appropriately in the 
+               control script (-Fcos -Nibm).  Only routine which needs
+               to know the spectral resolution of the data before starting.
+
+atmos.f    : Manage the computation of fields required from the atmosphere.  
+               Early in history this was a moderately elaborate routine.  
+               Presently, it only calls geowin, the routine which computes 
+               the geostrophic wind.
+geowin.f   : Compute the geostrophic 'surface' wind.  The surface is 
+               actually at the level that the MRF considers the surface 
+               to be (ztopo), which is not necessarily zero elevation 
+               over the oceans.
+
+movice.f   : Compute the motion of the free-drift ice floes given the 
+               geostrophic atmospheric velocity.  Works mostly by calls 
+               to subroutines (uice, fndflo, flovel), then computes 
+               location and performs sanity checking on the results.  
+               This is where one would make the changes for running from 
+               the uice given from a different sea ice model. 
+uice.f     : Compute the free-drift ice velocity on a regular grid for 
+               a given geostrophic wind field.  Uses Thorndike and 
+               Colony, 1982 for the Arctic and Martinson and Wamser for 
+               the Antarctic.
+fndflo.f   : Locate each of the virtual floes with respect to the 
+               regular grid.  
+flovel.f   : Given uice and flovel, compute the velocity of the virtual 
+               floe by bilinear interpolation.
+
+sk2out.f   : Print out the virtual floe drift direction and distance.  
+               If the point is derived from the iceline file, also print 
+               the initial location of the point.
+
+# Routines from libraries
+../library/arcdis.f   : Compute the arc distance on a sphere.
+../others/wdir.f      : Compute the meteorological direction of a u,v pair.
+../others/spherd.f    : Do a spectral differentiation on an input field.
+../others/sphert94a.f : Convert from spectral coefficients to a regular 
+                          latitude-longitude grid.

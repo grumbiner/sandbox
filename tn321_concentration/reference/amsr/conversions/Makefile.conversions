@@ -1,0 +1,17 @@
+#/bin/ksh
+
+FSRCS = \
+        amsr2_1b_hdf5_to_bufr.f90 \
+        amsr2_1b_hdf5_to_bufr_interface.f90 
+
+F90OBJS = $(FSRCS:.f90=.o)
+
+all:	$(F90OBJS) libconversions.a
+
+libconversions.a:	$(F90OBJS)
+		$(AR) $(AR_FLAGS) libconversions.a $?
+
+depend:
+	makedepend $(FSRCS)
+
+include ../config/rules.make

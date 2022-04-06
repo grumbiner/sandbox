@@ -1,0 +1,4 @@
+for yy in 93 94 95 96 97 98 99
+do
+  ./web.pl 19$yy score.$yy
+done

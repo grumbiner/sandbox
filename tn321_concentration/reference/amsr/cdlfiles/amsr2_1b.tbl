@@ -1,0 +1,30 @@
+Brightness Temperature(10.7GHz,H)::BT_107GHz_H
+Brightness Temperature(10.7GHz,V)::BT_107GHz_V
+Brightness Temperature (18.7GHz,H)::BT_187GHz_H
+Brightness Temperature (18.7GHz,V)::BT_187GHz_V
+Brightness Temperature (23.8GHz,H)::BT_238GHz_H
+Brightness Temperature (23.8GHz,V)::BT_238GHz_V
+Brightness Temperature (36.5GHz,H)::BT_365GHz_H
+Brightness Temperature (36.5GHz,V)::BT_365GHz_V
+Brightness Temperature (6.9GHz,H)::BT_69GHz_H
+Brightness Temperature (6.9GHz,V)::BT_69GHz_V
+Brightness Temperature (7.3GHz,H)::BT_73GHz_H
+Brightness Temperature (7.3GHz,V)::BT_73GHz_V
+Brightness Temperature (89.0GHz-A,H)::BT_890GHzA_H
+Brightness Temperature (89.0GHz-A,V)::BT_890GHzA_V
+Brightness Temperature (89.0GHz-B,H)::BT_890GHzB_H
+Brightness Temperature (89.0GHz-B,V)::BT_890GHzB_V
+Earth Azimuth::Earth_Azimuth
+Earth Incidence::Earth_Incidence
+Land_Ocean Flag 6 to 36::Land_Ocean_Flag_6_to_36
+Land_Ocean Flag 89::Land_Ocean_Flag_89
+Latitude of Observation Point for 89A::Latitude_for_89A
+Latitude of Observation Point for 89B::Latitude_for_89B
+Longitude of Observation Point for 89A::Longitude_for_89A
+Longitude of Observation Point for 89B::Longitude_for_89B
+Pixel Data Quality 6 to 36::Pixel_Data_Quality_6_to_36
+Pixel Data Quality 89::Pixel_Data_Quality_89
+Scan Data Quality::Scan_Data_Quality
+Scan Time::Scan_Time
+Sun Azimuth::Sun_Azimuth
+Sun Elevation::Sun_Elevation

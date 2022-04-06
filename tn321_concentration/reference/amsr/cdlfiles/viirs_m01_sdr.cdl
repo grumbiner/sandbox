@@ -1,0 +1,211 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       viirs_m01_sdr.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for VIIRS M01 M02 M06 M08 M09 M10 M11 SDR.
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       VIIRS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for VIIRS granule data:
+//
+//           $ ncgen -b -k3 viirs_m01_sdr.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Chen Zhang, PSGS, 12/30/09
+//                     Chen.Zhang@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+
+
+netcdf viirs_m01_sdr {
+
+//---------
+dimensions:
+//---------
+
+      Granule = 1;
+      Scan = 48;
+      AlongTrack = 768;
+      CrossTrack = 3200;
+      Detector = 16;
+      Factor = 2;
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+      long  NumberOfScans(Granule);
+            NumberOfScans:long_name = "Actual number of scans in granule";
+            NumberOfScans:units = "none";
+            NumberOfScans:scale_factor = 1.0f;
+            NumberOfScans:add_offset = 0.0f;
+            NumberOfScans:parameter_type = "VIIRS data";
+            NumberOfScans:valid_range = 0, 48;
+            NumberOfScans:_FillValue = -9999;
+
+      ubyte ModeGran(Granule);
+            ModeGran:long_name = "Granule-level VIIRS operational mode";
+            ModeGran:units = "none";
+            ModeGran:scale_factor = 1.0f;
+            ModeGran:add_offset = 0.0f;
+            ModeGran:parameter_type = "VIIRS data";
+            ModeGran:valid_range = 0ub, 255ub;
+            ModeGran:_FillValue = 255ub;
+
+      ubyte QF4_SCAN_SDR(AlongTrack);
+            QF4_SCAN_SDR:long_name = "Reduced Quality Indicator";
+            QF4_SCAN_SDR:units = "none";
+            QF4_SCAN_SDR:scale_factor = 1.0f;
+            QF4_SCAN_SDR:add_offset = 0.0f;
+            QF4_SCAN_SDR:parameter_type = "VIIRS data";
+            QF4_SCAN_SDR:valid_range = 0ub, 255ub;
+            QF4_SCAN_SDR:_FillValue = 255ub;
+
+      ubyte QF5_GRAN_BADDETECTOR(Detector);
+            QF5_GRAN_BADDETECTOR:long_name = "Quality Flag - Bad detector";
+            QF5_GRAN_BADDETECTOR:units = "none";
+            QF5_GRAN_BADDETECTOR:scale_factor = 1.0f;
+            QF5_GRAN_BADDETECTOR:add_offset = 0.0f;
+            QF5_GRAN_BADDETECTOR:parameter_type = "VIIRS data";
+            QF5_GRAN_BADDETECTOR:valid_range = 0ub, 255ub;
+            QF5_GRAN_BADDETECTOR:_FillValue = 255ub;
+
+      ubyte ModeScan(Scan);
+            ModeScan:long_name = "Scan-level VIIRS operational mode";
+            ModeScan:units = "none";
+            ModeScan:scale_factor = 1.0f;
+            ModeScan:add_offset = 0.0f;
+            ModeScan:parameter_type = "VIIRS data";
+            ModeScan:valid_range = 0ub, 255ub;
+            ModeScan:_FillValue = 255ub;
+
+      ubyte QF2_SCAN_SDR(Scan);
+            QF2_SCAN_SDR:long_name = "SDR Quality Flag for each Scan";
+            QF2_SCAN_SDR:units = "none";
+            QF2_SCAN_SDR:scale_factor = 1.0f;
+            QF2_SCAN_SDR:add_offset = 0.0f;
+            QF2_SCAN_SDR:parameter_type = "VIIRS data";
+            QF2_SCAN_SDR:valid_range = 0ub, 255ub;
+            QF2_SCAN_SDR:_FillValue = 255ub;
+
+      ubyte QF3_SCAN_RDR(Scan);
+            QF3_SCAN_RDR:long_name = "RDR Quality Flag for each Scan";
+            QF3_SCAN_RDR:units = "none";
+            QF3_SCAN_RDR:scale_factor = 1.0f;
+            QF3_SCAN_RDR:add_offset = 0.0f;
+            QF3_SCAN_RDR:parameter_type = "VIIRS data";
+            QF3_SCAN_RDR:valid_range = 0ub, 255ub;
+            QF3_SCAN_RDR:_FillValue = 255ub;
+
+      long  NumberOfMissingPkts(Scan);
+            NumberOfMissingPkts:long_name = "Missing packets in scan";
+            NumberOfMissingPkts:units = "none";
+            NumberOfMissingPkts:scale_factor = 1.0f;
+            NumberOfMissingPkts:add_offset = 0.0f;
+            NumberOfMissingPkts:parameter_type = "VIIRS data";
+            NumberOfMissingPkts:valid_range = 0, 10000;
+            NumberOfMissingPkts:_FillValue = -9999;
+
+      long  NumberOfBadChecksums(Scan);
+            NumberOfBadChecksums:long_name = "Bad checksum packets in scan";
+            NumberOfBadChecksums:units = "none";
+            NumberOfBadChecksums:scale_factor = 1.0f;
+            NumberOfBadChecksums:add_offset = 0.0f;
+            NumberOfBadChecksums:parameter_type = "VIIRS data";
+            NumberOfBadChecksums:valid_range = 0, 10000;
+            NumberOfBadChecksums:_FillValue = -9999;
+
+      long  NumberOfDiscardedPkts(Scan);
+            NumberOfDiscardedPkts:long_name = "Discarded packets in scan";
+            NumberOfDiscardedPkts:units = "none";
+            NumberOfDiscardedPkts:scale_factor = 1.0f;
+            NumberOfDiscardedPkts:add_offset = 0.0f;
+            NumberOfDiscardedPkts:parameter_type = "VIIRS data";
+            NumberOfDiscardedPkts:valid_range = 0, 10000;
+            NumberOfDiscardedPkts:_FillValue = -9999;
+
+      float RadianceFactors(Factor);
+            RadianceFactors:long_name = "Radiance scale and offset";
+            RadianceFactors:units = "scale-none, offset-W/(m^2 sr um)";
+            RadianceFactors:scale_factor = 1.0f;
+            RadianceFactors:add_offset = 0.0f;
+            RadianceFactors:parameter_type = "VIIRS data";
+            RadianceFactors:valid_range = 0.0f, 100000.0f;
+            RadianceFactors:_FillValue = -9999.0f;
+
+      float ReflectanceFactors(Factor);
+            ReflectanceFactors:long_name = "Reflectance scale and offset";
+            ReflectanceFactors:units = "none";
+            ReflectanceFactors:scale_factor = 1.0f;
+            ReflectanceFactors:add_offset = 0.0f;
+            ReflectanceFactors:parameter_type = "VIIRS data";
+            ReflectanceFactors:valid_range = 0.0f, 100000.0f;
+            ReflectanceFactors:_FillValue = -9999.0f;
+
+      ushort Radiance(AlongTrack,CrossTrack);
+            Radiance:long_name = "Calibrated Top of Atmosphere Radiance";
+            Radiance:units = "W/(m^2 sr um)";
+            Radiance:scale_factor = 1.0f;
+            Radiance:add_offset = 0.0f;
+            Radiance:parameter_type = "VIIRS data";
+            Radiance:valid_range = 1us, 65535us;
+            Radiance:_FillValue = 65535us;
+
+      ushort Reflectance(AlongTrack,CrossTrack);
+            Reflectance:long_name = "Calibrated Top Atmosphere Reflectance";
+            Reflectance:units = "none";
+            Reflectance:scale_factor = 1.0f;
+            Reflectance:add_offset = 0.0f;
+            Reflectance:parameter_type = "VIIRS data";
+            Reflectance:valid_range = 1us, 65535us;
+            Reflectance:_FillValue = 65535us;
+
+// This is the last array
+
+      ubyte QF1_VIIRSMBANDSDR(AlongTrack,CrossTrack);
+            QF1_VIIRSMBANDSDR:long_name = "Pixel-level Quality Flag";
+            QF1_VIIRSMBANDSDR:units = "none";
+            QF1_VIIRSMBANDSDR:scale_factor = 1.0f;
+            QF1_VIIRSMBANDSDR:add_offset = 0.0f;
+            QF1_VIIRSMBANDSDR:parameter_type = "VIIRS data";
+            QF1_VIIRSMBANDSDR:valid_range = 0ub, 255ub;
+            QF1_VIIRSMBANDSDR:_FillValue = 255ub;
+
+
+//------------------
+// global attributes
+//------------------
+
+        :title = "VIIRS M01 M02 M06 M08 M09 M10 M11 SDR granule data file" ;
+        :author = "Chen Zhang PSGS.  Chen.Zhang@noaa.gov" ;
+        :rcsId = "$Id: $" ;
+
+
+}

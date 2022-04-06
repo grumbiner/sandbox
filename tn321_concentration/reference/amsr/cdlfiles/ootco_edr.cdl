@@ -1,0 +1,30 @@
+netcdf ootco_edr {
+//---------
+dimensions:
+//---------
+	AlongTrack = 5; 
+	CrossTrack = 35; 
+//---------
+variables:
+//---------
+
+// This is the first array
+
+	float Aerosolindex(AlongTrack, CrossTrack) ;
+	float CloudFraction(AlongTrack, CrossTrack) ;
+	float CloudTopPressure(AlongTrack, CrossTrack) ;
+	float ColumnAmountO3(AlongTrack, CrossTrack) ;
+	float ColumnAmountO3_fromFirstGuessIP(AlongTrack, CrossTrack) ;
+	ubyte ErrorFlag(AlongTrack, CrossTrack) ;
+	float OzoneBelowCloud(AlongTrack, CrossTrack) ;
+	ubyte QF1_OMPSTC(AlongTrack, CrossTrack) ;
+	ubyte QF2_OMPSTC(AlongTrack, CrossTrack) ;
+	ubyte SAA(AlongTrack) ;
+	float SO2index(AlongTrack, CrossTrack) ;
+	float SnowIceFraction(AlongTrack, CrossTrack) ;
+
+// This is the last array
+
+	float TerrainPressure(AlongTrack, CrossTrack) ;
+
+}

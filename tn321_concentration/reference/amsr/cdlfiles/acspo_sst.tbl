@@ -1,0 +1,9 @@
+pixel_line_time:StartTime
+ascending_descending_flag::ascending_descending_flag
+latitude::Latitude
+longitude::Longitude
+satellite_zenith_angle::SatelliteZenithAngle
+solar_zenith_angle::SolarZenithAngle
+acspo_mask::acspo_mask
+sst_regression::SkinSST
+

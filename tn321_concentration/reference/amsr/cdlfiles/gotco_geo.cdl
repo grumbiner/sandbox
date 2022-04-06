@@ -1,0 +1,31 @@
+//
+//------------------------------------------------------------------------------
+
+netcdf gotco_geo {
+//---------
+dimensions:
+//---------
+	AlongTrack_Geo = 15 ; // (15 currently)
+	CrossTrack_Geo = 105 ; // (105 currently)
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+	float Height(AlongTrack_Geo, CrossTrack_Geo) ;
+	float Latitude(AlongTrack_Geo, CrossTrack_Geo) ;
+	float Longitude(AlongTrack_Geo, CrossTrack_Geo) ;
+	ubyte QF1_OMPSTCGEO(AlongTrack_Geo) ;
+	float SatelliteAzimuthAngle(AlongTrack_Geo, CrossTrack_Geo) ;
+	float SatelliteRange(AlongTrack_Geo, CrossTrack_Geo) ;
+	float SatelliteZenithAngle(AlongTrack_Geo, CrossTrack_Geo) ;
+	float SolarAzimuthAngle(AlongTrack_Geo, CrossTrack_Geo) ;
+	float SolarZenithAngle(AlongTrack_Geo, CrossTrack_Geo) ;
+
+// This is the last array
+
+	int64 StartTime(AlongTrack_Geo) ;
+
+}

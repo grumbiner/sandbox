@@ -1,0 +1,25 @@
+#/bin/ksh
+ 
+FSRCS = planck_function.f90 \
+        planck_interface.f90 \
+        inv_planck_function.f90 \
+        inv_planck_interface.f90 \
+        seconds_to_dayhours.f90 \
+        sec_to_dayhours_interface.f90 \
+        pdist.f90 \
+        array_index.f90 \
+        array_index_interface.f90 \
+        position_index_module.f90
+
+F90OBJS = $(FSRCS:.f90=.o)
+ 
+all:	$(F90OBJS) libfutils.a
+ 
+libfutils.a:	$(F90OBJS)
+		$(AR) $(AR_FLAGS) libfutils.a $?
+ 
+depend:
+	makedepend $(FSRCS)
+ 
+include ../config/rules.make
+

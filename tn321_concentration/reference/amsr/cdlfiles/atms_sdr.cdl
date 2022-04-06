@@ -1,0 +1,324 @@
+// QSS Group
+//
+//
+// NAME:
+//       atms_sdr.cdl
+//
+// PURPOSE:
+//       netCDF file specification for ATMS SDR file.  ATMS data
+//       contains
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       NUCAPS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for CrIS granule data:
+//
+//           $ ncgen -b -k3 atms_sdr.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Kexin Zhang, PSGS, 9/05/08
+//                     kexin.Zhang@noaa.gov
+//     
+//       Modified by:  Chen Zhang, PSGS, 12/01/08
+//                     Chen.Zhang@noaa.gov 
+//
+
+netcdf atms_sdr {
+
+//---------
+dimensions:
+//---------
+      IN_TRACK = 12;
+      CROSS_TRACK = 96;
+      ATMS_CHANNEL = 22;
+      TWO = 2 ;
+      ONE = 1;
+      IN_TRACK_SET = 4;
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+        ushort InstrumentMode(IN_TRACK_SET) ;
+                InstrumentMode:long_name = "Instrument mode" ;
+                InstrumentMode:units = "none" ;
+                InstrumentMode:scale_factor = 1.0d ;
+                InstrumentMode:add_offset = 0.0d ;
+                InstrumentMode:parameter_type = "ATMS data" ;
+                InstrumentMode:valid_range = 0us, 65535us;
+                InstrumentMode:_FillValue = 9999us;
+
+        ubyte QF1_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF1_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF1_GRAN_HEALTHSTATUS:units = "none" ;
+                QF1_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF1_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF1_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF1_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF1_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF2_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF2_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF2_GRAN_HEALTHSTATUS:units = "none" ;
+                QF2_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF2_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF2_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF2_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF2_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF3_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF3_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF3_GRAN_HEALTHSTATUS:units = "none" ;
+                QF3_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF3_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF3_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF3_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF3_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF4_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF4_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF4_GRAN_HEALTHSTATUS:units = "none" ;
+                QF4_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF4_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF4_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF4_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF4_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF5_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF5_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF5_GRAN_HEALTHSTATUS:units = "none" ;
+                QF5_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF5_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF5_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF5_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF5_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF6_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF6_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF6_GRAN_HEALTHSTATUS:units = "none" ;
+                QF6_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF6_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF6_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF6_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF6_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF7_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF7_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF7_GRAN_HEALTHSTATUS:units = "none" ;
+                QF7_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF7_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF7_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF7_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF7_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF8_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF8_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF8_GRAN_HEALTHSTATUS:units = "none" ;
+                QF8_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF8_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF8_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF8_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF8_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF9_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF9_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF9_GRAN_HEALTHSTATUS:units = "none" ;
+                QF9_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF9_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF9_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF9_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF9_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF10_GRAN_HEALTHSTATUS(IN_TRACK_SET) ;
+                QF10_GRAN_HEALTHSTATUS:long_name = "Out of range quality flag" ;
+                QF10_GRAN_HEALTHSTATUS:units = "none" ;
+                QF10_GRAN_HEALTHSTATUS:scale_factor = 1.0d ;
+                QF10_GRAN_HEALTHSTATUS:add_offset = 0.0d ;
+                QF10_GRAN_HEALTHSTATUS:parameter_type = "ATMS data" ;
+                QF10_GRAN_HEALTHSTATUS:valid_range = 0ub, 1ub ;
+                QF10_GRAN_HEALTHSTATUS:_FillValue = 95ub ;
+
+        ubyte QF11_GRAN_QUADRATICCORRECTION(ONE) ;
+                QF11_GRAN_QUADRATICCORRECTION:long_name = "Quadratic correction" ;
+                QF11_GRAN_QUADRATICCORRECTION:units = "none" ;
+                QF11_GRAN_QUADRATICCORRECTION:scale_factor = 1.0d ;
+                QF11_GRAN_QUADRATICCORRECTION:add_offset = 0.0d ;
+                QF11_GRAN_QUADRATICCORRECTION:parameter_type = "ATMS data" ;
+                QF11_GRAN_QUADRATICCORRECTION:valid_range = 0ub, 1ub ;
+                QF11_GRAN_QUADRATICCORRECTION:_FillValue = 95ub ;
+
+        ubyte QF12_SCAN_KAVPRTCONVERR(IN_TRACK) ;
+                QF12_SCAN_KAVPRTCONVERR:long_name = "Divide-by-zero condition flag" ;
+                QF12_SCAN_KAVPRTCONVERR:units = "none" ;
+                QF12_SCAN_KAVPRTCONVERR:scale_factor = 1.0d ;
+                QF12_SCAN_KAVPRTCONVERR:add_offset = 0.0d ;
+                QF12_SCAN_KAVPRTCONVERR:parameter_type = "ATMS data" ;
+                QF12_SCAN_KAVPRTCONVERR:valid_range = 0ub, 1ub ;
+                QF12_SCAN_KAVPRTCONVERR:_FillValue = 95ub ;
+
+        ubyte QF13_SCAN_WGPRTCONVERR(IN_TRACK) ;
+                QF13_SCAN_WGPRTCONVERR:long_name = "Divide-by-zero condition flag" ;
+                QF13_SCAN_WGPRTCONVERR:units = "none" ;
+                QF13_SCAN_WGPRTCONVERR:scale_factor = 1.0d ;
+                QF13_SCAN_WGPRTCONVERR:add_offset = 0.0d ;
+                QF13_SCAN_WGPRTCONVERR:parameter_type = "ATMS data" ;
+                QF13_SCAN_WGPRTCONVERR:valid_range = 0ub, 1ub ;
+                QF13_SCAN_WGPRTCONVERR:_FillValue = 95ub ;
+
+        ubyte QF14_SCAN_SHELFPRTCONVERR(IN_TRACK) ;
+                QF14_SCAN_SHELFPRTCONVERR:long_name = "Divide-by-zero condition flag" ;
+                QF14_SCAN_SHELFPRTCONVERR:units = "none" ;
+                QF14_SCAN_SHELFPRTCONVERR:scale_factor = 1.0d ;
+                QF14_SCAN_SHELFPRTCONVERR:add_offset = 0.0d ;
+                QF14_SCAN_SHELFPRTCONVERR:parameter_type = "ATMS data" ;
+                QF14_SCAN_SHELFPRTCONVERR:valid_range = 0ub, 1ub ;
+                QF14_SCAN_SHELFPRTCONVERR:_FillValue = 95ub ;
+
+        ubyte QF15_SCAN_KAVPRTTEMPLIMIT(IN_TRACK) ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:long_name = "Out of range quality flag" ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:units = "none" ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:scale_factor = 1.0d ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:add_offset = 0.0d ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:parameter_type = "ATMS data" ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:valid_range = 0ub, 1ub ;
+                QF15_SCAN_KAVPRTTEMPLIMIT:_FillValue = 95ub ;
+
+        ubyte QF16_SCAN_WGPRTTEMPLIMIT(IN_TRACK) ;
+                QF16_SCAN_WGPRTTEMPLIMIT:long_name = "Out of range quality flag" ;
+                QF16_SCAN_WGPRTTEMPLIMIT:units = "none" ;
+                QF16_SCAN_WGPRTTEMPLIMIT:scale_factor = 1.0d ;
+                QF16_SCAN_WGPRTTEMPLIMIT:add_offset = 0.0d ;
+                QF16_SCAN_WGPRTTEMPLIMIT:parameter_type = "ATMS data" ;
+                QF16_SCAN_WGPRTTEMPLIMIT:valid_range = 0ub, 1ub ;
+                QF16_SCAN_WGPRTTEMPLIMIT:_FillValue = 95ub ;
+
+        ubyte QF17_SCAN_KAVPRTTEMPCONSISTENCY(IN_TRACK) ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:long_name = "Temperature check flag" ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:units = "none" ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:scale_factor = 1.0d ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:add_offset = 0.0d ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:parameter_type = "ATMS data" ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:valid_range = 0ub, 1ub ;
+                QF17_SCAN_KAVPRTTEMPCONSISTENCY:_FillValue = 95ub ;
+
+        ubyte QF18_SCAN_WGPRTTEMPCONSISTENCY(IN_TRACK) ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:long_name = "Temperature check flag" ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:units = "none" ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:scale_factor = 1.0d ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:add_offset = 0.0d ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:parameter_type = "ATMS data" ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:valid_range = 0ub, 1ub ;
+                QF18_SCAN_WGPRTTEMPCONSISTENCY:_FillValue = 95ub ;
+
+        ubyte QF19_SCAN_ATMSSDR(IN_TRACK) ;
+                QF19_SCAN_ATMSSDR:long_name = "Scan-level quality flag" ;
+                QF19_SCAN_ATMSSDR:units = "none" ;
+                QF19_SCAN_ATMSSDR:scale_factor = 1.0d ;
+                QF19_SCAN_ATMSSDR:add_offset = 0.0d ;
+                QF19_SCAN_ATMSSDR:parameter_type = "ATMS data" ;
+                QF19_SCAN_ATMSSDR:valid_range = 0ub, 1ub ;
+                QF19_SCAN_ATMSSDR:_FillValue = 95ub ;
+
+        ubyte QF20_ATMSSDR(IN_TRACK,ATMS_CHANNEL) ;
+                QF20_ATMSSDR:long_name = "Scan-level quality flag per channel" ;
+                QF20_ATMSSDR:units = "none" ;
+                QF20_ATMSSDR:scale_factor = 1.0d ;
+                QF20_ATMSSDR:add_offset = 0.0d ;
+                QF20_ATMSSDR:parameter_type = "ATMS data" ;
+                QF20_ATMSSDR:valid_range = 0ub, 1ub ;
+                QF20_ATMSSDR:_FillValue = 95ub ;
+
+        ubyte QF21_ATMSSDR(IN_TRACK,ATMS_CHANNEL) ;
+                QF21_ATMSSDR:long_name = "Out of range view quality flag" ;
+                QF21_ATMSSDR:units = "none" ;
+                QF21_ATMSSDR:scale_factor = 1.0d ;
+                QF21_ATMSSDR:add_offset = 0.0d ;
+                QF21_ATMSSDR:parameter_type = "ATMS data" ;
+                QF21_ATMSSDR:valid_range = 0ub, 1ub ;
+                QF21_ATMSSDR:_FillValue = 95ub ;
+
+        ubyte QF22_ATMSSDR(IN_TRACK,ATMS_CHANNEL) ;
+                QF22_ATMSSDR:long_name = "Space blackbody view quality flag" ;
+                QF22_ATMSSDR:units = "none" ;
+                QF22_ATMSSDR:scale_factor = 1.0d ;
+                QF22_ATMSSDR:add_offset = 0.0d ;
+                QF22_ATMSSDR:parameter_type = "ATMS data" ;
+                QF22_ATMSSDR:valid_range = 0ub, 1ub ;
+                QF22_ATMSSDR:_FillValue = 95ub ;
+
+
+        float NEdTCold(IN_TRACK,ATMS_CHANNEL) ;
+                NEdTCold:long_name = "Noise-Equivalent delta Temp cold space" ;
+                NEdTCold:units = "Kelvin" ;
+                NEdTCold:scale_factor = 1.0d ;
+                NEdTCold:add_offset = 0.0d ;
+                NEdTCold:parameter_type = "ATMS data" ;
+                NEdTCold:valid_range = -500.0f, 500.0f ;
+                NEdTCold:_FillValue = -9999.0f ;
+
+        float NEdTWarm(IN_TRACK,ATMS_CHANNEL) ;
+                NEdTWarm:long_name = "Noise-Equivalent delta Temp warm target" ;
+                NEdTWarm:units = "Kelvin" ;
+                NEdTWarm:scale_factor = 1.0d ;
+                NEdTWarm:add_offset = 0.0d ;
+                NEdTWarm:parameter_type = "ATMS data" ;
+                NEdTWarm:valid_range = -500.0f, 500.0f ;
+                NEdTWarm:_FillValue = -9999.0f ;
+
+        float GainCalibration(IN_TRACK,ATMS_CHANNEL) ;
+                GainCalibration:long_name = "Gain factor used in calibrating" ;
+                GainCalibration:units = "Kelvin" ;
+                GainCalibration:scale_factor = 1.0d ;
+                GainCalibration:add_offset = 0.0d ;
+                GainCalibration:parameter_type = "ATMS data" ;
+                GainCalibration:valid_range = -500.0f, 500.0f ;
+                GainCalibration:_FillValue = -9999.0f ;
+
+        int64 BeamTime(IN_TRACK,CROSS_TRACK) ;
+                BeamTime:long_name = "The time in IET for this observation" ;
+                BeamTime:units = "microsecond" ;
+                BeamTime:scale_factor = 1.0d ;
+                BeamTime:add_offset = 0.0d ;
+                BeamTime:parameter_type = "ATMS data" ;
+                BeamTime:valid_range = 0L, 1000000000000000000L ;
+                BeamTime:_FillValue = -9999L ;
+
+        float BrightnessTemperatureFactors(TWO) ;
+                BrightnessTemperatureFactors:long_name = "Brightness Temp Scale and Offset" ;
+                BrightnessTemperatureFactors:units = "none" ;
+                BrightnessTemperatureFactors:scale_factor = 1.0d ;
+                BrightnessTemperatureFactors:add_offset = 0.0d ;
+                BrightnessTemperatureFactors:parameter_type = "ATMS data" ;
+                BrightnessTemperatureFactors:valid_range = 0.0f, 1.0f ;
+                BrightnessTemperatureFactors:_FillValue = -9999.0f ;
+
+// This is the last array
+ 
+	ushort BrightnessTemperature(IN_TRACK,CROSS_TRACK,ATMS_CHANNEL) ;
+		BrightnessTemperature:long_name = "Calibrated scene brightness temperature" ;
+		BrightnessTemperature:units = "Kelvin" ;
+		BrightnessTemperature:scale_factor = 1.0d ;
+		BrightnessTemperature:add_offset = 0.0d ;
+		BrightnessTemperature:parameter_type = "ATMS data" ;
+		BrightnessTemperature:valid_range = 1us, 65535us ;
+		BrightnessTemperature:_FillValue = 9999us ; 
+            
+} 
+

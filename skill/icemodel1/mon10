@@ -1,0 +1,23 @@
+#!/bin/ksh
+
+cd /data/new
+cp ~/john3/* .
+
+for base in 9610
+do
+  for pole in north south
+  do
+    p=`echo $pole | cut -c1`
+    dy=01
+    while [ $dy -le 31 ]
+    do
+      wgrib ~jwaldrop/obs/${p}psg.$base | grep $base$dy | wgrib -i ~jwaldrop/obs/${p}psg.$base -nh -o ${p}$dy
+      dy=`expr $dy + 1`
+      if [ $dy -lt 10 ] ; then
+        dy=0$dy
+      fi
+    done
+    ./avg${p} 31
+    mv avgout avgout.$pole
+  done
+done

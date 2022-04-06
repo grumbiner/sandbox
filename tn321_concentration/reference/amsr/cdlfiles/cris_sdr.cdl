@@ -1,0 +1,326 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       cris_sdr.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for CrIS SDR file.
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       NUCAPS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for CrIS granule data:
+//
+//           $ ncgen -b -k3 cris_sdr.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Chen Zhang, PSGS, 10/13/08
+//                     Chen.Zhang@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+
+ 
+netcdf cris_sdr {
+                                                                                                             
+//---------
+dimensions:
+//---------
+
+	CRIS_SCAN_PER_GRAN = 4;
+	EV_FOR_PER_SCAN = 30;
+	CRIS_MAX_FOV = 9;
+	LWNUMBEROFPOINTS = 717;
+	MWNUMBEROFPOINTS = 437;
+	SWNUMBEROFPOINTS = 163;
+	CRIS_TOTAL_BANDS = 3;
+	DS_FOR_PER_SCAN = 2;
+
+                 
+//--------
+variables:
+//--------
+ 
+
+// This is the first array
+
+
+	ubyte QF1_SCAN_CRISSDR(CRIS_SCAN_PER_GRAN) ;
+		QF1_SCAN_CRISSDR:long_name = "Scan-level quality flags" ;
+		QF1_SCAN_CRISSDR:units = "none" ;
+		QF1_SCAN_CRISSDR:scale_factor = 1 ;
+		QF1_SCAN_CRISSDR:add_offset = 0 ;
+		QF1_SCAN_CRISSDR:parameter_type = "CrIS data" ;
+		QF1_SCAN_CRISSDR:valid_range = 0ub, 255ub ;
+		QF1_SCAN_CRISSDR:_FillValue = 95ub ;
+
+	float ICT_TemperatureConsistency(CRIS_SCAN_PER_GRAN) ;
+		ICT_TemperatureConsistency:long_name ="TemperatureConsistency";
+		ICT_TemperatureConsistency:units = "K" ;
+		ICT_TemperatureConsistency:scale_factor = 1.0f ;
+		ICT_TemperatureConsistency:add_offset = 0.0f ;
+		ICT_TemperatureConsistency:parameter_type = "CrIS data" ;
+		ICT_TemperatureConsistency:_FillValue = -9999.0f ;
+
+	double MonitoredLaserWavelength(CRIS_SCAN_PER_GRAN) ;
+		MonitoredLaserWavelength:long_name ="MonitoredLaserWavelength"; 
+		MonitoredLaserWavelength:units = "nm" ;
+		MonitoredLaserWavelength:scale_factor = 1.0 ;
+		MonitoredLaserWavelength:add_offset = 0.0 ;
+		MonitoredLaserWavelength:parameter_type = "CrIS data" ;
+		MonitoredLaserWavelength:_FillValue = -9999.0 ;
+
+	double MeasuredLaserWavelength(CRIS_SCAN_PER_GRAN) ;
+		MeasuredLaserWavelength:long_name ="MeasuredLaserWavelength" ;
+		MeasuredLaserWavelength:units = "nm" ;
+		MeasuredLaserWavelength:scale_factor = 1.0 ;
+		MeasuredLaserWavelength:add_offset = 0.0 ;
+		MeasuredLaserWavelength:parameter_type = "CrIS data" ;
+		MeasuredLaserWavelength:_FillValue = -9999.0 ;
+
+	double ResamplingLaserWavelength(CRIS_SCAN_PER_GRAN) ;
+		ResamplingLaserWavelength:long_name ="ResamplingLaserWaveleng";
+		ResamplingLaserWavelength:units = "nm" ;
+		ResamplingLaserWavelength:scale_factor = 1.0 ;
+		ResamplingLaserWavelength:add_offset = 0.0 ;
+		ResamplingLaserWavelength:parameter_type = "CrIS data" ;
+		ResamplingLaserWavelength:_FillValue = -9999.0 ;
+
+	float ICT_TemperatureStability(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN) ;
+		ICT_TemperatureStability:long_name ="ICT_TemperatureStability";
+		ICT_TemperatureStability:units = "K" ;
+		ICT_TemperatureStability:scale_factor = 1.0f ;
+		ICT_TemperatureStability:add_offset = 0.0f ;
+		ICT_TemperatureStability:parameter_type = "CrIS data" ;
+		ICT_TemperatureStability:_FillValue = -9999.0f ;
+
+	ubyte NumberOfValidPRTTemps(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN) ;
+		NumberOfValidPRTTemps:long_name = "Number Of Valid PRT Temps" ;
+		NumberOfValidPRTTemps:units = "none" ;
+		NumberOfValidPRTTemps:scale_factor = 1 ;
+		NumberOfValidPRTTemps:add_offset = 0 ;
+		NumberOfValidPRTTemps:parameter_type = "CrIS data" ;
+		NumberOfValidPRTTemps:valid_range = 0ub, 255ub ;
+		NumberOfValidPRTTemps:_FillValue = 95ub ;
+
+	ubyte QF2_CRISSDR(CRIS_SCAN_PER_GRAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		QF2_CRISSDR:long_name = "Calibration quality flags" ;
+		QF2_CRISSDR:units = "none" ;
+		QF2_CRISSDR:scale_factor = 1 ;
+		QF2_CRISSDR:add_offset = 0 ;
+		QF2_CRISSDR:parameter_type = "CrIS data" ;
+		QF2_CRISSDR:valid_range = 0ub, 255ub ;
+		QF2_CRISSDR:_FillValue = 95ub ;
+
+	float ES_RealLW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,LWNUMBEROFPOINTS) ;
+		ES_RealLW:long_name = "Real part LW Band calibrated radiances" ;
+		ES_RealLW:units = "mW/(m2 sr cm-1)" ;
+		ES_RealLW:scale_factor = 1.0f ;
+		ES_RealLW:add_offset = 0.0f ;
+		ES_RealLW:parameter_type = "CrIS data" ;
+		ES_RealLW:valid_range = -9000.0f, 9000.0f ;
+		ES_RealLW:_FillValue = -9999.0f ;
+
+	float ES_ImaginaryLW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,LWNUMBEROFPOINTS) ;
+		ES_ImaginaryLW:long_name = "Imaginary part of spectra for LW" ;
+		ES_ImaginaryLW:units = "mW/(m2 sr cm-1)" ;
+		ES_ImaginaryLW:scale_factor = 1.0f ;
+		ES_ImaginaryLW:add_offset = 0.0f ;
+		ES_ImaginaryLW:parameter_type = "CrIS data" ;
+		ES_ImaginaryLW:valid_range = -9000.0f, 9000.0f ;
+		ES_ImaginaryLW:_FillValue = -9999.0f ;
+
+	float ES_NEdNLW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,LWNUMBEROFPOINTS) ;
+		ES_NEdNLW:long_name = "Spectral noise estimate long-wave" ; 
+		ES_NEdNLW:units = "mW/(m2 sr cm-1)" ;
+		ES_NEdNLW:scale_factor = 1.0f ;
+		ES_NEdNLW:add_offset = 0.0f ;
+		ES_NEdNLW:parameter_type = "CrIS data" ;
+		ES_NEdNLW:valid_range = -9000.0f, 9000.0f ;
+		ES_NEdNLW:_FillValue = -9999.0f ;
+
+	float ES_RealMW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,MWNUMBEROFPOINTS) ;
+		ES_RealMW:long_name = "Real part MW Band calibrated radiances" ;
+		ES_RealMW:units = "mW/(m2 sr cm-1)" ;
+		ES_RealMW:scale_factor = 1.0f ;
+		ES_RealMW:add_offset = 0.0f ;
+		ES_RealMW:parameter_type = "CrIS data" ;
+		ES_RealMW:valid_range = -9000.0f, 9000.0f ;
+		ES_RealMW:_FillValue = -9999.0f ;
+
+	float ES_ImaginaryMW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,MWNUMBEROFPOINTS) ;
+		ES_ImaginaryMW:long_name = "Imaginary part of spectra for MW" ;
+		ES_ImaginaryMW:units = "mW/(m2 sr cm-1)" ;
+		ES_ImaginaryMW:scale_factor = 1.0f ;
+		ES_ImaginaryMW:add_offset = 0.0f ;
+		ES_ImaginaryMW:parameter_type = "CrIS data" ;
+		ES_ImaginaryMW:valid_range = -9000.0f, 9000.0f ;
+		ES_ImaginaryMW:_FillValue = -9999.0f ;
+
+	float ES_NEdNMW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,MWNUMBEROFPOINTS) ;
+		ES_NEdNMW:long_name = "Spectral noise estimate mid-wave" ;
+		ES_NEdNMW:units = "mW/(m2 sr cm-1)" ;
+		ES_NEdNMW:scale_factor = 1.0f ;
+		ES_NEdNMW:add_offset = 0.0f ;
+		ES_NEdNMW:parameter_type = "CrIS data" ;
+		ES_NEdNMW:valid_range = -9000.0f, 9000.0f ;
+		ES_NEdNMW:_FillValue = -9999.0f ;
+   
+	float ES_RealSW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,SWNUMBEROFPOINTS) ;
+		ES_RealSW:long_name = "Real part SW Band calibrated radiances" ;
+		ES_RealSW:units = "mW/(m2 sr cm-1)" ;
+		ES_RealSW:scale_factor = 1.0f ;
+		ES_RealSW:add_offset = 0.0f ;
+		ES_RealSW:parameter_type = "CrIS data" ;
+		ES_RealSW:valid_range = -9000.0f, 9000.0f ;
+		ES_RealSW:_FillValue = -9999.0f ;
+
+	float ES_ImaginarySW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,SWNUMBEROFPOINTS) ;
+		ES_ImaginarySW:long_name = "Imaginary part of spectra for SW" ;
+		ES_ImaginarySW:units = "mW/(m2 sr cm-1)" ;
+		ES_ImaginarySW:scale_factor = 1.0f ;
+		ES_ImaginarySW:add_offset = 0.0f ;
+		ES_ImaginarySW:parameter_type = "CrIS data" ;
+		ES_ImaginarySW:valid_range = -9000.0f, 9000.0f ;
+		ES_ImaginarySW:_FillValue = -9999.0f ;
+
+	float ES_NEdNSW(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,SWNUMBEROFPOINTS) ;
+		ES_NEdNSW:long_name = "Spectral noise estimate short-wave" ;
+		ES_NEdNSW:units = "mW/(m2 sr cm-1)" ;
+		ES_NEdNSW:scale_factor = 1.0f ;
+		ES_NEdNSW:add_offset = 0.0f ;
+		ES_NEdNSW:parameter_type = "CrIS data" ;
+		ES_NEdNSW:valid_range = -9000.0f, 9000.0f ;
+		ES_NEdNSW:_FillValue = -9999.0f ;
+
+	ubyte QF3_CRISSDR(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		QF3_CRISSDR:long_name = "FOV quality flags" ;
+		QF3_CRISSDR:units = "none" ;
+		QF3_CRISSDR:scale_factor = 1 ;
+		QF3_CRISSDR:add_offset = 0 ;
+		QF3_CRISSDR:parameter_type = "CrIS data" ;
+		QF3_CRISSDR:valid_range = 0ub, 255ub ;
+		QF3_CRISSDR:_FillValue = 95ub ;
+
+	ubyte QF4_CRISSDR(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		QF4_CRISSDR:long_name = "FOV quality flags" ;
+		QF4_CRISSDR:units = "none" ;
+		QF4_CRISSDR:scale_factor = 1 ;
+		QF4_CRISSDR:add_offset = 0 ;
+		QF4_CRISSDR:parameter_type = "CrIS data" ;
+		QF4_CRISSDR:valid_range = 0ub, 255ub ;
+		QF4_CRISSDR:_FillValue = 95ub ;
+
+	ushort ES_ZPDFringeCount(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		ES_ZPDFringeCount:long_name = "Interferogram fringe count" ;
+		ES_ZPDFringeCount:units = "none" ;
+		ES_ZPDFringeCount:scale_factor = 1 ;
+		ES_ZPDFringeCount:add_offset = 0 ;
+		ES_ZPDFringeCount:parameter_type = "CrIS data" ;
+		ES_ZPDFringeCount:valid_range = 0us, 65535us;
+		ES_ZPDFringeCount:_FillValue = 9999us;	
+
+	ushort ES_ZPDMagnitude(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		ES_ZPDMagnitude:long_name = "Interferogram magnitude" ;
+		ES_ZPDMagnitude:units = "none" ;
+		ES_ZPDMagnitude:scale_factor = 1 ;
+		ES_ZPDMagnitude:add_offset = 0 ;
+		ES_ZPDMagnitude:parameter_type = "CrIS data" ;
+		ES_ZPDMagnitude:valid_range = 0us, 65535us;
+		ES_ZPDMagnitude:_FillValue = 9999us;
+
+	ushort SDRFringeCount(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		SDRFringeCount:long_name = "The calculated number of fringes" ;
+		SDRFringeCount:units = "none" ;
+		SDRFringeCount:scale_factor = 1 ;
+		SDRFringeCount:add_offset = 0 ;
+		SDRFringeCount:parameter_type = "CrIS data" ;
+		SDRFringeCount:valid_range = 0us, 65535us;
+		SDRFringeCount:_FillValue = 9999us;
+
+	ubyte ES_RDRImpulseNoise(CRIS_SCAN_PER_GRAN,EV_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		ES_RDRImpulseNoise:long_name = "No. of samples > impulse noise" ;
+		ES_RDRImpulseNoise:units = "none" ;
+		ES_RDRImpulseNoise:scale_factor = 1 ;
+		ES_RDRImpulseNoise:add_offset = 0 ;
+		ES_RDRImpulseNoise:parameter_type = "CrIS data" ;
+		ES_RDRImpulseNoise:valid_range = 0ub, 255ub ;
+		ES_RDRImpulseNoise:_FillValue = 95ub ;
+
+
+	ushort DS_WindowSize(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		DS_WindowSize:long_name = "No. of deep space spectra" ;
+		DS_WindowSize:units = "none" ;
+		DS_WindowSize:scale_factor = 1 ;
+		DS_WindowSize:add_offset = 0 ;
+		DS_WindowSize:parameter_type = "CrIS data" ;
+		DS_WindowSize:valid_range = 0us, 65535us;
+		DS_WindowSize:_FillValue = 9999us;
+
+	ushort ICT_WindowSize(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		ICT_WindowSize:long_name = "No. of Internal Calibration Target";
+		ICT_WindowSize:units = "none" ;
+		ICT_WindowSize:scale_factor = 1 ;
+		ICT_WindowSize:add_offset = 0 ;
+		ICT_WindowSize:parameter_type = "CrIS data" ;
+		ICT_WindowSize:valid_range = 0us, 65535us;
+		ICT_WindowSize:_FillValue = 9999us;
+
+	double DS_Symmetry(CRIS_SCAN_PER_GRAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		DS_Symmetry:long_name = "Asymmetry in the measured DS IGMs";
+		DS_Symmetry:units = "none" ;
+		DS_Symmetry:scale_factor = 1.0 ;
+		DS_Symmetry:add_offset = 0.0 ;
+		DS_Symmetry:parameter_type = "CrIS data" ;
+		DS_Symmetry:_FillValue = -9999.0 ;
+
+	double DS_SpectralStability(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		DS_SpectralStability:long_name = "Spectral variability of DS" ;
+		DS_SpectralStability:units = "none" ;
+		DS_SpectralStability:scale_factor = 1.0 ;
+		DS_SpectralStability:add_offset = 0.0 ;
+		DS_SpectralStability:parameter_type = "CrIS data" ;
+		DS_SpectralStability:_FillValue = -9999.0 ;
+
+// This is the last array
+
+	double ICT_SpectraStability(CRIS_SCAN_PER_GRAN,DS_FOR_PER_SCAN,CRIS_MAX_FOV,CRIS_TOTAL_BANDS) ;
+		ICT_SpectraStability:long_name = "Spectral variability of ICT";
+		ICT_SpectraStability:units = "none" ;
+		ICT_SpectraStability:scale_factor = 1.0 ;
+		ICT_SpectraStability:add_offset = 0.0 ;
+		ICT_SpectraStability:parameter_type = "CrIS data" ;
+		ICT_SpectraStability:_FillValue = -9999.0 ;
+
+
+//------------------
+// global attributes
+//------------------
+
+	:title = "CrIS SDR granule data file" ;
+	:author = "Chen Zhang PSGS.  Chen.Zhang@noaa.gov" ;
+	:rcsId = "$Id: $" ;
+
+
+}
+
