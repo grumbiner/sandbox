@@ -1,0 +1,19 @@
+#!/bin/bash
+export ESMF_BOPT=0
+export ESMF_OPTLEVEL=2
+export ESMF_COMM=intelmpi
+export ESMF_COMPILER=intel
+export ESMF_OS=Linux
+export ESMF_MACHINE=x86_64
+export ESMF_ABI=64
+export ESMF_SITE=default
+export ESMF_PTHREADS=ON
+export ESMF_OPENMP=ON
+export ESMF_ARRAY_LITE=FALSE
+export ESMF_NO_INTEGER_1_BYTE=TRUE
+export ESMF_NO_INTEGER_2_BYTE=TRUE
+export ESMF_FORTRANSYMBOLS=default
+export ESMF_DEFER_LIB_BUILD=ON
+export ESMF_INSTALL_PREFIX=/usrx/local/esmf_5.2.0rp2
+export ESMF_DIR=/usrx/local/esmf_5.2.0rp2
+export ESMFMKFILE=/usrx/local/esmf_5.2.0rp2/lib/libO/Linux.intel.64.intelmpi.default/esmf.mk

@@ -1,0 +1,13 @@
+trends.f is the program and ncdc.reformed is the data file used in my
+blog post http://moregrumbinescience.blogspot.com/2009/01/results-on-deciding-trends.html
+
+The trends program outputs two sections of results.  First is a 3 column look at the
+forward, centered, or backwards trends, as functions of the averaging length.
+
+Second is specifically the centered trend for 25 year trend computations.
+
+It isn't pretty output, but it works.  Output is nearly suitable for spreadsheets,
+being comma-delimited.  The exception being that you'll want to split the output 
+into two separate files.
+
+Robert Grumbine

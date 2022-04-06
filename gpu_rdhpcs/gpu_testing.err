@@ -1,0 +1,22 @@
+main:
+      9, Accelerator kernel generated
+         Generating Tesla code
+         10, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+      9, Generating implicit copyout(x[:],y[:])
+     15, Accelerator kernel generated
+         Generating Tesla code
+         16, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+     15, Generating implicit copyout(z[:])
+         Generating implicit copyin(y[:],x[:])
+No OOM errors or BUG(s) found.  All nodes OK.
+main:
+     11, Accelerator kernel generated
+         Generating Tesla code
+         12, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+     11, Generating implicit copyout(x[:],y[:])
+     17, Accelerator kernel generated
+         Generating Tesla code
+         18, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+     17, Generating implicit copyout(z[:])
+         Generating implicit copyin(x[:])
+No OOM errors or BUG(s) found.  All nodes OK.
