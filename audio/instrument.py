@@ -5,7 +5,7 @@ from math import *
 import numpy as np
 import simpleaudio as sa
 #--------------------------------------------------------
-from music    import *
+from new    import *
 from harmonic import *
 
 #--------------------------------------------------------
@@ -23,14 +23,14 @@ for line in fin:
   harms.append(float(words[0]))
   phase.append(float(words[2])*np.pi/180.)
 
-#for i in range(len(ampls)):
-#  print(harms[i], ampls[i], phase[i])
+for i in range(len(ampls)):
+  print(harms[i], ampls[i], phase[i])
 
 #-------------------------------------------------------------
 base = note(music.quarter_note, note.parse('C4'), phase = phase[0])
 
 #base.from_harmonics(ampls, harms, phase)
-base.from_piano(ampls, harms)
+base.from_piano(ampls, harms, phase)
 
 #----------------------------------------------------------
 y = note(music.quarter_note, note.parse('C1'))
