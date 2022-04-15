@@ -1,0 +1,21 @@
+#!/bin/sh
+
+tag=20071001
+while [ $tag -le 20130930 ]
+do
+  yy=`echo $tag | cut -c1-4`
+  mm=`echo $tag | cut -c5-6`
+  dd=`echo $tag | cut -c7-8`
+
+  hsi get /NCEPPROD/hpssprod/runhistory/rh${yy}/${yy}${mm}/${yy}${mm}${dd}/com_omb_prod_sice.${tag}.tar
+
+  mkdir $tag
+  cd $tag
+  tar xf ../com_omb_prod_sice.${tag}.tar
+  rm *siceg*
+  cd ..
+
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+
+done
