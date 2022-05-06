@@ -111,13 +111,31 @@ if [ -z $obsproc_dump_ver ] ; then
   export obsproc_shared_bufr_dumplist_ver=v1.4.0
 fi
 
-$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 ssmit
+export pgm=dumpjb1
+. prep_step
+#$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 ssmit
+
+echo trying to execute $USHobsproc_dump/dumpjb ${PDY}00 12 ssmit
+$USHobsproc_dump/dumpjb ${PDY}00 12 ssmit
+export err=$?
+if [ $err -ne 0 ] ; then
+  msg="WARNING:  Continuing without ssmit data" 
+  postmsg "$jlogfile" "$msg"
+fi
 touch ssmit.ibm # ensures that file exists in rare event that dump is empty
 
-$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 ssmisu
+export pgm=dumpjb2
+. prep_step
+#$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 ssmisu
+$USHobsproc_dump/dumpjb ${PDY}00 12 ssmisu
+export err=$?;err_chk
 touch ssmisu.ibm # ensures that file exists in rare event that dump is empty
 
-$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 amsr2
+export pgm=dumpjb3
+. prep_step
+#$NWROOTprod/obsproc_dump.${obsproc_dump_ver}/ush/dumpjb ${PDY}00 12 amsr2
+$USHobsproc_dump/dumpjb ${PDY}00 12 amsr2
+export err=$?;err_chk
 touch amsr2.ibm # ensures that file exists in rare event that dump is empty
 
 #----------------------------------------------------------
@@ -273,6 +291,7 @@ export err=$?;err_chk
 #RG add amsr2 to blend
 
 export pgm=seaice_blend
+startmsg
 $EXECseaice_analysis/seaice_blend amsr2north6.$PDY ssminorth12.$PDY \
                                   ssmisnorth12.$PDY ssmisnorth1218.$PDY \
                                                 initnorth12.$PDY \
@@ -289,6 +308,7 @@ export err=$?;err_chk
 cp $FPOSTERIORI5  . 
 cp $FPOSTERIORI30 . 
 export pgm=seaice_posteriori_5min.x
+startmsg
 $EXECseaice_analysis/seaice_posteriori_5min.x seaice_posteriori_5min \
       initnorth12.$PDY initsouth12.$PDY \
       umasknorth12.$PDY umasksouth12.$PDY
@@ -299,9 +319,11 @@ export err=$?;err_chk
 #-----------------------------------------------------------
 #Produce the old resolution files
 #-----------------------------------------------------------
+startmsg
 $EXECseaice_analysis/seaice_north_reduce umasknorth12.$PDY umasknorth.$PDY \
           $FNLAND127 $FNLAND >> $pgmout 2>errfile
 export err=$?;err_chk
+startmsg
 $EXECseaice_analysis/seaice_south_reduce umasksouth12.$PDY umasksouth.$PDY \
           $FSLAND127 $FSLAND >> $pgmout 2>errfile
 export err=$?;err_chk
@@ -309,21 +331,25 @@ export err=$?;err_chk
 #-----------------------------------------------------------
 #Construct the graphics for RZDM display
 #-----------------------------------------------------------
+startmsg
 $EXECseaice_analysis/seaice_north12xpm umasknorth12.$PDY $FNLAND127 nh12.$PDY.xpm \
 			    >> $pgmout 2>errfile
 export err=$?;err_chk
 convert nh12.$PDY.xpm nh12.$PDY.gif
 
+startmsg
 $EXECseaice_analysis/seaice_south12xpm umasksouth12.$PDY $FSLAND127 sh12.$PDY.xpm \
 			    >> $pgmout 2>errfile
 export err=$?;err_chk
 convert sh12.$PDY.xpm sh12.$PDY.gif
 
+startmsg
 $EXECseaice_analysis/seaice_northxpm umasknorth.$PDY $FNLAND nh.$PDY.xpm \
 			    >> $pgmout 2>errfile
 export err=$?;err_chk
 convert nh.$PDY.xpm nh.$PDY.gif
 
+startmsg
 $EXECseaice_analysis/seaice_southxpm umasksouth.$PDY $FSLAND sh.$PDY.xpm \
 			    >> $pgmout 2>errfile
 export err=$?;err_chk
@@ -472,10 +498,10 @@ fi
 
 if [ $SENDCOM = "YES" ]
 then
-  cp wmonorthpsg.${PDY}.grb ${PCOMROOT}/mrf/seaice.t${cyc}z.wmonorthpsg.${job}
-  cp wmosouthpsg.${PDY}.grb ${PCOMROOT}/mrf/seaice.t${cyc}z.wmosouthpsg.${job}
-  $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job  ${PCOMROOT}/mrf/seaice.t${cyc}z.wmonorthpsg.${job}
-  $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job  ${PCOMROOT}/mrf/seaice.t${cyc}z.wmosouthpsg.${job}
+  cp wmonorthpsg.${PDY}.grb ${WMOOUT}/seaice.t${cyc}z.wmonorthpsg.${job}
+  cp wmosouthpsg.${PDY}.grb ${WMOOUT}/seaice.t${cyc}z.wmosouthpsg.${job}
+  $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job  ${WMOOUT}/seaice.t${cyc}z.wmonorthpsg.${job}
+  $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job  ${WMOOUT}/seaice.t${cyc}z.wmosouthpsg.${job}
 fi
 
 
@@ -501,6 +527,11 @@ else
     cp $COMINsstm1/rtgssthr_grb_0.083 oned
     qc="true"
   fi
+fi
+if [ ! -f oned ] ; then
+  msg="Could not find a high res. rtg analysis to run with"
+  postmsg "$jlogfile" "$msg"
+  export err=1; err_chk
 fi
 
 if [ "$qc" = "true" ]
@@ -556,6 +587,7 @@ then
 ###   global modeller grids
 ### Robert Grumbine 31 March 2015
   export pgm=seaice_avhrrfilter
+startmsg
   $EXECseaice_analysis/seaice_avhrrfilter first_fill5min.$PDY first_age.$PDY $COMIN/land.$PDYm1 land_fill5.$PDY land_age.$PDY > reset_points.$PDY 
   $EXECseaice_analysis/seaice_avhrrfilter land_fill5.$PDY land_age.$PDY $COMIN/seas.$PDYm1 fill5min.$PDY age.$PDY >> reset_points.$PDY 
   export err=$?;err_chk
@@ -563,14 +595,17 @@ then
 ##### Done with avhrr filter
 
   #Construct 30' grids:
+startmsg
   $EXECseaice_analysis/seaice_global_reduce fill5min.$PDY fill.$PDY \
             $FIXseaice_analysis/seaice_gland5min $FIXseaice_analysis/seaice_newland >> $pgmout 2>errfile
   export err=$?;err_chk
 
   #Construct graphic of modeler's grids:
+startmsg
   $EXECseaice_analysis/seaice_global5minxpm fill5min.$PDY $FIXseaice_analysis/seaice_gland5min \
                              global5min.$PDY.xpm >> $pgmout 2>errfile
   export err=$?;err_chk
+startmsg
   $EXECseaice_analysis/seaice_globalxpm fill.$PDY $FIXseaice_analysis/seaice_newland global.$PDY.xpm \
 			     >> $pgmout 2>errfile
   export err=$?;err_chk
@@ -739,8 +774,8 @@ $EXECseaice_analysis/seaice_edge fill5min.$PDY $FGLAND5MIN seaice_edge_${PDY}.km
 
   if [ $SENDCOM = "YES" ]
   then
-    cp wmoglobice.${PDY}.grb ${PCOMROOT}/mrf/seaice.t${cyc}z.wmoglobice.${job}
-    cp grib2_awips_seaice.t${cyc}z.5min.grb ${PCOMROOT}/mrf/grib2_awips_seaice.t${cyc}z.5min.grb
+    cp wmoglobice.${PDY}.grb ${WMOOUT}/seaice.t${cyc}z.wmoglobice.${job}
+    cp grib2_awips_seaice.t${cyc}z.5min.grb ${WMOOUT}/grib2_awips_seaice.t${cyc}z.5min.grb
   fi
 
   ##############################
@@ -749,8 +784,8 @@ $EXECseaice_analysis/seaice_edge fill5min.$PDY $FGLAND5MIN seaice_edge_${PDY}.km
   
   if [ $SENDDBN = "YES" ]
   then
-    $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job ${PCOMROOT}/mrf/seaice.t${cyc}z.wmoglobice.${job}
-    $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job ${PCOMROOT}/mrf/grib2_awips_seaice.t${cyc}z.5min.grb
+    $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job ${WMOOUT}/seaice.t${cyc}z.wmoglobice.${job}
+    $DBNROOT/bin/dbn_alert GRIB_LOW $NET $job ${WMOOUT}/grib2_awips_seaice.t${cyc}z.5min.grb
   fi
 
 else
@@ -758,7 +793,7 @@ else
    postmsg "$jlogfile" "$msg"
    msg="to absence of SST file for $PDY and $PDYm1 cycle $cycle"
    postmsg "$jlogfile" "$msg"
-
+   export err=1;err_chk
 fi 
 #end of producing qc'd files
 
