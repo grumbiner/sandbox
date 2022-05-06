@@ -13,7 +13,7 @@
 #include "genes.h"
 
 #include "buoy.h"
-#include "date.h"
+#include "date_class.h"
 #include "f2c_files.h"
 #include "clib8.h"
 #include "clib4.h"

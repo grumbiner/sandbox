@@ -85,9 +85,6 @@ int main(int argc, char *argv[]) {
   ijpt loc;
   latpt ll;
 
-//  amsr2_hr_accum x;
-//  amsr2_lr_accum y;
-//printf("size of x %ld %ld\n",sizeof(x)*ngrid.xpoints()*ngrid.ypoints(), sizeof(y)*ngrid.xpoints()*ngrid.ypoints() );
 //////////////////////////////////////////////////////
 // Algorithm Prep:
 // For team2
@@ -187,24 +184,9 @@ int main(int argc, char *argv[]) {
   printf("nr = %d nread, # ok high freq = %d  low freq = %d\n",nread, nok_hf, nok_lf);
   fflush(stdout);
 
-// DEBUG: sweep grid for counts, then down-average:
-//  for (loc.j = 0; loc.j < ngrid.ypoints(); loc.j++) {
-//  for (loc.i = 0; loc.i < ngrid.xpoints(); loc.i++) {
-//    ll = ngrid.locate(loc);
-//    //printf("accum %d %d at ij %d %d ll %f %f\n",nh_hr_accum[loc].count, nh_lr_accum[loc].count, 
-//       loc.i, loc.j, ll.lat, ll.lon);
-//  }
-//  }
   hravg(nh_hr_accum);
   lravg(nh_lr_accum);
 
-  for (loc.j = 0; loc.j < sgrid.ypoints(); loc.j++) {
-  for (loc.i = 0; loc.i < sgrid.xpoints(); loc.i++) {
-    ll = sgrid.locate(loc);
-//   // printf("accum %d %d at ij %d %d ll %f %f\n",sh_hr_accum[loc].count, 
-//              sh_lr_accum[loc].count, loc.i, loc.j, ll.lat, ll.lon);
-  }
-  }
   hravg(sh_hr_accum);
   lravg(sh_lr_accum);
 
@@ -229,9 +211,6 @@ int main(int argc, char *argv[]) {
                            nh_lr_accum[loc].lr[AMSR2_T37H].spot.tmbr, 
                            nh_hr_accum[loc].hr[AMSR2_T89V].spot.tmbr, 
                            nh_hr_accum[loc].hr[AMSR2_T89H].spot.tmbr, arctic, (float) ll.lat);
-       //printf("conc %4d %4d  %5.1f  lands %5.3f %5.3f\n",loc.i, loc.j, ngrid[loc], 
-       //               nh_hr_accum[loc].hr[AMSR2_T89V].spot.alfr, 
-       //               nh_lr_accum[loc].lr[AMSR2_T19V].spot.alfr);
      }
   }
   }
@@ -255,9 +234,6 @@ int main(int argc, char *argv[]) {
                            sh_lr_accum[loc].lr[AMSR2_T37H].spot.tmbr, 
                            sh_hr_accum[loc].hr[AMSR2_T89V].spot.tmbr, 
                            sh_hr_accum[loc].hr[AMSR2_T89H].spot.tmbr, arctic, (float) ll.lat);
-       //printf("conc %4d %4d  %5.1f  lands %5.3f %5.3f\n",loc.i, loc.j, sgrid[loc], 
-       //               sh_hr_accum[loc].hr[AMSR2_T89V].spot.alfr, 
-       //               sh_lr_accum[loc].lr[AMSR2_T19V].spot.alfr);
      }
   }
   }
@@ -286,7 +262,8 @@ int main(int argc, char *argv[]) {
   fout = fopen(argv[6],"w");
   ngridchar.binout(fout);
   fclose(fout);
-  ngrid.xpm("n.xpm",7,gg);
+  sprintf(fname, "n.xpm");
+  ngrid.xpm(fname,7,gg);
   
   sprintf(fname,"%s_hr",argv[5]);
   fout = fopen(fname,"w");
@@ -301,8 +278,8 @@ int main(int argc, char *argv[]) {
   conv(sgrid, sgridchar);
   sgridchar.binout(fout);
   fclose(fout);
-  sgrid.xpm("s.xpm",7,gg);
-
+  sprintf(fname,"s.xpm");
+  sgrid.xpm(fname,7,gg);
 
   return 0;
 }
