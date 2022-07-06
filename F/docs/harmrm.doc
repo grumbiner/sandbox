@@ -1,0 +1,31 @@
+
+
+
+
+
+
+harmrm (subroutine)
+
+
+Entries:  harmrm
+Calls  :  LINPACK routines SGEFA, SGESL
+
+Purpose:
+	Compute a least squares fit to a data vector for given frequencies (which are not required to be fourier frequencies).  This version will compute the mean at the same time as sinusoids are fit.
+
+Limits:
+	The mean (frequency = 0) must be passed as the first frequency in the frequency vector.
+	The algorithm may be unnecessarily complex/time consuming. (reconsider after tides class is over.)
+	The method assumes that the data are regularly spaced.
+	Does not compute a condition number, so that the coefficients may be seriously contaminated by numerical errors without warning.
+
+Arguments:
+	Real x(n)		Data vector.
+	Integer n		Number of data points.
+	Real omega(m)	Frequencies to analyze in radians per measuring interval.
+	Real a(m)		Cosine coefficient for the frequency.
+	Real b(m)		Sine coeficient for the frequency.
+	Integer m		Number of frequencies.
+
+Usage:
+	Fill x and omega with the appropriate data.  After the call, a and b will have the coefficients.  The first element of omega must be 0.0.

@@ -1,5 +1,9 @@
 C********(*********(*********(*********(*********(*********(*********(!!
       SUBROUTINE laplac(diffus, ss, nx, ny, dx, dy, diffu)
+C     Evaluate the laplacean of an array
+C     Robert Grumbine 
+C     Last Modified 28 May 1996
+
       IMPLICIT none
 
       INTEGER nx, ny
