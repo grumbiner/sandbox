@@ -11,7 +11,7 @@ class astronomy {
   static const dp au      = 1.49597870700e11;
   static const dp ly      = 9.46e15;
   static const dp parsec  = 3.26e0*ly;
-  static const dp G       = 6.67e-11;
+  static const dp G       = 6.6743e-11;
   static const dp mean_solar_day = 86400.;
 };
 

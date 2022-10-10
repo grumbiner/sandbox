@@ -13,7 +13,7 @@ PUBLIC
   REAL(dp) ,parameter :: rmoon   = 3.84e8
   REAL(dp) ,parameter :: ly      = 9.46d15 
   REAL(dp) ,parameter :: parsec  = 3.26d0*ly 
-  REAL(dp) ,parameter :: G       = 6.67d-11
+  REAL(dp) ,parameter :: G       = 6.6743d-11
   REAL(dp) ,parameter :: mean_solar_day = 86400.
 END MODULE astronomy
 
@@ -157,7 +157,7 @@ PROGRAM solar_system
   isun  = 0
   iearth = 1
   nbody = 2
-  freq  =   8640
+  freq  = 4*8640
   ratio = 4*8640.
 
   dt = mean_solar_day/ratio
@@ -184,13 +184,13 @@ PROGRAM solar_system
     tmpf = -kepler(system(i), system(isun) ) * (1. - system(i)%m / system(isun)%m)
     CALL init_vel(system(i), zero, tmpf, zero )
 
-  nmassless = 13
-  ALLOCATE(massless(nmassless))
-  DO i = 1, nmassless
-! L1 is ~0.99 au
-    CALL init_loc(massless(i), zero, au*(.981+i*0.002), zero)
-    CALL init_vel(massless(i), kepler(massless(i), system(isun) ) , zero, zero )
-  ENDDO
+!  nmassless = 13
+!  ALLOCATE(massless(nmassless))
+!  DO i = 1, nmassless
+!! L1 is ~0.99 au
+!    CALL init_loc(massless(i), zero, au*(.981+i*0.002), zero)
+!    CALL init_vel(massless(i), kepler(massless(i), system(isun) ) , zero, zero )
+!  ENDDO
 
 !--------------------------------------------------------
 ! Sun's initial position s.t. center of mass is at 0,0,0
@@ -219,17 +219,17 @@ PROGRAM solar_system
     ke0(i) = ke(system(i))
   ENDDO
 ! ----- Done initializing solar system -----
-  OPEN(10, FILE="massless", FORM="FORMATTED", STATUS="UNKNOWN")
+
+!M  OPEN(10, FILE="massless", FORM="FORMATTED", STATUS="UNKNOWN")
 
 ! Main loop
-  !DO nyear = 0, 71
-  DO nyear = 0, 11
+  DO nyear = 0, 999
   DO step = 0, int(366*ratio)
 
     IF (MOD(step,freq) .EQ. 0) THEN
-      WRITE (10,9009) nyear+step*dt/mean_solar_day/366.,     &
-             system(iearth)%x(1)/au, system(iearth)%x(2)/au, &
-             (massless(j)%x(1)/au,j=1,nmassless),(massless(j)%x(2)/au,j=1,nmassless)
+!M      WRITE (10,9009) nyear+step*dt/mean_solar_day/366.,     &
+!M             system(iearth)%x(1)/au, system(iearth)%x(2)/au, &
+!M             (massless(j)%x(1)/au,j=1,nmassless),(massless(j)%x(2)/au,j=1,nmassless)
       i = iearth
       j = 2
       k = 0
@@ -250,13 +250,14 @@ PROGRAM solar_system
     ENDDO
     ENDDO
 
-    DO j = 1, nmassless
-      DO k = 0, nbody
-        CALL gravity(massless(j), system(k) )
-      ENDDO
-      CALL update_loc(massless(j), dt)
-      CALL update_vel(massless(j), dt)
-    ENDDO
+!M    DO j = 1, nmassless
+!M      DO k = 0, nbody
+!M        CALL gravity(massless(j), system(k) )
+!M      ENDDO
+!M      CALL update_loc(massless(j), dt)
+!M      CALL update_vel(massless(j), dt)
+!M    ENDDO
+! For massive bodies
     DO j = 0, nbody
       CALL update_loc(system(j), dt)
       CALL update_vel(system(j), dt)
