@@ -135,8 +135,9 @@ ratio = 4*8640.
 freq  = 4*8640
 dt = astronomy.mean_solar_day/ratio
 dpy = (366)
+nyears = 1
 
-for i in range (0, dpy*int(ratio)*12 + 1):
+for i in range (0, dpy*int(ratio)*nyears + 1):
   earth.gravity(sun)
   earth.gravity(jupiter)
 

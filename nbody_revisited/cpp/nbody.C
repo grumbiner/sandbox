@@ -116,7 +116,8 @@ int main(void) {
 // g++, MacOS, -O2
   int ypm  = 18;  // dt = 2.5 seconds --> false earth recession ~3.4 microAU/year, Jupiter ~1/7 microAU/year
   int nmin = 4;
-  for (  yy = 0;   yy < ypm*nmin; yy++) {
+  //for (  yy = 0;   yy < ypm*nmin; yy++) {
+  for (  yy = 0;   yy < 100; yy++) {
   for (step = 0; step < ratio*366; step++) {
 
     if ( (step)%freq == 0) {

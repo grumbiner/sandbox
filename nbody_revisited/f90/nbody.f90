@@ -180,7 +180,7 @@ PROGRAM solar_system
   i = 2
     system(i)%m = m_earth*317.8
     system(i)%k = G*system(i)%m
-    CALL init_loc(system(i), 5.2000*au, zero, zero)
+    CALL init_loc(system(i), 5.2038*au, zero, zero)
     tmpf = -kepler(system(i), system(isun) ) * (1. - system(i)%m / system(isun)%m)
     CALL init_vel(system(i), zero, tmpf, zero )
 
@@ -223,7 +223,7 @@ PROGRAM solar_system
 !M  OPEN(10, FILE="massless", FORM="FORMATTED", STATUS="UNKNOWN")
 
 ! Main loop
-  DO nyear = 0, 999
+  DO nyear = 0, 99
   DO step = 0, int(366*ratio)
 
     IF (MOD(step,freq) .EQ. 0) THEN

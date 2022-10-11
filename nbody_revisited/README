@@ -1,0 +1,26 @@
+This is a simple N-body gravitational simulator in three programming languages -- Python, C++, and Fortran.
+
+All three are constructed on top of a 'point mass' class that tracks the point's mass, position, and velocity. It also implements a simple (Euler forward) evolution of position and velocity given accelerations. In the N-body case, accelerations are due to gravity (only). But in a more general case, one could have point masses moving due to electromagnetic forces, or near the surface of the earth. Hence there is a currently not well-enforced distinction between point masses and astronomical point masses.
+
+In the initial demonstration, all three are initialized with the earth, Sun, and Jupiter. Earth and Jupiter being in approximately Keplerian orbits.
+
+Execution speed on a Mac M1 (2020) in these un-optimized codes is approximately:
+Fortran 970 seconds for 1000 years
+C++ about 3.5x run time
+Python about 560x run time
+
+Because the algorithms are all quite simple, the programs will slow down rapidly with N. 3x the bodies means about 9x the run time. Sun + 8 planets will be more like 10 seconds per year than the 1 second in this demo. Relatedly, there are algorithms special to orbital mechanics which are more accurate and permit a longer time step than the Euler forward used here. The reason for these choices was to have something easy to understand and play with rather than to implement a research-grade model.
+
+The C++ version relies on include files from https://github.com/rgrumbine/mmablib
+
+Future: Add gravitational potential energy between bodies
+Future: 3rd dimension to motions
+
+* Add makefiles for C++, Fortran
+
+*Fix: output varies between the programs
+** should be earth position, delta-R, jupiter position, delta-R, sun delta-R
+** close with conservation status
+
+Robert Grumbine
+10 October 2022
