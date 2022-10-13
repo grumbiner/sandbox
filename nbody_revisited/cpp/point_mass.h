@@ -6,13 +6,18 @@ typedef double dp ;
 
 class astronomy {
   public:
-  static const dp m_earth = 5.9722e24;
+  static const dp m_earth = 5.9722e24;       // kg
+  static const dp m_jupiter = m_earth*371.8;
   static const dp m_sun   = 1.98847e30;
+
+  static const dp rmoon   = 3.84e8;          // m
   static const dp au      = 1.49597870700e11;
   static const dp ly      = 9.46e15;
   static const dp parsec  = 3.26e0*ly;
+
   static const dp G       = 6.6743e-11;
-  static const dp mean_solar_day = 86400.;
+
+  static const dp mean_solar_day = 86400.;   // s
 };
 
 class point_mass : public mvector<dp> {
@@ -121,4 +126,3 @@ void point_mass::gravity(point_mass &y) {
   scratch1 *= accel;
   this->a += scratch1;
 }
-
