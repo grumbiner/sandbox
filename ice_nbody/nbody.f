@@ -445,7 +445,7 @@ C********!*********!*********!*********!*********!*********!---------!++
         CALL diagns(xb, yb, ub, vb, rotb, 3*i, mass, rinert, nbods)
 
  1000 CONTINUE
-      PRINT *,LONG(362)
+CM      PRINT *,LONG(362)
       
       PAUSE
       END
@@ -669,7 +669,7 @@ C     Establish the sea surface topography
       PRINT *,'Estimated time of execution (s):'
       PRINT *, nbods*nops*ndt/speed
       OPEN (10, FILE='nbody.output', FORM='FORMATTED', STATUS='NEW')
-      PRINT *, LONG(362)
+CM      PRINT *, LONG(362)
 
  9001 FORMAT (I8)
  9002 FORMAT (E13.6)
