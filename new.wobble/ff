@@ -1,0 +1,7 @@
+#!/bin/sh
+
+fn=`basename $1`
+export O=/Users/rmg3/rg_nonncep/wobble
+export S=/Users/rmg3/sandbox/new.wobble
+
+find $O $S -name $fn -exec ls -lsd {} \; | sort -nr -k 6
