@@ -1,0 +1,18 @@
+#
+# --- set ARCH to the correct value for this machine.
+#
+#setenv ARCH alphaL
+#setenv ARCH alpha
+#setenv ARCH intelIFC
+#setenv ARCH intel
+#setenv ARCH o2k
+#setenv ARCH sp3GPFS
+#setenv ARCH sp3
+#setenv ARCH sp4GPFS
+#setenv ARCH sp4
+#setenv ARCH sun64
+#setenv ARCH sun
+#setenv ARCH t3e
+#
+#setenv ARCH sun
+setenv ARCH sp3

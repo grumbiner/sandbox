@@ -4,8 +4,6 @@ set -xae
 # #### 31 March 2015 ******************************
 # SETUP AVHRR DATA RETRIEVAL for SEAICE CONCENTRATION ANALYSIS filter
 # ###########################################
-echo Have Entered Filtering Script, PDY = $PDY m1 = $PDYm1
-
 export PS4='$SECONDS + '
 date
 echo cyc is ${cyc:?}
@@ -23,30 +21,27 @@ cd $DATA
 export pgmout="OUTPUT.${pid}"
 
 export cycle=t${cyc}z
-export NET=${NET:-omb}
+export NET=omb
 
 #################################################
 # Specify job's execution areas (directory paths)
 #################################################
-export EXECseaice_analysis=${EXECseaice_analysis:-$HOMEseaice_analysis/exec}
-export FIXseaice_analysis=${FIXseaice_analysis:-$HOMEseaice_analysis/fix}
-export PARMseaice_analysis=${PARMseaice_analysis:-$HOMEseaice_analysis/parm}
-export USHseaice_analysis=${USHseaice_analysis:-$HOMEseaice_analysis/ush}
+export EXECseaice_analysis=$HOMEseaice_analysis/exec
+export FIXseaice_analysis=$HOMEseaice_analysis/fix
+export PARMseaice_analysis=$HOMEseaice_analysis/parm
+export USHseaice_analysis=$HOMEseaice_analysis/ush
 
 #########################################
 # Run setpdy and initialize PDY variables
 #########################################
-if [ -z $PDY ] ; then
-  setpdy.sh
-  . ./PDY
-fi
-echo FILTER pdy = $PDY
+setpdy.sh
+. ./PDY
 
-export RUN=${RUN:-sice}
-export COMIN=${COMIN:-${COMROOT}/omb/${envir}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-${COMROOT}/omb/${envir}/${RUN}.${PDYm1}}
-export COMOUT=${COMOUT:-${COMROOT}/omb/${envir}/${RUN}.${PDY}}
-export DCOM=${DCOM:-$DCOMROOT/prod/$PDY}
+export RUN=sice
+export COMIN=${COMROOT}/omb/${envir}/${RUN}.${PDY}
+export COMINm1=${COMROOT}/omb/${envir}/${RUN}.${PDYm1}
+export COMOUT=${COMROOT}/omb/${envir}/${RUN}.${PDY}
+export DCOM=$DCOMROOT/us007003/$PDY
 
 mkdir -p $COMOUT
 env
@@ -60,9 +55,5 @@ err_chk
 #####################################
 
 cat $pgmout
-
-#if [ "$KEEPDATA" != "YES" ] ; then
-#  rm -rf $DATA
-#fi
 
 date

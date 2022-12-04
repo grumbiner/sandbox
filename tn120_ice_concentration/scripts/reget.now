@@ -1,0 +1,15 @@
+#QSUB -lM 9Mw
+#QSUB -lT 150
+#QSUB -o /dm/wd21rg/jcls
+#QSUB -e /dm/wd21rg/jcls
+#QSUB -me
+
+
+cd $TMPDIR
+#  tag=`date +"%Y%m%d"`
+tag=19990222
+
+/nwprod/bufr/scripts/dumpjb ${tag}00 12 ssmit
+mv ssmit.cos /dm/wd21rg/jcls/ssmi.$tag.16L
+
+

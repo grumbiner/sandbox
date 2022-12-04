@@ -1,0 +1,67 @@
+(ld): setopt 64
+(ld): halt 4
+(ld): lrgpage 0
+(ld): savename archv2ncdf2d
+(ld): filelist 33 1
+(ld): i /lib/crt0_64.o
+(ld): i archv2data2d.o
+(ld): i mod_plot.o
+(ld): i mod_xc.o
+(ld): i mod_za.o
+(ld): i mod_zb.o
+(ld): i wtime.o
+(ld): i bigrid.o
+(ld): i bigrd1.o
+(ld): i blkin.o
+(ld): i extrct.o
+(ld): i extrot.o
+(ld): i fordate.o
+(ld): i getdat.o
+(ld): i getdtm.o
+(ld): i getdepth.o
+(ld): i indxi.o
+(ld): i indxj.o
+(ld): i pakk.o
+(ld): i poisnd.o
+(ld): i psmoo.o
+(ld): i sbmerg.o
+(ld): i zebra.o
+(ld): i zh.o
+(ld): i dum_gks.o
+(ld): i horout_nc.o
+(ld): i /usrx/local/netcdf.3.5.0/lib/libnetcdf.a
+(ld): lib /usr/lib/libxlf90.a
+(ld): lib /usr/lib/libxlopt.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlomp_ser.a
+(ld): lib /usr/lib/libm.a
+(ld): lib /usr/lib/libc.a
+LIBRARY: Shared object libxlf90.a[io_64.o]: 69 symbols imported.
+LIBRARY: Shared object libxlf90.a[math_64.o]: 344 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys_64.o]: 33 symbols imported.
+LIBRARY: Symbols imported from import file /usr/lib/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf90.a[_xlf_posix_64.o]: 85 symbols imported.
+LIBRARY: Shared object libxlomp_ser.a[omp_ser_64.o]: 61 symbols imported.
+LIBRARY: Shared object libc.a[shr_64.o]: 2357 symbols imported.
+LIBRARY: Shared object libc.a[posix_aio_64.o]: 17 symbols imported.
+LIBRARY: Shared object libc.a[aio_64.o]: 11 symbols imported.
+LIBRARY: Shared object libc.a[pse_64.o]: 5 symbols imported.
+LIBRARY: Shared object libc.a[dl_64.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[pty_64.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 33
+(ld): resolve
+RESOLVE: 847 of 10174 symbols were kept.
+(ld): addgl /usr/lib/glink64.o
+ADDGL: Glink code added for 58 symbols.
+(ld): er full
+ER: There are no unresolved symbols.
+(ld): mismatch
+MISMATCH: No type mismatches exist.
+(ld): comprld
+COMPRLD: Kept 8499 of 8499 relocation entries.
+(ld): origin page 0x100000000 0x110000000
+(ld): save 1L .
+SAVE: Section sizes = 934831+40817+20136 (0xE43AF+0x9F71+0x4EA8 hex)
+SAVE: Size of TOC: 1568 (0x620 hex)
+(ld): rc
+RC: Highest return code was 0.
