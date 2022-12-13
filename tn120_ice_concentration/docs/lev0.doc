@@ -1,0 +1,35 @@
+#Control Files
+lpr -P ddb f13.jcl
+lpr -P ddb f13.recover.jcl
+lpr -P ddb f13.test.jcl
+lpr -P ddb fdcp.proc
+lpr -P ddb www.jcl
+lpr -P ddb Makefile
+lpr -P ddb ssmi.h
+lpr -P ddb icessmi.h
+
+lpr -P ddb control/icegrid.glk
+lpr -P ddb control/icegrid.north
+lpr -P ddb control/icegrid.south
+lpr -P ddb control/icegrids.h
+#lpr -P ddb control/nland.map
+#lpr -P ddb control/sland.map
+
+#Source files
+lpr -P ddb ssmimain.c
+lpr -P ddb ssmi.bufr.f
+lpr -P ddb bufrproc.c
+lpr -P ddb sdrproc.c
+lpr -P ddb tfill.c
+lpr -P ddb filtbg.c
+lpr -P ddb getfld.c
+lpr -P ddb iceanaly.c
+lpr -P ddb mkllglob.f
+lpr -P ddb newfilt.c
+lpr -P ddb pole_fill.c
+lpr -P ddb psgrib.f
+lpr -P ddb rtxpm.c
+lpr -P ddb algorith.c
+
+#Archaic
+# lpr -P ddb  oisst.f

@@ -1,0 +1,45 @@
+yy=95
+tag=${yy}0816
+j=0
+export tag j yy
+#set -xe
+
+while [ $tag -lt 951031 ] 
+do
+  
+  mm=`echo $tag | cut -c3-4`
+  dy=`echo $tag | cut -c5-6`
+  base=${yy}${mm}
+
+  echo $tag 
+
+  if [ ! -d ice.$base ] ; then
+    mkdir ice.$base
+  fi
+
+  grep ${base}$dy /ice.hist/reanalysis/sst/sst.19${yy}.index | ./wgrib /ice.hist/reanalysis/sst/sst.19$yy -i -nh -o sst.${base}$dy
+  tmp=${base}$dy
+  while [ ! -s sst.${base}$dy ] 
+  do
+    tmp=`expr ${tmp} - 1`
+    tmp=`dtgfix3 $tmp` 
+    echo Missing sst on ${base}${dy}. Trying $tmp
+    grep ${tmp} /ice.hist/reanalysis/sst/sst.19${yy}.index | ./wgrib /ice.hist/reanalysis/sst/sst.19$yy -i -nh -o sst.${base}$dy
+  done
+      
+  ln ssmi3/n3conc.${base}$dy fort.10
+  ln ssmi3/s3conc.${base}$dy fort.11
+  ln sst.${base}$dy            fort.12
+  touch ice.${base}/iceout.${base}$dy
+  ln ice.${base}/iceout.${base}$dy         fort.13
+  ./filtbg 
+  rm sst.${base}$dy
+  rm fort.10 fort.11 fort.12 fort.13
+
+  j=`expr $j + 1`
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+
+done
+exit
+

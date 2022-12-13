@@ -1,0 +1,42 @@
+#!/bin/bash
+
+EXDIR=~wd21rg/hires
+
+tag=20000225
+while [ $tag -le 20001017 ]
+do
+  for pole in global 
+  do
+    p=`echo $pole | cut -c1`  
+    if [ -f ${p}conc.$tag ] ; then
+      $EXDIR/$pole.imager $pole.$tag $pole.new ${p}conc$tag.xpm
+      xpmtogif ${p}conc$tag.xpm 
+      rm ${p}conc$tag.xpm 
+      gzip ${p}conc.$tag 
+      #mv ${p}conc.$tag.gz $pole.data
+      #mv ${p}conc$tag.gif $pole.images
+    fi
+
+    for pn in 13
+    do
+      dat=parm${pn}.$pole.$tag
+      p=`echo $pole | cut -c1`
+      if [ -f $dat ] ; then
+        fn1=`echo $dat | cut -f1 -d.`
+        fn2=`echo $dat | cut -f2 -d.`
+        fn=$fn1$fn2
+        $EXDIR/$pole.imager $dat ${pole}.new $fn$p$tag.xpm
+        xpmtogif $fn$p$tag.xpm
+        rm $fn$p$tag.xpm
+        gzip $dat
+        #mv *gz $pole.data
+        #mv $fn$p$tag.gif $pole.images
+      fi
+    done
+
+  done
+
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+
+done

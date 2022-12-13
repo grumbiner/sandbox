@@ -1,0 +1,51 @@
+This set involves mainly changes to makefiles and does not produce codes
+that conflict with the old 25.4 km and 30 minute resolution processing.
+They may be implemented immediately.
+
+seaice_psgnorth.fd :
+    removed unused debug lines
+    put wmo output under control of include
+    new include file for 12.7 km grid
+    Makefile generates executables for both 12.7 km and 25.4 km files.
+    
+seaice_psgsouth.fd :
+    removed unused debug lines
+    put wmo output under control of include
+    new include file for 12.7 km grid
+    Makefile generates executables for both 12.7 km and 25.4 km files.
+    
+seaice_ice2grib.fd :
+    removed unused debug lines
+    put wmo output under control of include
+    new include files for 30 minute and 5 minute grids
+    Makefile generates executables for both 5 minute and 30 minute files.
+    
+seaice_xpm.Cd      :
+    No code changes
+    Makefile now also generates executables for both 12.7 km hemispheric grids 
+         and 5 minute grid
+
+seaice_reduce.Cd   : NEW
+    Executables to reduce northern hemisphere, southern hemisphere, and global
+      higher resolution grids to the old resolutions.
+
+new.includes:
+    directory containing the new include files mentioned above.
+
+Executable	time (s) 	Max resident set size (kb)
+north_reduce	0.2		  4,480
+south_reduce	0.1		  3,548
+north12xpm	0.5		  3,180
+south12xpm	0.35		  2,740
+northxpm	0.15		  2,128
+southxpm	0.1		  2,068
+psgnorth	0.09		  5,448
+psgsouth	0.07		  4,340
+psgnorth12	0.24		 15,116
+psgsouth12	0.18		 10,900
+global_reduce	1.1		 21,816
+global5minxpm 	6.2		 20,004
+globalxpm	0.2		  2,284
+ice2grib5min	2.0		172,668
+ice2grib	0.1		  6,908
+
