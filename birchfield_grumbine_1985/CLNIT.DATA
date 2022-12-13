@@ -1,0 +1,23 @@
+     0.2               GRID SIZE IN DEGREES
+    20.0               TIME STEP IN YEARS
+   .TRUE.              OUTDAT LOGICAL VARIABLE
+   .FALSE.             OUTHGT
+   .TRUE.              OUTVOL
+  1000.0               CALTIM IN YEARS
+990000.0               FINAL TIME IN YEARS
+     1.0               ACCUMULATION RATE IN METERS PER YEAR
+      .001             SLOPE OF THE SNOW LINE
+     0.0               AMPLITUDE OF SNOW LINE OSCILLATION, IN KM
+   200.0               VALUE THE SNOW LINE VARIES ABOUT, IN KM
+ 20000.0               PERIOD IN YEARS, OF THE SNOW LINE OSCILLATION
+   917.0               DENSITY OF THE ICE IN KG/M**3
+  2751.0               DENSITY OF ROCK IN KG/M**3
+  4000.0               TAU, BEDROCK RELAXATION TIME IN YEARS
+  1.42286E-12          ICEFAC FLOW PARAMETER
+     0.0166            BNAUT
+     0.635             BWON IN METERS PER YEAR PER DEGREE
+     0.4               ALPHA FOR ACCUMULATION RATES 
+     0.008             LAPSE RATE IN DEGREES PER METER
+ 5                     MAXIMUM NUMBER OF ITERATIONS 
+    10.0               TOLERANCE LIMIT
+   600.0               MAXIMUM HEIGHT AT THE POLAR OCEAN
