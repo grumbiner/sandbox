@@ -1,0 +1,35 @@
+#!/bin/ksh
+#Script to build just the sea ice model versions
+#Robert Grumbine 30 June 2000
+
+if [ -f /etc/linux ] ; then
+  FC='f77 -c -O2 -pg'
+  LD='f77  -pg'
+  IHOME=~rmg3/icemodel/mpi.source
+ else #Assumed to be the IBM
+  FC='xlf -c -O2 -pg'
+  LD='xlf -pg'
+  IHOME=/u/wx21rg/nfsuser/icemodel/mpi.source
+fi
+
+SDIR=$IHOME
+
+#No changes below here------------------------------
+
+export FC LD SDIR IHOME
+
+cd $SDIR
+
+
+chmod 644 mgrid.inc
+for pole in north south ak 
+do
+  export pole
+  if [ -f icegrid.inc ] ; then 
+    chmod 644 icegrid.inc
+    rm icegrid.inc
+  fi
+  make -i
+  mv seaice seaice.$pole.$HH
+  make clean
+done

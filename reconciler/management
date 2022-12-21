@@ -1,0 +1,16 @@
+Managing the resops class:
+
+Resops itself
+  Declare a base class resops (inheriting from metricgrid)
+  Provide the required locate functions returning nulls, as there
+    cannot be any direct resop class, but metricgrid will insist.
+  Virtual function locate(ijpt, lat, lon), etc. -- require the
+    descendants to have these classes.
+ 
+In any descendant class:
+  Provide lat, lon, dlatdi, dlondi, dlatdj, dlondj, jacob;
+  include a protected static int count
+  Make these static within the descendant (problematic within families,
+    but at least distinguishes between families) 
+  Inline calls from the mandatory metricgrid locates to the resops 
+     versions (with appropriate args)

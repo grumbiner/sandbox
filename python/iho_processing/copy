@@ -1,0 +1,4 @@
+for f in Lincoln_Sea Greenland_Sea Baffin_Bay Barentsz_Sea The_Northwestern_Passages Lincoln_Sea Laptev_Sea Kara_Sea East_Siberian_Sea Norwegian_Sea Beaufort_Sea Chukchi_Sea Arctic_Ocean Davis_Strait Baffin_Bay White_Sea North_Atlantic_Ocean Beaufort_Sea Gulf_of_Bothnia Bering_Sea Hudson_Bay Chukchi_Sea Barentsz_Sea Greenland_Sea Hudson_Strait Kara_Sea East_Siberian_Sea The_Northwestern_Passages Laptev_Sea Gulf_of_Finland Sea_of_Okhotsk Gulf_of_Alaska North_Sea White_Sea Norwegian_Sea Labrador_Sea
+do
+  vi ${f}.curve
+done

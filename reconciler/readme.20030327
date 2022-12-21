@@ -1,0 +1,47 @@
+Carlos,
+
+  I've put the package paving.tar on frost, in directory 
+/nfsuser/g01/wx21rg/
+
+  To run the program, you'll need to create a file named
+hycom_3rd.latlon
+  that contains an unformatted (c-sense*) binary output of the latitude
+grid, followed by the longitude grid.  (Such a thing is only needed for
+nonalgorithmic grids like hycom or cofs.)  I'll be getting the read/write
+of native hycom formats going later (today, I hope). 
+
+  If you run on a linux box, the paving executable is already present.
+If you run on the ibm, you'll need to place the IBM section of the 
+makefile last and then 'make'.
+
+  To run the program (more notes in the program itself):
+./paving bathyout lat lon output_file [straits]
+
+  bathyout is the bathymetry and mask file (in that order).  Mask is
+assumed to be unsigned character, but you can change that type per notes in
+paving.C.  It's assumed to be unformatted (c-sense*) binary.
+
+  lat, lon is the location of the point from which you want to do the
+fill from (I take 40. -50., but it really doesn't matter as long as it's
+somewhere in the Atlantic).
+
+  output_file is the name you want for the output file.  Same format as
+the input.  
+
+  The straits file is optional.  At low resolutions, Gibraltar is closed,
+so no need to worry there.  
+
+
+  Note that although the unformatted format is in c-sense*, the grids are
+oriented in fortran sense.  
+
+
+*c-sense unformatted can be changed to fortran-sense unformatted:
+  Inputs can be read natively as fortran-unformatted binary by changing
+.binin(arg) to .ftnin(arg) in paving.C and resops.h
+
+  Outputs can be written for native fortran-unformatted binary by changing
+.binout(arg) to .ftnout(arg) in paving.C and resops.h
+
+
+Bob Grumbine

@@ -1,0 +1,4 @@
+rerun.pl < bad.dates
+retry.pl < parm13
+both call piece.sh, and neither can be used until hsm is readable.
+

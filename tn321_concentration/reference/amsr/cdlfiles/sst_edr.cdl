@@ -1,0 +1,147 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       sst_edr.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for VIIRS MOD GEO file.
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       VIIRS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for VIIRS granule data:
+//
+//           $ ncgen -b -k3 sst_edr.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Chen Zhang, PSGS, 12/29/09
+//                     Chen.Zhang@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+
+
+netcdf sst_edr {
+
+//---------
+dimensions:
+//---------
+
+      Granule = 1;
+      Scan = 48;
+      AlongTrack = 768;
+      CrossTrack = 3200;
+      Detector = 16;
+      Factor = 2;
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+      long  SkinSST(AlongTrack,CrossTrack);
+            SkinSST:long_name = "Sea Surface Skin Temperature";
+            SkinSST:units = "kelvin";
+            SkinSST:scale_factor = 1.0f;
+            SkinSST:add_offset = 0.0f;
+            SkinSST:parameter_type = "VIIRS SST data";
+            SkinSST:valid_range = 1us, 65535us;
+            SkinSST:_FillValue = 65535us;
+
+      float SkinSSTFactors(Factor);
+            SkinSSTFactors:long_name = "Skin SST scale and offset";
+            SkinSSTFactors:units = "scale-none, offset-kelvin";
+            SkinSSTFactors:scale_factor = 1.0f;
+            SkinSSTFactors:add_offset = 0.0f;
+            SkinSSTFactors:parameter_type = "VIIRS SST data";
+            SkinSSTFactors:valid_range = 0.0f, 100000.0f;
+            SkinSSTFactors:_FillValue = -9999.0f;
+
+      long  BulkSST(AlongTrack,CrossTrack);
+            BulkSST:long_name = "Sea Surface Skin Temperature";
+            BulkSST:units = "kelvin";
+            BulkSST:scale_factor = 1.0f;
+            BulkSST:add_offset = 0.0f;
+            BulkSST:parameter_type = "VIIRS SST data";
+            BulkSST:valid_range = 1us, 65535us;
+            BulkSST:_FillValue = 65535us;
+
+      float BulkSSTFactors(Factor);
+            BulkSSTFactors:long_name = "Bulk SST scale and offset";
+            BulkSSTFactors:units = "scale-none, offset-kelvin";
+            BulkSSTFactors:scale_factor = 1.0f;
+            BulkSSTFactors:add_offset = 0.0f;
+            BulkSSTFactors:parameter_type = "VIIRS SST data";
+            BulkSSTFactors:valid_range = 0.0f, 100000.0f;
+            BulkSSTFactors:_FillValue = -9999.0f;
+
+      ubyte QF1_VIIRSSSTEDR(AlongTrack,CrossTrack);
+            QF1_VIIRSSSTEDR:long_name = "Pixel level Quality Flags";
+            QF1_VIIRSSSTEDR:units = "none";
+            QF1_VIIRSSSTEDR:scale_factor = 1.0f;
+            QF1_VIIRSSSTEDR:add_offset = 0.0f;
+            QF1_VIIRSSSTEDR:parameter_type = "VIIRS SST data";
+            QF1_VIIRSSSTEDR:valid_range = 0ub, 255ub;
+            QF1_VIIRSSSTEDR:_FillValue = 255ub;
+
+      ubyte QF2_VIIRSSSTEDR(AlongTrack,CrossTrack);
+            QF2_VIIRSSSTEDR:long_name = "Pixel level Quality Flags";
+            QF2_VIIRSSSTEDR:units = "none";
+            QF2_VIIRSSSTEDR:scale_factor = 1.0f;
+            QF2_VIIRSSSTEDR:add_offset = 0.0f;
+            QF2_VIIRSSSTEDR:parameter_type = "VIIRS SST data";
+            QF2_VIIRSSSTEDR:valid_range = 0ub, 255ub;
+            QF2_VIIRSSSTEDR:_FillValue = 255ub;
+
+      ubyte QF3_VIIRSSSTEDR(AlongTrack,CrossTrack);
+            QF3_VIIRSSSTEDR:long_name = "Pixel level Quality Flags";
+            QF3_VIIRSSSTEDR:units = "none";
+            QF3_VIIRSSSTEDR:scale_factor = 1.0f;
+            QF3_VIIRSSSTEDR:add_offset = 0.0f;
+            QF3_VIIRSSSTEDR:parameter_type = "VIIRS SST data";
+            QF3_VIIRSSSTEDR:valid_range = 0ub, 255ub;
+            QF3_VIIRSSSTEDR:_FillValue = 255ub;
+
+// This is the last array
+
+      ubyte QF4_VIIRSSSTEDR(AlongTrack,CrossTrack);
+            QF4_VIIRSSSTEDR:long_name = "Pixel level Quality Flags";
+            QF4_VIIRSSSTEDR:units = "none";
+            QF4_VIIRSSSTEDR:scale_factor = 1.0f;
+            QF4_VIIRSSSTEDR:add_offset = 0.0f;
+            QF4_VIIRSSSTEDR:parameter_type = "VIIRS SST data";
+            QF4_VIIRSSSTEDR:valid_range = 0ub, 255ub;
+            QF4_VIIRSSSTEDR:_FillValue = 255ub;
+
+//------------------
+// global attributes
+//------------------
+
+        :title = "VIIRS SST granule data file" ;
+        :author = "Yi Song IMSG.  Yi.Song@noaa.gov" ;
+        :rcsId = "$Id: $" ;
+
+
+}

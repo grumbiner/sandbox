@@ -1,0 +1,31 @@
+netcdf OMPS-NP_Geo {
+dimensions:
+	phony_dim_0 = 5 ; // (5 currently)
+	phony_dim_1 = 4 ; // (4 currently)
+	phony_dim_2 = 3 ; // (3 currently)
+	phony_dim_3 = 1 ; // (1 currently)
+variables:
+	float Height(phony_dim_0, phony_dim_0) ;
+	float Latitude(phony_dim_0, phony_dim_0) ;
+	float LatitudeCorners(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	float Longitude(phony_dim_0, phony_dim_0) ;
+	float LongitudeCorners(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	int64 MidTime(phony_dim_0) ;
+	float MoonVector(phony_dim_0, phony_dim_2) ;
+	short NumberOfIFOVs(phony_dim_3) ;
+	short NumberOfSwaths(phony_dim_3) ;
+	ubyte QF1_OMPSNPGEO(phony_dim_0) ;
+	float RelativeAzimuthAngle(phony_dim_0, phony_dim_0) ;
+	float SCAttitude(phony_dim_0, phony_dim_2) ;
+	float SCPosition(phony_dim_0, phony_dim_2) ;
+	float SCVelocity(phony_dim_0, phony_dim_2) ;
+	float SatelliteAzimuthAngle(phony_dim_0, phony_dim_0) ;
+	float SatelliteRange(phony_dim_0, phony_dim_0) ;
+	float SatelliteZenithAngle(phony_dim_0, phony_dim_0) ;
+	float SolarAzimuthAngle(phony_dim_0, phony_dim_0) ;
+	float SolarZenithAngle(phony_dim_0, phony_dim_0) ;
+	int64 StartTime(phony_dim_0) ;
+	float SunVector(phony_dim_0, phony_dim_2) ;
+
+// global attributes:
+}

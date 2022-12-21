@@ -1,0 +1,26 @@
+#!/bin/sh
+
+#Parameters have been set up by J job
+set -x
+
+#Note, tanks are:
+  #export XLFUNIT_11=/dcom/us007003/$PDY/b012/xx012 -- navy SST tank
+  #export XLFUNIT_11=/dcom/us007003/$PDY/b021/xx053 -- avcs18
+  #export XLFUNIT_11=/dcom/us007003/$PDY/b021/xx054 -- avcl18
+#the avcs and avcl are avhrr 'sea' and avhrr 'land' files.  Actually 
+#  distinguished by cloud quality flag rather than geography.  'land' is cloudier,
+#  which makes it more likely useful for sea ice filtering.
+#The navy tank is unused, just noting the existence and difference.
+
+#Note that date is PDYm1 -- this gives full calendar day of data 
+echo working on land $PDYm1
+ln -sf ${DCOM}/b021/xx054 fort.11
+time $EXECseaice_concentration_analysis/seaice_avhrrbufr
+cp fort.51 $COMOUT/land.$PDYm1
+rm fort.51
+
+echo working on seas $PDYm1
+ln -sf ${DCOM}/b021/xx053 fort.11
+time $EXECseaice_concentration_analysis/seaice_avhrrbufr 
+cp fort.51 $COMOUT/seas.$PDYm1
+rm fort.51

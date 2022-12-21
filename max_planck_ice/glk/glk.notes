@@ -1,0 +1,6 @@
+22 September 1995
+
+bathysyn.bin - binary file with bytes reversed from hp standard; has 
+  bathymetry to the meter of entire great lakes region on 512x512 grid 
+  (2.56 km coastwatch grid).
+

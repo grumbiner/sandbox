@@ -1,0 +1,31 @@
+SSMI Bufr:
+
+Cray span:
+IBM span:
+
+-- can cray bufr still be read on IBM or desktop?
+-- read bufr on desktop, stommel, IBM
+-- Time to process scan points into lakes?
+-- Subset into 'near Crystal lake'
+
+ssmi.bufr.f
+ later, added hiresobs, satno
+ thence binary.c for unblocked/unformatted file output
+
+------------------------ Reading -------------------------------------------
+To Read On Desk (Linux):
+  Run cwordsh on IBM with unblk option, then transfer file to desk
+(directly running cwordsh on desk fails)
+  -- still failing.  There are byte count sensitivities in the main(?).
+
+To Read on Stommel (SGI Origin):
+  Run with saved IBM version, or with IBM version that has gone through
+cwordsh block.  cwordsh unblk fails.
+  Takes approx 3 minutes to decode and write out 1 day's files   
+ 
+To Read on CCS (IBM Power4 system):
+  Run with saved IBM version, or with IBM version that has gone through
+cwordsh block.  cwordsh unblk fails.
+  Takes approx 1:30 minutes to decode and write out 1 day's files   
+
+----------------------------------------------------------------------------

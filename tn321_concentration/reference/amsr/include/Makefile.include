@@ -1,0 +1,21 @@
+#/bin/ksh
+
+FSRCS = type_kinds.f90 \
+        errormsg_module.f90 \
+        get_lun.f90 \
+        error_messaging.f90 \
+        common_parameters.f90 \
+        gas_units_module.f90
+
+F90OBJS = $(FSRCS:.f90=.o)
+
+all:	$(F90OBJS) libinclude.a
+
+libinclude.a:	$(F90OBJS)
+		$(AR) $(AR_FLAGS) libinclude.a $?
+
+depend:
+	makedepend $(FSRCS)
+
+include ../config/rules.make
+

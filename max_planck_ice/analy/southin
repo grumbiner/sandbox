@@ -1,0 +1,13 @@
+-220.1944           Longitude of lower left corner
+-31.8202            Longitude of upper right corner
+-36.9003            Latitude of lower left corner
+-32.9166            Latitude of upper right corner
+ 1                  Projection type
+-90.                Reference lat
+-80.                Reference longitude
+fred
+1                   C language (-s unblocked file)
+1                   Number of frames
+15.0                Contour increment
+0.                  Minimum
+255.                Maximum

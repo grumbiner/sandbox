@@ -1,0 +1,16 @@
+-95.5308           Longitude of lower left corner
+-72.7607           Longitude of upper right corner
+39.5400            Latitude of lower left corner
+49.3632            Latitude of upper right corner
+ 1                 Projection type
+45.                Reference lat
+-84.               Reference longitude
+/wd2/wd21/wd21rg/icefore/glk/940724/tml
+0                  Assign -s unblocked? (0 = no, 1 = yes)
+1                  Number of frames
+1.25               Contour increment
+ 7.5               Minimum
+25.0               Maximum
+0.0                Contour increment
+-0.                Minimum
+0.0                Maximum

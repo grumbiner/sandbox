@@ -1,0 +1,31 @@
+#!/bin/bash
+
+mount /mnt/cdrom
+
+base=$1
+tag=${base}01
+
+while [ $tag -le ${base}31 ] 
+do
+  for hh in 00 06 12 18
+  do
+    if [ ! -f flxf06.${tag}$hh ] ; then
+      cp /mnt/cdrom/flxf06.${tag}${hh}.gz .
+      gunzip flxf06.${tag}${hh}.gz
+    fi
+    if [ ! -f flxf06.${tag}$hh ] ; then
+      echo no file flxf06.${tag}${hh}
+    fi
+  done
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+done
+
+#Check for file count:
+dir flxf06.${base}* | wc
+
+#cp /mnt/cdrom/* .
+#gunzip *gz
+#find . -name 'flxf*' -type f -exec ifm {} .. \;
+
+umount /mnt/cdrom

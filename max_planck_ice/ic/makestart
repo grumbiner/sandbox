@@ -1,0 +1,18 @@
+# QSUB -o ic.out
+# QSUB -lT  149
+# QSUB -lM  2.0MW
+# QSUB -me
+
+NCPUS=1
+export NCPUS
+ 
+#Create the restart file for Aug 30 ic.
+assign -a $HOME2/icemodel/running/north/MASK        fort.10
+assign -a $DHOME/icemodel/restart.830               fort.14
+assign -a RESTARTo                        fort.15
+assign -a $DHOME/icemodel/pips.aug30      fort.24
+assign -a pips.aug30.res                  fort.25
+
+assign -a $DHOME/icemodel/aug30.nes -s unblocked    fort.11
+echo "2.0" > restin
+restnh < restin

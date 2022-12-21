@@ -1,0 +1,91 @@
+Hi Bob,
+
+Thanks for the help with the ftp (passive mode toggle) and for
+the access to the data.  I don't really use java for the rendering
+of the images, only for animating the images.  The images are made
+using some really ugly homemade FORTRAN that I map the data onto a
+lat/lon grid, then map that lat/lon data onto a sphere to get the
+'globe' look.
+
+The animation software is called AniS and is widely used.  It's
+easy to implement and the best I've seen of its type with many
+features:
+
+http://www.ssec.wisc.edu/visit/AniS/
+
+As far as the region definitions go, I roughly copied the NASA
+regions by painting different colors on a map (gif image).  The
+resulting painted gif images was converted to a byte array and
+I am providing it here (attached) along with the fortran code to
+read the region mask file.  It is much like the SSMI or SMMR format
+if I remember correctly.  At the end of this code snippet you will
+have an integer array (ireg) with values 0-14 defining the corresponding
+region for each 304x448 grid point.
+
+Let me know if you have any problems with this or the java animator.
+
+Thanks again for your help.
+
+Bill
+
+
+
+
+       integer itemp1, ireg(304,448)
+       byte breg(304,448),iblah(2)
+       equivalence (itemp1,iblah)
+
+
+       open(11,file='region.mask.gray',status='OLD',
+     + form='UNFORMATTED',access='DIRECT',recl=304*448)
+       read (11,rec=1) breg
+       close (11)
+c
+       do i=1,304
+          do j=1,448
+             ireg(i,j)=0
+             iblah(2)=0
+             iblah(1)=breg(i,j)
+             iiireg(i,j)=itemp1
+             if (iiireg(i,j).eq.169) ireg(i,j)=1
+             if (iiireg(i,j).eq.84) ireg(i,j)=2
+             if (iiireg(i,j).eq.212) ireg(i,j)=3
+             if (iiireg(i,j).eq.110) ireg(i,j)=4
+             if (iiireg(i,j).eq.127) ireg(i,j)=5
+             if (iiireg(i,j).eq.148) ireg(i,j)=6
+             if (iiireg(i,j).eq.94) ireg(i,j)=7
+             if (iiireg(i,j).eq.209) ireg(i,j)=8
+             if (iiireg(i,j).eq.59) ireg(i,j)=9
+             if (iiireg(i,j).eq.215) ireg(i,j)=10
+             if (iiireg(i,j).eq.81) ireg(i,j)=11
+             if (iiireg(i,j).eq.191) ireg(i,j)=12
+             if (iiireg(i,j).eq.25) ireg(i,j)=13
+             if (iiireg(i,j).eq.41) ireg(i,j)=14
+          end do
+       end do
+
+
+
+
+
+
+>
+>  You probably need to toggle the passive mode.  That and other items 
+> are now noted at http://polar.ncep.noaa.gov/mmab/faqs.html
+>
+>  I wrote the address on cryosphere today, a while back, about what you 
+> were using for ice information.  I guess this answers the question.
+>
+>  A different thing I was wondering about was your Java tools for 
+> rendering, and how you were defining the zones.  Can you send me 
+> links, sources, whatever on the Java?  Your zones look like the NASA 
+> atlas zones, but I don't have lat-long boundaries for them either.  
+> Could you forward them?  About the time I saw cryosphere today, I'd 
+> started looking at regional ice areas, not for climate purposes, but 
+> for quality control of the daily products.  I'd kludged together some 
+> zones, but it'd be better to work with standard sets.
+>
+> Cheers,
+> Bob Grumbine
+
+

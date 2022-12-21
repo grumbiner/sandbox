@@ -1,0 +1,124 @@
+#include "ncepgrids.h"
+#include "time_series.h"
+#include <errno.h>
+#include <stack>
+using namespace std;
+
+#define MAXPTS  54221
+int bcount = 0;
+
+float correl(mvector<float> &x, mvector<float> &y, DATAARRAY) ;
+void region_find(const int x, const int y, const ijpt refloc, DATAARRAY,
+  global_ice<stack<ijpt> > &locs, global_ice<stack<float> > &scores,
+  float rcrit) { 
+
+int main(int argc, char *argv[]) {
+  FILE *fin;
+  mvector<float> avg(MAXPTS), count(MAXPTS), sd(MAXPTS);
+  mvector<int> index(MAXPTS);
+  mvector<ijpt> loc(MAXPTS);
+
+  int i, j, k = 0, ti, tj;
+  ijpt tloc;
+  latpt tll;
+
+//
+  float rcrit;
+  rcrit = atof(argv[1]);
+  printf("rcrit = %f\n",rcrit);
+
+// Scan the summary file for point locations
+  int countin, indexin;
+  float ain, sdin;
+  float lat, lon, d1, f1, f2, f3;
+  fin = fopen("allice.summary","r");
+  if (fin == (FILE*) NULL) {
+    printf("failed to open allice.summary\n");
+    return 1;
+  }
+  for (i = 0; i < MAXPTS; i++) {
+    fscanf(fin, "%d %d %d %f %f %d %f %f %f %f %f %f\n",&indexin, &ti, &tj, &lat, &lon, &countin, &ain, &d1, &sdin, &f1, &f2, &f3);
+    index[i] = indexin;
+    tloc.i = ti; tloc.j = tj;
+    loc[i] = tloc;
+    tll.lat = lat; tll.lon = lon;
+    ll[i]   = tll;
+    count[i] = (float) countin;
+    avg[i] = ain;
+    sd[i]  = sqrt(sdin);
+  }
+  fclose(fin);
+
+/////////////////////////////////////////////////////////////////////
+  global_ice<stack<ijpt>  > region_locs;
+  global_ice<stack<float> > region_scores;
+
+  // now that we have a map of correlations, flood out until land or r < rcrit
+  // -- compute the correlations on the fly and save results to a stack
+  for (k = 0; k < MAXPTS) {
+    tloc = loc[index[k] ];
+    region_find(tloc.i, tloc.j, loc[index[k] ],
+         DATAARRAY, region_locs, region_scores);
+    printf("point %5d loc %3d %3d  %7.2f %7.2f #points in its region: %5d\n",
+       k, loc[index[k] ].i, loc[index[k] ].j, ll[k].lat, ll[k].lon, region_locs.size() );
+  
+  }
+  
+  return 0;
+}
+
+void region_find(const int x, const int y, const ijpt refloc, DATAARRAY,
+  global_ice<stack<ijpt> > &locs, global_ice<stack<float> > &scores,
+  float rcrit) { 
+  ijpt tloc;
+
+  tloc.i = x; tloc.j = y;
+  // manage longitude wrap-around 
+  if (tloc.i >= land.xpoints()) tloc.i -= land.xpoints();
+  if (tloc.i < 0)               tloc.i += land.xpoints();
+  //and pole-crossing:
+  if (tloc.j >= land.ypoints()) {
+    tloc.j = (land.ypoints()-1) - (tloc.j - land.ypoints());
+    tloc.i = tloc.i + 180.0/0.5; 
+    if (tloc.i >= land.xpoints()) tloc.i -= land.xpoints();
+  }
+  if (tloc.j < 0) {
+    tloc.j = -tloc.j;
+    tloc.i = tloc.i + 180.0/0.5; 
+    if (tloc.i >= land.xpoints()) tloc.i -= land.xpoints();
+  }
+
+  bcount += 1;
+ 
+  float score = correl(tloc, refloc, DATAARRAY);
+  if ( score >= rcrit) {
+    scores[refloc].push(score);
+    locs[refloc].push(tloc);
+
+    // recursive portion:
+    region_find(tloc.i+1, tloc.j,   refloc, DATAARRAY, locs, scores, rcrit);
+    region_find(tloc.i  , tloc.j+1, refloc, DATAARRAY, locs, scores, rcrit);
+    region_find(tloc.i-1, tloc.j,   refloc, DATAARRAY, locs, scores, rcrit);
+    region_find(tloc.i  , tloc.j-1, refloc, DATAARRAY, locs, scores, rcrit);
+  }
+
+  bcount -= 1;
+  return;
+}
+
+float correl(mvector<float> &x, mvector<float> &y, DATAARRAY) {
+  double sumx = 0., sumy = 0., sumxy = 0., sumx2 = 0., sumy2 = 0.;
+  int i;
+  for (i = 0; i < x.xpoints(); i++) {
+    sumx += x[i];
+    sumy += y[i];
+    sumxy += x[i]*y[i];
+    sumx2 += x[i]*x[i];
+    sumy2 += y[i]*y[i];
+  }
+
+  // note, must be returning r^2, or other non-negative score
+  // r^2 = 
+
+  return 0;
+}

@@ -1,0 +1,77 @@
+From Paul.Haggerty@noaa.gov  Thu Aug  5 11:25:02 2004
+Return-Path: <Paul.Haggerty@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.ncep.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.12.11/8.12.10) with ESMTP id i75FP2dn025807
+	for <wd21rg@polar.wwb.noaa.gov>; Thu, 5 Aug 2004 11:25:02 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i75FObSF027147
+	for <grumbine@ncep.noaa.gov>; Thu, 5 Aug 2004 11:24:37 -0400
+Resent-Date: Thu, 5 Aug 2004 11:24:37 -0400
+Resent-Message-Id: <200408051524.i75FObSF027147@mx1.ncep.noaa.gov>
+Received: from nes3.nesdis.noaa.gov ([140.90.231.133]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I1ZC5F00.G17 for <Robert.Grumbine@noaa.gov>; Thu, 5 Aug 2004
+          11:24:51 -0400 
+Received: from noaa.gov ([140.90.208.227]) by
+          nes3.nesdis.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I1ZC5900.SKJ for
+          <nesdis.osdpd.ipd.modis.operations@noaa.gov>; Thu, 5 Aug 2004
+          11:24:45 -0400 
+Message-ID: <4112513C.9D5034F7@noaa.gov>
+Date: Thu, 05 Aug 2004 11:24:44 -0400
+From: "Paul Haggerty" <Paul.Haggerty@noaa.gov>
+Organization: NOAA
+X-Sender: "Paul Haggerty" <Paul.Haggerty@nes3.nesdis.noaa.gov>
+X-Mailer: Mozilla 4.79 [en]C-CCK-MCD NOAA-IPD1  (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: MODIS Operations <nesdis.osdpd.ipd.modis.operations@noaa.gov>
+Subject: AMSRE L2 OCEAN and Land Products
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Precedence: list
+Resent-From: nesdis.osdpd.ipd.modis.operations@noaa.gov
+Status: RO
+
+We've completed work on the AMSRE L2 products for the Oceans and 
+Land products.  We are in the final stages of integrating them with
+our automated distribution system and should be able to make them
+available in NRT by next week.
+
+Below is a list of the products that will be made available:
+
+Land:
+
+Soil moisture
+Vegetation Water Content
+Land surface temperature
+Surface Type
+
+Ocean2:
+
+Very_low_res_sst
+Low_res_sst
+Med_res_wind
+Med_res_vapor
+High_res_cloud
+
+Ocean3: (Daily only)
+
+Very_low_res_sst
+Low_res_sst
+Low_res_wind
+Med_res_wind
+Med_res_vapor
+High_res_cloud
+
+
+
+-- 
+
+
+Paul Haggerty
+Science and Technology Corporation
+NESDIS/NOAA
+Phone: 301-457-5258 x142
+E-mail: Paul.Haggerty@noaa.gov
+

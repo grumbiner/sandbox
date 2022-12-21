@@ -1,0 +1,51 @@
+Notes on land masking/bathymetry-making from icemodel.bc examples:
+
+regrid.f : apply a cressman-like filter to ensure that all ocean points, 
+           as determined by model, have a valid temperature/salinity
+tsexam.f : scan t, s files for outliers, and then for stability (minimum 
+           buoyancy frequency)  adjust upper level salinity (only) to reach 
+           sufficient stability.
+mkocean  : script to make ocean layers for sea ice model
+glktsmap.f : set up dummy t, s files for a version of the great lakes ice model
+glkbathy.f : given tags of which lake is at which grid point, set up dummy
+             depths for great lakes ice model
+layers.f   : read in levitus files and extract the layers for two specified 
+             depths (k indices)
+cycle      : script for repeated tweak/compile/run on grid mask maker
+solo.jcl   : prime script to make up the bathymetry and t, s files for
+             ice model grids.  Worked off 1 degree bathy and zmask 1x1 files.
+bc2        : as above
+
+cread_.c   : perform a c style read of numeric data to pass back for 
+             fortran calling programs.  Done before bacio library.
+ctofmain.f : read in from c format, write out as fortran unformatted binary.
+tsmapper.c : set up dummy files (a la glktsmap and glkbathy.f) for great lakes ice model
+glk.bc.makefile :  per name, plus some interesting usages in the makefile 
+                   saved over to support/sample/
+solo       : makefile-reliant version of making ice model bc
+bc2.jcl    : more robust version of bc2 and solo.jcl
+mclean.f   : construct integer mask from floating point interpolation and then
+             remove isolated grid points
+bathyread.f : read and translate Tolman bathy programs (moved to bathy/tolman)
+terph.f    : interpolate off lat-long on to polar stereo
+masker.f   : main prog for making land-sea mask for ice models
+Makefile   : relatively dull makefile for supporting, c.f., bc2.jcl
+listpts.f  : list lat-long values for grids
+solo2      : as solo
+ak.oin     : input file for the mask/bathy/t,s files maker, alaska region
+glk.oin    : input file for the mask/bathy/t,s files maker, great lakes 
+new.sys    : script to remind me to edit *.oin files for correct paths
+tsmaker.f  : main program for making t, s files from levitus 1x1 climatology
+adj6.f     : interpolate off levitus onto ice grid
+north.oin  : input file for the mask/bathy/t,s files maker, northern hemisphere
+south.oin  : input file for the mask/bathy/t,s files maker, southern hemisphere
+bc.jcl     : newer version of bc2.jcl
+bathy.f    : read in bathy and construct for ice model.
+masker.C   : read ssmi mask and make ice model mask from it, reconcile bathymetry with
+             land mask.  Min depth = 15 meters.  Remove isolated points.
+test.jcl   : another flavor of bc2.jcl
+delftn.C   : difference two fortran unformatted binary files (moved to support/sample)
+bathy.C    : C++ interpolator to output bathymetry file given input bathy and mask
+test2.jcl  : yet another flavor of bc2.jcl
+test2b.jcl : and another
+

@@ -1,0 +1,13 @@
+#@$-r  green
+#@$-lt 200
+#@$-lm 10mw
+#@$-s  /bin/csh
+#@$
+#
+cd ~posefnoc/gs
+set echo
+foreach file (*.f)
+set filel = $file:r.L
+cf77  -Zv  -Wd"-l $filel -q t"  -Wf"-a stack -o zeroinc -d p -e z -m 4"  $file  -o $file:r.out
+end
+exit

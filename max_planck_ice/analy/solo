@@ -1,0 +1,17 @@
+#Argument: Pole to run on, north, south, or glk
+
+FC='fort77 -c'
+LD='fort77'
+#NCARLD='ncargf77'
+NCARLD='fort77'
+PHOME=~rmg3/lib
+pole=$1
+export FC LD NCARLD PHOME pole
+
+chmod 644 icegrid.inc
+rm icegrid.inc
+make -i 
+if [ -f mapcont ] ; then
+  mv mapcont mapcont.$1
+fi
+

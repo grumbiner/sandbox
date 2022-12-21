@@ -1,0 +1,44 @@
+2012
+... several updates since 2004, documentation to come
+
+2004
+Land masks updated
+
+1 March 2000
+  New land mask and transfer scheme from the native polar stereographic
+maps implemented in online archive.  An _a posteriori_ computation of
+the global ice fields using the new scheme is in progress.
+
+  File naming convention changed to 4 digit years (finally).  Archive
+directory will maintain old 2 digit year names until June 2000.
+
+
+9 July 1998
+The June, 1998 file was delayed but is now available.  June 5, 1998 is
+not present, though all other missing days were recovered.  
+
+Work is under way to construct a more uniform time series (both in
+processing methods and in presentation, e.g. the change from 1 to 0.5
+degrees which occurs at 31 October 1995 in the current version).
+ 
+
+15 April 1997
+Ice concentration fields for the NCEP/NCAR Climate Data Assimilation System.  
+For details of how the fields are created, request 'Automated Passive 
+Microwave Sea Ice Concentration Analysis at NCEP'. This document is
+also available as a postscript file in 
+ftp://polar.ncep.noaa.gov/pub/papers/ssmi120.ps  
+
+The data here are 1 degree grids in GRIB format for the CDAS from 1 
+January 1995 through 30 October 1995.  From 31 October 1995 onward, the
+data are 0.5 degree GRIB fields.
+
+During a month, each day's GRIB file will be placed here.  After the
+end of the month, the entire month's data will be concatenated to a 
+single file and put in the archive subdirectory.  After the end of the 
+year, the individual months will be concatenated and the file compressed.
+(Still in the archive subdirectory).
+
+Robert Grumbine 
+Robert.Grumbine@noaa.gov
+15 April 1997

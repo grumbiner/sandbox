@@ -30,6 +30,8 @@ int main(int argc, char *argv[]) {
   latpt tll;
 
 //
+  int max_regions = 20*1000;
+  float min_area = 5.e3*1e6; // km^2
   float rcrit;
   rcrit = atof(argv[1]);
   printf("rcrit = %f\n",rcrit);
@@ -79,7 +81,7 @@ int main(int argc, char *argv[]) {
   global_ice<int> counts;
   global_ice<float> areas;
   stack<ijpt> xx;
-  double sum = 0.;
+  double sum = 0., areasum = 0.0;
   ijpt stackloc;
   // now that we have data, flood out r < rcrit
   // -- compute the correlations on the fly and save results to a stack
@@ -89,7 +91,11 @@ int main(int argc, char *argv[]) {
   for (k = MAXPTS ; k > 0; k--) {
     tloc = loc[k];
     visited.set(false);
-    printf("point %5d loc %3d %3d  %7.2f %7.2f ",k, loc[k ].i, loc[k ].j, ll[k].lat, ll[k].lon); fflush(stdout);
+    if ( (k%10) == 0 ) {
+      printf("point %5d loc %3d %3d  %7.2f %7.2f ",k, 
+           loc[k ].i, loc[k ].j, ll[k].lat, ll[k].lon); 
+      fflush(stdout);
+    }
 
     region_find(tloc.i, tloc.j, loc[k], indices, visited,
          x, region_locs, region_scores, rcrit);
@@ -105,8 +111,10 @@ int main(int argc, char *argv[]) {
       }
     }
     areas[tloc] = sum;
-    printf(" #points in its region: %5d area %f \n", (int)region_locs[tloc].size(),sum/1e12 );
-    fflush(stdout);  
+    if ( (k%10) == 0 ) {
+      printf(" #points in its region: %5d area %f \n", (int)region_locs[tloc].size(),sum/1e12 );
+      fflush(stdout);  
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -120,13 +128,14 @@ int main(int argc, char *argv[]) {
 
   belongs.set(-1);
 
-  while (pass < 200 && amax > 1e5*1e6) {
+  while (pass < max_regions && amax > min_area ) {
     // location of maximum area's point:
     amax = locmax(areas,tloc);
+    areasum += amax;
     tll = areas.locate(tloc);
-    //printf("amax = %e\n",amax); fflush(stdout);
-    printf("Region number # %d area = %f million km^2 at %3d %3d %7.2f %7.2f\n",
+    printf("Region %5d area %6.4f million km^2 at %3d %3d %7.2f %7.2f\n",
       pass, areas[tloc]/1e12, tloc.i, tloc.j, tll.lat, tll.lon);
+    fflush(stdout);
     // now mark all points that are highly correlated to tloc as 'visited' and 
     // recompute the areas grid
     xx = region_locs[tloc];
@@ -141,6 +150,8 @@ int main(int argc, char *argv[]) {
 
     pass++;
   }
+
+  printf("Total area in included regions: %f\n",areasum/1e12);
   FILE *fout;
   fout = fopen("belongs","w");
   belongs.binout(fout);

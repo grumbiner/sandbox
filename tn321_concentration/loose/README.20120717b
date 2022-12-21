@@ -1,0 +1,21 @@
+Files are named by 4 digit years (ex. ice.1995)
+
+They have been compacted using gzip.  
+
+The default resolution (ice.YYYY) files are 0.5 degree latitude-longitude,
+from 31 October 2005 to present.  1 degree before that, and please read 
+the grib headers carefully as the details of the 1 degree gridding change
+during the period available.
+
+The high resolution (5 minute lat-long) files begin with 27 August 2004.
+High resolution files are named ice5min.YYYY.gz or ice5min.YYYYMM.gz.
+Due to their size (approx 250 Mb uncompressed per month), the high 
+resolution data are available in both by-month and by-year files.
+
+File format is concatenated grib files.  See, for example, 
+ftp://polar.ncep.noaa.gov/pub/wgrib/ for a freely available grib
+reader.
+
+
+Robert Grumbine
+Reviewed 17 July 2012

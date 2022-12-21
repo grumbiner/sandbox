@@ -1,0 +1,21 @@
+RHOME=/wd2/wd21/wd21rg/icemodel
+IHOME=/wd2/wd21/wd21rg/icemodel/mpi.source
+PHOME=/wd2/wd21/wd21rg/library
+OHOME=$DHOME/execs
+W3=/nwprod/w3lib
+
+LD='segldr '
+FC='cf77 -c'
+
+export RHOME IHOME OHOME PHOME W3 LD FC
+  
+pole=$1
+export pole
+
+if [ -f icegrid.inc ] ; then
+  chmod u+w icegrid.inc
+  rm icegrid.inc
+fi
+make
+mv met met.$pole
+

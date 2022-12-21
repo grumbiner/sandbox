@@ -1,0 +1,14 @@
+Aerosolindex:Aerosolindex
+CloudFraction:CloudFraction
+CloudTopPressure:CloudTopPressure
+ColumnAmountO3:ColumnAmountO3
+ColumnAmountO3_fromFirstGuessIP:ColumnAmountO3_fromFirstGuessIP
+ErrorFlag:ErrorFlag
+OzoneBelowCloud:OzoneBelowCloud
+QF1_OMPSTC:QF1_OMPSTC
+QF2_OMPSTC:QF2_OMPSTC
+SAA:SAA
+SO2index:SO2index
+SnowIceFraction:SnowIceFraction
+TerrainPressure:TerrainPressure
+

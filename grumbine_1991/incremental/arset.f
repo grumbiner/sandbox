@@ -1,0 +1,16 @@
+      SUBROUTINE ARSET (X, NX, NY, VALUE)
+C     SET ALL ELEMENTS OF ARRAY X EQUAL TO VALUE.
+
+      INTEGER NX, NY
+      REAL X(NX, NY), VALUE
+
+      INTEGER I, J
+
+      DO 1000 J = 1, NY
+        DO 1010 I = 1, NX
+          X(I,J) = VALUE
+ 1010   CONTINUE
+ 1000 CONTINUE
+
+      RETURN
+      END

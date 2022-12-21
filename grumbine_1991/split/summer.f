@@ -1,6 +1,7 @@
-      SUBROUTINE summer(g, nx, ny, value)
+      SUBROUTINE summer(g, nnx, nny, value)
 C     Perform a 2-d integration
-      INTEGER nx, ny
+      INCLUDE "grid.inc"
+      REAL nnx, nny
       REAL g(nx, ny)
       DOUBLE PRECISION value
       REAL tempor(ny)
@@ -27,7 +28,7 @@ C     Perform a 2-d integration
  1000 CONTINUE
 
       RETURN
-      ENTRY integ22(g, nx, ny, value)
+      ENTRY integ22(g, nnx, nny, value)
 C     Perform a 2-d integration of sqaured field
 
       value = 0.

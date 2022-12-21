@@ -1,0 +1,84 @@
+From Ralph.R.Ferraro@noaa.gov  Fri Mar 12 09:04:09 2004
+Return-Path: <Ralph.R.Ferraro@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2CE48Fj018614
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 12 Mar 2004 09:04:09 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i2CEaOTJ001123
+	for <grumbine@ncep.noaa.gov>; Fri, 12 Mar 2004 09:36:24 -0500
+Received: from mail.orbit.nesdis.noaa.gov ([140.90.107.8]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HUGV2V00.330; Fri, 12 Mar 2004 09:04:07 -0500 
+Received: from noaa.gov ([129.2.125.60]) by
+          mail.orbit.nesdis.noaa.gov (Netscape Messaging Server 4.15) with
+          ESMTP id HUGUS200.JS0; Fri, 12 Mar 2004 08:57:38 -0500 
+Message-ID: <4051C31D.8070200@noaa.gov>
+Date: Fri, 12 Mar 2004 09:03:09 -0500
+From: "Ralph R Ferraro" <Ralph.R.Ferraro@noaa.gov>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.0.1) Gecko/20020823 Netscape/7.0
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+To: William Gemmill <William.Gemmill@noaa.gov>, Bert Katz <Bert.Katz@noaa.gov>,
+        Stephen Lord <Stephen.Lord@noaa.gov>,
+        Robert Grumbine <Robert.Grumbine@noaa.gov>,
+        Fuzhong Weng <Fuzhong.Weng@noaa.gov>,
+        Banghua Yan <Banghua.Yan@noaa.gov>,
+        Paul S Chang <Paul.S.Chang@noaa.gov>,
+        Walter Wolf <Walter.Wolf@noaa.gov>,
+        John Janowiak <john.janowiak@noaa.gov>, Gene Legg <Gene.Legg@noaa.gov>,
+        Ramesh Sinha <Ramesh.Sinha@noaa.gov>,
+        Paul Haggerty <Paul.Haggerty@noaa.gov>,
+        Arthur Hou <hou@gmao.gsfc.nasa.gov>,
+        Robert Adler <Robert.Adler@gsfc.nasa.gov>,
+        George Huffman from home <keghuffman@verizon.net>,
+        Robert Joyce <Robert.Joyce@noaa.gov>,
+        John Paquette <John.Paquette@noaa.gov>,
+        George Serafino <George.Serafino@noaa.gov>,
+        Stan Kidder <kidder@CIRA.colostate.edu>
+CC: "wanchun.chen <wanchun.chen@noaa.govcdean" <cdean@his.gov>
+Subject: Improved Access to AMSR-E L2 and L3 products (non-real time)
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Status: RO
+
+
+
+Thanks to the efforts of Wanchun Chen, we are pleased to report new locations for the AMSR-E L2 and L3 products.  This still originate from the AMSR-E science
+team:
+
+Here is new place we put retrieved AMSR-E  L2 and L3 data.
+There are time delay. For example, March 10th data won't be
+in their server until 11:50pm tonight.
+
+Due to space constraint, we can only keep 2 or 3 days of data:
+ftp://ftp.orbit.nesdis.noaa.gov/pub/corp/scsb/wchen/AMSR-E/input/
+
+Sample IDL decoders(will add snow and ice part soon):
+ftp://ftp.orbit.nesdis.noaa.gov/pub/corp/scsb/wchen/AMSR-E/code/
+
+This is the linkk to the images we plot:
+http://www.orbit.nesdis.noaa.gov/corp/scsb/wchen/AMSR-E/
+
+Cheers,
+Wanchun
+
+
+
+
+
+-- 
+*************************************************************
+Ralph Ferraro, Physical Scientist
+NOAA/NESDIS                                                                                                
+Center for SaTellite Applications & Research (STAR)                                                                                 
+Satellite Climate Studies Branch &
+The Cooperative Institute for Climate Studies (Univ. of MD)
+Phone: (301)-405-0893 (College Park)
+       (301)-763-8251 x147 (Camp Springs)    
+Email: Ralph.R.Ferraro@noaa.gov                                                             
+http://orbit-net.nesdis.noaa.gov/arad2/microwave.html                                        
+http://orbit-net.nesdis.noaa.gov/arad2/MSPPS/index.html                         
+*************************************************************
+        
+
+

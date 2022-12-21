@@ -1,0 +1,6 @@
+set grid
+set pointsize 0.5
+set term png
+set out "g89pr.png"
+plot "hr" using 3:8
+quit

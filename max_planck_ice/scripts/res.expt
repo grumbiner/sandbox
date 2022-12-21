@@ -1,0 +1,38 @@
+#!/bin/ksh
+BASE=$HOME       #Directory tree to the point above where 'icemodel.tar' 
+                 #was unpacked
+CC=gcc           #Name of C compiler
+export BASE CC
+#Should not need to change anything below here-------------
+
+echo Change INFLATE for the new grid
+caredit $BASE/icemodel/cpp/ncepgrids.h
+
+echo Change divisor for the new grid
+caredit $BASE/icemodel/icemodel/mpi.source/icegrid.???th
+
+echo Construct the new boundary condition files
+cd $BASE/icemodel/bc
+pole=north; export pole
+./bc.jcl
+pole=south; export pole
+./bc.jcl
+
+echo Construct the restarting programs
+cd $BASE/icemodel/icemodel/ic
+./solo
+mv restart.???th ../execs
+$CC -c -O2 $BASE/icemodel/lib/c/map??.c
+make reduce
+mv reduce ../execs
+
+echo Build the weather interpolator
+cd $BASE/icemodel/icemodel/meteo
+./solo
+mv met.???th ../execs
+
+echo Build the model
+cd $BASE/icemodel/icemodel/mpi.source
+./solo3
+mv *6 ../execs
+ 

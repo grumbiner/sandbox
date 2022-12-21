@@ -1,0 +1,324 @@
+Satellite ice concentration files
+
+  By sometime in early 1994, was running NASA Team ice concentrations from
+SDR 30 orbit files.
+
+  To April 1994, tried to read sigrid files from NSIDC.
+
+  Global Reanalysis/CDAS
+
+  IPCC usage(?) (old filt/mapping, ..)
+
+  NARR ice 
+
+--------------------------------------------------------------------------
+
+
+
+File Chronology:
+
+19 Oct 1993: inc16.inc inc8.inc
+  ?For 1/16th and 1/8th, respectively, NESDIS mastermap files?
+  -- no files extant by 2006 use these two.
+
+2 Feb 1994:
+  backup.c -- convert from nesdis mastermap grid to rg grid
+
+5 Apr 1994:
+  nesdisnh.h  -- nesdis 1/8th mastermap grid 
+  bgnh.h -- RG sea ice model grid (127 km edition)
+
+8 Apr 1994
+  ssmiavg.f -- subroutine to average an array of N ice concentrations to 
+      a single field
+
+12 Apr 1994
+sigrid/
+  -- Efforts towards reading sigrid files.  This was at a time that
+the NSIDC sigrid archive contained many errors rendering this unworkable.
+
+check_short.c, check_long.c, process_short.c, process_long.c:
+  QC check, and data conversion (process), respectively, of short and
+long ssmi data records from SDR format.
+
+nasa91.c:
+  earliest on hand core NASA Team algorithm sbr.
+
+inc16.h:
+  apparently unused, probably constructed by analogy to inc8.h which
+was modified through 9 Feb 1995.
+
+
+13 Apr 1994
+  nesbgmain.c: remap (nearest neighbor) nesdis grids to rg grids.
+
+15 April 1994
+  process_data.c: first data getting routine (for SDR), then pass to
+process_short, process_long
+
+22 April 1994
+  ice_zero.c, ice_add_data.c, ice_avg_data: initialize, add, construct
+averages, respectively.  Folded into ... 
+
+2 June 1994
+  usetie.c: c version of cd.work/usetie.f, for tiepoint calculation 
+outside team algorithm fn.
+  ssmigrid.inc: another version of 1/8th nesdis include
+
+6 Dec 1994
+  geticefl.c: (program) Extract nasa or nesdis values from an ssmi grid
+
+31 Jan 1995
+  zero.c: Write out a zero concentration field for n, s, hemispheric grids
+
+7 Feb 1995
+  f11.calib: email, Abdalati regression of f11 on f8
+
+8 Feb 1995
+  helms.corners: first print out of corner point locations, for 
+Dave Helms, then at NIC
+
+9 Feb 1995
+  inc8.h: nesdis mastermap include, much like ssmigrid.inc, inc8.inc
+  ice2main.c, reicemain.c:
+    recompute concentrations using nesdis mastermap inputs.
+
+1 Mar 1995
+  af.f: read in air force snow/ice map and write out ice map 
+  nic.h: specify NIC regions of interest, used by nictrim
+  bufrproc.c: early take on processing bufr records (check_bufr, 
+              process_bufr, ...)
+
+3 Mar 1995
+  nland.c, sland.c: compute monthly averaged concentration fields, with
+land flag management.
+
+9 Mar 1995
+  Bert katz email on antenna to brightness temperature conversion algorithm
+
+22 Mar 1995
+  donc.h: for use by dontrim.c, to make ascii maps over a NASA field region 
+Don Cavalieri was working in that year.
+
+26 Mar 1995
+  fany.c: utility to see if any point in a given range of a point matches a flag value.  (different version is part of mmablib)
+
+28 Mar 1995
+  sizes.c: print out SDR-related type sizes
+
+30 Mar 1995
+  myice.f: NASA team code, fortran, to work on whole grids from NCEP ice
+data/grid
+
+19 Apr 1995
+  rgb.c: treat t19v, t19h, t37v as r, g, b values and print out a 
+map.  (Was for NOAA saturday school jr. high program).
+
+25 Apr 1995
+  iceget: Compute ascii maps for Don Cavalieri field season, calling donmap and dontrim
+
+26 Apr 1995
+  barconc.f: Compute mean, variance, sd of a histogram of differences 
+between bar(conc) and conc(bar) from ssmi files.  For this date, at least,
+they're small:  n = 24501, mean = -0.199, var = 0.424, sd = .651
+
+21 Jun 1995
+  ssmi.int.wp: notice to interested people about product coming available
+  nsidc.19950621: Email w. nsidc about data sets and algorithms
+
+9 Jun-3Jul 1995
+  nasa_team.950609, nasa_team.noant, nasa_team.ant: team algorithm 
+renditions with and without antenna temperature to brightness conversion 
+(depends on data source, ex NSIDC, whether this is needed).
+
+27 Jul 1995
+  icelapl.c, icegradient.c: compute laplacean, gradsquared of ice concentration
+
+23 Aug 1995
+  badmap.c: Write out hemispheric concentration grids with 'BAD_DATA' flag
+everywhere.
+
+21 September 1995: 
+  usgs.ice.1995/ -- directory of USGS 'climatology' of ice cover, for/from
+                    CD
+
+29 September 1995:
+  oldreanl.91t94/ -- directory of an early stage of reanalysis ice 
+concentrations, 12/03/1991-12/31/1994.  Replaced Nov-Dec 1996.
+
+25 Oct 1995
+  ice.analysis.observables -- description of variables and platforms that 
+should be able to provide observations of polar variables of interest
+
+
+26 Oct 1995
+  islscp1/ -- directory of ISLSCP I sea ice data set (1987-8 concentrations,
+Nomura/Grumbine processings from respective reanalyses).
+
+29 Oct 1995
+  conv.c: convert floats to bytes
+  any.c: int version of fany
+  getmain.c: semi-interactive program to extract a field from ssmi-native grids
+  dontrim.c: per above iceget
+  donmap.c: per above iceget
+  nictrim.c: nic-oriented version of dontrim
+  dels.c, deln.c: difference south and north hemisphere conc files
+  tochar.c: convert float field to character, use conv.c
+  recomp4.c: recompute ice concentrations from old ssmi.YYYYMMDD files (4th edition,
+              5th and 6th exist too)
+
+2 Nov 1995
+  cd.work/ -- copy of nsidc and NASA codes
+
+28 Nov 1995
+  ones.c: print out an age=1 file for global 1 degree grid
+
+3 Jan 1996
+  ssmi.old.corners (has wrong earth, 6738 km radius), superceded by 
+    26 Feb 1996 ssmi.corners.  Retained for reference.
+  18 Jul 1996 ssmi.newcorn -- higher precision, and not exactly same even by rounding,
+    as 26 Feb file.
+
+  reducer.c  extract desired parameter and N:1 reduce from ssmi files
+
+12 Jan 1996
+  engrib.lands: as name
+
+17 Jan 1996
+  comb2.jcl: filter hemispheric files onto global grid and make grib files
+
+19 Jan 1996
+  ssmi5.jcl: produce and distribute all ssmi-derived sea ice conc files (incl. nes, af)
+(F-11 version)
+
+20 Feb 1996
+  rtxpm.c: construct raster graphic from ice conc files
+
+14 Mar 1996
+  creduce.c, freduce.c: character and floating point, respectively, field reduction
+
+22 Mar 1996:
+  ice3.jcl: recompute ice concentrations from ssmi files
+  filt3.jcl: filter ps files to lat-lon, fill in with yesterday 
+  www.jcl: construct web graphics
+
+30 Mar 1996: tn120/
+  (approx date) ssmi120.ps: Tech note on ssmi processing
+
+11 Apr 1996:
+  cbar.gif: color bar for sea ice concentration web page
+
+1 Jul 1996
+  ice.analy: call other scripts as needed to make ice concs.  Discontinued here
+because of unreliability of SDR file.
+
+2 Jul 1996
+  F11ice.doc: NSIDC documentation of F11 usage
+
+3 Jul 1996
+  del.hdf.jcl: compute differences between RG fields and NSIDC hdf fields
+
+9 Jul 1996
+  nsidcgrid.h: definitions for NSIDC grid
+
+10 Jul 1996
+  filtnsidc.c: filter from NSIDC grid onto global latlon
+  filt.jcl: control script for preceding
+
+12 Jul 1996
+  acor.c: compute time autocorrelations with a month of sea ice grids
+
+18 Jul 1996
+  maptst.c: Conduct some map testing and print out corner values
+
+23 Jul 1996
+  delgisst.f: difference two GISST files
+
+25 Sep 1996
+  interp.f: Interpolate through time on 0.5 degree ice grids (missing file version)
+  tfill.jcl: controll for gap filling
+  filt.jcl3: construct reanalysis global files from n3conc, s3conc files
+  filt5.jcl: above, but with n3ssmi files and recomputation
+  ctrl.jcl: variant of above 
+  recomp.jcl: simple recomputation, no sst filtering
+
+26 Sep 1996
+  nsidc/ -- directory to verify and intercompare results with NSIDC 
+            codes/files, including HDF processing
+  aus.images/ -- vis and IR images from Australian Antarctic expedition
+              meteorologist using NCEP ssmi ice as well
+
+11 Dec 1996
+  filtbg.c: Old coding of the PS -> lat long filter and remapper.  Save more 
+            than one edition because UKMO relies on an error in one for their
+            IPCC work
+
+28 Jan 1997
+  recomp5.c: recompute ice concentrations from 3ssmi files
+  recomp2.jcl: control script for above, swabs bytes from archive format on
+               linux due to endian w.r.t. central system(s)
+
+ 7 Feb 1997
+  masks.fio/ -- directory of Mike Fiorino's intercomparison of ice cover
+            extent between NCEP/NCAR reanalysis ice and GISST 2.2 ice.
+            Fairly substantial differences exist for fairly minor (?!)
+            processing differences.
+
+ 6 Mar 1997
+  ssmimain.orb.c: Last sdr-based (orbit) processing main program version
+  ssmi.h: early edition of ssmi.h with sdr coding only
+  sdrproc.c: sdr processing routines (final)
+
+17 Mar 1997
+  ice.grids.on388: From Cliff Dey, numbers for ice grids.
+
+20 Mar 1997
+  ssmi.txt: TPB draft
+  
+27 May 1997
+  ssmi.sdr.h: Last full version of ssmi.h with sdr coding, also has start
+              of bufr.
+  iceanaly.c: ice processing, for seaissmi, add, average, mask, zero grids
+
+ 2 Jun 1997
+  ssmi.tex: tex file original for above ssmi120.ps.  
+  topolar.c: reformat autocorrelations to text for polar
+  findacn.c: find the lag at which autocorrelations drop below cutoff
+  autocor.jcl: control script for autocorrelation work
+
+ 4 Jun 1997
+  oisst.f: read in oisst in its native shifted form and write out on
+           standard 1 degree grid structure
+
+25 Jun 1997
+  ssmimain.c: first implemented main program for concentration processing
+
+ 8 Jul 1997
+  iceconc.drg: DRG request for ssmi data
+
+10 Jul 1997
+  branch.feb.tex: branch presentation on sea ice conc. implementaiton
+
+22 Jul 1997
+  ssmi.presentation/ -- directory of presentations from 1996 (to nic) and
+1997 (to visitors(?)) on ssmi processing/methods/flow
+
+27 Aug 1997
+  ssmi.c: All code for ssmi processing in one package, for implementation.
+          Includes both SDR and Bufr source coding
+    
+Office Note 388 materials (getting grids in to official list):
+  on388, grib.388.on, on388.try, grib.doc
+
+ 1 Oct 1997
+  jobs -- jif submission acknowledgement
+
+ 3 Nov 1997
+  rep.parker: on time history of ice concentrations
+
+11 Dec 1997
+  icemovie.month.jcl: make movies of each month's concentrations
+
+-------------------------------------
+between 14 June 1996 and 6 Mar 1997, go to working with single orbits, ssmi.h
+2004/04/01 - go to external declarations for functions, add HIRES option 

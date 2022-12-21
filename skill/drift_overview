@@ -1,0 +1,34 @@
+The drift model predicts cumulative drift through the N days of forecast.  
+The earliest NWS implementation was 2 days (Ed O'Lenic, in ~1978), by 1992, 
+it had been extended to 6 days.  In 2001, it was extended to 16 days.
+
+Verification through 2007 was done versus IABP drifting buoys only.  
+In 2013, gridded satellite-derived ice drift (from IFREMER) was added to the system.
+
+Each generation is retained for historic reference both as to methods and 
+in case older model forecasts become of interest again.  An archive from 
+April 1993 to present, with some gaps, is available on request.
+
+
+drift1 -- routines and programs used for Grumbine 1998.  (update to drift model,
+		comparing old and new models)
+
+drift2 -- routines and programs for 2001 implementation of 16 day drift (from 6 day)
+
+drift3 -- routines and programs for 2007 adaptation to 10 meter winds
+
+publication -- tnXXX
+
+drift4 -- adds scoring vs. IFREMER (gridded) analysis, updates IABP 
+                referenced scoring, 2013
+
+
+Robert Grumbine
+15 October 2015
+
+
+To the future: 
+differential drift verification, vs. integral (current)
+scoring the higher res. gridded output
+forecaster level of utility measures (e.g. AC 0.60)
+

@@ -1,0 +1,35 @@
+set grid
+set pointsize 0.5
+set term png
+set out "g6_9gr1.png"
+plot "lr" using 3:9
+set out "g6_9gr2.png"
+plot "lr" using 3:10
+
+set out "g7_3gr1.png"
+plot "lr" using 3:14
+set out "g7_3gr2.png"
+plot "lr" using 3:15
+
+set out "g10gr1.png"
+plot "lr" using 3:19
+set out "g10gr2.png"
+plot "lr" using 3:20
+
+set out "g18gr1.png"
+plot "lr" using 3:24
+set out "g18gr2.png"
+plot "lr" using 3:25
+
+set out "g24gr1.png"
+plot "lr" using 3:29
+set out "g24gr2.png"
+plot "lr" using 3:30
+
+set out "g37gr1.png"
+plot "lr" using 3:34
+set out "g37gr2.png"
+plot "lr" using 3:35
+
+quit
+

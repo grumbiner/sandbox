@@ -1,0 +1,5 @@
+caredit masker.f
+f77 -c masker.f 
+f77 masker.o mclean.o terp.o mapxy.o $HOME/others/others.lib -o masker
+rm maskout maskfull
+./masker < maskin > george

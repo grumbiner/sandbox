@@ -1,0 +1,18 @@
+DSET  outputs
+options sequential
+options yrev
+UNDEF  0
+TITLE  mag_stats
+XDEF 4320 LINEAR   0.04166666 0.083333333
+YDEF 2160 LINEAR -89.9833333 0.083333333 
+ZDEF  1 LINEAR   1 1
+TDEF  1 LINEAR  21sep00 1dy
+VARS 7
+orig  0 254 255
+mask  0 254 255
+ssth1  0 254 255
+ssth2  0 254 255
+ssth3  0 254 255
+sstpost  0 254 255
+delta    0 254 255
+ENDVARS

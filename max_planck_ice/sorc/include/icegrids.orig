@@ -1,0 +1,29 @@
+#ifndef ICEGRIDS
+  #define ICEGRIDS
+
+  #define NX_NORTH 77
+  #define NY_NORTH 93
+  #define polei_NORTH 38.
+  #define polej_NORTH 46.
+  #define NX_SOUTH 69
+  #define NY_SOUTH 71
+  #define polei_SOUTH 30.
+  #define polej_SOUTH 36.
+  
+  #define sgn_NORTH    1.0
+  #define slat_NORTH  60.0
+  #define slon_NORTH -10.0
+  #define xorig_NORTH (-polei_NORTH*dx)
+  #define yorig_NORTH (-polej_NORTH*dy)
+  #define sgn_SOUTH   -1.0
+  #define slat_SOUTH  60.0
+  #define slon_SOUTH 170.0
+  #define xorig_SOUTH (-polei_SOUTH*dx)
+  #define yorig_SOUTH (-polej_SOUTH*dy)
+
+  const float dx = 127.0e3;
+  const float dy = 127.0e3;
+  
+  const float rearth = 6738.273e3;
+  const float eccen2 =    0.006693883;
+#endif

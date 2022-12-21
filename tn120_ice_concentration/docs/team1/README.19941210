@@ -1,0 +1,22 @@
+Program source code in this directory for:
+
+NASA Team algorithm updated for southern hemisphere 11/22/94.
+
+Decoding the orbit-by-orbit FNOC SSMI file and computing ice concentration:
+-> ssmi (Makefile, ssmi4.jcl, ssmi.h icessmi.h icegrids.h)
+
+Extract any single field from a full map:
+->  getfld (getmain, getfld)
+
+Reduce the resolution by integer fractions:
+->  reduce the resolution (reducer)
+
+Recoding an ice concentration map to a series of files for use by NIC:
+->  nictrim (nictrim.c, nic.h) 
+
+Decoding F-11 cd-rom hdf files and computing ice concentrations:
+->  hdf5s, hdf5n
+
+Test mapping routines:
+-> maptst (maptst, mapxy, mapll)
+

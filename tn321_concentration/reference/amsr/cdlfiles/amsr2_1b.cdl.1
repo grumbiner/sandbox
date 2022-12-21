@@ -1,0 +1,52 @@
+netcdf amsr2_1b {
+//---------
+dimensions:
+//---------
+	AlongTrack = 360 ;
+	CrossTrack1 = 243 ;
+	CrossTrack2 = 486 ;
+	Sector1 = 6 ;
+        Sector2 = 2 ;
+	Sector3 = 512 ;
+//---------
+variables:
+//---------
+
+// This is the first array
+
+	ushort Brightness_Temperature_107GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_107GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_187GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_187GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_238GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_238GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_365GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_365GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_69GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_69GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_73GHz_H(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_73GHz_V(AlongTrack, CrossTrack1) ;
+	ushort Brightness_Temperature_890GHzA_H(AlongTrack, CrossTrack2) ;
+	ushort Brightness_Temperature_890GHzA_V(AlongTrack, CrossTrack2) ;
+	ushort Brightness_Temperature_890GHzB_H(AlongTrack, CrossTrack2) ;
+	ushort Brightness_Temperature_890GHzB_V(AlongTrack, CrossTrack2) ;
+	short Earth_Azimuth(AlongTrack, CrossTrack1) ;
+	short Earth_Incidence(AlongTrack, CrossTrack1) ;
+	ubyte Land_Ocean_Flag_6_to_36(Sector1, AlongTrack, CrossTrack1) ;
+	ubyte Land_Ocean_Flag_89(Sector2, AlongTrack, CrossTrack2) ;
+	float Latitude_of_Observation_Point_for_89A(AlongTrack, CrossTrack2) ;
+	float Latitude_of_Observation_Point_for_89B(AlongTrack, CrossTrack2) ;
+	float Longitude_of_Observation_Point_for_89A(AlongTrack, CrossTrack2) ;
+	float Longitude_of_Observation_Point_for_89B(AlongTrack, CrossTrack2) ;
+	ubyte Pixel_Data_Quality_6_to_36(AlongTrack, CrossTrack2) ;
+	ubyte Pixel_Data_Quality_89(AlongTrack, CrossTrack2) ;
+	ubyte Scan_Data_Quality(AlongTrack, Sector3) ;
+	double Scan_Time(AlongTrack) ;
+	short Sun_Azimuth(AlongTrack, CrossTrack1) ;
+
+// This is the last array
+
+	short Sun_Elevation(AlongTrack, CrossTrack1) ;
+
+// global attributes:
+}

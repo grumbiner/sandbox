@@ -1,0 +1,28 @@
+#/bin/ksh
+
+SRCS  = convert_to_seconds.c seconds_to_calendar.c yeardoy_to_seconds.c calendar_to_julian.c julian_to_calendar.c
+
+OBJS  = $(SRCS:.c=.o)
+
+LINTS = $(SRCS:.c=.ln)
+
+FSRCS = yearmonthday_to_doy.f90 \
+        yearmonthday_to_doy_interface.f90
+
+F90OBJS = $(FSRCS:.f90=.o)
+
+CPPSRCS = convert_to_seconds_cpp.cpp
+
+CPPOBJS  = $(CPPSRCS:.cpp=.o)
+
+all:	$(OBJS) $(F90OBJS) $(CPPOBJS) libwwwtime.a
+ 
+libwwwtime.a: $(OBJS) $(F90OBJS) $(CPPOBJS)
+	$(AR) $(AR_FLAGS) libwwwtime.a $?
+
+depend:
+	makedepend $(SRCS) $(FSRCS) $(CPPSRCS)
+                                                                                                                         
+include ../config/rules.make
+
+ 

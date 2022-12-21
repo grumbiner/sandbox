@@ -1,0 +1,6 @@
+split -3522 speed.sort
+for l in a b c d e 
+do
+  cat xa$l | cut -c1-80 > tmp
+  ../score tmp 16 1 > ${l}.score
+done

@@ -1,0 +1,93 @@
+ Great Lakes, 90 W, 40 N, 75 W, 51 N
+ Other Laurentian Lakes, 125 W, 45 N, 60 W, 70 N
+ Canadian Archipelago, 130 W, 65 N, 55 W, 85 N
+ Hudson Bay, 95 W, 50 N, 75 W, 65 N
+ Gulf of St. Lawrence, 72 W, 45 N, 55 W, 52 N
+ Bering Sea, 165 E, 50 N, 150 W, 70 N
+ Sea of Okhotsk, 130 E, 45 N, 160 E, 65 N
+ Sea of Japan, 125 E, 40 N, 150 E, 55 N
+ Yellow Sea, 116 E, 36 N, 126 E, 42 N
+ Aral Sea, 55 E, 42 N, 65 E, 48 N
+ Caspian Sea, 45 E, 35 N, 55 E, 48 N
+ Sea of Azov, 26 E, 40 N, 45 E, 48 N
+ Baltic Sea, 10 E, 53 N, 34 E, 65 N
+ White Sea, 30 E, 59 N, 45 E, 70 N
+ Gulf of Ob, 65 E, 65 N, 80 E, 75 N
+ Nordic Seas, 35 W, 60 N, 10 E, 85 N
+ McMurdo Sound, 150 E, 80 S, 180 E, 70 S
+
+ // Gulf of Alaska
+ if (ll.lat >= 51.0 && ll.lat < 60.5 &&
+   ( (ll.lon > -155.0 && ll.lon < -120.) ||
+   (ll.lon >  205.0 && ll.lon <  240.)   )   ) {
+
+NIC (23 Mar 2005)
+Arctic/Northern Hemisphere NIC GIS regions as follows
+
+1 - Skagerrak
+2 - Baltic Sea
+3 - Grand Banks
+4 - Gulf of St Lawerence
+5 - Labrador
+6 - White Sea
+7 - Greenland Southwest
+8 - Greenland South
+9 - Greenland Central
+10 - Barents Sea Sout
+11  Barents Sea North
+12 - Davis Strait
+13 - Foxe Basin
+14 - Hudson Bay
+15 - Greenland North
+16 - Kara Sea South
+17 - Baffin Bay
+18 - High Arctic East
+19 - Kara Sea North
+20 - Canadian Arctic East
+21 - High Arctic West 2
+22 - Canadian Arctic West
+23 Laptev Sea
+24 - High Arctic West 1
+25 - East Siberian Sea
+26 - Beaufort
+27 - Sea of Okhotsk West
+28 - ChuKchi
+29 - Cook Inlet
+30 - Sea of Okhotsk East
+31 - Kamchatka Peninsula
+32 - Bering East
+33 - Yellow Sea
+34 - Bering West
+35 - Sea of Japan
+36 - Sea of Japan South
+37 - Sea of Okhotsk South
+38 - Sea of Okhotsk Southeast
+
+The Chesapeake Bay
+ Delaware Bay
+ Great Lakes
+
+Okhotsk
+Bering
+Japan
+Yello
+Cook Inlet
+Arctic
+Barents
+Kara
+Laptev
+East Siberean
+Beaufort
+Chukchi
+Hudson Bay
+Labrador
+Gulf of St. Lawrence
+East Greenland
+Baffin Bay
+Caspian Sea
+Sea of Azov
+Baltic Sea
+White Sea
+High Arctic
+Canadian Archipelago
+

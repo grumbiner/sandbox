@@ -1,0 +1,16 @@
+#!/bin/sh
+set -x
+
+#Set up something like sms environment for calling J job
+
+export cyc=${cyc:-00}
+export envir=${envir:-dev2}
+export seaice_concentration_analysis_ver=${seaice_concentration_analysis_ver:-v4.1.6}
+export job=${job:-seaice_concentration_analysis}
+export SMSBIN=${SMSBIN:-/u/Robert.Grumbine/rgdev/seaice_concentration_analysis.${seaice_concentration_analysis_ver}/sms}
+
+export PDY=${PDY:-20160229}
+export PDYm1=${PDYm1:-20160228}
+#Now call J job, which will call the ex
+/u/Robert.Grumbine/rgdev/seaice_concentration_analysis.${seaice_concentration_analysis_ver}/jobs/JSEAICE_CONCENTRATION_ANALYSIS
+

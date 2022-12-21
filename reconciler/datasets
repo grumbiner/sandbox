@@ -1,0 +1,45 @@
+Topographies (may include bathymetry):
+zmask.reform -- 1 degree (from mrf?) topo/bathy in ascii
+zmask        -- 1 degree (from mrf?) topo/bathy in binary (4 byte)
+ETOPO5/ -- 5 minute ETOPO data set, range -10 to 5777 m, by m.
+drewry/ -- Drewry atlas (?1985?) AA topography and bedrock depth files
+             also derivatives aatopo.grib (1997 effort for Iredell), 
+             aa.C (make 8 minute topo for Jordan)
+ETOPO2/ -- NGDC 2 minute file, range -10654 to 8593 m, by m. 
+DBDB2/  -- NRL 2 minute file
+RAMP/   -- Antarctica at 200m and 1000m, with 8 minute and 30 second 
+            topos for Jordan (2006)
+topo.data -- 1 degree elevation/bathymetry file.  From (?)
+
+Bathymetries:
+tolman/
+  bathy.hdeg.ascii -- 30 minute ocean bathymetry via Tolman from 
+                          ETOPO5 ca. 1995
+  bathy.1deg.ascii -- 60 minute ocean bathymetry via Tolman from 
+                          ETOPO5 ca. 1995
+lake2_bathy/ -- Great lakes bathymetries from ?Coastwatch, 
+                       list of points and then lat-long location file 
+                       (to 0.01 deg).
+lake_bathy/  -- Great Lakes bathymetries from GLERL (David Schwab, 1980, 
+                   rev 1996) 
+
+
+Landmasks
+landmasks/
+mask.1deg -- 1 degree, binary file (1 char, 360x180), masks as sea ice
+temp.orig -- nesdis 1/16th degree land masks
+temphigh.linux -- above byte-flipped for linux
+landmask.ntb.2 -- land mask for NASA/NSIDC sea ice analysis
+swapland       -- above byte-flipped for linux
+nsidcnorthland -- older land mask for NASA/NSIDC analysis
+umdland/       -- U. MD land masks on 30 second grid
+
+
+
+Shorelines:
+GMT shoreline files, including their original full, high, intermediate, 
+   low, and crude resolutions.  
+   But also 50, 25, 15, 8, 4, 1, 0.4, 0.2, 0.0625 km versions.  
+   Lakes directory (bodies of water on land, to be precise)
+   Listing of bodies of water on land which are over 85 km^2 and 1225 km^2
+     (approx 5 minute grid and GFS cell sizes)

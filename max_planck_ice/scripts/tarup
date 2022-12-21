@@ -1,0 +1,10 @@
+set -xe
+for days in Jan25 Jan26 Jan27 Jan28 Jan29 Jan30 Jan31 Feb01 Feb02 Feb03 Feb04
+do
+  dmget ${days}.*
+  tar -cvf ${days}.tar ${days}.f*
+  chmod 444  ${days}.tar
+  dmput ${days}.tar
+  rm ${days}.f*
+  dir ${days}*
+done

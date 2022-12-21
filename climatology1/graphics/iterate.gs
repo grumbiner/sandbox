@@ -1,0 +1,36 @@
+'open regions.ctl'
+'set gxout grfill'
+'clear'
+'set display color white'
+'set mpdset hires'
+'set lon 30 390'
+#'set mproj sps'
+#'set lat -90 -50'
+#'set lon -240 120'
+#
+i=0
+while (i <= 50)
+'set mproj nps'
+'set lat   35 90'
+'set lon -350 10'
+'set grads off'
+'set strsiz 0.2'
+'draw string 4.00 7.75 Numbers -- r >= 0.6'
+'d maskout(maskout(num,num-'i'),-(num-'i'))'
+'run cbarn'
+'printim nh_regions'i'.gif'
+'clear'
+'set mproj sps'
+'set lat -90 -50'
+'set lon -240 120'
+'set grads off'
+'set strsiz 0.2'
+'draw string 4.00 7.75 Numbers -- r >= 0.6'
+'d maskout(maskout(num,num-'i'),-(num-'i'))'
+'run cbarn'
+'printim sh_regions'i'.gif'
+'clear'
+i = i + 1
+endwhile
+#
+'quit'

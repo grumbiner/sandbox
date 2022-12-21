@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="time.xsl" type="text/xsl"?>
+
+<race>
+<distance> 5</distance>
+
+<time> <minutes>16</minutes> <seconds>54</seconds> </time>
+<time> <minutes>17</minutes> <seconds>54</seconds> </time>
+<time> <minutes>19</minutes> <seconds>4</seconds> </time>
+<time> <minutes>19</minutes> <seconds>5</seconds> </time>
+<time> <minutes>19</minutes> <seconds>6</seconds> </time>
+<time> <minutes>19</minutes> <seconds>7</seconds> </time>
+<time> <minutes>19</minutes> <seconds>8</seconds> </time>
+<time> <minutes>19</minutes> <seconds>9</seconds> </time>
+<time> <minutes>19</minutes> <seconds>10</seconds> </time>
+<time> <minutes>19</minutes> <seconds>11</seconds> </time>
+<time> <minutes>19</minutes> <seconds>12</seconds> </time>
+<time> <minutes>19</minutes> <seconds>13</seconds> </time>
+<time> <minutes>19</minutes> <seconds>14</seconds> </time>
+<time> <minutes>19</minutes> <seconds>15</seconds> </time>
+
+</race>

@@ -1,0 +1,44 @@
+netcdf GW1AM2_201211021124_060A_L1DLBTBR_0000000 {
+dimensions:
+	AlongTrack = 360 ;
+	CrossTrack1 = 243 ;
+	CrossTrack2 = 486 ;
+	Sector1 = 6 ;
+	Sector2 = 2 ;
+	Sector3 = 512 ;
+variables:
+// This is the first array
+	ushort Brightness\ Temperature\ \(10.7GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(10.7GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(18.7GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(18.7GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(23.8GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(23.8GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(36.5GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(36.5GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(6.9GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(6.9GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(7.3GHz\,H\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(7.3GHz\,V\)(AlongTrack, CrossTrack1) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-A\,H\)(AlongTrack, CrossTrack2) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-A\,V\)(AlongTrack, CrossTrack2) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-B\,H\)(AlongTrack, CrossTrack2) ;
+	ushort Brightness\ Temperature\ \(89.0GHz-B\,V\)(AlongTrack, CrossTrack2) ;
+	short Earth\ Azimuth(AlongTrack, CrossTrack1) ;
+	short Earth\ Incidence(AlongTrack, CrossTrack1) ;
+	ubyte Land_Ocean\ Flag\ 6\ to\ 36(Sector1, AlongTrack, CrossTrack1) ;
+	ubyte Land_Ocean\ Flag\ 89(Sector2, AlongTrack, CrossTrack2) ;
+	float Latitude\ of\ Observation\ Point\ for\ 89A(AlongTrack, CrossTrack2) ;
+	float Latitude\ of\ Observation\ Point\ for\ 89B(AlongTrack, CrossTrack2) ;
+	float Longitude\ of\ Observation\ Point\ for\ 89A(AlongTrack, CrossTrack2) ;
+	float Longitude\ of\ Observation\ Point\ for\ 89B(AlongTrack, CrossTrack2) ;
+	ubyte Pixel\ Data\ Quality\ 6\ to\ 36(AlongTrack, CrossTrack2) ;
+	ubyte Pixel\ Data\ Quality\ 89(AlongTrack, CrossTrack2) ;
+	ubyte Scan\ Data\ Quality(AlongTrack, Sector3) ;
+	double Scan\ Time(AlongTrack) ;
+	short Sun\ Azimuth(AlongTrack, CrossTrack1) ;
+// This is the last array
+	short Sun\ Elevation(AlongTrack, CrossTrack1) ;
+
+// global attributes:
+}

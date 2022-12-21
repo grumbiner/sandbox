@@ -1,0 +1,15 @@
+14                    Level 14 is 500 m, 13 -> 400, 15 -> 600.
+/usr1/rmg3/disk1/levitus/onedeg/SALT.LEVITUS
+SALTOUT
+/usr1/rmg3/disk1/levitus/onedeg/TEMP.LEVITUS
+TEMPOUT
+MASK
+MASK
+15.                   Maximum permissable deviation from mean, T upper
+15.                   Maximum permissable deviation from mean, S upper
+15.                   Maximum permissable deviation from mean, T lower
+15.                   Maximum permissable deviation from mean, S lower
+outliers
+1.8E3                 Maximum buoyancy period (s)
+tsshal
+tsdeep

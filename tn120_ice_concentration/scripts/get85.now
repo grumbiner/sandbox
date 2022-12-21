@@ -1,0 +1,21 @@
+#!/bin/sh
+#Script to retrieve and archive the full-res 85 GHz SSMI
+#Robert Grumbine 29 February 2000
+
+if [ ! -d /gpfs/a/gpfstmp/wx21rg ] ; then
+  mkdir /gpfs/a/gpfstmp/wx21rg
+fi
+cd /gpfs/a/gpfstmp/wx21rg
+
+if [ $# -eq 1 ] ; then
+  tag=$1
+else
+  tag=`date +"%Y%m%d"`
+fi
+
+export TMPDIR=`pwd`
+export TANK=/gpfs/a/ptmp/wx20kz/tankfarm
+
+time   /nwprod/ush/dumpjb ${tag}00 12 ssmit
+mv ssmit.ibm /emc1/ice/ssmi85/ssmi85.$tag
+

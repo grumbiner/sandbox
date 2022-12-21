@@ -1,0 +1,11 @@
+set grid
+set pointsize 0.5
+set yrange [-0.2:-0.1]
+set term png
+
+set yrange [0.04:+0.08]
+set out "g24gr.png"
+plot "lr" using 3:25
+
+quit
+

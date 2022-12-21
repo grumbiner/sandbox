@@ -1,0 +1,44 @@
+#!/bin/sh
+#On the following three lines, respectively, give the full pathname of 
+#the CD-ROM drive, the directory you want the data (~50 Mb) to reside in,
+#and the model codes themselves.  Do _NOT_ leave a space after the = sign.
+#After editing this file, chmod 554 transfer, then sh transfer and the
+#required files will be copied across to your disk(s) for further use.
+#Bob Grumbine 22 December 1995.
+
+CDROM=/export/s2/cdrom
+BASE=/export/s2/cd2
+
+
+DATA=$BASE/data
+ICEMODEL=$BASE/icemodel
+TEST=$BASE/test.out
+
+if [ ! -d $BASE ] ; then
+  mkdir $BASE
+fi
+if [ ! -d $DATA ] ; then
+  mkdir $DATA
+fi
+if [ ! -d $ICEMODEL ] ; then
+  mkdir $ICEMODEL
+fi
+if [ ! -d $TEST ] ; then
+  mkdir $TEST
+fi
+
+cp $CDROM/salt.lev  $DATA/SALT.LEVITUS
+cp $CDROM/temp.lev  $DATA/TEMP.LEVITUS
+cp $CDROM/zmask.ref $DATA/zmask.reform
+cp $CDROM/icenv.tar $ICEMODEL/icenv.tar
+cp $CDROM/travel    $ICEMODEL/travel
+chmod 555  $ICEMODEL/travel
+cp $CDROM/test.jcl    $BASE/test.jcl
+cp $CDROM/test.out/*  $TEST
+cp $CDROM/data/* $DATA
+
+#More to come
+cd $DATA
+./build.bth
+cd $TEST
+./build.tst

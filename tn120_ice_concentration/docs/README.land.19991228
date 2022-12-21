@@ -1,0 +1,62 @@
+Robert Grumbine
+28 December 1999
+
+  Constructing the land masks involves three compilations and a check 
+program.  There is one compilation for each of the global, 
+northern hemisphere, and southern hemisphere grids.  The check program 
+fills all of both hemispheres, exclusive of the land or coast points, 
+with ice, and then checks to see whether every point that is not land 
+in the global grid receives an ice cover.  The logic of the grid program
+is the same, regardless of the grid used, so the grid selection is 
+managed by a define during compilation ex:  -DGRIDTYPE=southgrid.  
+Any 'ncepgrid' may be used here.
+
+  The primary variable which might be changed due to differences in 
+policy is in filter.C: required_fraction.  It is currently 0.8.  This
+means that a grid box will only be called land (or sea) if more than
+80% of the points from the 1/16th degree land mask are land (or sea).
+In between, the point will be called coast.
+
+  Note that this definition makes no allowance for sensor footprint sizes.
+A point may well have so much nearby land that a given sensor may never
+get a reliable observation of the water which is declared to be present.
+This must be decided separately.  To that end, the percentage of each grid
+cell which is land is also printed out.
+
+  Execution time is approximately 5 minutes on a Pentium-II 266.
+  
+Directory contents:
+pss4.C         : program that reads in land/sea tags and generates masks
+filter.C       : function (called by pss4) that applies the land/sea filtering
+region.C       : function (not currently used) that prints out tag values inside
+                   a region.
+landin.C       : functions to manage the NESDIS tag file.
+nesdis.h       : include file defining nesdis-file related quantities
+surface_tags.h : include file defining sea ice product surface tags
+masktest.C : Diagnostic consideration of the land masks from all three
+               grids.
+temp.orig : the original NESDIS tag file.  It is the wrong 'endian' for
+            Linux boxes.  If needed on your machine, you need to copy 
+            this to temphigh and include -DFLIP in your CPPFLAGS in the 
+            makefile 
+temphigh.linux  : temp.orig after dd if=temp.orig of=temphigh conv=swab
+              Correct endian-ness for Linux.
+temphigh  : the Nesdis input file actually read by the programs.
+Makefile  : as name
+
+Usage:
+make, to make the files and test the result
+
+The files names nland.new, sland.new, and newland contain the new
+editions of the northern hemisphere, southern hemisphere, and global
+land masks.
+
+
+Developmental:
+bordfilt.C   : as filter.C, but with tools for putting in borders
+psbord.C     : as makeland.C, but calling bordfilt.C
+
+
+Unused files present for historic reasons:
+zmask zmask.reform  (old MRF 1 degree land mask files)
+

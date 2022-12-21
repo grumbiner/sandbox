@@ -1,0 +1,21 @@
+#/bin/ksh
+
+F90SRCS = \
+          AMSR2_1b_write_bufr.f90 \
+          AMSR2_1b_write_bufr_interface.f90 \
+          AMSR2_89A_write_bufr.f90 \
+          AMSR2_89A_write_bufr_interface.f90 \
+          AMSR2_89B_write_bufr.f90 \
+          AMSR2_89B_write_bufr_interface.f90 
+
+FOBJS = $(FSRCS:.f=.o)
+
+F90OBJS = $(F90SRCS:.f90=.o)
+
+all:	$(F90OBJS) $(FOBJS) libbufr_readwrite.a
+
+libbufr_readwrite.a:	$(F90OBJS) $(FOBJS)
+		$(AR) $(AR_FLAGS) libbufr_readwrite.a $?
+
+include ../config/rules.make
+

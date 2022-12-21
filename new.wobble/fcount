@@ -1,0 +1,4 @@
+#!/bin/sh
+
+x=`ff $1 | wc -l`
+echo $x $1

@@ -1,0 +1,9 @@
+suite prod00
+  family mmab00
+    family seaice00
+
+      defstatus queued
+
+    endfamily
+  endfamily
+endsuite

@@ -1,0 +1,12 @@
+if [ -f northpsg.990504 ] ; then
+  rm northpsg.990504
+fi
+assign -a umasknorth.990504 -s unblocked fort.11
+assign -a northpsg.990504 -s unblocked fort.51
+assign -a wmo.north.new    -s unblocked fort.52
+f90 *.o /nwprod/w3lib90/w3lib -o psntest
+./psntest < ein
+
+assign -a wmo.north.new -s unblocked fort.11
+assign -a fred fort.51
+/nwprod/util/exec/xtrnprnt.x

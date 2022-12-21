@@ -1,0 +1,98 @@
+#QSUB -lT 150
+#QSUB -lM 5Mw
+#QSUB -o /jdsk40/wd21rg/drift
+#QSUB -e /jdsk40/wd21rg/drift
+#QSUB -me
+
+#Control script to run the sea ice drift forecast model
+cd $TMPDIR
+
+#Cray4
+RHOME=/jdsk40/wd21rg/drift
+CHOME=/jdsk40/wd21rg/drift
+OHOME=$RHOME
+OHOME2=polar:/data/WWW/seaice/forecast
+OHOME3=polar:/home/ftp/pub/ice/
+
+qsub $CHOME/geonew.jcl
+
+NCPUS=1
+export NCPUS
+
+tag=`date +'%y%m%d'`
+
+ja
+
+## copy over the directory with all info/files/etc
+pwd
+set -x
+
+cp $RHOME/sicedrft.x    .
+
+if [ ! -s $CHOME/forecast.points ] ; then
+  $RHOME/skpoints > forecast.points
+  cp forecast.points $CHOME
+ else
+  cp $CHOME/forecast.points .
+fi
+
+
+##make unit assignments
+assign -a forecast.points   fort.47
+assign -a fl.out            fort.60
+assign -a ops.out           fort.61
+assign -a ak.out            fort.62
+assign -a $CHOME/quote      fort.91
+echo $tag > alpha
+assign -a alpha             fort.90
+
+#get the ice line points
+cp $CHOME/COM.IPASAIJI.NPOC.ARCTIC  niceline
+cp $CHOME/COM.IPASAIJI.NPOC.ANTARC  siceline
+assign -a niceline   fort.48
+assign -a siceline   fort.49
+
+#copy the iceline to the geo directory, every day.
+cp niceline ${OHOME}/nice.$tag
+cp siceline ${OHOME}/sice.$tag
+rcp niceline ${OHOME2}/nice.$tag
+rcp siceline ${OHOME2}/sice.$tag
+rcp niceline ${OHOME3}/nice.$tag
+rcp siceline ${OHOME3}/sice.$tag
+
+#units for the mrf data
+BASE=/com/mrf/prod/mrf.$tag/drfmr.T00Z.SF
+ALTBASE=/com/avn/prod/avn.$tag/gblav.T00Z.SF
+i=10
+for hh in 00 12 24 36 48 60 72 84 96 108 120 132 144 156 168 180 192 204 216 \
+         228 240 252 264 276 288 300 312 324 336 348 360 
+do
+  i=`expr $i + 1 `
+  if [ -f ${BASE}$hh ] ; then
+    assign -a ${BASE}$hh -Fcos -Cascii -Nibm fort.$i
+  elif [ -f ${ALTBASE}$hh ] ; then
+    #Note that the avn is 3 hourly, to 84, rather than 12 hourly.  Holding
+    #  the fields fixed is nonideal.  RG
+    assign -a ${ALTBASE}$hh -Fcos -Cascii -Nibm fort.$i
+  else
+    i=`expr $i - 1`
+  fi
+done
+steps=`expr $i - 10`
+echo found $steps steps worth of data
+  
+#execute the model
+echo $steps | ./sicedrft.x
+
+#Distribute the output
+cp ops.out $OHOME/sk2.$tag
+cp ak.out $OHOME/ak.$tag
+rcp ops.out $OHOME2/sk2.$tag
+rcp ops.out $OHOME3/sk2.$tag
+rcp ak.out $OHOME2/ak.$tag
+rcp ak.out $OHOME3/ak.out
+rcp ops.out $OHOME3/drift.out
+rcp ak.out $OHOME3/expt/ak.out
+rcp ops.out $OHOME3/expt/drift.out
+
+ja -chlst

@@ -1,0 +1,16 @@
+-119.5597          Longitude of lower left corner
+ 60.5722           Longitude of upper right corner
+25.0095            Latitude of lower left corner
+25.0095            Latitude of upper right corner
+ 1                 Projection type
+90.                Reference lat
+-80.               Reference longitude
+/wd2/wd21/wd21rg/icemodel/bc/north/tsshal
+0                  Assign -s unblocked? (0 = no, 1 = yes)
+2                  Number of frames
+1.0                Contour increment
+-2.                Minimum
+30.0               Maximum
+1.25                Contour increment
+ 5.0               Minimum
+37.0               Maximum

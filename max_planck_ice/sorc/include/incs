@@ -1,0 +1,101 @@
+      INTEGER L, M, LM, MM, LP, MP, LMDP, LDO, LM2, MM2 
+      PARAMETER (L = 68)
+      PARAMETER (M = 76)
+
+      PARAMETER (LM = L-1)
+      PARAMETER (MM = M-1)
+      PARAMETER (LP = L+1)
+      PARAMETER (MP = M+1)
+      PARAMETER (LMDP = LP*MP)
+      PARAMETER (MM2  = M-2  )
+      PARAMETER (LM2  = L-2  )
+      PARAMETER (LDO  = 16*(L+M) )
+      REAL LATMIN, DLAT, DLON, DXDEG, DX, DY, DT
+      INTEGER PTYPE
+      REAL POLEI, POLEJ
+      PARAMETER (LATMIN = +81.25)
+      PARAMETER (DLAT   =   2.5 )
+      PARAMETER (DLON   =   5.0 )
+      PARAMETER (PTYPE  = 3     )
+      PARAMETER (POLEI  = 37.   )
+      PARAMETER (POLEJ  = 44.   )
+      PARAMETER (DXDEG  = 111.1E+3)
+      PARAMETER (DX     = 127.0E+3)
+      PARAMETER (DY     = 127.0E+3)
+      PARAMETER (DT     = 4.32E4  )
+      INTEGER NLEVEL
+      PARAMETER (NLEVEL = 7)
+C     Meteorological model dependent variables
+      REAL dlatm, dlonm, dtm
+      INTEGER nwave, mwave, kdim
+      PARAMETER (dlatm  = 1.0     )
+      PARAMETER (dlonm  = 1.0     )
+      PARAMETER (dtm    = 12.*3600.)
+      PARAMETER (nwave  = 126      )
+      PARAMETER (mwave  = (nwave+1)*(nwave+2))
+      PARAMETER (kdim   = 18       )
+C     Ocean mixed layer model parameters
+      REAL QHW, QHS, ENTMAX, SICE, CW, BETAS, BETAT
+      REAL EPSAA, HMLREF
+      PARAMETER (QHW    = 7.0)
+      PARAMETER (QHS    = 50.)
+      PARAMETER (ENTMAX = 30.)
+      PARAMETER (SICE   = 5.0)
+      PARAMETER (CW     = 0.005)
+      PARAMETER (BETAS  = 8.E-4)
+      PARAMETER (BETAT  = 4.E-5)
+      PARAMETER (EPSAA  = 2.E-6)
+      PARAMETER (HMLREF = 100.0) 
+C     Physical Parameters
+      REAL F0, RHOICE, RHOSNO, CON, CONSN, TMELT, TFREZ, CC
+      REAL CLO, CLB, RHOAIR, RHOWAT, CDWAT, VAPL, SUBL
+      REAL D3, SIGMA, ALBI, ALBM, ALBW, ALBSN, ALBSNM, ZOI, ZOWI
+      REAL CPAIR, KAPPA, CSENS, CLAT, EPSI, GRAV
+      REAL RGAS, VONKAR, ATMLEV, OMEGA, LFUSE
+      PARAMETER (CPAIR  = 1004.)
+      PARAMETER (KAPPA  = 2./7.)
+      PARAMETER (RGAS   = 8.31436E3/28.964)
+      PARAMETER (VONKAR = 0.4)
+      PARAMETER (CSENS  = 1.75E-3)
+      PARAMETER (CLAT   = 1.75E-3)
+      PARAMETER (EPSI   = 0.6219886)  !CRC #72
+      PARAMETER (GRAV   = 9.80 )
+      PARAMETER (OMEGA  = 7.292E-5)
+      PARAMETER (F0     = 2.*OMEGA)
+      PARAMETER (RHOICE = 9.1E2)
+      PARAMETER (RHOSNO = 3.3E2)
+      PARAMETER (CON    = 2.1656)
+      PARAMETER (CONSN  = 0.31)
+      PARAMETER (TMELT  = 273.15)
+      PARAMETER (TFREZ  = -1.84)   !Tf for water at 34.5 psu, Gill
+      PARAMETER (CC     = 4.217E6) !Pure water, Gill
+      PARAMETER (VAPL   = 2.5008E6 ) !Gill 0C
+      PARAMETER (SUBL   = 2.83459E6) !Gill 0C
+      PARAMETER (LFUSE  = SUBL-VAPL)
+      PARAMETER (CLO    = LFUSE*RHOICE)
+      PARAMETER (CLB    = 0.9*LFUSE*RHOICE)
+      PARAMETER (RHOAIR = 1.29)
+      PARAMETER (RHOWAT = 1.028E3)
+      PARAMETER (CDWAT  = 5.5E-3)
+      PARAMETER (SIGMA  = 5.67E-8 ) !STEFAN-BOLTZMANN PARAMETER
+      PARAMETER (D3     = 0.97*SIGMA)
+      PARAMETER (ALBI   = 0.75)
+      PARAMETER (ALBM   = 0.66)
+      PARAMETER (ALBW   = 0.10)
+      PARAMETER (ALBSN  = 0.85)
+      PARAMETER (ALBSNM = 0.75)
+      PARAMETER (ZOI    = 1.E-2)
+      PARAMETER (ZOWI   = 1.E-4)
+      PARAMETER (ATMLEV = 8.5E4)
+      REAL PSTAR, ECCEN, ECM2, CSTAR, ZMAX, XMIN, GMIN, HNU, HNU2
+      REAL MMAX, VRMAX, WT, ZMIN
+      PARAMETER (PSTAR = 5.0E3)
+      PARAMETER (ECCEN = 2.0)
+      PARAMETER (ECM2  = 1./ECCEN/ECCEN)
+      PARAMETER (CSTAR = 20.)
+      PARAMETER (ZMAX  = 2.5E8)  !Note that this multiplies P.
+      PARAMETER (ZMIN  = 0.0E8)  !While this is the actual value.
+      PARAMETER (GMIN  = 1.E-20)
+      PARAMETER (MMAX  = 800  )
+      PARAMETER (VRMAX = 1.E-2)
+      PARAMETER (WT    = 1.3  ) 

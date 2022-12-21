@@ -1,0 +1,156 @@
+#Script to build all required files for the sea ice enviornment from
+#  the bare source and data files.
+#This script required that you correct the names of things like
+#  the source directories, data directory, fortran compiler, C 
+#  compiler, ...
+#Once you have fixed the variables in this script, you need not
+#  modify anything anywhere else.
+
+#QSUB -lT 150
+#QSUB -lM   2Mw
+#QSUB -me
+#QSUB -o   build.5
+
+#Home directory
+if [ -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  BASE=$HOME
+  DHOME=$BASE/data
+ else
+   if [ -f /etc/linux ] ; then
+     echo 'On a linux system'
+     BASE=/home/wd21rg/cray3
+     DHOME=/data/climate/ocean
+   else
+    BASE=$HOME3
+    DHOME=/dm/wd21rg/data               #Directory for data files:
+   fi
+fi
+
+EXDIR=$BASE/execs                 #Location to collect the executables
+RHOME=${BASE}/icemodel            #Directory for the model proper:
+IHOME=${BASE}/icemodel/mpi.source #Directory which contains the include files:
+FORO=${BASE}/icefore              #Directory for data 'forothers'
+OHOME=${BASE}/others          #Directory which contains the 'others' library:
+
+cd $RHOME
+
+#PHOME: Directory which contains the polar libraries:
+if [ -f /etc/linux -o -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  PHOME=${BASE}/library
+ else
+  PHOME=${BASE}/library
+fi
+
+#W3 library site
+if [ -f /etc/linux -o -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  W3=
+#W3=${BASE}/grib/w3lib.a
+ else
+  W3=/nwprod/w3lib
+fi
+
+export W3 BASE EXDIR DHOME RHOME IHOME OHOME PHOME FORO
+
+#FC  Name of the Fortran compiler, in compile-only mode
+#LD  Name of the Fortran linker
+#CC  Name of the C compiler, in compile-only mode
+#CLD Name of the C linker
+if [ -f /etc/sys_hp ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='c89 -c'
+  CLD='c89 '
+  CLDFLAGS=' -lm '
+ elif [ -f /etc/sys_id ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='cc -c'
+  CLD='cc'
+  CLDFLAGS=' -lm '
+ elif [ -f /etc/linux ] ; then
+  FC='f77 -c'
+  LD='f77 '
+  CC='gcc -c -funsigned-char'
+  CLD='gcc'
+  CLDFLAGS=' -lm '
+ else
+  FC='cf77 -c'
+  LD='segldr'
+  CC='cc -c'
+  CLD='cc'
+fi
+
+#declare the NCAR graphics linker
+#declare the library creating command
+NCARLD=ncargf77
+AR='ar rv'
+
+export AR FC LD CC CLD CLDFLAGS NCARLD
+
+#save the present directory as the icemodel directory.
+HDIR=`pwd`
+
+#No changes should be needed below this line ------------------------------
+#Be sure that the directories which are not unpacked get created:
+if [ ! -d $EXDIR ] ; then
+  mkdir $EXDIR
+fi
+if [ ! -d $FORO ] ; then
+  mkdir $FORO
+fi
+if [ ! -d bc/north ] ; then
+  mkdir bc/north
+fi
+if [ ! -d bc/south ] ; then
+  mkdir bc/south
+fi
+if [ ! -d bc/glk ] ; then
+  mkdir bc/glk
+fi
+
+
+#Create the program libraries
+cd $OHOME
+if [ ! -f others.lib ] ; then
+  $FC *.f
+  $AR others.lib *.o
+  rm *.o
+  chmod 444 others.lib
+fi
+
+cd $PHOME
+if [ ! -f polarflib ] ; then
+  $FC *.f
+  $AR polarflib *.o
+  rm *.o
+  chmod -w polarflib
+fi
+
+if [ ! -f polarclib ] ; then
+  $CC *.c
+  $AR polarclib *.o
+  rm *.o
+  chmod -w polarclib
+fi
+
+
+#Now build the executable programs and required data files
+cd $HDIR
+for pole in glk
+do 
+  export pole
+
+  ./analy.jcl
+#  ./bc.jcl
+  ./met.jcl
+  ./model.jcl
+
+done
+#cd ${RHOME}/bc    ; make clobber
+cd ${RHOME}/analy ; #make clobber
+cd ${RHOME}/meteo ; #make clobber
+
+cd ${RHOME}/ic
+make
+mv *nh *sh $EXDIR
+make clean

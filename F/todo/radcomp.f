@@ -1,6 +1,8 @@
       PROGRAM radcomp
 C     Compare the longwave radiation calculated by the MRF with
 C       that computed by sea ice algorithms.
+C     Robert Grumbine 27 Sep 1995
+
       IMPLICIT none
       INCLUDE "icegrid.inc"
       INCLUDE "mgrid.inc"

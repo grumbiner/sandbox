@@ -1,0 +1,19 @@
+#/bin/ksh
+
+FSRCS = \
+        amsr2_1b_allocate.f90 \
+        amsr2_1b_deallocate.f90 \
+        amsr2_1b_init.f90 \
+        amsr2_1b_copy.f90 
+
+F90OBJS = $(FSRCS:.f90=.o)
+
+all:	$(F90OBJS) liballocate.a
+
+liballocate.a:	$(F90OBJS)
+		$(AR) $(AR_FLAGS) liballocate.a $?
+
+depend:
+	makedepend $(FSRCS)
+
+include ../config/rules.make

@@ -1,9 +1,6 @@
       SUBROUTINE EX (A, B, X, N, BUFFER, ERR)
-C     Robert Grumbine EECS C-29
-      IMPLICIT NONE
-
       REAL a(n,n), b(n,n), x(n,n), buffer, err
-      INTEGER i, j, n
+      INTEGER n
 
       CALL invhil(a,n)
       buffer = 1.E-12

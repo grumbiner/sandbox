@@ -1,0 +1,50 @@
+From michael.a.young@noaa.gov  Fri Jun 20 10:48:51 2003
+Return-Path: <michael.a.young@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h5KEmpt31086
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 20 Jun 2003 10:48:51 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h5KEjXo3026152
+	for <grumbine@ncep.noaa.gov>; Fri, 20 Jun 2003 10:45:33 -0400
+Received: from noaa.gov ([140.90.192.192]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HGSBNY00.AK4;
+          Fri, 20 Jun 2003 10:45:34 -0400 
+Sender: myoung@ncep.noaa.gov
+Message-ID: <3EF31E0E.7EF3BC26@noaa.gov>
+Date: Fri, 20 Jun 2003 10:45:34 -0400
+From: "Michael A. Young" <michael.a.young@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: stephen.lord@noaa.gov, geoff.dimego@noaa.gov, hualu.pan@noaa.gov,
+   mark.iredell@noaa.gov, eric.rogers@noaa.gov, tom.black@noaa.gov,
+   joe.sela@noaa.gov, robert.kistler@noaa.gov, john.derber@noaa.gov,
+   russ.treadon@noaa.gov, robert.grumbine@noaa.gov, hendrik.tolman@noaa.gov,
+   desiraju.b.rao@noaa.gov
+Subject: 10% paging threshold
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Status: RO
+
+all,
+
+ibm has the proposed the following to get around the current 300 MB heap and stack limit
+for dev jobs on prod machine.  i think this will work well but the 10% paging kill applies
+to all jobs not just preempted ones.   If you have an issue with this send me an email
+or stop by to discuss.
+
+thanks,
+mike
+
+4) Extra Item (not discussed) - IBM has suggested that we implement two levels of monitoring for
+paging jobs.  The first level will cancel  dev jobs almost as soon as they start paging (when 10% of
+paging is used or 400 MB). The second level (which is already implemented) will cancel ALL jobs on a
+node if paging hits 85%. This could be quite helpful, but needs to be implemented on both machines.  The
+positive side is that it could help us safely raise the data and stack limit on the prod machine (or not use
+it as all), because we would cancel dev jobs after it pages for a short time.  The negative side is that
+even on the dev machine, all of the jobs running will have to fit in memory and still a little bit of paging
+would occur on the prod (and dev) side before being cancelled (but not over 3 GB's worth!).  Checking
+the usage of the system,  the dev nodes don't seem to be using more than a few percent of paging space.
+
+
+

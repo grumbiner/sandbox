@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+  <fo:layout-master-set>
+     <fo:simple-page-master master-name="the-only-page-type"
+	page-height="3in" page-width="4in" margin-top="0.5n"
+	margin-bottom="0.5in" margin-left="0.5in" margin-right="0.5in">
+     <fo:region-body/>
+  </fo:simple-page-master>
+  </fo:layout-master-set>
+  <fo:page-sequence master-reference="the-only-page-type">
+    <fo:flow flow-name="xsl-region-body">
+       <fo:block font-family="helvetica, sans-serif" font-size="24pt" text-align="center" padding="0.25in">
+          Hello world!</fo:block>
+    </fo:flow>
+  </fo:page-sequence>
+</fo:root>

@@ -1,0 +1,15 @@
+5                   Level 6 is 75 m.  7 is 100, 5 is 50.
+/nfsuser/g01/marine/climate/SALT.LEVITUS
+SALTOUT
+/nfsuser/g01/marine/climate/TEMP.LEVITUS
+TEMPOUT
+MASK
+MASK
+15.                 Maximum permissable deviation from mean T  upper
+15.                 Maximum permissable deviation from mean S
+15.                 Maximum permissable deviation from mean T  lower
+15.                 Maximum permissable deviation from mean S
+outliers
+1.8E3               Minimum buoyancy period
+tsshal
+tsdeep

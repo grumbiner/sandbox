@@ -1,0 +1,136 @@
+SDIR=$(IHOME)
+
+IO = FORFLD.o INIT.o output.o \
+     DRUCKF.o BCSINIT.o 
+DYNAM = BCOEF.o DDX.o MADV.o OUTBCS.o INITREL.o RELAX.o RELCON.o STRAIN.o BCSFLX.o \
+     PLAST.o PRESSB.o
+#THERM = ADJUEX.o GROWTH.o BUDGET.o OBUDGET.o ECMBUDI.o ECMBUDO.o EKMAH.o \
+#     EKMAO.o PMLEX.o RESIST.o STAB.o VAPOR.o RISTAB.o RWSTAB.o VERDIF.o
+THERM = ADJUEX.o GROWTH.o BUDGET.o OBUDGET.o PMLEX.o VAPOR.o VERDIF.o
+MISC = SDIFFUS.o SHDEF.o SADVECT.o OUTSM.o BCSV.o BCSH.o VECMAXC.o \
+     VECMAX.o tfreez.o albedo.o overload.o noice.o
+
+
+OBJ = ICEMODEL.o \
+$(IO) \
+$(DYNAM) \
+$(THERM) \
+$(MISC)
+
+stossel : incs $(OBJ) \
+	icegrid.inc physical.inc rheology.inc oml.inc
+	$(LD) $(OBJ) $(FLDFLAGS) -o stossel
+
+clean   :
+	rm $(SDIR)/*.o $(SDIR)/*/*.inc
+
+clobber : clean
+
+incs    : icegrid.inc physical.inc rheology.inc oml.inc
+	cp $(SDIR)/*.inc $(SDIR)/io
+	cp $(SDIR)/*.inc $(SDIR)/dynam
+	cp $(SDIR)/*.inc $(SDIR)/misc
+	cp $(SDIR)/*.inc $(SDIR)/therm
+
+icegrid.inc : icegrid.$(pole)
+	cp icegrid.$(pole) icegrid.inc
+	chmod 644 icegrid.inc
+
+#Original stossel parts (output having been pulled bodily from ICEMODEL)
+ICEMODEL.o : ICEMODEL.f icegrid.inc physical.inc rheology.inc oml.inc
+	$(FC) $(SDIR)/ICEMODEL.f 
+
+# IO routines
+FORFLD.o   : $(SDIR)/io/FORFLD.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/io/FORFLD.f
+INIT.o     : $(SDIR)/io/INIT.f icegrid.inc physical.inc rheology.inc oml.inc
+	$(FC) $(SDIR)/io/INIT.f 
+output.o : $(SDIR)/io/output.f icegrid.inc
+	$(FC) $(SDIR)/io/output.f 
+BCSINIT.o : $(SDIR)/io/BCSINIT.f icegrid.inc 
+	$(FC) $(SDIR)/io/BCSINIT.f
+DRUCKF.o  : $(SDIR)/io/DRUCKF.f
+	$(FC) $(SDIR)/io/DRUCKF.f
+
+# Dynamics
+BCOEF.o    : $(SDIR)/dynam/BCOEF.f icegrid.inc
+	$(FC) $(SDIR)/dynam/BCOEF.f 
+PLAST.o    : $(SDIR)/dynam/PLAST.f icegrid.inc rheology.inc
+	$(FC) $(SDIR)/dynam/PLAST.f 
+PRESSB.o    : $(SDIR)/dynam/PRESSB.f icegrid.inc rheology.inc
+	$(FC) $(SDIR)/dynam/PRESSB.f 
+DDX.o      : $(SDIR)/dynam/DDX.f icegrid.inc
+	$(FC) $(SDIR)/dynam/DDX.f 
+INITREL.o  : $(SDIR)/dynam/INITREL.f icegrid.inc
+	$(FC) $(SDIR)/dynam/INITREL.f 
+MADV.o     : $(SDIR)/dynam/MADV.f icegrid.inc
+	$(FC) $(SDIR)/dynam/MADV.f 
+STRAIN.o   : $(SDIR)/dynam/STRAIN.f icegrid.inc
+	$(FC) $(SDIR)/dynam/STRAIN.f 
+OUTBCS.o   : $(SDIR)/dynam/OUTBCS.f icegrid.inc
+	$(FC) $(SDIR)/dynam/OUTBCS.f 
+BCSFLX.o   : $(SDIR)/dynam/BCSFLX.f icegrid.inc 
+	$(FC) $(SDIR)/dynam/BCSFLX.f
+RELAX.o    : $(SDIR)/dynam/RELAX.f icegrid.inc rheology.inc
+	$(FC) $(SDIR)/dynam/RELAX.f 
+RELCON.o   : $(SDIR)/dynam/RELCON.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/dynam/RELCON.f 
+
+
+#Thermodynamics, air and sea
+GROWTH.o   : $(SDIR)/therm/GROWTH.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/GROWTH.f 
+ECMBUDI.o  : $(SDIR)/therm/ECMBUDI.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/ECMBUDI.f 
+ECMBUDO.o  : $(SDIR)/therm/ECMBUDO.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/ECMBUDO.f 
+BUDGET.o   : $(SDIR)/therm/BUDGET.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/BUDGET.f 
+OBUDGET.o  : $(SDIR)/therm/OBUDGET.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/OBUDGET.f 
+ADJUEX.o   : $(SDIR)/therm/ADJUEX.f icegrid.inc physical.inc oml.inc
+	$(FC) $(SDIR)/therm/ADJUEX.f 
+EKMAH.o    : $(SDIR)/therm/EKMAH.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/EKMAH.f 
+EKMAO.o    : $(SDIR)/therm/EKMAO.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/therm/EKMAO.f 
+PMLEX.o    : $(SDIR)/therm/PMLEX.f icegrid.inc oml.inc physical.inc
+	$(FC) $(SDIR)/therm/PMLEX.f 
+STAB.o     : $(SDIR)/therm/STAB.f icegrid.inc
+	$(FC) $(SDIR)/therm/STAB.f 
+RISTAB.o   : $(SDIR)/therm/RISTAB.f icegrid.inc
+	$(FC) $(SDIR)/therm/RISTAB.f 
+RWSTAB.o   : $(SDIR)/therm/RWSTAB.f icegrid.inc
+	$(FC) $(SDIR)/therm/RWSTAB.f 
+VAPOR.o    : $(SDIR)/therm/VAPOR.f icegrid.inc
+	$(FC) $(SDIR)/therm/VAPOR.f 
+RESIST.o   : $(SDIR)/therm/RESIST.f icegrid.inc
+	$(FC) $(SDIR)/therm/RESIST.f 
+VERDIF.o   : $(SDIR)/therm/VERDIF.f icegrid.inc 
+	$(FC) $(SDIR)/therm/VERDIF.f
+
+# Miscellaneous files:
+SHDEF.o    : $(SDIR)/misc/SHDEF.f icegrid.inc rheology.inc
+	$(FC) $(SDIR)/misc/SHDEF.f 
+SDIFFUS.o  : $(SDIR)/misc/SDIFFUS.f icegrid.inc physical.inc
+	$(FC) $(SDIR)/misc/SDIFFUS.f
+SADVECT.o  : $(SDIR)/misc/SADVECT.f icegrid.inc
+	$(FC) $(SDIR)/misc/SADVECT.f
+OUTSM.o    : $(SDIR)/misc/OUTSM.f icegrid.inc
+	$(FC) $(SDIR)/misc/OUTSM.f
+BCSV.o : $(SDIR)/misc/BCSV.f icegrid.inc
+	$(FC) $(SDIR)/misc/BCSV.f
+BCSH.o : $(SDIR)/misc/BCSH.f icegrid.inc
+	$(FC) $(SDIR)/misc/BCSH.f
+VECMAXC.o : $(SDIR)/misc/VECMAXC.f icegrid.inc
+	$(FC) $(SDIR)/misc/VECMAXC.f
+VECMAX.o  : $(SDIR)/misc/VECMAX.f icegrid.inc
+	$(FC) $(SDIR)/misc/VECMAX.f
+tfreez.o  : $(SDIR)/misc/tfreez.f
+	$(FC) $(SDIR)/misc/tfreez.f
+albedo.o  : $(SDIR)/misc/albedo.f
+	$(FC) $(SDIR)/misc/albedo.f
+overload.o  : $(SDIR)/misc/overload.f
+	$(FC) $(SDIR)/misc/overload.f
+noice.o  : $(SDIR)/misc/noice.f
+	$(FC) $(SDIR)/misc/noice.f

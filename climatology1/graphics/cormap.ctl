@@ -1,0 +1,11 @@
+DSET  cormaps
+options yrev
+UNDEF  0
+TITLE  Ice concentration
+XDEF  720 LINEAR   0.25 0.5
+YDEF  360 LINEAR -89.75 0.5
+ZDEF  1 LINEAR   1 1
+TDEF 5 LINEAR  21sep00 1dy
+VARS 1
+correl 0 254 255
+ENDVARS

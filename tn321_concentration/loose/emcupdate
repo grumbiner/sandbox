@@ -1,0 +1,9 @@
+for d in dictionaries exec fix gempak jobs lib parm scripts sorc ush util versions
+do
+  find $d | grep -v '\.svn' | grep -v reference | cpio -pamdv /usr1/emcsvn/seaice/trunk/concentration/
+done 
+
+cp -p makeall.sh /usr1/emcsvn/seaice/trunk/concentration
+
+#Do not copy to emc, my archive only
+#nasateam2.algorithm

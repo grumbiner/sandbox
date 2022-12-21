@@ -1,0 +1,33 @@
+seaice_filtanal.Cd : replaces seaice_filtanal.fd
+  change to 12.7 km and 5' grids from 25.4 km and 30' grids.
+  change a logical test to be less verbose
+
+seaice_icegrid.Cd : replaces seaice_icegrid.fd
+  change to 5' global grid
+  handle case of there being no prior global analysis field
+
+seaice_ssmibufr.fd : 
+  binary.c     -- includes high resolution output now
+  ssmi.bufr.f  -- includes F15 and high resolution output now
+
+seaice_xpm.Cd : replaces seaice_xpm.cd
+  No code changes
+  Makefile now builds codes for 5 minute global 12.7 km hemispheric grids.
+
+seaice_reduce.Cd : NEW
+  Codes to construct reduced resolution grids from higher resolutions.
+  3 executables are built, one each for northern hemisphere, southern 
+    hemisphere, and global.
+
+seaice_seaissmi.cd :
+  Source split in to logical groups
+  Code modified for new, higher resolution, 12.7 km versus 25.4 km, 
+    processing of SSMI to sea ice concentrations.
+
+seaice_psgsouth.fd : 
+seaice_psgnorth.fd : 
+seaice_ice2grib.fd : 
+  Same source code used for both old and new resolutions.  
+  Difference lies in the included file icegrid.inc (see makefile)
+  Conditional construction of WMO output
+  New include files in new.includes/ 

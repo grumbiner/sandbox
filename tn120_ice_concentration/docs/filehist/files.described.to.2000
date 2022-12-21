@@ -1,0 +1,284 @@
+1998 Jan 19 grads1.7.README
+  Per name.  By Fiorino
+
+------------------------------------------------------
+
+1999 Sep 13 moore.intercompare
+  GWK Moore (U Toronto) comparison of walsh/ncep ice in polynya years
+
+1999 Oct 4 ecmwf.mail nomura.data nomura1 iceQC.f iceQC.cntl
+  Nomura information for/on ECMWF/ERA ice, used through Dec 1991 in NCEP/NCAR as well
+
+1999 Oct 4 nasa.c reanl.README reanl.del.jcl
+  Team algorithm implementation used in constructing reanalysis files
+  Script description for reanalysis production
+  Delta between old and new reanalysis ice
+
+1999 Nov 22 grads.ctl grib.grads
+  Grads control file working with grib
+  Note on what you need to do to use preceding control file
+
+1999 Dec 20 grads.control
+  Diane Stokes sample grads control files for RG data
+
+
+
+------------------------------------------------------
+2000 Jan 7 ice.ctl, grib.ctl
+  grads control for global ice, cofs regular, respectively.
+
+2000 Feb 17 rename_8digit.sh
+  Rename files to 8 digit yyyymmdd format
+
+2000 Feb 17 tochar.C
+  Translate a floating point GRIDTYPE to an unsigned char GRIDTYPE
+
+2000 Feb 17 hindmovie
+  Construct movies (whirlgif) of a month's concentrations from the grib archives
+
+2000 Feb 22 build.old.y2k
+  Rebuild concentrations using the old (erroneous remapping) filter
+
+2000 Feb 23 ak.html
+  From web, a page to manage clickable ak maps.  This was replaced by nh.html.
+
+2000 Mar 20 bottom.up
+  List of ideas for ssmi products
+
+2000 Jun 27 mon
+  script to make northern hemisphere monthly animations
+
+2000 Aug 14 ssmitest.C regress.C 
+  Read in ssmi grid and write out brightness temperatures and various functions
+of them
+  read in a time series of a vector of data points and compute the correlation matrix,
+start a bit of orthogonalization w.r.t. selected elements
+
+2000 Sep 13 toprocess1.C
+  For 85GHz work, translate from bufr to process1 class
+
+2000 Sep 14 delta.85.C
+  Compute some difference statistics between 85 GHz algorithm and reference
+
+2000 Sep 14 proc1.mar.sh
+  Run through a month and process for 85 GHz tests
+
+2000 Oct 12 test.mar.sh
+  Later version to run through a month and process for 85 GHz tests
+
+2000 Oct 19 test.daily.sh
+  Daily executable to construct test versions of 85 GHz concentrations (all 16 params)
+
+2000 Oct 24 flop.C
+  First try at looking at 'floppiness' of an ice vector (switching between ice/noice)
+as a data qc step.
+
+2000 Oct 31 in2
+  ctl for working with global ice concs in ieee format
+
+2000 Oct 31 grads.usage
+  How to do gribmap for grads
+
+2000 Nov 1 inref ref.gs high.gs inhigh
+  controls for producing reference graphic and high resolution graphic
+
+2000 Nov 1 rescale.C
+  Automatically rescale floating point concentrations and write out chars
+
+2000 Nov 7 oi.info, ssttobin.f
+  Information on the Reynolds OI SST files (last update 1997/07/09)
+  Reynolds program to read in OI file
+
+2000 Nov 8 time_interpf.C
+  Interpolate GRIDTYPES of DATTYPE over missing data spans of specified length
+
+2000 Dec 6 test.catch.sh
+  Catchup version of above test.daily.sh 
+
+2000 Dec 7 north.C south.C glob.sh
+  85GHz north, south hemisphere versions, and a control script to cycle 
+
+2000 Dec 8-10 rerun.pl retry.pl piece.sh README.retry
+  scripts to backfill days with missing information (85GHz expts)
+
+2000 Dec 8 corner.C regions ijcorners figs.sh map.C
+  corner.C takes in lat-lon corners and prints out ij corners from PS grids
+  regions defines some regions of interest by lat-lon coners
+  ijcorners is output of above
+  figs.sh generates figures of the land masks using map.C
+  map.C prints out an xpm map and the water area included
+
+2000 Dec 8 lakes/
+  source, scripts, output of doing above for Canadian lakes list
+
+2000 Dec 8 reg.pl
+  perl to read in the region/lake information from above programs and format an
+html page with it.
+
+2000 Dec 10 ams.abst.2001
+  AMS abstract on 85 GHz analysis
+
+2000 Dec 11 swap
+  miniscript to swab bytes and replace original
+
+2001 Dec 11 flop.north.C greatlakes.C newfl.C
+  Continue floppiness testing on north grid, great lakes, revised method north grid
+
+------------------------------
+
+
+2001 Jan 5 areas.C areas2k.sh
+  Compute areas of ice grids, area over given concentration limit
+
+2001 Jan 18, Jun 14 build.old.jan2001 build.new.nov2000
+  Rebuilding scripts (again)
+
+2001 Jan 24 kalesh/
+  Kalesh 'artist' 85GHz algorithm
+
+2001 Feb 20 nic_notice0101.txt
+  NIC notice on product changes
+
+2001 Feb 21 climate.html
+  Draft of web document for NCEP climatology
+
+2001 Feb 28 gl.gs, baltic.gs, alaska.gs
+  Script for grads plotting over the great lakes, baltic sea, alaska
+
+2001 Mar 1 inaa mcmurdo.gs
+  Controls, script for grads plotting over mcmurdo sound
+
+2001 Mar 1 tograds.C
+  Program to do a controlled interpolation from PS to LL for grads presentations
+(vs. letting grads do it while ignoring the flag nature)
+
+2001 Mar 2 regions.sh g.pl inhigh.ref
+  script to call for plot of multiple areas
+  perl to make up appropriate 'inhigh' files
+  reference sample
+
+2001 Mar 2 laur.gs
+  script for grads plotting over the Laurentians
+
+2001 Mar 7, 12 assel.retry, assel.june
+  emails with Ray Assel on great lakes ice covers
+
+2001 Mar 8 daily85.sh
+  later control script for 85Ghz test control
+
+2001 May 3 catch.eng
+  script to catch up on the global files when the hemispheres are ok
+
+2001 Jun 1 inlow low.alaska.gs
+  grads plotting of low resolution ice for alaska region
+
+2001 Jun 7 cmc_check.c
+  function to count up how many times the CMC QC check on brightness temperatures
+catches something that the other method(s) miss.
+
+2001 Jun 12 recomp6.c, redo.sh
+  recompute ice concentrations using Team algorithm, working from [ns]3ssmi grids
+  script to control recomp6
+
+2001 Jun 14 tofloat.C
+  Convert a GRIDTYPE of floats to unsigned chars
+
+2001 Jun 15 scan.C date.h
+  scan reads in a month (or tries to) and cleans up the last day's file some
+  date.h is a start to MMABLIB class for date management
+
+2001 Jul 16 partington.algorithms/
+  concentration algorithm collection via Kim Partington
+
+2001 Jul 16 statsubs.C
+  Assorted stastical subroutines, mostly developed for ssmi work but are general
+purpose
+
+2001 Aug 24 icedelta.C
+  Relatively thorough ice concentration grid differencing program
+
+2001 Aug 24 alg.intercompare.C
+  Read in a 'true' column of data and a number of estimators and compute
+max, min, average, rms, sdev of differences between estimates and 'true'
+
+2001 Aug 24 all.C northtest.out
+  Program for working on any grid type with 85GHz development
+  Sample output for northern hemisphere test
+
+2001 Oct  5 northflop.C
+  Continue floppiness work
+
+2001 Oct 12 new25.C
+  Translate from 12.7 km to 25.4 km grids, superceded by the reduce program(s)
+
+2001 Oct 17 nsidcland.translate.C
+  Translate from nsidc flags for land to NCEP flags for land
+
+2001 Oct 18 oldparam.C
+  Test of 37 Ghz data files from nsidc
+
+2001 Oct 19 f13.c
+  Read in oldssmi data grids and do a bit of checking on them.
+
+2001 Oct 24, 30 nsidc.hdf.c hdfconc.c 
+  get tb's from nsidc hdf grids and make concentrations
+  read in nsidc hdf ice concentrations
+
+2001 Oct 24 trim.c
+  program to avoid using hdf -- read in hdf file and skip 'BUF' bytes, then
+write out.
+
+2001 Oct 26 stats.nsidc.C
+  compute some statistics on nsidc concentration grids
+2001 Oct 26 param.C
+  Compute v^2 - h^2 on 37 Ghz from nsidc
+2001 Oct 26 nsidcflop.C
+  Floppiness on nsidc grids, with some statistics
+
+2001 Dec 7, 10 build.new.sh build.old.sh
+  Yet another rebuild script pair
+
+2001 Dec 18 alaska/
+  Correspondance over years with Kemper in Alaska region
+
+
+
+-----------------------------------------
+2002 Jan 2 genetic.weather.filter/
+  Aug 2, 2001 to Jan 2, 2002 work on developing improved weather filtering.
+
+2002 Jan 15 hard.redo.sh
+  Script for 3 satellite processing of ssmi
+
+2002 Mar 11 thickness.pdf
+  Sample of not-then operational Gulf of St. Lawrence ice thickness analysis
+from CIS.
+
+2002 Jul 19 ssmi_nav_errors.pdf, ssmi_problems_1.pdf, ssmi_problems_2.pdf
+  From ?Soren Anderson, bad scan problem in SSMI.  Their fix is drop whole orbit.
+
+2002 Jul 19 findcorresp.C
+  Sample program to find points in grid B which correspond to points in grid A
+and save them.
+
+2002 Aug 13 VariableTable.(tex, html, desc)
+  Correspondance from Tom Gross, NOS marine modeling and analysis program, on
+grib tables.
+
+2002 Nov 17 configure
+  Probably more like 1998, configure execution of all sea ice stuff on 
+crays
+
+2002 Nov 18 iceconc.drg.wpd
+  8 July 1997 DRG request for sea ice concentration on gts.
+
+2002 Nov 26 model.sh model.gs
+  Control construction of a number of Grads plots in different areas
+
+2002 Dec 9 tobytes.C
+  Convert floats to bytes for grads
+
+2002 Dec 9 nomura
+  Nomura grid spec for grads
+
+

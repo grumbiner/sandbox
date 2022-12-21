@@ -1,0 +1,225 @@
+From owner-emc@ncep.noaa.gov  Thu Oct 23 14:18:12 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h9NIIBQ16843
+	for <wd21rg@polar.wwb.noaa.gov>; Thu, 23 Oct 2003 14:18:11 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h9NII9A8019148
+	for <grumbine@ncep.noaa.gov>; Thu, 23 Oct 2003 14:18:09 -0400
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HN82UA00.E9W; Thu, 23 Oct 2003 14:18:10 -0400 
+Received: from mx-east.nems.noaa.gov ([140.90.121.147]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HN82U800.SVN; Thu, 23 Oct 2003 14:18:08 -0400 
+Received: from sgi72.wwb.noaa.gov(140.90.193.211) by mx-east.nems.noaa.gov via csmap 
+	 id e15945de_0585_11d8_8bd3_003048245d2f_18835;
+	Thu, 23 Oct 2003 18:22:37 +0000 (UTC)
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id OAA37335
+	for emc-outgoing; Thu, 23 Oct 2003 14:17:36 -0400 (EDT)
+Message-ID: <3F981B3A.6466DBD6@noaa.gov>
+Date: Thu, 23 Oct 2003 14:17:30 -0400
+From: "Michael A. Young" <michael.a.young@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: emc@ncep.noaa.gov, emc-contractors@ncep.noaa.gov,
+   emc-visitors@ncep.noaa.gov
+Subject: prod available for dev use
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Michael A. Young" <michael.a.young@noaa.gov>
+Status: RO
+
+There are many cycles free on the prod machine.  The large trusted user
+list has been activated.
+Prod is available for dev use with limits of 20 nodes / 80 mpi tasks
+and 3 hour time limit.
+
+If you want to be added to the trusted user list send an email to gary.wohl@noaa.gov
+after reading the user agreement at  http://ibmdocs.ncep.noaa.gov/userman/guidelines.html
+
+
+From owner-emc@ncep.noaa.gov  Fri Oct 24 10:00:45 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h9OE0jQ04680
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 24 Oct 2003 10:00:45 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h9OE0hOw030803
+	for <grumbine@ncep.noaa.gov>; Fri, 24 Oct 2003 10:00:43 -0400
+Received: from relay-west.nems.noaa.gov ([161.55.16.21]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HN9LL800.HCW; Fri, 24 Oct 2003 10:00:44 -0400 
+Received: from mx-west.nems.noaa.gov ([161.55.16.18]) by
+          relay-west.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HN9LL400.DJ4; Fri, 24 Oct 2003 07:00:40 -0700 
+Received: from sgi72.ncep.noaa.gov(140.90.193.211) by mx-west.nems.noaa.gov via csmap 
+	 id 8431096e_062a_11d8_8e7c_003048245d84_4508;
+	Fri, 24 Oct 2003 07:01:10 -0700 (PDT)
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id JAA12891
+	for emc-outgoing; Fri, 24 Oct 2003 09:57:32 -0400 (EDT)
+Message-ID: <3F992FC6.5E0324E7@noaa.gov>
+Date: Fri, 24 Oct 2003 09:57:26 -0400
+From: "Michael A. Young" <michael.a.young@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: emc@ncep.noaa.gov, emc-contractors@ncep.noaa.gov,
+   emc-visitors@ncep.noaa.gov
+Subject: devonprod group required
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Michael A. Young" <michael.a.young@noaa.gov>
+Status: RO
+
+to run dev jobs on the prod machine you need to add
+# @ group=devonprod
+to your loadlev script.
+
+From owner-emc@ncep.noaa.gov  Fri Oct 24 10:16:49 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h9OEGnQ05613
+	for <wd21rg@polar.wwb.noaa.gov>; Fri, 24 Oct 2003 10:16:49 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h9OEGlOw031844
+	for <grumbine@ncep.noaa.gov>; Fri, 24 Oct 2003 10:16:47 -0400
+Received: from relay-west.nems.noaa.gov ([161.55.16.21]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HN9MBZ00.DDK; Fri, 24 Oct 2003 10:16:47 -0400 
+Received: from mx-west.nems.noaa.gov ([161.55.16.18]) by
+          relay-west.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HN9MBW00.GKL; Fri, 24 Oct 2003 07:16:44 -0700 
+Received: from sgi72.ncep.noaa.gov(140.90.193.211) by mx-west.nems.noaa.gov via csmap 
+	 id e34f6330_062c_11d8_9dbc_003048245d84_26304;
+	Fri, 24 Oct 2003 07:18:08 -0700 (PDT)
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id KAA11747
+	for emc-outgoing; Fri, 24 Oct 2003 10:14:36 -0400 (EDT)
+Message-ID: <3F9933C7.F400D3F7@noaa.gov>
+Date: Fri, 24 Oct 2003 10:14:31 -0400
+From: Mark Iredell <mark.iredell@noaa.gov>
+X-Mailer: Mozilla 4.7 [en] (X11; U; Linux 2.2.16-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: "Michael A. Young" <michael.a.young@noaa.gov>
+CC: emc@ncep.noaa.gov, emc-contractors@ncep.noaa.gov,
+   emc-visitors@ncep.noaa.gov
+Subject: Re: devonprod group required
+References: <3F992FC6.5E0324E7@noaa.gov>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: Mark Iredell <mark.iredell@noaa.gov>
+Status: RO
+
+FYI,
+
+In /u/wx20mi/bin/sub, this is supported with the "-g devonprod" option.
+
+Mark
+
+"Michael A. Young" wrote:
+
+> to run dev jobs on the prod machine you need to add
+> # @ group=devonprod
+> to your loadlev script.
+
+From owner-emc@ncep.noaa.gov  Mon Oct 27 11:44:11 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h9RGiBQ13960
+	for <wd21rg@polar.wwb.noaa.gov>; Mon, 27 Oct 2003 11:44:11 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h9RGi9Ow024236
+	for <grumbine@ncep.noaa.gov>; Mon, 27 Oct 2003 11:44:09 -0500
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HNFD5M00.1NF; Mon, 27 Oct 2003 11:44:10 -0500 
+Received: from mx-east2.nems.noaa.gov ([140.90.121.149]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HNFD5L00.LAS; Mon, 27 Oct 2003 11:44:09 -0500 
+Received: from mx1.ncep.noaa.gov(140.90.193.27) by mx-east2.nems.noaa.gov via csmap 
+	 id 25ea836a_089d_11d8_9164_003048245fe6_20127;
+	Mon, 27 Oct 2003 11:46:44 -0500 (EST)
+Received: from tstunx38.wwb.noaa.gov (tstunx38.wwb.noaa.gov [140.90.193.252])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h9RGhkP2024220;
+	Mon, 27 Oct 2003 11:43:46 -0500
+Received: from sgi72.wwb.noaa.gov (sgi72.wwb.noaa.gov [140.90.193.211])
+	by tstunx38.wwb.noaa.gov (8.11.6/8.11.6) with ESMTP id h9RGheY27246;
+	Mon, 27 Oct 2003 11:43:40 -0500
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id LAA19957
+	for emc-outgoing; Mon, 27 Oct 2003 11:43:35 -0500 (EST)
+Message-ID: <3F9D4B31.8A6A6151@noaa.gov>
+Date: Mon, 27 Oct 2003 11:43:29 -0500
+From: "Michael A. Young" <michael.a.young@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: emc@ncep.noaa.gov, emc-contractors@ncep.noaa.gov,
+   emc-visitors@ncep.noaa.gov
+Subject: upcoming dev/prod issues
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Michael A. Young" <michael.a.young@noaa.gov>
+X-MailScanner-Information: Testing Virus Scanner - postmaster@loft.ncep.noaa.gov
+X-NCEP-MailScanner: Found to be clean
+Status: RO
+
+
+28 Oct 03       USER IMPACT: 24 hour Production Parallel Runs on Frost (dev)
+Production operations will run a 24 hour parallel test on the development
+machine (Frost) starting on 0800L Tuesday, October 28th to verify a new version
+of the Production Unified BUFR Library.
+
+30 Oct 03       USER IMPACT: Production switch back to Frost (New Date)
+Between 0800L and 0900L, on Thu Oct. 29, production operations will move from snow
+to frost. For part of the hour, both machines will have a production configuration
+and users in the devonprod group will be the only ones allowed to submit jobs.
+
+From michael.a.young@noaa.gov  Wed Nov 12 11:38:41 2003
+Return-Path: <michael.a.young@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id hACGceh06978
+	for <wd21rg@polar.wwb.noaa.gov>; Wed, 12 Nov 2003 11:38:40 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id hACGcCIV017233
+	for <grumbine@ncep.noaa.gov>; Wed, 12 Nov 2003 11:38:12 -0500
+Received: from noaa.gov ([140.90.192.192]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HO8ZJT00.T9E;
+          Wed, 12 Nov 2003 11:38:17 -0500 
+Sender: myoung@mx1.ncep.noaa.gov
+Message-ID: <3FB261F9.4628BEE6@noaa.gov>
+Date: Wed, 12 Nov 2003 11:38:17 -0500
+From: "Michael A. Young" <michael.a.young@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: geoff.dimego@noaa.gov, mark.iredell@noaa.gov, hendrik.tolman@noaa.gov,
+   robert.grumbine@noaa.gov, stephen.lord@noaa.gov, hualu.pan@noaa.gov,
+   desiraju.b.rao@noaa.gov, frederick.toepfer@noaa.gov
+Subject: phase II
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Status: RO
+
+all,
+
+ibm has accepted the  homogeneous asymmetric solution for phase II
+that we asked for.
+dec 2 at 11:00 there will be a phase II meeting  in room 307 which will briefly update
+this and also start the discussion on disk configuration.
+
+mike
+

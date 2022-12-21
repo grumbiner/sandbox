@@ -1,0 +1,19 @@
+# Grid definition file
+# Ax, Ay, Bx, By are all in km
+area:
+sh_ease2-500
+iw:
+216
+ih:
+216
+Ax:
+50.000000
+Ay:
+50.000000
+Bx:
+-5375.000000
+By:
+5375.000000
+projstr:
++proj=laea +lon_0=0 +datum=WGS84 +ellps=WGS84 +lat_0=-90.0
+

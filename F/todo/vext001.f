@@ -2,6 +2,8 @@ C***********************************************************__________!!
       SUBROUTINE vext(vnp1, vnm1, vn, un, etan,
      1               scale, radius, deltat, dellat, dellon, gee, omega,
      2               dissip)
+C     Robert Grumbine 27 Sep 1995
+
       IMPLICIT none
       INCLUDE "grid.inc"
       

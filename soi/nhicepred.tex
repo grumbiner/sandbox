@@ -1,0 +1,531 @@
+\documentstyle[12pt]{article}
+\textwidth=6.5in
+\textheight=9.0in
+\oddsidemargin=-0.00in
+\topmargin=-0.25in
+
+\begin{document}
+
+\title{Sea ice climatology and statistical structure}
+\author{Robert Grumbine}
+\date{\today}
+\maketitle
+
+\pagebreak
+
+\section{Abstract}
+  Although sea ice is known to be important both in its own right (for
+shipping and fishing) and as a mediator of air-sea interaction, our knowledge
+of its general features, such as seasonal cycle, climatology, and statistical
+structures is limited.  In some cases, there is data at hand from which
+such things may be computed readily, but the computation has not been made
+available in its own right.  We present such simple statistics as the
+annual-average ice cover, climatological seasonal cycle, and point to point
+correlations between parts of the ice pace and autocorrelations through time.
+There are several reference data sets already generated, so that we consider
+each of them in turn for their comparability with respect to these elementary
+statistics.
+
+  Results of this consideration are: ...
+
+\pagebreak
+\section{Introduction}
+  There are an increasing number of sea ice data sets available, and 
+although they have a number of points of correspondence in their production,
+there are also some differences.  Some of the most elementary statistics
+of the sea ice pack have not been presented in their own right; this includes
+the seasonal cycle of the ice cover (although there are many works which
+must have computed the cycle, it hasn't been presented outright that I've
+been able to find).  In some cases, in fact, it is not clear whether 
+simple statistics are even meaningful.  
+
+\section{Simple Statistics}
+
+  Even the simplest statistic we could consider, the annual average sea ice
+concentration, raises a difficult point.  One can average the observed 
+concentrations for every month of every year in a climatology, and the
+result of such a computation for the northern hemisphere from the Chapman
+and Walsh [1991] Arctic climatology is presented in figure 1, but this is
+a distinctly unsatisfying figure.  We see that the high arctic has a high
+ice concentration, as expected.  But we also see that the Bering Sea, for
+example, has an XX% ice cover.  This is unsatisfactory because at no time
+does the Bering sea have such a cover.  The average is reflecting an average
+of N months of nearly 100% ice cover, and the rest of the year having no
+ice cover.  XX% is indeed the average, but it is not something the atmosphere
+or ocean ever see.  Still, if one is pressed for a single number, this
+is about as good as any.  (And so on through the rest of the descendant
+statistics).
+
+  Instead of the simple average (which considers all zero % ice covers as
+meaningful) we can take the average of the ice concentrations when there
+is ice (i.e., to ignore the zero % ice covers in averaging) and then let
+a second (required) parameter be the fraction of the time that there is
+an ice cover.  The first figure is the expected ice concentration for when
+there is an ice cover (a conditional ice concentration) and the second is
+our expectation of there being an ice cover.  Figures 2 and 3 present the
+results of such a consideration.  
+
+  Since it is not clear {\it a priori} whether the simple mean or the conditional
+mean plus expectation of cover is more meaningful, and indeed the decision
+may depend on the use, I will continue with computing both sets of statistics.
+Let us consider the simple mean (and descendant statistics) first, to be
+followed in section B by the conditional statistics.
+
+\subsection{Simple averaging statistics}
+
+  In addition to the annual average, one can also compute the second moment,
+and find the variance.  Figure 4 presents the variance, which ranges from zero
+(land) or near zero (the high arctic) to XX (peripheral seas, particularly
+Greenland).  For much of the period of this northern hemisphere climatology,
+which runs from 1901 to 1990, there are no observations of the high arctic
+ice cover, so that the low variability there could be an artefact.  When we
+examine the data sets that do have observations there, it will turn out
+that this is real (though the magnitude of variation is slightly higher)
+
+  The southern hemisphere annual mean and variance (for the 1973-1990 
+period of the southern hemisphere set) are given in figures 5 and 6.
+
+  The annual cycle of ice cover is strong in most areas, so we also
+compute the mean and variances for the monthly figures, for both hemispheres.
+One important point in CW is that the figures do not represent averages 
+(of any sort), rather they represent the ice cover on the last day of the
+month.  This provides a point to which we will return: What is a time
+period that an ice cover may be considered representative for?
+
+  The annual cycle is presented in figures 7-54 for the NH mean (7-18),
+variance (19-30), SH mean (31-42), and SH variance (43-54).  They are
+also given as animations in figures 55-58, respectively.  The data for
+each of the figures is available by anonymous ftp to XXX and are in GRIB
+format.  Tools are available (see readme file in that directory) for
+reading the data files.  The grids are different than the originals in CW,
+on the grounds that this work is in support of improvements to the NCEP 
+sea ice analysis and forecasting effort.  
+
+  Aside: Since climate may change, the annual cycle above may not be the
+proper one to use for the present day.  The question of climate change in
+the sea ice is one to return to.  XXX.   For now we will take the null
+assumption of no climate change and consider this the correct annual cycle.
+
+  Given an annual cycle, we can remove that from our climatological series 
+and consider the structure of deviations from climatology, both in time 
+and in space.  We expect to find that local areas tend to be correlated 
+to each other (that is, that if one point in, say, the Bering Sea is below 
+normal ice cover, that the adjacent points probably are below normal as 
+well).  The degree of correlation as a function of distance is a point 
+of interest, however, as many analysis methods can make use of this 
+information to provide improved estimates of the sea ice cover.  Also of
+interest is the time correlation, as this can be used in an analysis procedure,
+and it can be used as a predictor of future anomalies.  The predictive
+use was the motivation in CW.
+
+  The covariance between points is presented in figure 59 as an animation.
+Each frame is the correlation between the ice cover anomaly (relative to a
+point that ever gets ice cover) and every other point that ever has an ice
+cover.  We see a few systematic features: 
+  1) There is typically a zone around each point of a few hundred km over 
+which there is substantial correlation
+  2) These zones are highly anisotropic; that is, there are preferred
+directions (parallel to the ice edge as a rule), along which there are 
+large correlations for a greater distance than along a line perpendicular
+  3) The high arctic is highly self-correlated.  This is partly required
+by the data set, rather than necessarily the sea ice cover.  It is striking
+nevertheless that on the order of several hundred thousand square kilometers
+of ice cover can be treated essentially as a unit.    
+  4) There are some very long range connections:
+    a) The Baltic is anti-correlated to points on the Arctic pack near
+        Svalbard and Franz Josef Land
+    b) The Bering Sea shows correlation to the Labrador sea
+    c) The Arctic shelf zone, both Canadian and Siberian, appears
+        strongly connected, even though neither seems related to the
+        central arctic or other peripheral zones. 
+
+Point 1 is seen in the atmosphere by Thorndike [XXXX] as correlation length
+scales of XXXX and XXX for pressure and temperature, respectively.
+
+
+  The local time correlations are also striking.  Even at 1-3 months 
+remove (figures XX to XX), there are zones for which there are large 
+autocorrelations.  This was the basis of the method in CW.  Continuing 
+on in time, however, we also find exceedingly high autocorrelations at 
+12 months, at around 52 months (figures XX and XX, respectively).  The 
+former may indicate a year to year persistence of anomalies (though we 
+note that the 11 and 13 month autocorrelations are typically far less 
+than at 12, as compared with 1 month lags, which give large correlations), 
+a climatic trend in the seasonal cycle (if the amplitude or phase of the 
+seasonal cycle were changing slowly through time, the anomalies from year 
+to year would be autocorrelated), or some other feature of interest. The
+latter period, 4 years and then some, might be related to long period
+free changes in the ice pack, to El Nino (which averages about this period,
+cite XXXX), or to other features of the climate system.  Gloersen [19XX]
+detected such a period [XX months] in an analysis of XXXX.  
+
+  We test the notion of an El Nino connection by correlating each point's
+time series against the Southern Oscillation Index [cite, XXXX], for lags
+0 to 72 (as is being done for the autocorrelations).  We find that indeed
+there are points with fairly large (greater than 0.1) cross-correlations
+between the local sea ice anomaly and the SOI.  These occur at time lead/lags
+of 1.5-2.5 years (ice leading SOI, as well as lagging).  There are a number
+of points, in addition, where the cross-correlation is maximum at the limits
+studied (6 year ice lead over the SOI, points in the Bering/Beaufort Seas,
+Siberian coast).  
+Rogers [? XXXX] (1980 study) found ...
+The SOI to ice relations, particularly where the ice may be leading the SOI,
+is a point we'll return to.  We note, however, that the quasi-quadrennial
+period is noticeably not present in the ice anomaly to SOI correlations.
+Whatever it is that is driving that period in the ice cover, is apparently
+not the ENSO cycle (as represented by the SOI at least).
+
+  In the Antarctic, considering time and space correlations, the point to
+point correlations (animation, figure XX) suggest:
+  1) Even greater degree of anisotropy than in the Arctic.  Points many degrees
+of longitude apart show high correlations while their neighbors to the
+interior are highly unrelated.
+  2) Ross sea and Weddell Sea ice pack (interior zone) show large regional
+correlations
+  3) The Weddell Sea shows the largest area of self-correlation
+ 
+  In time, the pattern seems more involved than for the arctic.  The anomalies
+show correlation at 1-2 month lags (vs. 1-3 for Arctic), but high recurring
+correlations as 12, 24, 36, 48, 60, 72 months.  Unlike the Arctic, there
+does not seem to be a quasi-quadrennial signal.  But also unlike the arctic,
+the maxima near the annual periods seem to be rather broad, c.f., fig XX which
+gives the autocorrelations for a point in the Weddell Sea.  The 4 year lag
+period shows an especially high correlation, higher than the magnitude at 1,
+2, or 3 years. 
+
+  The Antarctic ice pack shows much higher cross-correlations with the SOI
+than the Arcitc pack does.  The Antarctic has extensive areas of greater
+than 0.3 cross correlation (magnitude).  This occurs for ice leading SOI
+by about 8 months, 30 months, or lagging by about 36 months or 66-72 months.
+That a connection seems to exist is not entirely surprising as [et al and
+Bromwich XXXX] have seen atmospheric signals in the Antarctic being tied
+to the SOI.  It is interesting, however, to note that the sea ice is typically
+leading, rather than lagging, the SOI.  The atmospheric signals are seen
+to lag the SOI [cite XXXX].
+[Antarctic 'wave' cite: XXXX].
+
+  
+Summary:
+  Some tentative conclusions from the consideration of simple sea ice
+statistics:
+
+  Interior scales of a few hundred km, and out to 3 months, for both 
+hemispheres, regionally varying.
+
+  Signs of long-range connections at several thousand km and years, in 
+or between selected regions.  But we lack confidence in these results
+at long range in time because of the possibility of climate changes in 
+the annual cycle in the record.
+
+  Signs of moderate correlation between SOI and Antarctic ice cover, and
+weak, but nonzero correlation between SOI and the Arctic ice cover.  Some
+suggestion that the Antarctic may lead SOI, and in any event, have long
+range prediction based on SOI, or from SOI. This lacks confidence due to
+the fact that there are only 18 years of data in the CW Antarctic data
+set.
+
+Before we make these firm conclusions we need to:
+1) Consider the conditional ice cover statistics.  (If one finds the same
+patterns, confidence is increased.  If the correlations are largely driven
+by a single or a handful of years in which there was an anomalous ice cover,
+then those correlations should be lost in the conditional ice cover fields,
+as they'll only have the ice years present.)
+2) Examine the series for trends in order to remove that as a 
+source of long-lag correlations (as well as being an interesting 
+feature in its own right)
+3) Compare the statistics for the WC climatology to those from higher space
+and time resolution sources.  The interior ranges of a few hundred km and
+a couple of months provide bounds on how far to range.  (This is a practical
+limit, as the memory and execution time requirements for 18 years of daily
+data at 25 km resolution (NASA/NSIDC climatology) are much larger than for
+monthly data at 60 Nm resolution, even if for 90 years (136,192 points
+vs 4640, and 6570 times vs. 1080). 
+
+  These will be done in section 2b, 3, and 4, respectively.
+
+Aside: The high space and time correlations have implications for sea ice
+prediction.  Some already noted in CW.  We will return to this point. 
+
+
+\subsection{Conditional averaging stastistics}
+2b.
+  Figures XX to XX present the northern hemisphere's conditional average
+ice concentration, conditional variance, and fraction of the time that
+there is an ice cover.  We see that, as before, the high arctic is a 
+zone of high concentration.  This is no surprise, as the high arctic is
+perennially ice covered.  It is in looking to the peripheral seas that
+we find the interesting differences with respect to the simple averages.
+Hudson Bay, Bering Sea, Sea of Okhotsk, and Baltic Sea are now all zones 
+of high conditional ice concentration.  That is, if there is an ice cover
+in these areas, the concentration is high.  We see from the coverage figures
+that the frequency of having an ice cover varies substantially between 
+thes areas, as expected.  
+
+  Most interesting are the zones with low average
+conditional ice cover.  This includes in the Baffin Bay/Davis Strait, and 
+the Greenland, Iceland, Norwegian, and Barents seas.  It is common for
+there to be an ice cover in these areas (figure XX) but the concentration
+varies substantially even when there is a cover.   
+
+  The Antarctic shows similar behaviors.  The zones of highest conditional
+ice cover are mostly towards the periphery (where it is somewhat unusual 
+for there to be an ice cover, but where there is one, it is substantial) or
+in the perennially covered zones.  Between the two is an extensive zone 
+of moderate conditional concentration.  The conditional variance shows,
+again, low variance in the high average conditional concentration areas,
+and highest variance towards the periphery.  
+
+Annual cycle:
+  So far there are no surprises, given the differences we expected to see,
+between the conditional and unconditional ice concentrations.  There
+is some sign of at least an aesthetic reason to prefer the conditional
+concentrations in the peripheral zones.
+
+  The seasonal cycle is given in figures XX-XX for the northern hemisphere
+mean, variance, and probability of coverage.  Figures XX to XX provide this
+information for the southern hemisphere.  The data for this annual cycle 
+are in grib format in XX/XXX.
+
+Deviations from climatological cycle:
+
+  Note only computed for series greater than XX% complete ...
+
+  Again we removed the average ice concentration (this time the conditional
+concentration) for each month from the time series and looked at the 
+temporal and spatial correlations between the deviations from climatology.
+The covariance between points for the northern and southern hemispheres is
+given in figures XX and XX as animations.  We see that some of the features
+remain from before:
+  1) There is still a zone of a few hundred km over which there is substantial
+correlation.  The zone and correlations are typically smaller than for 
+the unconditional averages, however, indicating that a significant portion 
+of the correlations seen previously were due to regions being ice free 
+at the same time.   
+  2) The anisotropy of the correlation fields is even greater than for
+the unconditional averages.  Again, the preferred directions tend to 
+parallel the ice edge. 
+  3) The high arctic remains highly self correlated.
+  4) Some long range correlations remain, but most are weaker or removed.
+No new zones of correlation appear.
+    a) The Baltic sea loses its correlation to other areas.
+    b) The Bering Sea shows no long range correlations
+    c) The Arctic shelf zone, both Canadian and Siberian, still appears
+        strongly connected, even though neither seems related to the
+        central arctic or other peripheral zones.
+
+We also find that the 1-3 month autocorrelations remain large in the arctic.
+Again, the arctic shows signs of returning correlation at multiples of
+12 months, and in the vicinity of 52 months.  In repeating the correlations
+with respect to the SOI, we find substantially different patterns of
+correlation.  The mangitude remains about the same, correlations peaking
+at about +- 0.1, but there is now no artefact of peaking towards the end
+of the lag list (+= 72 months).  The lag relationship indicates ice leading
+SOI, with maxima in the range of 8-20 months, somewhat shorter lead than
+was indicated in the unconditional averages.  Areas with particularly high
+relation to the SOI are to the NE of Greenland, and in the Beaufort gyre.
+(Figure XXX).  The changes in SOI correlation pattern is our second significant
+difference between using conditional and unconditional statistics.
+
+  Considering the Antarctic space correlations, we find that our
+conclusions from section 2a remain:
+  1) Even greater degree of anisotropy than in the Arctic.  Points many degrees
+of longitude apart show high correlations while their neighbors to the
+interior are highly unrelated.
+  2) Ross sea and Weddell Sea ice pack (interior zone) show large regional
+correlations
+  3) The Weddell Sea shows the largest area of self-correlation
+
+with the modifier, as for the arctic, that the range and magnitude of 
+correlation is reduced in the conditional statistics.
+
+  The Antarctic time autocorrelations for conditional ice cover show
+even more rapid decline than for the unconditional, with 1-2 month lag
+being the limit.  The strucures at annual returns are less apparent than
+for the unconditional, but it does remain the case that annual return times
+show large correlations compared to other periods.  The 52 month period still
+does not appear in the Antarctic record (though with a record only 4 times
+that long, and crude statistics, one is hesitant to draw conclusions).
+
+  Correlation to SOI still shows magnitudes greater than 0.3, and maxima
+at about 7-8 months and 30 months ice lead, and for 36 months SOI leading
+the ice.  The 66-72 month maximum goes away.
+
+\subsection{Ice/No Ice as a meaningful map}
+  Section 2b, however, drew its conclusions with respect to the conditionally-
+averaged ice concentrations.  It seems clear, from at least some of the 
+differences between that and the unconditional averages, that the ice/no 
+ice status is both interesting and may contain much of the information 
+present in the observational record.  We therefore examine the binary set
+itself.   
+
+  Since binary data are different than the (in principle) continuous ice
+concentration data, we will pause to consider what differences in analysis
+we will need.  First, any point which always has an ice cover contains no
+information.  This contrasts with the concentration case, were even perennially
+ice-covered points are informative as the concentration may change.  Or, if
+the concentration didn't change, this too would be physically (if not 
+statistically) interesting.  Second, binary series lend themselves to an
+interpretation as a probability of ice cover.  This is reminiscent of
+precipitation prediction, where we are given a probability of rain and
+an indication of how much rain there would be if it did rain.  We'll return
+to this point in model verification and testing as precipitation forecasting
+has a long verification literature.  Third, we need to find a method
+for examining point to point coherency/correlation, as the usual definition
+is for continuous variables.  And fourth, we need methods of comparing the
+binary series to a continuous one (as in the SOI).  Each of these is a 
+manageable point, but they deserve consideration as they're not just like
+the continuous case.
+
+  We'll consider points 2-4 in reverse order, given point 1.  The relation
+to a continuous series, SOI being our type case, is a halfway step.  One
+of the series is still continuous, as before.   
+XXXXXXXXXXXXXX
+  Before proceeding, there is a further step which we must consider.
+That is, seasonality makes a tremendous difference for all our binary
+stastics.  In the case of unconditional ice concentrations, we consider
+all the zero ice concentrations to be meaningful, and so no special care
+is mandatory.  In the conditional ice concentrations, we only worry about
+what the ice does {\it when it is present}, so again, the figures are
+well-defined.  For the binary series, we must deal with the fact that 
+it is very likely that the one time a given point has ice will be in
+mid-winter.  Conversely, the one (or few) times a point is ice free
+will be in mid-summer.  Consequently, any effect which does have a seasonal
+bias (as El Nino, named for a typical December maximum XXX) must be
+broken out by month of the year.
+
+
+  Point 3 can be approached by considering independance, which is
+well-defined for discrete variables.  If the two variables are
+independant (which we'll take as our proxy for uncorrelated), then
+the probability that both X and Y occur (point X has ice at the same
+time as point Y) is simply the product of the probability that
+X has ice (in general) times the probability that Y has ice (in general).
+If we consider the process as a Bernoulli procedure, we can also 
+approximate the distribution of the differences between P(XY) and
+P(X)*P(Y) as being gaussian, and hence arrive at a z-like statistic:
+z = (P(XY) - P(X)*P(Y))/sqrt(N*p*(1-p)), where p will need consideration,
+but which we will take to be P(XY) for now.  In all cases, however, 
+we will be working with the sample estimate of the probabilities.
+
+
+
+
+\section{Why is there long, integer-year autocorrelation?}
+sect 3.
+
+\section{Statistics from higher resolution sea ice information}
+sect 4.
+-- trend (annual cycle) removal per previous section
+-- recompute correlation ranges, in space and time.
+Regions:
+Eastern North America:
+  Great Lakes
+  Gulf of St. Lawrence
+  Labrador Sea/Coast
+  Hudson Bay
+  Baffin Bay
+  
+Scandanavian Seas:
+  Greenland Sea
+  Iceland Sea
+  Norwegian Sea
+  Barents Sea
+  Baltic Sea
+
+Pacific:
+  Yellow Sea
+  Sea of Japan
+  Okhotsk Sea
+  Bering Sea
+  
+Eurasia:
+  White Sea
+  Kara Sea
+  Laptev Sea
+  Chukchi
+
+N. NA
+  Beaufort
+  Canadian Archipelago
+
+High Arctic
+
+Asian Seas:
+  Aral Sea
+  Caspian Sea
+  Sea of Azov
+
+  
+\section{Re-examining the data quality}
+sect 5.
+
+  In the previous sections, we focussed on developing reasonable statistical
+method for dealing with sea ice concentration information.  A secondary
+focus was to obtain some reasonable order of magnitude and etiology regarding
+the ice pack statistics.  The conclusions regarding physical meaning of the
+relations, however, have had to be tentative because we did not examine in
+any detail the quality of the data on which the methods were being applied.
+
+  Now that we have some notions of what we are looking at -- a data set
+for which the statistics are anisotropic, inhomogeneous, and non-stationary,
+with length scales of dozens to a few hundred km, time scales of weeks, 
+and which can be reasonably described in terms of probability of ice cover
+with conditional concentrations -- we can proceed.  We see, for example, that
+it is important to establish the degree to which data source forced long
+distance or long-time correlations in the CW data set.
+
+....
+After limiting ourselves to data sources XXX in the CW set, we find XXX.
+
+  
+
+\section{Conclusions}
+
+\subsection{Initial conclusions}
+
+\subsection{Further research}
+Ice field prediction null forecaster
+SOI null forecaster
+Analysis method incorporating space-time correlations and conditional coverage
+Reconstruction from ice edge (conditional coverage)
+
+
+  
+
+Data sets:
+  Walsh climatology : Chapman, W. L. and J. E. Walsh, Long-range prediction
+of regional sea ice anomalies in the arctic, Weather and forecasting, 6,
+271-288, 1991.
+ 
+  NASA on the fly climatology
+
+  NASA revised climatology
+
+  NCEP analysis
+
+  USGS monthly
+ 
+
+ 
+
+\pagebreak
+Bibliography
+
+ Chapman, W. L. and J. E. Walsh, Long-range prediction
+of regional sea ice anomalies in the arctic, Weather and forecasting, 6,
+271-288, 1991.
+
+Rogers, enso correlation
+
+BPRC enso correlations
+
+Gloersen, Per quasi-quadrennial oscillation papers
+
+Mysaak et al, et al and Mysaak on long period oscillations
+
+Icelandic long time series
+
+SOI data cite
+
+
+\end{document}

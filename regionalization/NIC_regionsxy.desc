@@ -1,0 +1,117 @@
+Dear Bob,
+
+We have been able to produce a lon/lat text file (attached)for 38 
+Arctic/Northern Hemisphere NIC GIS regions as follows:
+
+1 - Skagerrak
+2 - Baltic Sea
+3 - Grand Banks
+4 - Gulf of St. Lawerence
+5 - Labrador
+6 - White Sea
+7 - Greenland Southwest
+8 - Greenland South
+9 - Greenland Central
+10 - Barents Sea Sout
+11 _ Barents Sea North
+12 - Davis Strait
+13 - Foxe Basin
+14 - Hudson Bay
+15 - Greenland North
+16 - Kara Sea South
+17 - Baffin Bay
+18 - High Arctic East
+19 - Kara Sea North
+20 - Canadian Arctic East
+21 - High Arctic West 2
+22 - Canadian Arctic West
+23 Laptev Sea
+24 - High Arctic West 1
+25 - East Siberian Sea
+26 - Beaufort
+27 - Sea of Okhotsk West
+28 - ChuKchi
+29 - Cook Inlet
+30 - Sea of Okhotsk East
+31 - Kamchatka Peninsula
+32 - Bering East
+33 - Yellow Sea
+34 - Bering West
+35 - Sea of Japan
+36 - Sea of Japan South
+37 - Sea of Okhotsk South
+38 - Sea of Okhotsk Southeast
+
+The Chesapeake Bay, Delaware Bay, Great Lakes, and Antarctic regions 
+can and will be converted next if required.
+
+-- 
+Best regards,
+
+Pablo Clemente-Colón, Ph.D.
+Chief Scientist
+National Ice Center
+NOAA/NESDIS/ORA
+4251 Suitland Road
+FOB #4, Room 2301
+Washington, D.C. 20395
+
+Phone: +1-301-394-3119 Fax: +1-301-394-32000
+Email: Pablo.Clemente-Colon@natice.noaa.gov
+Backup Email: oceansar@hotmail.com
+Web: http://www.orbit.nesdis.noaa.gov/sod/orad/sar/oceansar/
+
+----- Original Message -----
+From: "Robert Grumbine" <Robert.Grumbine@noaa.gov>
+Date: Friday, March 18, 2005 10:07 am
+Subject: Re: Region boundaries
+
+> Pablo Clemente-Colon wrote:
+> 
+> >Dear Bob,
+> >
+> >I received the database file with the general boxes for each of 
+> the NIC 
+> >regions.  I have converted the file into a comma-delimited text 
+> file 
+> >that I am attaching.  Let me know if this format is convenient to 
+> you.  
+> >In addition, I also already have the precise coastal/region 
+> contour 
+> >files in a number of GIS formats but we should be able to convert 
+> them 
+> >into text files if you need the additional details.
+> >
+> >  
+> >
+> Pablo,
+> 
+>  I mentioned that the data need to be lat-long.  The format 
+> itself is 
+> fine, but these numbers
+> are obviously not latitudes and longitudes.  
+> 
+> Baffin 
+> Bay,BAFF,2016673.12500,1102557.12500,260684.28125,147769.70313,EAST 
+ARCTIC
+> 
+> What I have in mind is something more like:
+> Baffin Bay
+> 66.5 -50
+> 66.5 -70
+> 70 -70
+> 72.5 -80
+> 80 -80
+> 80 -60
+> 75 -50
+> 70 -50
+> 66.5 -50
+> This also could be comma-delimited on one or a few lines, the 
+> important 
+> part being that they are latitude-longitude pairs.
+> 
+> Thanks,
+> Bob Grumbine
+> 
+> 
+> 

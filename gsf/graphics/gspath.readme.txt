@@ -1,0 +1,43 @@
+/nfsuser/g01/cfspom/daily_data/gspath/readme.txt 
+
+YYYYMMD     - directories containing monthly Gulf Stream    
+              files YYYYMMDD.gspath
+
+NOUT_DIR    - directory to hold the Gulf stream files 
+              with Julian Day notation for a year gsDDDnw.sub, 
+              and also their parsed north and south wall
+              components  nout.yyyymmdd and sout.yyyymmdd
+
+collect_gspath.sh  - old script to check buffer for most
+                     recent Gulf Stream file
+
+get_gspath.sh   - script to check last 10 days of buffer 
+                  for every Gulf Stream file it finds,
+                  parse it to nout.yyyymmdd and sout.yyyymmdd
+                  files, and copy to appropriate YYYYMMDD 
+                  and NOUT_DIR directories.  The script is run
+                  daily in a cron job on s1n2.   
+
+gsf_parse.pl    - pearl script to parse the file gsDDDnw.sub
+                  into nout.yyyymmdd and sout.yyyymmdd
+ 
+plot_all_rings.pro - IDL program to plot movement of Gulf Stream 
+                     rings, by reading location of ring in 
+                     Gulf Stream files 
+
+plot_gs_rings.pro  - another version of IDL program above. 
+
+read_gsdate.f      - fortran90 program to read gsDDDnw.sub
+                     program, extract the date on 6-th line
+                     and write it to file in form YYYYMMDD. 
+
+read_gsdate.x      - executable to read_gsdate.f 
+
+sort_eddy.sh       - a script go grep WARM and COLD eddies
+                     from various files to be used with plot*rings.pro
+                     above. 
+
+test_date.sh       - script to test calculation of Julian Days
+                     when going back to last days of previous year. 
+
+Mar. 2004   William O'Connor 

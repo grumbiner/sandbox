@@ -1,0 +1,15 @@
+
+A _region_ is a _set of points_
+-- which are _contiguous_
+-- which have a _type point_ (base point, key point)
+-- which are mutually correlated
+-- which are more highly correlated to their type-point
+           than any other type point
+
+n.b.: Might be that a given point is not part of any reasonable region.
+n.b.: Might be that best (cover greatest area) type point(s) for N region(s)
+         are not among the best for N+1 regions.
+
+score(ij) = sum (variance(kl) * area * r^2(i,j; k,l)) for all k,l
+
+

@@ -1,0 +1,17 @@
+tag=940401
+TNNDIR=/data/nsidc/apr
+TBDIR=$HOME/HDF3.3r4/hdf/data/n3b/1994/apr
+HDFBIN=$HOME/HDF3.3r4/hdf/bin
+HDFINCDIR=$HOME/HDF3.3r4/hdf/include
+HDFLIBDIR=$HOME/HDF3.3r4/hdf/lib
+MACHINE=LINUX
+
+#No changes necessary below here----------------------------------------
+
+$HDFBIN/hdftor8 $TNNDIR/$tag.TNN
+cc nsidc.c nasa_team.c -I $HDFINCDIR $HDFLIBDIR/libdf.a -D$MACHINE -o nsidc
+cc del.c -o del
+./nsidc $TBDIR/$tag > a
+./del conc img001-304.448 difmap > b
+sort -nr +4.0 -5.0 -nr +2.0 -3.0 b > c
+

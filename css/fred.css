@@ -1,0 +1,80 @@
+.white  {
+	font-size : 9pt;
+	color : #FFFFFF;
+	font-weight : bold;
+	font-family : "Arial, Helvetica, San Serif";
+}
+
+.menuitem {
+        text-decoration: none;
+}
+.menuitem A:link {
+  color: white;
+        text-decoration: none;
+}
+.menuitem A:Visited  {
+  color: white;
+        text-decoration: none;
+}
+.menuitem A:hover {
+  color : yellow;
+  text-decoration: underline;
+}
+
+
+
+.yellow  {
+	font-family : "Arial, Helvetica, San Serif";
+	font-size : 9pt;
+	font-weight : bold;
+	color : #F0E68C;
+}
+
+.red  {
+	font-family : "Arial, Helvetica, San Serif";
+	font-size : 9pt;
+	font-weight : bold;
+	color : #FF0000;
+}
+
+.searchinput, .searchinput SELECT, .searchinput INPUT  {
+	font-size : 8pt;
+}
+
+td  {
+	font-size : 9pt;
+	font-family : "Arial, Helvetica, San Serif";
+}
+
+h3 {
+	font-size : 13pt;
+	font-family : "Arial, Helvetica, San Serif";
+}
+
+.gray  {
+	font-size : 8pt;
+	color : #808080;
+}
+
+.nav  {
+	font-size : 9pt;
+	color : #FFFFFF;
+	font-weight : bold;
+	font-family : "Arial, Helvetica, San Serif";
+}
+
+.nwslink  {
+	font-size : 9pt;
+	color: Black;
+	text-decoration: none;
+	font-family : "Arial, Helvetica, San Serif";
+}
+
+.srhwhite  {
+	font-size : 9pt;
+	text-decoration: none;
+	color : #FFFFFF;
+	font-weight : bold;
+	font-family : "Arial, Helvetica, San Serif";
+}
+

@@ -1,0 +1,8 @@
+-173.0             Longitude of lower left corner
+ -62.850           Longitude of upper right corner
+30.0000            Latitude of lower left corner
+70.111             Latitude of upper right corner
+ 5                 lat-long interval
+ 1                 Projection type
+30.                Reference lat
+-135.               Reference longitude

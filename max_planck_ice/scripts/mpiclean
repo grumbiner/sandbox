@@ -1,0 +1,8 @@
+if [ -f vels ] ; then
+rm sml tml hml conc thick vels FORT.?? \
+  prof.data atm.flux oce.flux
+fi
+
+if [ -f stossel.out ] ; then
+  rm stossel.out mpirun..e[0-9]* pgm.report 
+fi

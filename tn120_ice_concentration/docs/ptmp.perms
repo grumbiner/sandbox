@@ -1,0 +1,156 @@
+From sp-questions-owner@ncep.noaa.gov  Thu May  1 13:23:46 2003
+Return-Path: <sp-questions-owner@ncep.noaa.gov>
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h41HNjo03782
+	for <seaice@polar.wwb.noaa.gov>; Thu, 1 May 2003 13:23:46 -0400
+Received: from www.ncep.noaa.gov ([140.90.193.167]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HE7XNL00.9MN; Thu, 1 May 2003 13:23:45 -0400 
+Received: from www.ncep.noaa.gov (localhost [127.0.0.1])
+	by www.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h41HIWin019211
+	for <sp-questions-outgoing@www.ncep.noaa.gov>; Thu, 1 May 2003 13:18:32 -0400 (EDT)
+Received: (from majordomo@localhost)
+	by www.ncep.noaa.gov (8.12.8/8.12.8/Submit) id h41HIWmu019207
+	for sp-questions-outgoing; Thu, 1 May 2003 17:18:32 GMT
+X-Authentication-Warning: www.ncep.noaa.gov: majordomo set sender to owner-sp-questions@www.ncep.noaa.gov using -f
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by www.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h41HISin019201
+	for <sp-questions@www.ncep.noaa.gov>; Thu, 1 May 2003 13:18:29 -0400 (EDT)
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h41HNXuN030383
+	for <sp-questions@ncep.noaa.gov>; Thu, 1 May 2003 13:23:33 -0400
+Received: from noaa.gov ([140.90.192.129]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HE7XNE00.1MW;
+          Thu, 1 May 2003 13:23:38 -0400 
+Message-ID: <3EB15819.57CD27B4@noaa.gov>
+Date: Thu, 01 May 2003 13:23:38 -0400
+From: "george.vandenberghe" <george.vandenberghe@noaa.gov>
+Organization: IBM@NOAA/NCEP
+X-Mailer: Mozilla 4.5 [en] (X11; I; Linux 2.0.36 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: Dennis Keyser <Dennis.Keyser@noaa.gov>, sp-questions@ncep.noaa.gov
+Subject: Re: sp-questions: /ptmp problem on Snow
+References: <3EB1465E.E0AF4F79@noaa.gov>
+Content-Type: multipart/alternative;
+ boundary="------------E16C6E6049BA3D9282198EA0"
+Sender: owner-sp-questions@www.ncep.noaa.gov
+Precedence: bulk
+Reply-To: "george.vandenberghe" <george.vandenberghe@noaa.gov>
+Status: R
+
+-> "george.vandenberghe" <george.vandenberghe@noaa.gov> writes:
+
+
+--------------E16C6E6049BA3D9282198EA0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Do ls -ld of that sorc directory on snow.  You will probably
+find it does not have setgid set.  Check your other permissions
+(for example 755) and do chmod 2755 sorc.  This will
+set the group id.  Replace 755 with the permissions you
+actually have on sorc if they are different.
+ls -ld sorc
+drwxr-xr-x   5 wx22dk   staff         16384 May 01 12:09 sorc
+s1n1 >ls -ld ../wx22dk
+drwxr-sr-x   7 wx22dk   staff         16384 May 01 12:03 ../wx22dk
+
+
+ The wx22dk directory has s in place of x in the group permissions.
+THis indicates setgid is on.  Most directories on /ptmp have this on now
+and once on it propagates to new directories.
+
+The sorc directory indeed does not have it on so I'll fix it.
+
+{{ clickety click }}
+
+I've logged in as root and changed it.
+
+
+
+Dennis Keyser wrote:
+
+> Hi,
+>
+> I'm getting some strange file system problems on snow in /ptmp/wx22dk.  If I
+> attempt to create a file in the directory /ptmp/wx22dk called FF I can save it
+> fine and it has the group "staff".  Also, if a make a new directory and create a
+> file in it, it again is okay, with both the directory and the group being
+> "staff".  However, if I go into an existing directory, e.g. sorc (also with
+> group directory "staff") and try to create a file called A I get the message
+> "Cannot exceed the user or group quota - incomplete save" and the file A is
+> empty but an ls shows it has group name "g01".  There seems to be a problem.
+>
+> Thanks for your assistance,
+>
+> Dennis Keyser
+
+--
+George VandenBerghe
+IBM Corp.
+301-763-8115x7119
+George.VandenBerghe@noaa.gov
+
+
+
+--------------E16C6E6049BA3D9282198EA0
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+Do ls -ld of that sorc directory on snow.&nbsp; You will probably
+<br>find it does not have setgid set.&nbsp; Check your other permissions
+<br>(for example 755) and do chmod 2755 sorc.&nbsp; This will
+<br>set the group id.&nbsp; Replace 755 with the permissions you
+<br>actually have on sorc if they are different.
+<br>ls -ld sorc
+<br>drwxr-xr-x&nbsp;&nbsp; 5 wx22dk&nbsp;&nbsp; staff&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+16384 May 01 12:09 sorc
+<br>s1n1 >ls -ld ../wx22dk
+<br>drwxr-sr-x&nbsp;&nbsp; 7 wx22dk&nbsp;&nbsp; staff&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+16384 May 01 12:03 ../wx22dk
+<br>&nbsp;
+<p>&nbsp;The wx22dk directory has s in place of x in the group permissions.
+<br>THis indicates setgid is on.&nbsp; Most directories on /ptmp have this
+on now
+<br>and once on it propagates to new directories.
+<p>The sorc directory indeed does not have it on so I'll fix it.
+<p>{{ clickety click }}
+<p>I've logged in as root and changed it.
+<br>&nbsp;
+<br>&nbsp;
+<p>Dennis Keyser wrote:
+<blockquote TYPE=CITE>Hi,
+<p>I'm getting some strange file system problems on snow in /ptmp/wx22dk.&nbsp;
+If I
+<br>attempt to create a file in the directory /ptmp/wx22dk called FF I
+can save it
+<br>fine and it has the group "staff".&nbsp; Also, if a make a new directory
+and create a
+<br>file in it, it again is okay, with both the directory and the group
+being
+<br>"staff".&nbsp; However, if I go into an existing directory, e.g. sorc
+(also with
+<br>group directory "staff") and try to create a file called A I get the
+message
+<br>"Cannot exceed the user or group quota - incomplete save" and the file
+A is
+<br>empty but an ls shows it has group name "g01".&nbsp; There seems to
+be a problem.
+<p>Thanks for your assistance,
+<p>Dennis Keyser</blockquote>
+
+<pre>--&nbsp;
+George VandenBerghe
+IBM Corp.
+301-763-8115x7119
+George.VandenBerghe@noaa.gov</pre>
+&nbsp;</html>
+
+--------------E16C6E6049BA3D9282198EA0--
+
+-> Posted to sp-questions.
+-> Majordomo version 1.94.3.
+

@@ -1,0 +1,20 @@
+#BSUB -q debug
+#BSUB -P RTO-T2O
+#BSUB -a poe
+#BSUB -e /u/Robert.Grumbine/mpierr
+#BSUB -o /u/Robert.Grumbine/mpiout
+#BSUB -J hello
+#BSUB -W 00:10
+# #BSUB -M 360
+#BSUB -n 2
+#BSUB -R span[ptile=1]
+#BSUB -x
+#BSUB -o /u/Robert.Grumbine/hello.out
+
+module load lsf
+module load ics
+module load ibmpe
+
+cd /u/Robert.Grumbine/shallow
+#time /usrx/local/bin/getrusage -rss  ./hello
+time ./hello

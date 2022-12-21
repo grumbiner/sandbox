@@ -1,0 +1,12 @@
+Notes:
+
+regionalize reads in allice.summary (from 'bulk'), and all the ice 
+    observations then compute and write out the correlation vectors for 
+    (all, now) points, plus figure of merit ('scores')
+
+Given correlation vectors and scores, 'partition' picks up points with 
+    maximum scores and then partitions field according to rcrit (its 1 
+    argument).
+
+iterate.gs will make maps of first N regions.
+
