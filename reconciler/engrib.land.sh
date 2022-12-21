@@ -1,0 +1,44 @@
+echo 20100112 > ein
+tag4=20100112
+echo $tag4 | cut -c1-2  > psin
+echo $tag4 | cut -c3-4  >> psin
+echo $tag4 | cut -c5-6  >> psin
+echo $tag4 | cut -c7-8  >> psin
+
+
+ln -f seaice_gland5min fort.11
+touch fort.51
+ln -f fort.51 seaice_gland5min.grib
+./execs/land_ice2grib5min < ein
+rm fort.51
+ 
+ln -f seaice_newland fort.11
+touch fort.51
+ln -f fort.51 seaice_newland.grib
+./execs/land_ice2grib < ein
+rm fort.51
+
+ln -f seaice_nland127.map fort.11
+touch fort.51
+ln -f fort.51 seaice_nland127.grib
+./execs/land_psgnorth12 < psin
+rm fort.51
+
+ln -f seaice_sland127.map fort.11
+touch fort.51
+ln -f fort.51 seaice_sland127.grib
+./execs/land_psgsouth12 < psin
+rm fort.51
+
+ln -f seaice_nland.map fort.11
+touch fort.51
+ln -f fort.51 seaice_nland.grib
+./execs/land_psgnorth < psin
+rm fort.51
+
+ln -f seaice_sland.map fort.11
+touch fort.51
+ln -f fort.51 seaice_sland.grib
+./execs/land_psgsouth < psin
+rm fort.51
+

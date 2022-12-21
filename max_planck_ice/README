@@ -1,0 +1,64 @@
+#On the following three lines, respectively, give the full pathname of 
+#the CD-ROM drive, the directory you want the data (~50 Mb) to reside in,
+#and the model codes themselves.  Do _NOT_ leave a space after the = sign.
+#After editing this file, chmod 554 transfer, then sh transfer and the
+#required files will be copied across to your disk(s) for further use.
+
+#Once finished with this, cd to your icemodel directory, edit travel
+# to suit your system (only the first couple lines should need modification).
+#Then execute sh ./travel unpack light.  This will unpack the source 
+#codes for the sea ice model environment.  Note that additional directories
+#will be created at the same hierarchal level as the icemodel directory 
+# -- library and others.  These contain required source codes which are
+#not special to the ice model.  
+#travel will immediate initiate vi sessions for you to edit the files
+#  'build', and bc/north.oin, bc/south.oin, bc/glk.oin.  The only lines
+#  in the bc files which require modification are those specifying where
+#  the '82 Levitus climatology files are (DATA below).
+#Once done with that, cd to the data directory, compile the program
+#bathy.f in the DATA directory, and execute it.  This will create a
+#binary bathymetry file on your system.  If you are running on a cray,
+#sgi, sun, hp, or linux system, you can copy the bathy.X (cry, sgi, sun,
+#hp, lin) file from the cd directory bearing those system's names into
+#your data directory.
+#Now you are ready to build the sea ice environment.  Return to the
+#icemodel directory and execute ./retry.  This will run the build
+#script in the background, time the execution, and create output files
+#build51 (the standard output of the build process) and build52 (the
+#error message output).  The timing will appear at the bottom of the
+#build52 file.  Sample output for cray, sgi, sun, hp, linux are given
+#in the respective directories.  Certain build elements will fail,
+#so do not worry about that.  The build expects that you have ncar
+#graphics, without which some plotting programs will not get built.
+#The meteorology programs expect that you have the W3 libraries
+#built on your system.  The ice model itself and the programs required
+#to build the fixed input files (bathymetry, ocean T, S, land mask)
+#do not need the W3 libraries.  
+#At this point, you should have directories icefore and execs at the
+#same level as the icemodel directory, and they should contain output
+#files and executables.  Icefore may be deleted.
+
+#Finally, you are ready to run the test case.  Because of the absence
+#at some locations of the W3 libraries, I've constructed an ASCII file
+#which will be converted on your system to binary.  The ASCII outputs
+#from the test case are given for each system.  There is some slight
+#variation due to system limits.  Do verify that you match this closely
+#to the standard result.  If you don't, write me at once with full
+#details on your hardware/software configuration. 
+
+#
+#Bob Grumbine 22 December 1995.
+
+CDROM=
+DATA=
+ICEMODEL=
+
+cp $CDROM/salt.lev  $DATA/SALT.LEVITUS
+cp $CDROM/temp.lev  $DATA/TEMP.LEVITUS
+cp $CDROM/zmask.ref $DATA/zmask.reform
+cp $CDROM/icenv.tar $ICEMODEL/icenv00.tar
+cp $CDROM/travel    $ICEMODEL/travel
+chmod 555  $ICEMODEL/travel
+cp $CDROM/data/* $DATA
+
+exit

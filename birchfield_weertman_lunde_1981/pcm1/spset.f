@@ -1,0 +1,23 @@
+      SUBROUTINE SPSET
+      COMMON/SPNCOM/MPSPN,SPN(3,3,2)
+      COMMON W(46,50) 
+      COMMON/MINOR/NMINOR,JFM,JDUM(25)
+      COMMON/CONST/M,MM,MP,MPP,N, 
+     1 DELPHI,DELT,PI,AEARTH,DUM(38)
+      REAL AT(3),RL(3)
+      DATA MPSPN/0/ 
+      AT(1)=4*PI*AEARTH*AEARTH
+      AT(2)=0.5*AT(1) 
+      AT(3)=0.5*AT(1) 
+      CALL SPHERE(JFM,RL(1),RL(2),RL(3), JFM)
+      DO 110 IA=1,3 
+      SPN(IA,1,1)=1.0 
+      SPN(IA,2,1)=1./(RL(IA)) 
+      SPN(IA,3,1)=1./(1.-RL(IA))
+ 110  CONTINUE
+      DO 120 IA=1,3 
+      DO 120 IB=1,3 
+ 120  SPN(IA,IB,2)=AT(IA) 
+      MPSPN=MP
+      RETURN
+      END 

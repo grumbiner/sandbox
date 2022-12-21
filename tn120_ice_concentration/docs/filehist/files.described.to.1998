@@ -1,0 +1,208 @@
+1994 Apr 7 reanalys.f
+  Suru Saha program to process snow and ice information for NCEP/NCAR 
+  reanalysis
+
+1995 Mar 1  nic.regions.h
+  lat long corners for a number of regions then of interest to NIC
+
+1995 Nov 26 distrib.tex
+  products and distribution methods
+
+1996 Apr 3 nasarep3a.tex
+  Report, year 3, on ice thickness inversion
+
+1996 Jul 14 reanl.N
+  scripts to run through NSIDC disks and produce ice concentrations for 
+NCEP/NCAR reanalysis
+
+1996 Jul 14 filt, del.jcl
+  Scripts to filter concentration fields w.r.t. sst, and to compute
+deltas, respectively.
+
+1996 Jul 15 readme
+  readme for how to run NCEP/NCAR reanalysis programs
+
+1996 Jul 24 area2.c areadel.f area2.jcl
+  Compute areas greater than given cutoffs and process outputs
+
+1996 Jul 31 area.tex
+  document start on area conservation problems between different 
+sources.
+
+1996 Dec 11 maplltst.c
+  (no longer runnable) sample to generate lat-long values for two different
+  mapping algorithms.  (Link to mapll.cpp.c, rather than library.)
+
+1997 Mar 20 ssmi.tpb.wpd, ssmi.tpb.txt
+  TPB for the sea ice concentration product
+
+1997 Jun 2 ssmi.tex
+  Near-final version of what became TN120
+
+1997 June 4 mapll.f
+  Fortran version of mapping function
+
+1997 Jun 5 magnify.html
+  Early version of magnification web page
+
+1997 Jun 10 branch.feb.tex
+  Branch meeting for February
+
+1997 Jul 22 ssmi.presentation/
+  Two or three different presentations on the operational ice concentration
+products.
+
+1997 Nov 14 README.19971114
+  Grads README
+
+1997 Dec 11 henrichsen.9712, awipshdr.tbl
+  Getting sea ice fields into awips header tables.  Notes from Peter
+  Henrichsen.
+
+1998 Mar 24 dk2.txt
+  Soren Anderson EUMETSAT work plan on sea ice concentrations.
+
+1998 Mar 26 florence
+  Email to Florence Fetterer at NSIDC on different NCEP products
+
+1998 May 13 restart.jcl
+  Control script then current for producing sea ice products on the cray(s)
+
+1998 May 27 getcell.C
+  Look for times/points which have 4 straight days of valid observations and
+then print out the values for that point and the +- 1 points.  For time
+series processing and thinking about gap filling/data assimilation.
+
+Back to 1997 -- gridN.C 
+  programs to parse arguments and produce xpm blowups of regions of interest.
+
+1998 Jun 12 eta.mapper
+  program from Eric Rogers to produce lat-long values for eta grid i,j
+
+1998 Jun 15 ice.presentation/
+  Branch presentation
+
+1998 Jun 30 movie
+  run through a monthly hemispheric grib file and make daily images and then
+a monthly animation
+
+1998 Jul 13 algs
+  Kim Partington collection of ice concentration algorithms being used
+in NIC intercomparison(s)
+
+1998 Jul 14 mail.19980714
+  Partington mail on weather filtering
+
+1998 Jul 20 ssmi.auto/
+  TN120 gif and html version
+
+1998 Jul 21 ex990.orig
+  Operational script for control of SSMI execution/production
+
+1998 Jul 20-22 research.html, Data.centers.html, Coupling.html, iceclimate.html
+  Web pages on file-named topics.  Iceclimate never published.
+
+1998 Aug 5 usatoday/
+  Compute areas of global ice cover and make figures for/related to
+USA Today article.
+
+1998 Aug 5 radio/
+  Graphics emailed to Laura Lee show and NWS PA liaison
+
+1998 Aug 6 timer.C timer.sh
+  Run through a year and write out by appending transects on constant j
+(all i) for later time series analysis.  This turns out to be very file 
+inefficient as the strips get written all over the disk.
+
+1998 Aug 7 series.C
+  Given above output, compute some simple statistics and write out
+data pointwise.
+
+1998 Aug 10 y2k.jcl
+  product script in run up to y2k corrections
+
+1998 Sep 3 rep.ice.reanal, rep.ice.reanal2
+  Edward Hanna qs on reanalysis sea ice
+
+1998 Sep 3 rep.clive
+  clive jones on gts problems, and on their use of ncep ice
+
+1998 Sep 3 rep.azov
+  Vladimir Fomin on sea ice information for the Azov Sea (Ukraine)
+
+1998 Sep 3 support.html
+  Description of land masks/masking
+
+1998 Sep 17 delta.C
+  Compute some day to day difference stats and graphics
+
+1998 Sep 21 rep.belgium
+  Benoit Petit email on using ncep ice
+
+1998 Sep 22 age.C
+  Compute the age distribution over the ssmi grid
+
+1998 Sep 25 ssmi2.C
+  Compute cross-correlations between points given timer.C input
+1998 Sep 30 ssmi.C
+  Compute spectrum of points given timer.C input
+
+1998 Oct 16 astat.C
+  Early start of finding regression parameters for 85GHz-only ice algorithm
+
+1998 Oct 30 swaber
+  Rename and byte-swap for linux the 3ssmi files
+
+1998 Nov 9 cmc.f
+  CMC ice concentration algorithm from Jacques Halle
+
+1998 Nov 9 Research.html, Products.html, historical.html, Field.html, 
+      weafcst.html
+  Web pages on sea ice products and related info.
+
+1998 Nov 17 rebuild.html
+  Notes on rebuilding time series -- never completed and displayed
+
+1998 Nov 18-20 globxpm.C, nhxpm.C, shxpm.C
+  Programs to make xpm files from each grid type
+
+1998 Nov 19 1998.mail/
+  email and mailing list on ice products
+
+1998 Nov 20 counts.C
+  color up data counts for daily files
+
+1998 Nov 20 latlon.C
+  rescaled psgrid processing -- more a test of on the fly psgrid construction
+
+1998 Nov 20 findlake.C
+  Given a lat-long location, print out a 11x11 centered ascii map of area
+flagging land, coast, 0.
+
+1998 Nov 20 ice_data.c
+  Part of operational program, manage ice data averaging/masking/etc.
+  superceded by 2004/05/19
+ 
+1998 Nov 20 mapping.c
+  mapll, fmapll, mapxy -- c versions of mapping functions, diviced to 
+mapll.c and mapxy.c by 2001/01/16
+
+1998 Nov 20 ssmicheck.C
+  Test program with ssmi class, try some simple QC checks on 3ssmi files
+
+1998 Dec 9 - 1999 Jun 22 correspondance on ice climatology
+  rep.giss.wkshp, rep.nasa, gcos.rtf, rep.gcos, gcos.mail.981216, rep.rayner,
+    rayner.fig, rep.giss, mail, rayner.mail, renamer
+
+1998 Dec 11 deltest.sh
+  Delta between old and new globals for reanalysis
+1998 Dec 11 short.sh
+  short script for reconstruction and gap filling of global files
+
+1998 Dec 11 degrib.f
+  fortran subroutine to extract sst grib field(s) directly, vs. using wgrib
+externally.
+
+1998 Dec 17 rayner
+  note to nick on ice fields being available
+

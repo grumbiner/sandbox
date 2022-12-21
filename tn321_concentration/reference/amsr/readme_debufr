@@ -1,0 +1,8 @@
+
+from Jeff Ator
+
+
+/nwprod/util/exec/debufr -t<tabledir> -f<filename> bufrfile
+
+                         -t<tabledir>                   -f<filename>  ; filename=bufr.tab bufrfile
+/nwprod/util/exec/debufr -t/ptmp/Vera.Gerald/amsr2_btmp -fAMSR2_1B_BUFR_Table  mybufrfile

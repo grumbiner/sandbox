@@ -1,0 +1,91 @@
+.------------------------------------------------------------------------------.
+| ------------   USER DEFINITIONS FOR TABLE-A TABLE-B TABLE D   -------------- |
+|------------------------------------------------------------------------------|
+| MNEMONIC | NUMBER | DESCRIPTION                                              |
+|----------|--------|----------------------------------------------------------|
+|          |        |                                                          |
+| NC021248 | A50249 | MSG TYPE 021-248 Advanced Microwave Scanning Radiometer  |
+|          |        | 2 (AMSR2) 1B brightness temperature data                 |
+|          |        |                                                          |
+| YYMMDD   | 301011 | Date -- year, month, day                                 |
+| HHMM     | 301012 | Time -- hour, minute                                     |
+| LTLONH   | 301021 | High accuracy latitude/longitude position                |
+| AMSRCH   | 310193 | AMSR2 channels and brightness temperatures set           |
+|          |        |                                                          |
+| SAID     | 001007 | Satellite identifier                                     |
+| OGCE     | 001033 | Identification of originating/generating center          |
+| GSES     | 001034 | Identification of originating/generating sub-center      |
+| SIID     | 002019 | Satellite instruments                                    |
+| SCLF     | 002020 | Satellite classification                                 |
+| ANPO     | 002104 | Antenna polarization                                     |
+| MTYP     | 002141 | Measurement type                                         |
+| SCCF     | 002153 | Satellite channel center frequency                       |
+| YEAR     | 004001 | Year                                                     |
+| MNTH     | 004002 | Month                                                    |
+| DAYS     | 004003 | Day                                                      |
+| HOUR     | 004004 | Hour                                                     |
+| MINU     | 004005 | Minute                                                   |
+| SECO     | 004006 | Second                                                   |
+| CLATH    | 005001 | Latitude (high accuracy)                                 |
+| SOLAZI   | 005022 | Solar azimuth                                            |
+| ORBN     | 005040 | Orbit number                                             |
+| SLNM     | 005041 | Scan line number                                         |
+| FOVN     | 005043 | Field of view number                                     |
+| CLONH    | 006001 | Longitude (high accuracy)                                |
+| SOEL     | 007022 | Solar elevation                                          |
+| TMBR     | 012163 | Brightness temperature (high accuracy)                   |
+| ALFR     | 021166 | Land fraction                                            |
+| IANG     | 025081 | Incidence angle                                          |
+| AANG     | 025082 | Azimuth angle                                            |
+| ACQF     | 033032 | Channel quality flags for ATOVS                          |
+| VIIRSQ   | 033083 | Radiance data quality flags                              |
+|          |        |                                                          |
+|------------------------------------------------------------------------------|
+| MNEMONIC | SEQUENCE                                                          |
+|----------|-------------------------------------------------------------------|
+|          |                                                                   |
+|          |                                                                   |
+| NC021248 | SAID     OGCE     GSES     SIID     SCLF     YYMMDD   HHMM        |
+| NC021248 | 207003   SECO     207000   ORBN     201133   SLNM     FOVN        |
+| NC021248 | 201000   LTLONH   SOLAZI   SOEL     IANG     AANG     ACQF        |
+| NC021248 | 208006   MTYP     208000   {AMSRCH}                               |
+|          |                                                                   |
+| YYMMDD   | YEAR     MNTH     DAYS                                            |
+| HHMM     | HOUR     MINU                                                     |
+| LTLONH   | CLATH    CLONH                                                    |
+| AMSRCH   | SCCF     ALFR     VIIRSQ   ANPO     TMBR                          |
+|          |                                                                   |
+|------------------------------------------------------------------------------|
+| MNEMONIC | SCAL | REFERENCE   | BIT | UNITS                    |-------------|
+|----------|------|-------------|-----|--------------------------|-------------|
+|          |      |             |     |                          |-------------|
+| SAID     |    0 |           0 |  10 | Code table               |-------------|
+| OGCE     |    0 |           0 |   8 | Code table               |-------------|
+| GSES     |    0 |           0 |   8 | Code table               |-------------|
+| SIID     |    0 |           0 |  11 | Code table               |-------------|
+| SCLF     |    0 |           0 |   9 | Code table               |-------------|
+| ANPO     |    0 |           0 |   4 | Code table               |-------------|
+| MTYP     |    0 |           0 |  24 | CCITT IA5                |-------------|
+| SCCF     |   -8 |           0 |  26 | Hz                       |-------------|
+| YEAR     |    0 |           0 |  12 | Year                     |-------------|
+| MNTH     |    0 |           0 |   4 | Month                    |-------------|
+| DAYS     |    0 |           0 |   6 | Day                      |-------------|
+| HOUR     |    0 |           0 |   5 | Hour                     |-------------|
+| MINU     |    0 |           0 |   6 | Minute                   |-------------|
+| SECO     |    0 |           0 |   6 | Second                   |-------------|
+| CLATH    |    5 |    -9000000 |  25 | Degree                   |-------------|
+| SOLAZI   |    2 |           0 |  16 | Degree true              |-------------|
+| ORBN     |    0 |           0 |  24 | Numeric                  |-------------|
+| SLNM     |    0 |           0 |   8 | Numeric                  |-------------|
+| FOVN     |    0 |           0 |   8 | Numeric                  |-------------|
+| CLONH    |    5 |   -18000000 |  26 | Degree                   |-------------|
+| SOEL     |    2 |       -9000 |  15 | Degree                   |-------------|
+| TMBR     |    2 |           0 |  16 | K                        |-------------|
+| ALFR     |    3 |           0 |  10 | Numeric                  |-------------|
+| IANG     |    3 |           0 |  17 | Degree                   |-------------|
+| AANG     |    3 |           0 |  19 | Degree                   |-------------|
+| ACQF     |    0 |           0 |  24 | Flag table               |-------------|
+| VIIRSQ   |    0 |           0 |  16 | Flag table               |-------------|
+|          |      |             |     |                          |-------------|
+`------------------------------------------------------------------------------'
+

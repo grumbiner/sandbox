@@ -1,0 +1,173 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       aot_edr.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for VIIRS MOD GEO file.
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       VIIRS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for VIIRS granule data:
+//
+//           $ ncgen -b -k3 aot_edr.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Yi Song, IMSG, 12/29/09
+//                     Yi.Song@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+
+
+netcdf aot_edr {
+
+//---------
+dimensions:
+//---------
+
+      AlongTrack = 96;
+      CrossTrack = 400;
+      Factor = 2;
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+        float AerosolOpticalDepthFactors(Factor) ;
+                AerosolOpticalDepthFactors:scale_factor = 1. ;
+                AerosolOpticalDepthFactors:add_offset = 0. ;
+                AerosolOpticalDepthFactors:_FillValue = -9999.f ;
+
+      ushort AerosolOpticalDepth_at_1240nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_1240nm:long_name = "Aerosol Optical Depth at 1240nm";
+             AerosolOpticalDepth_at_1240nm:unit = "none" ;
+             AerosolOpticalDepth_at_1240nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_1240nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_1240nm:_FillValue = 65535us;
+
+      ushort AerosolOpticalDepth_at_1610nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_1610nm:long_name = "Aerosol Optical Depth at 1610nm";
+             AerosolOpticalDepth_at_1610nm:unit = "none" ;
+             AerosolOpticalDepth_at_1610nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_1610nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_1610nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_2250nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_2250nm:long_name = "Aerosol Optical Depth at 2250nm";
+             AerosolOpticalDepth_at_2250nm:unit = "none" ;
+             AerosolOpticalDepth_at_2250nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_2250nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_2250nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_412nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_412nm:long_name = "Aerosol Optical Depth at 412nm";
+             AerosolOpticalDepth_at_412nm:unit = "none" ;
+             AerosolOpticalDepth_at_412nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_412nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_412nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_445nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_445nm:long_name = "Aerosol Optical Depth at 445nm";
+             AerosolOpticalDepth_at_445nm:unit = "none" ;
+             AerosolOpticalDepth_at_445nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_445nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_445nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_488nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_488nm:long_name = "Aerosol Optical Depth at 488nm";
+             AerosolOpticalDepth_at_488nm:unit = "none" ;
+             AerosolOpticalDepth_at_488nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_488nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_488nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_550nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_550nm:long_name = "Aerosol Optical Depth at 550nm";
+             AerosolOpticalDepth_at_550nm:unit = "none" ;
+             AerosolOpticalDepth_at_550nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_550nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_550nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_555nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_555nm:long_name = "Aerosol Optical Depth at 555nm";
+             AerosolOpticalDepth_at_555nm:unit = "none" ;
+             AerosolOpticalDepth_at_555nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_555nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_555nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_672nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_672nm:long_name = "Aerosol Optical Depth at 672nm";
+             AerosolOpticalDepth_at_672nm:unit = "none" ;
+             AerosolOpticalDepth_at_672nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_672nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_672nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_746nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_746nm:long_name = "Aerosol Optical Depth at 746nm";
+             AerosolOpticalDepth_at_746nm:unit = "none" ;
+             AerosolOpticalDepth_at_746nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_746nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_746nm:_FillValue = 65535us ;
+      ushort AerosolOpticalDepth_at_865nm(AlongTrack,CrossTrack) ;
+             AerosolOpticalDepth_at_865nm:long_name = "Aerosol Optical Depth at 865nm";
+             AerosolOpticalDepth_at_865nm:unit = "none" ;
+             AerosolOpticalDepth_at_865nm:scale_factor = 1. ;
+             AerosolOpticalDepth_at_865nm:add_offset = 0. ;
+             AerosolOpticalDepth_at_865nm:_FillValue = 65535us ;
+        ushort AngstromExponent(AlongTrack,CrossTrack) ;
+                AngstromExponent:unit = "none" ;
+                AngstromExponent:scale_factor = 1. ;
+                AngstromExponent:add_offset = 0. ;
+                AngstromExponent:_FillValue = 65535us ;
+        float AngstromExponentFactors(Factor) ;
+                AngstromExponentFactors:scale_factor = 1. ;
+                AngstromExponentFactors:add_offset = 0. ;
+                AngstromExponentFactors:_FillValue = -9999.f ;
+        ubyte QF1_VIIRSAEROEDR(AlongTrack,CrossTrack) ;
+                QF1_VIIRSAEROEDR:scale_factor = 1. ;
+                QF1_VIIRSAEROEDR:add_offset = 0. ;
+                QF1_VIIRSAEROEDR:_FillValue = 255UB ;
+        ubyte QF2_VIIRSAEROEDR(AlongTrack,CrossTrack) ;
+                QF2_VIIRSAEROEDR:scale_factor = 1. ;
+                QF2_VIIRSAEROEDR:add_offset = 0. ;
+                QF2_VIIRSAEROEDR:_FillValue = 255UB ;
+        ubyte QF3_VIIRSAEROEDR(AlongTrack,CrossTrack) ;
+                QF3_VIIRSAEROEDR:scale_factor = 1. ;
+                QF3_VIIRSAEROEDR:add_offset = 0. ;
+                QF3_VIIRSAEROEDR:_FillValue = 255UB ;
+        ubyte QF4_VIIRSAEROEDR(AlongTrack,CrossTrack) ;
+                QF4_VIIRSAEROEDR:scale_factor = 1. ;
+                QF4_VIIRSAEROEDR:add_offset = 0. ;
+                QF4_VIIRSAEROEDR:_FillValue = 255UB ;
+// This is the last array
+        ubyte QF5_VIIRSAEROEDR(AlongTrack,CrossTrack) ;
+                QF5_VIIRSAEROEDR:scale_factor = 1. ;
+                QF5_VIIRSAEROEDR:add_offset = 0. ;
+                QF5_VIIRSAEROEDR:_FillValue = 255UB ;
+
+//------------------
+// global attributes
+//------------------
+
+        :title = "VIIRS AOT granule data file" ;
+        :author = "Yi Song IMSG.  Yi.Song@noaa.gov" ;
+        :rcsId = "$Id: $" ;
+
+
+}

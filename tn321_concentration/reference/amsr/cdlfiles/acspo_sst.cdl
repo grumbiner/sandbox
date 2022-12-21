@@ -1,0 +1,101 @@
+//
+//------------------------------------------------------------------------------
+
+netcdf acspo_sst {
+
+//---------
+dimensions:
+//---------
+
+	CrossTrack = 3200 ;
+	AlongTrack = 5392 ;
+
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+	int pixel_line_number(AlongTrack) ;
+		pixel_line_number:UNITS = "none" ;
+	double pixel_line_time(AlongTrack) ;
+		pixel_line_time:UNITS = "hours" ;
+	byte ascending_descending_flag(AlongTrack) ;
+		ascending_descending_flag:UNITS = "none" ;
+	float latitude(AlongTrack, CrossTrack) ;
+		latitude:UNITS = "degree" ;
+		latitude:Description = "Pixel latitude " ;
+	float longitude(AlongTrack, CrossTrack) ;
+		longitude:UNITS = "degree" ;
+		longitude:Description = "Pixel longitude" ;
+	float satellite_zenith_angle(AlongTrack, CrossTrack) ;
+		satellite_zenith_angle:UNITS = "degree" ;
+		satellite_zenith_angle:Description = "Pixel satellite zenith angle @ surface" ;
+	float solar_zenith_angle(AlongTrack, CrossTrack) ;
+		solar_zenith_angle:UNITS = "degree" ;
+		solar_zenith_angle:Description = "Pixel solar zenith angle" ;
+	float relative_azimuth_angle(AlongTrack, CrossTrack) ;
+		relative_azimuth_angle:UNITS = "degree" ;
+		relative_azimuth_angle:Description = "Pixel relative azimuth angle" ;
+	float albedo_chM5(AlongTrack, CrossTrack) ;
+		albedo_chM5:UNITS = "%" ;
+	float albedo_chM7(AlongTrack, CrossTrack) ;
+		albedo_chM7:UNITS = "%" ;
+	float albedo_chM10(AlongTrack, CrossTrack) ;
+		albedo_chM10:UNITS = "%" ;
+	float brightness_temp_chM12(AlongTrack, CrossTrack) ;
+		brightness_temp_chM12:UNITS = "K" ;
+	float brightness_temp_chM15(AlongTrack, CrossTrack) ;
+		brightness_temp_chM15:UNITS = "K" ;
+	float brightness_temp_chM16(AlongTrack, CrossTrack) ;
+		brightness_temp_chM16:UNITS = "K" ;
+	float brightness_temp_crtm_chM12(AlongTrack, CrossTrack) ;
+		brightness_temp_crtm_chM12:UNITS = "K" ;
+	float brightness_temp_crtm_chM15(AlongTrack, CrossTrack) ;
+		brightness_temp_crtm_chM15:UNITS = "K" ;
+	float brightness_temp_crtm_chM16(AlongTrack, CrossTrack) ;
+		brightness_temp_crtm_chM16:UNITS = "K" ;
+	ubyte acspo_mask(AlongTrack, CrossTrack) ;
+		acspo_mask:UNITS = "none" ;
+	ubyte individual_clear_sky_tests_results(AlongTrack, CrossTrack) ;
+		individual_clear_sky_tests_results:UNITS = "none" ;
+	float sst_regression(AlongTrack, CrossTrack) ;
+		sst_regression:UNITS = "K" ;
+	float sst_reynolds(AlongTrack, CrossTrack) ;
+		sst_reynolds:UNITS = "K" ;
+	float surface_temp_gfs(AlongTrack, CrossTrack) ;
+		surface_temp_gfs:UNITS = "K" ;
+	float air_temp_gfs(AlongTrack, CrossTrack) ;
+		air_temp_gfs:UNITS = "K" ;
+	float u_wind_gfs(AlongTrack, CrossTrack) ;
+		u_wind_gfs:UNITS = "m/sec" ;
+	float v_wind_gfs(AlongTrack, CrossTrack) ;
+		v_wind_gfs:UNITS = "m/sec" ;
+	float tpw_gfs(AlongTrack, CrossTrack) ;
+		tpw_gfs:UNITS = "cm" ;
+	float tpw_acspo(AlongTrack, CrossTrack) ;
+		tpw_acspo:UNITS = "g/cm^2" ;
+	float ocean_to_land_dist(AlongTrack, CrossTrack) ;
+		ocean_to_land_dist:UNITS = "km" ;
+	float inland_water_to_land_dist(AlongTrack, CrossTrack) ;
+		inland_water_to_land_dist:UNITS = "km" ;
+	float land_to_water_dist(AlongTrack, CrossTrack) ;
+		land_to_water_dist:UNITS = "km" ;
+
+// This is the last array
+
+	short bathymetry_elevation(AlongTrack, CrossTrack) ;
+		bathymetry_elevation:UNITS = "meters" ;
+		bathymetry_elevation:Bathymetry_Missing_Value = 32767s ;
+
+//------------------
+// global attributes
+//------------------
+
+
+        :title = "ACSPO VIIRS SST granule data file" ;
+        :author = "Yi Song IMSG.  Yi.Song@noaa.gov" ;
+        :rcsId = "$Id: $" ;
+
+}

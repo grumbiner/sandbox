@@ -1,0 +1,95 @@
+From coastal.ocean@ncep.noaa.gov  Mon Aug 25 15:06:22 2003
+Return-Path: <coastal.ocean@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h7PJ6LM08185
+	for <wd21rg@polar.wwb.noaa.gov>; Mon, 25 Aug 2003 15:06:21 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h7PJ65fA020141
+	for <grumbine@ncep.noaa.gov>; Mon, 25 Aug 2003 15:06:05 -0400
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HK6VQK00.K0C; Mon, 25 Aug 2003 15:06:20 -0400 
+Received: from mx-east.nems.noaa.gov ([140.90.121.147]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HK6VQK00.PN1; Mon, 25 Aug 2003 15:06:20 -0400 
+Received: from mx1.ncep.noaa.gov(140.90.193.27) by mx-east.nems.noaa.gov via csmap 
+	 id 32687; Mon, 25 Aug 2003 15:07:39 -0400 (EDT)
+Received: from polar.ncep.noaa.gov (polar.wwb.noaa.gov [140.90.192.168])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h7PJ4wfA020125;
+	Mon, 25 Aug 2003 15:04:58 -0400
+Received: (from coastal.ocean@localhost)
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) id h7PJ5Ew08131;
+	Mon, 25 Aug 2003 15:05:14 -0400
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h7PJ5CM08128
+	for <coastal.ocean@polar.ncep.noaa.gov>; Mon, 25 Aug 2003 15:05:13 -0400
+Resent-Date: Mon, 25 Aug 2003 15:05:13 -0400
+Resent-Message-Id: <200308251905.h7PJ5CM08128@polar.ncep.noaa.gov>
+Received: from noaa.gov ([140.90.192.75]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HK6VOO00.B4R for
+          <ncep.emc.coastal.ocean@noaa.gov>; Mon, 25 Aug 2003 15:05:12 -0400 
+Sender: woconnor@ncep.noaa.gov
+Message-ID: <3F4A5DE8.96E38422@noaa.gov>
+Date: Mon, 25 Aug 2003 15:05:12 -0400
+From: "William P. OConnor" <William.Oconnor@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: _NCEP EMC Coastal Ocean <ncep.emc.coastal.ocean@noaa.gov>
+Subject: phaser5 from frost/snow
+Content-Type: multipart/mixed;
+ boundary="------------5EF1C40C2D7E7230018B43E9"
+Precedence: list
+Resent-From: ncep.emc.coastal.ocean@noaa.gov
+Status: R
+
+This is a multi-part message in MIME format.
+--------------5EF1C40C2D7E7230018B43E9
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+
+--------------5EF1C40C2D7E7230018B43E9
+Content-Type: text/plain; charset=us-ascii;
+ name="phaser5.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="phaser5.txt"
+
+                                                     Aug. 25, 2003
+Memo 
+To:    everyone 
+From:  Bill O'Connor
+Subj:  Phaser5 from frost/snow 
+
+Eric Monrad has set it up so that we can print to 
+lpr -Pphaser5 
+in the second floor computer roon (John MacCoy's room)
+from frost and snow.  This will help as a backup for 
+ROFS output, because it is a high speed color printer 
+like Phaser4. 
+Bill 
+-------------- Erich Monrad wrote------------------------
+>Hello.
+>
+>Phaser5 is now available on Frost and Snow.
+>
+>Eric
+
+*********************************************************************
+     WILLIAM P OCONNOR
+     NOAA/NWS/NCEP/EMC/
+     MARINE MODELING AND ANALYSIS BRANCH 
+     MAIL CODE W/NP21 
+     5200 AUTH ROAD  RM 209   
+     CAMP SPRINGS MD 20746 
+
+     Phone   301-763-8000 Ext 7245 
+     fax     301-763-8545  
+     e-mail  william.oconnor@noaa.gov    
+*********************************************************************
+
+--------------5EF1C40C2D7E7230018B43E9--
+
+

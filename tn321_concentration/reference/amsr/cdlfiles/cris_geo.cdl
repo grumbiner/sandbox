@@ -1,0 +1,211 @@
+//----------------------------------------------------------------------------
+//
+// QSS Group
+//
+//
+// NAME:
+//       cris_geo.cdl
+//
+// PURPOSE:
+//       netCDF4 file specification for CrIS SDR GEO file. 
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       NUCAPS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for CrIS granule data:
+//
+//           $ ncgen -b -k3 cris_geo.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Chen Zhang, PSGS, 10/13/08
+//                     Chen.Zhang@noaa.gov
+//
+//  $Date: $
+//  $Log: $
+//
+//
+//------------------------------------------------------------------------------
+ 
+ 
+netcdf cris_geo {
+                                                                                                             
+//---------
+dimensions:
+//---------
+
+	CRIS_SCAN_PER_GRAN = 4 ;
+	EV_FOR_PER_SCAN = 30 ;
+	CRIS_MAX_FOV = 9 ;
+	COORDINATES = 3 ;
+                 
+//--------
+variables:
+//--------
+ 
+
+// This is the first array
+
+	ubyte QF1_CRISSDRGEO(CRIS_SCAN_PER_GRAN) ;
+		QF1_CRISSDRGEO:long_name = "Attitude and Ephemeris Status" ;
+		QF1_CRISSDRGEO:units = "none" ;
+		QF1_CRISSDRGEO:scale_factor = 1.0d ;
+		QF1_CRISSDRGEO:add_offset = 0.0d ;
+		QF1_CRISSDRGEO:parameter_type = "CrIS data" ;
+		QF1_CRISSDRGEO:valid_SatelliteRange = 0ub, 255ub ;
+		QF1_CRISSDRGEO:_FillValue = 95ub ;
+
+	int64 StartTime(CRIS_SCAN_PER_GRAN) ;
+		StartTime:long_name = "Start time of scan in IET(1/1/1958)" ;
+		StartTime:units = "microsecond" ;
+		StartTime:scale_factor = 1.0d ;
+		StartTime:add_offset = 0.0d ;
+		StartTime:parameter_type = "CrIS data" ;
+		StartTime:valid_SatelliteRange = 0L, 1000000000000000000L ;
+		StartTime:_FillValue = -9999L ;
+
+	int64 MidTime(CRIS_SCAN_PER_GRAN) ;
+		MidTime:long_name = "Mid time of scan in IET(1/1/1958)" ;
+		MidTime:units = "microsecond" ;
+		MidTime:scale_factor = 1.0d ;
+		MidTime:add_offset = 0.0d ;
+		MidTime:parameter_type = "CrIS data" ;
+		MidTime:valid_SatelliteRange = 0L, 1000000000000000000L ;
+		MidTime:_FillValue = -9999L ;
+
+	int64 FORTime(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN) ;
+		FORTime:long_name = "Time for each FOR in IET(1/1/1958)" ;
+		FORTime:units = "microsecond" ;
+		FORTime:scale_factor = 1.0d ;
+		FORTime:add_offset = 0.0d ;
+		FORTime:parameter_type = "CrIS data" ;
+		FORTime:valid_SatelliteRange = 0L, 1000000000000000000L ;
+		FORTime:_FillValue = -9999L ;
+
+	float SCPosition(CRIS_SCAN_PER_GRAN, COORDINATES) ;
+		SCPosition:long_name="Spacecraft position in ECR Coordinates" ;
+		SCPosition:units = "meter" ;
+		SCPosition:scale_factor = 1.0d ;
+		SCPosition:add_offset = 0.0d ;
+		SCPosition:parameter_type = "CrIS data" ;
+		SCPosition:valid_SatelliteRange = 0.0f, 9000000.0f;
+		SCPosition:_FillValue = -9999.0f ;
+
+	float SCVelocity(CRIS_SCAN_PER_GRAN, COORDINATES) ;
+		SCVelocity:long_name="Spacecraft velocity in ECR Coordinates" ;
+		SCVelocity:units = "m/s" ;
+		SCVelocity:scale_factor = 1.0d ;
+		SCVelocity:add_offset = 0.0d ;
+		SCVelocity:parameter_type = "CrIS data" ;
+		SCVelocity:valid_SatelliteRange = 0.0f, 9000000.0f;
+		SCVelocity:_FillValue = -9999.0f ;
+
+	float SCAttitude(CRIS_SCAN_PER_GRAN, COORDINATES) ;
+		SCAttitude:long_name="Spacecraft attitude in GRF Coordinates" ;
+		SCAttitude:units = "arcsecond" ;
+		SCAttitude:scale_factor = 1.0d ;
+		SCAttitude:add_offset = 0.0d ;
+		SCAttitude:parameter_type = "CrIS data" ;
+		SCAttitude:valid_SatelliteRange = 0.0f, 9000000.0f;
+		SCAttitude:_FillValue = -9999.0f ;
+
+	float Latitude(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		Latitude:long_name = "Latitude - positive north" ;
+		Latitude:units = "degrees" ;
+		Latitude:scale_factor = 1.0d ;
+		Latitude:add_offset = 0.0d ;
+		Latitude:parameter_type = "CrIS data" ;
+		Latitude:valid_SatelliteRange = -90.0f, 90.0f ;
+		Latitude:_FillValue = -9999.0f ;
+
+	float Longitude(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		Longitude:long_name = "Longitude - positive east" ;
+		Longitude:units = "degrees" ;
+		Longitude:scale_factor = 1.0d ;
+		Longitude:add_offset = 0.0d ;
+		Longitude:parameter_type = "CrIS data" ;
+		Longitude:valid_SatelliteRange = -90.0f, 90.0f ;	
+		Longitude:_FillValue = -9999.0f ;
+
+	float SatelliteAzimuthAngle(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		SatelliteAzimuthAngle:long_name = "Satellite azimuth angles for each FOV" ;
+		SatelliteAzimuthAngle:units = "degrees" ;
+		SatelliteAzimuthAngle:scale_factor = 1.0d ;
+		SatelliteAzimuthAngle:add_offset = 0.0d ;
+		SatelliteAzimuthAngle:parameter_type = "CrIS data" ;
+		SatelliteAzimuthAngle:valid_SatelliteRange = 0.0f, 180.0f ;	
+		SatelliteAzimuthAngle:_FillValue = -9999.0f ;
+
+	float SatelliteZenithAngle(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		SatelliteZenithAngle:long_name = "Satellite zenith angles for each FOV" ;
+		SatelliteZenithAngle:units = "degrees" ;
+		SatelliteZenithAngle:scale_factor = 1.0d ;
+		SatelliteZenithAngle:add_offset = 0.0d ;
+		SatelliteZenithAngle:parameter_type = "CrIS data" ;
+		SatelliteZenithAngle:valid_SatelliteRange = 0.0f, 90.0f ;
+		SatelliteZenithAngle:_FillValue = -9999.0f ;
+
+	float SolarAzimuthAngle(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		SolarAzimuthAngle:long_name = "Solar azimuth angles for each FOV" ;
+		SolarAzimuthAngle:units = "degrees" ;
+		SolarAzimuthAngle:scale_factor = 1.0d ;
+		SolarAzimuthAngle:add_offset = 0.0d ;
+		SolarAzimuthAngle:parameter_type = "CrIS data" ;
+		SolarAzimuthAngle:valid_SatelliteRange = 0.0f, 180.0f ;
+		SolarAzimuthAngle:_FillValue = -9999.0f ;
+
+	float SolarZenithAngle(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		SolarZenithAngle:long_name = "Solar zenith angles for each FOV" ;
+		SolarZenithAngle:units = "degrees" ;
+		SolarZenithAngle:scale_factor = 1.0d ;
+		SolarZenithAngle:add_offset = 0.0d ;
+		SolarZenithAngle:parameter_type = "CrIS data" ;
+		SolarZenithAngle:valid_SatelliteRange = 0.0f, 90.0f ;
+		SolarZenithAngle:_FillValue = -9999.0f ;
+
+	float Height(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		Height:long_name = "Ellipsoid-Geoid separation" ;
+		Height:units = "meter" ;
+		Height:scale_factor = 1.0d ;
+		Height:add_offset = 0.0d ;
+		Height:parameter_type = "CrIS data" ;
+		Height:valid_SatelliteRange = 0.0f, 9000000.f ;
+		Height:_FillValue = -9999.0f ;
+
+
+// This is the last array
+
+	float SatelliteRange(CRIS_SCAN_PER_GRAN, EV_FOR_PER_SCAN, CRIS_MAX_FOV);
+		SatelliteRange:long_name = "Line of sight distance to satellite" ;
+		SatelliteRange:units = "meter" ;
+		SatelliteRange:scale_factor = 1.0d ;
+		SatelliteRange:add_offset = 0.0d ;
+		SatelliteRange:parameter_type = "CrIS data" ;
+		SatelliteRange:valid_range = -900.0f, 900.0f ;
+		SatelliteRange:_FillValue = -9999.0f ;
+
+
+//------------------
+// global attributes
+//------------------
+
+	:title = "CrIS SDR GEO granule data file" ;
+	:author = "Chen Zhang PSGS.  Chen.Zhang@noaa.gov" ;
+	:rcsId = "$Id: $" ;
+
+
+}
+

@@ -1,0 +1,50 @@
+
+Notes on using the sea ice data grids:
+
+  northpsg.yyyymmdd is the northern hemisphere sea ice analyst's grid
+  southpsg.yyyymmdd is the southern hemisphere sea ice analyst's grid
+  eng.yyyymmdd      is the global 0.5 degree modeller's grid.
+  north12psg.yyyymmdd is the high resolution (12.7 km) ice analyst grid
+  south12psg.yyyymmdd is the high resolution (12.7 km) ice analyst grid
+  eng5min.yyyymmdd    is the high resolution (5 arc minute) modeller's grid
+
+  The analyst's grids are 25.4 km polar stereographic grids.  The
+modeller's grid is a 0.5 degree latitude-longitude projection.
+
+  Values are stored as fractional concentration -- 0.00 to 1.00 for ice
+cover.  In the analyst's grids, values of up to 1.28 are possible, and
+seem to relate to physical processes.  Most users will want to reset
+all values between 1.00 and 1.28 to 1.00.  In the modeller's grid,
+this is already done.  
+
+  Flag values which may be encountered:
+1.57 -- Land
+1.95 -- Coast
+1.66 -- Weather
+2.24 -- No data
+
+  The modeller's grid will not display any of these, but the analyst's grid
+will.
+
+  The modeller's grid sets ice concentrations to zero over land currently.
+This has not always been the case, and the archive has not yet been 
+corrected to reflect this current practice.  Ice concentrations over 
+'coastal' points are and always have been given.  In ideal circumstances,
+these values would not be used.  In order to aid usage of the grids, 
+the land mask is available in ftp://polar.ncep.noaa.gov/seaice/ice/halfdeg.map.
+This is a 720x360 array of unsigned characters, which carry the flags
+noted above for land and coast masking.  The grid for 1 degree ice
+cover analyses (note, this is only for Dec 1, 1991 to Oct 30, 1995, the
+period I produced the files) is onedeg.map in the same directory.
+Grib versions of these will be placed in this directory under the names 
+halfdeg.grib and onedeg.grib.
+
+  The land masks for the analyst's grids are in 
+ftp://polar.ncep.noaa.gov/seaice/ice/nland.psg and sland.psg.
+
+  More detail regarding the production of these data files is given in
+OMB Tech. Note 120, which is available as a postscript file in
+ftp://polar.ncep.noaa.gov/seaice/ssmi/ssmi120.ps
+
+
+Update 17 July 2012

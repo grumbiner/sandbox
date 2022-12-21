@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ ! -f $1 ] ; then
+  exit 1
+fi
+
+for yy in 93 94 95 96 97 98 99
+do
+  cp $1 $yy
+done 
+vi 9?

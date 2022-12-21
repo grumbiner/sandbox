@@ -1,0 +1,1072 @@
+Notes on files used in the sea ice concentration analysis system, or 
+about, or connected to.  Spans 1992-2004ish.  These are in general legacy 
+notes.  But they are saved rather than relying on Grumbine memory of 
+details for codes developed across 20+ years.  This runs through a status 
+of approximately 2004 -- when the current high resolution system was 
+implemented.  From this point on, documentation improves and the system 
+is less mutable.
+
+Robert Grumbine
+14 January 2016
+
+--------------------------------------------------------------------------
+
+  By sometime in early 1994, was running NASA Team ice concentrations from
+SDR 30 orbit files.
+
+  To April 1994, tried to read sigrid files from NSIDC.
+
+  Global Reanalysis/CDAS
+
+  IPCC usage(?) (old filt/mapping, ..)
+
+  NARR ice 
+
+--------------------------------------------------------------------------
+
+
+
+File Chronology:
+
+19 Oct 1993: inc16.inc inc8.inc
+  ?For 1/16th and 1/8th, respectively, NESDIS mastermap files?
+  -- no files extant by 2006 use these two.
+
+2 Feb 1994:
+  backup.c -- convert from nesdis mastermap grid to rg grid
+
+5 Apr 1994:
+  nesdisnh.h  -- nesdis 1/8th mastermap grid 
+  bgnh.h -- RG sea ice model grid (127 km edition)
+
+1994 Apr 7 reanalys.f
+  Suru Saha program to process snow and ice information for NCEP/NCAR 
+  reanalysis
+
+8 Apr 1994
+  ssmiavg.f -- subroutine to average an array of N ice concentrations to 
+      a single field
+
+12 Apr 1994
+sigrid/
+  -- Efforts towards reading sigrid files.  This was at a time that
+the NSIDC sigrid archive contained many errors rendering this unworkable.
+
+check_short.c, check_long.c, process_short.c, process_long.c:
+  QC check, and data conversion (process), respectively, of short and
+long ssmi data records from SDR format.
+
+nasa91.c:
+  earliest on hand core NASA Team algorithm sbr.
+
+inc16.h:
+  apparently unused, probably constructed by analogy to inc8.h which
+was modified through 9 Feb 1995.
+
+
+13 Apr 1994
+  nesbgmain.c: remap (nearest neighbor) nesdis grids to rg grids.
+
+15 April 1994
+  process_data.c: first data getting routine (for SDR), then pass to
+process_short, process_long
+
+22 April 1994
+  ice_zero.c, ice_add_data.c, ice_avg_data: initialize, add, construct
+averages, respectively.  Folded into ... 
+
+2 June 1994
+  usetie.c: c version of cd.work/usetie.f, for tiepoint calculation 
+outside team algorithm fn.
+  ssmigrid.inc: another version of 1/8th nesdis include
+
+6 Dec 1994
+  geticefl.c: (program) Extract nasa or nesdis values from an ssmi grid
+
+--------------------------------------------------------------------
+
+31 Jan 1995
+  zero.c: Write out a zero concentration field for n, s, hemispheric grids
+
+7 Feb 1995
+  f11.calib: email, Abdalati regression of f11 on f8
+
+8 Feb 1995
+  helms.corners: first print out of corner point locations, for 
+Dave Helms, then at NIC
+
+9 Feb 1995
+  inc8.h: nesdis mastermap include, much like ssmigrid.inc, inc8.inc
+  ice2main.c, reicemain.c:
+    recompute concentrations using nesdis mastermap inputs.
+
+1 Mar 1995
+  af.f: read in air force snow/ice map and write out ice map 
+  nic.h: specify NIC regions of interest, used by nictrim
+  bufrproc.c: early take on processing bufr records (check_bufr, 
+              process_bufr, ...)
+
+1995 Mar 1  nic.regions.h
+  lat long corners for a number of regions then of interest to NIC
+
+3 Mar 1995
+  nland.c, sland.c: compute monthly averaged concentration fields, with
+land flag management.
+
+9 Mar 1995
+  Bert katz email on antenna to brightness temperature conversion algorithm
+
+22 Mar 1995
+  donc.h: for use by dontrim.c, to make ascii maps over a NASA field region 
+Don Cavalieri was working in that year.
+
+26 Mar 1995
+  fany.c: utility to see if any point in a given range of a point matches a flag value.  (different version is part of mmablib)
+
+28 Mar 1995
+  sizes.c: print out SDR-related type sizes
+
+30 Mar 1995
+  myice.f: NASA team code, fortran, to work on whole grids from NCEP ice
+data/grid
+
+19 Apr 1995
+  rgb.c: treat t19v, t19h, t37v as r, g, b values and print out a 
+map.  (Was for NOAA saturday school jr. high program).
+
+25 Apr 1995
+  iceget: Compute ascii maps for Don Cavalieri field season, calling donmap and dontrim
+
+26 Apr 1995
+  barconc.f: Compute mean, variance, sd of a histogram of differences 
+between bar(conc) and conc(bar) from ssmi files.  For this date, at least,
+they're small:  n = 24501, mean = -0.199, var = 0.424, sd = .651
+
+21 Jun 1995
+  ssmi.int.wp: notice to interested people about product coming available
+  nsidc.19950621: Email w. nsidc about data sets and algorithms
+
+9 Jun-3Jul 1995
+  nasa_team.950609, nasa_team.noant, nasa_team.ant: team algorithm 
+renditions with and without antenna temperature to brightness conversion 
+(depends on data source, ex NSIDC, whether this is needed).
+
+27 Jul 1995
+  icelapl.c, icegradient.c: compute laplacean, gradsquared of ice concentration
+
+23 Aug 1995
+  badmap.c: Write out hemispheric concentration grids with 'BAD_DATA' flag
+everywhere.
+
+21 September 1995: 
+  usgs.ice.1995/ -- directory of USGS 'climatology' of ice cover, for/from
+                    CD
+
+29 September 1995:
+  oldreanl.91t94/ -- directory of an early stage of reanalysis ice 
+concentrations, 12/03/1991-12/31/1994.  Replaced Nov-Dec 1996.
+
+25 Oct 1995
+  ice.analysis.observables -- description of variables and platforms that 
+should be able to provide observations of polar variables of interest
+
+
+26 Oct 1995
+  islscp1/ -- directory of ISLSCP I sea ice data set (1987-8 concentrations,
+Nomura/Grumbine processings from respective reanalyses).
+
+29 Oct 1995
+  conv.c: convert floats to bytes
+  any.c: int version of fany
+  getmain.c: semi-interactive program to extract a field from ssmi-native grids
+  dontrim.c: per above iceget
+  donmap.c: per above iceget
+  nictrim.c: nic-oriented version of dontrim
+  dels.c, deln.c: difference south and north hemisphere conc files
+  tochar.c: convert float field to character, use conv.c
+  recomp4.c: recompute ice concentrations from old ssmi.YYYYMMDD files (4th edition,
+              5th and 6th exist too)
+
+2 Nov 1995
+  cd.work/ -- copy of nsidc and NASA codes
+
+28 Nov 1995
+  ones.c: print out an age=1 file for global 1 degree grid
+
+1995 Nov 26 distrib.tex
+  products and distribution methods
+
+--------------------------------------------------------------------
+3 Jan 1996
+  ssmi.old.corners (has wrong earth, 6738 km radius), superceded by 
+    26 Feb 1996 ssmi.corners.  Retained for reference.
+  18 Jul 1996 ssmi.newcorn -- higher precision, and not exactly same even by rounding,
+    as 26 Feb file.
+
+  reducer.c  extract desired parameter and N:1 reduce from ssmi files
+
+12 Jan 1996
+  engrib.lands: as name
+
+17 Jan 1996
+  comb2.jcl: filter hemispheric files onto global grid and make grib files
+
+19 Jan 1996
+  ssmi5.jcl: produce and distribute all ssmi-derived sea ice conc files (incl. nes, af)
+(F-11 version)
+
+20 Feb 1996
+  rtxpm.c: construct raster graphic from ice conc files
+
+14 Mar 1996
+  creduce.c, freduce.c: character and floating point, respectively, field reduction
+
+22 Mar 1996:
+  ice3.jcl: recompute ice concentrations from ssmi files
+  filt3.jcl: filter ps files to lat-lon, fill in with yesterday 
+  www.jcl: construct web graphics
+
+30 Mar 1996: tn120/
+  (approx date) ssmi120.ps: Tech note on ssmi processing
+
+11 Apr 1996:
+  cbar.gif: color bar for sea ice concentration web page
+
+1 Jul 1996
+  ice.analy: call other scripts as needed to make ice concs.  Discontinued here
+because of unreliability of SDR file.
+
+2 Jul 1996
+  F11ice.doc: NSIDC documentation of F11 usage
+
+3 Jul 1996
+  del.hdf.jcl: compute differences between RG fields and NSIDC hdf fields
+
+9 Jul 1996
+  nsidcgrid.h: definitions for NSIDC grid
+
+10 Jul 1996
+  filtnsidc.c: filter from NSIDC grid onto global latlon
+  filt.jcl: control script for preceding
+
+12 Jul 1996
+  acor.c: compute time autocorrelations with a month of sea ice grids
+
+18 Jul 1996
+  maptst.c: Conduct some map testing and print out corner values
+
+23 Jul 1996
+  delgisst.f: difference two GISST files
+
+25 Sep 1996
+  interp.f: Interpolate through time on 0.5 degree ice grids (missing file version)
+  tfill.jcl: controll for gap filling
+  filt.jcl3: construct reanalysis global files from n3conc, s3conc files
+  filt5.jcl: above, but with n3ssmi files and recomputation
+  ctrl.jcl: variant of above 
+  recomp.jcl: simple recomputation, no sst filtering
+
+26 Sep 1996
+  nsidc/ -- directory to verify and intercompare results with NSIDC 
+            codes/files, including HDF processing
+  aus.images/ -- vis and IR images from Australian Antarctic expedition
+              meteorologist using NCEP ssmi ice as well
+
+1996 Apr 3 nasarep3a.tex
+  Report, year 3, on ice thickness inversion
+
+1996 Jul 14 reanl.N
+  scripts to run through NSIDC disks and produce ice concentrations for 
+NCEP/NCAR reanalysis
+
+1996 Jul 14 filt, del.jcl
+  Scripts to filter concentration fields w.r.t. sst, and to compute
+deltas, respectively.
+
+1996 Jul 15 readme
+  readme for how to run NCEP/NCAR reanalysis programs
+
+1996 Jul 24 area2.c areadel.f area2.jcl
+  Compute areas greater than given cutoffs and process outputs
+
+1996 Jul 31 area.tex
+  document start on area conservation problems between different 
+sources.
+
+1996 Dec 11 maplltst.c
+  (no longer runnable) sample to generate lat-long values for two different
+  mapping algorithms.  (Link to mapll.cpp.c, rather than library.)
+
+11 Dec 1996
+  filtbg.c: Old coding of the PS -> lat long filter and remapper.  Save more 
+            than one edition because UKMO relies on an error in one for their
+            IPCC work
+
+--------------------------------------------------------------------------
+
+28 Jan 1997
+  recomp5.c: recompute ice concentrations from 3ssmi files
+  recomp2.jcl: control script for above, swabs bytes from archive format on
+               linux due to endian w.r.t. central system(s)
+
+ 7 Feb 1997
+  masks.fio/ -- directory of Mike Fiorino's intercomparison of ice cover
+            extent between NCEP/NCAR reanalysis ice and GISST 2.2 ice.
+            Fairly substantial differences exist for fairly minor (?!)
+            processing differences.
+
+ 6 Mar 1997
+  ssmimain.orb.c: Last sdr-based (orbit) processing main program version
+  ssmi.h: early edition of ssmi.h with sdr coding only
+  sdrproc.c: sdr processing routines (final)
+
+17 Mar 1997
+  ice.grids.on388: From Cliff Dey, numbers for ice grids.
+
+20 Mar 1997
+  ssmi.txt: TPB draft
+  
+27 May 1997
+  ssmi.sdr.h: Last full version of ssmi.h with sdr coding, also has start
+              of bufr.
+  iceanaly.c: ice processing, for seaissmi, add, average, mask, zero grids
+
+ 2 Jun 1997
+  ssmi.tex: tex file original for above ssmi120.ps.  
+  topolar.c: reformat autocorrelations to text for polar
+  findacn.c: find the lag at which autocorrelations drop below cutoff
+  autocor.jcl: control script for autocorrelation work
+
+ 4 Jun 1997
+  oisst.f: read in oisst in its native shifted form and write out on
+           standard 1 degree grid structure
+
+25 Jun 1997
+  ssmimain.c: first implemented main program for concentration processing
+
+ 8 Jul 1997
+  iceconc.drg: DRG request for ssmi data
+
+10 Jul 1997
+  branch.feb.tex: branch presentation on sea ice conc. implementaiton
+
+22 Jul 1997
+  ssmi.presentation/ -- directory of presentations from 1996 (to nic) and
+1997 (to visitors(?)) on ssmi processing/methods/flow
+
+27 Aug 1997
+  ssmi.c: All code for ssmi processing in one package, for implementation.
+          Includes both SDR and Bufr source coding
+    
+Office Note 388 materials (getting grids in to official list):
+  on388, grib.388.on, on388.try, grib.doc
+
+ 1 Oct 1997
+  jobs -- jif submission acknowledgement
+
+ 3 Nov 1997
+  rep.parker: on time history of ice concentrations
+
+11 Dec 1997
+  icemovie.month.jcl: make movies of each month's concentrations
+
+between 14 June 1996 and 6 Mar 1997, go to working with single orbits, ssmi.h
+2004/04/01 - go to external declarations for functions, add HIRES option 
+
+1997 Mar 20 ssmi.tpb.wpd, ssmi.tpb.txt
+  TPB for the sea ice concentration product
+
+1997 Jun 2 ssmi.tex
+  Near-final version of what became TN120
+
+1997 June 4 mapll.f
+  Fortran version of mapping function
+
+1997 Jun 5 magnify.html
+  Early version of magnification web page
+
+1997 Jun 10 branch.feb.tex
+  Branch meeting for February
+
+1997 Jul 22 ssmi.presentation/
+  Two or three different presentations on the operational ice concentration
+products.
+
+1997 Nov 14 README.19971114
+  Grads README
+
+1997 Dec 11 henrichsen.9712, awipshdr.tbl
+  Getting sea ice fields into awips header tables.  Notes from Peter
+  Henrichsen.
+
+------------------------------------------------------------------------
+
+1998 Jan 19 grads1.7.README
+  Per name.  By Fiorino
+
+1998 Mar 24 dk2.txt
+  Soren Anderson EUMETSAT work plan on sea ice concentrations.
+
+1998 Mar 26 florence
+  Email to Florence Fetterer at NSIDC on different NCEP products
+
+1998 May 13 restart.jcl
+  Control script then current for producing sea ice products on the cray(s)
+
+1998 May 27 getcell.C
+  Look for times/points which have 4 straight days of valid observations and
+then print out the values for that point and the +- 1 points.  For time
+series processing and thinking about gap filling/data assimilation.
+
+Back to 1997 -- gridN.C 
+  programs to parse arguments and produce xpm blowups of regions of interest.
+
+1998 Jun 12 eta.mapper
+  program from Eric Rogers to produce lat-long values for eta grid i,j
+
+1998 Jun 15 ice.presentation/
+  Branch presentation
+
+1998 Jun 30 movie
+  run through a monthly hemispheric grib file and make daily images and then
+a monthly animation
+
+1998 Jul 13 algs
+  Kim Partington collection of ice concentration algorithms being used
+in NIC intercomparison(s)
+
+1998 Jul 14 mail.19980714
+  Partington mail on weather filtering
+
+1998 Jul 20 ssmi.auto/
+  TN120 gif and html version
+
+1998 Jul 21 ex990.orig
+  Operational script for control of SSMI execution/production
+
+1998 Jul 20-22 research.html, Data.centers.html, Coupling.html, iceclimate.html
+  Web pages on file-named topics.  Iceclimate never published.
+
+1998 Aug 5 usatoday/
+  Compute areas of global ice cover and make figures for/related to
+USA Today article.
+
+1998 Aug 5 radio/
+  Graphics emailed to Laura Lee show and NWS PA liaison
+
+1998 Aug 6 timer.C timer.sh
+  Run through a year and write out by appending transects on constant j
+(all i) for later time series analysis.  This turns out to be very file 
+inefficient as the strips get written all over the disk.
+
+1998 Aug 7 series.C
+  Given above output, compute some simple statistics and write out
+data pointwise.
+
+1998 Aug 10 y2k.jcl
+  product script in run up to y2k corrections
+
+1998 Sep 3 rep.ice.reanal, rep.ice.reanal2
+  Edward Hanna qs on reanalysis sea ice
+
+1998 Sep 3 rep.clive
+  clive jones on gts problems, and on their use of ncep ice
+
+1998 Sep 3 rep.azov
+  Vladimir Fomin on sea ice information for the Azov Sea (Ukraine)
+
+1998 Sep 3 support.html
+  Description of land masks/masking
+
+1998 Sep 17 delta.C
+  Compute some day to day difference stats and graphics
+
+1998 Sep 21 rep.belgium
+  Benoit Petit email on using ncep ice
+
+1998 Sep 22 age.C
+  Compute the age distribution over the ssmi grid
+
+1998 Sep 25 ssmi2.C
+  Compute cross-correlations between points given timer.C input
+1998 Sep 30 ssmi.C
+  Compute spectrum of points given timer.C input
+
+1998 Oct 16 astat.C
+  Early start of finding regression parameters for 85GHz-only ice algorithm
+
+1998 Oct 30 swaber
+  Rename and byte-swap for linux the 3ssmi files
+
+1998 Nov 9 cmc.f
+  CMC ice concentration algorithm from Jacques Halle
+
+1998 Nov 9 Research.html, Products.html, historical.html, Field.html, 
+      weafcst.html
+  Web pages on sea ice products and related info.
+
+1998 Nov 17 rebuild.html
+  Notes on rebuilding time series -- never completed and displayed
+
+1998 Nov 18-20 globxpm.C, nhxpm.C, shxpm.C
+  Programs to make xpm files from each grid type
+
+1998 Nov 19 1998.mail/
+  email and mailing list on ice products
+
+1998 Nov 20 counts.C
+  color up data counts for daily files
+
+1998 Nov 20 latlon.C
+  rescaled psgrid processing -- more a test of on the fly psgrid construction
+
+1998 Nov 20 findlake.C
+  Given a lat-long location, print out a 11x11 centered ascii map of area
+flagging land, coast, 0.
+
+1998 Nov 20 ice_data.c
+  Part of operational program, manage ice data averaging/masking/etc.
+  superceded by 2004/05/19
+ 
+1998 Nov 20 mapping.c
+  mapll, fmapll, mapxy -- c versions of mapping functions, diviced to 
+mapll.c and mapxy.c by 2001/01/16
+
+1998 Nov 20 ssmicheck.C
+  Test program with ssmi class, try some simple QC checks on 3ssmi files
+
+1998 Dec 9 - 1999 Jun 22 correspondance on ice climatology
+  rep.giss.wkshp, rep.nasa, gcos.rtf, rep.gcos, gcos.mail.981216, rep.rayner,
+    rayner.fig, rep.giss, mail, rayner.mail, renamer
+
+1998 Dec 11 deltest.sh
+  Delta between old and new globals for reanalysis
+1998 Dec 11 short.sh
+  short script for reconstruction and gap filling of global files
+
+1998 Dec 11 degrib.f
+  fortran subroutine to extract sst grib field(s) directly, vs. using wgrib
+externally.
+
+1998 Dec 17 rayner
+  note to nick on ice fields being available
+-------------------------------------------------------------------------
+
+1999 Jan 5 miville/
+  Email and figures on problems with coastal matching of global ice grids
+
+1999 Jan 11 J990.sms
+  Operational Job script for ssmi ice production
+
+1999 Jan 11 fix.html
+  Fixed fields used by operational processing
+
+1999 Jan 11 bgoperations.html
+  RG programs in operations
+
+1999 Jan 25 bas.truth
+  Field observations from BAS ship James Clark Ross [test rerun with]
+
+1999 Jan 25 walshgrid
+  Correspondance with Bill Chapman on the gridding for climatology
+
+1999 Mar 14 client.mail
+  Correspondance with various people interested in sea ice [after opnl, notify]
+
+1999 Apr 8 reget.now
+  cray script to 'reget' the ssmi bufr tank for the day
+1999 Apr 23 ssmigets
+  crayscript to get and dmput bufr tank data
+
+1999 May 5 testwmo
+  Test construction of wmo files
+
+1999 Jun 11 icelaptst.C
+  Look at ice grid to see how many points are 'ignorable' (nearly same as
+    4 neighbors).
+
+1999 Jun 28 loc.C
+  Given i,j print out lat lon of the grid point
+
+1999 Jun 29-30 area/
+  Directory of tools and some results for computing areas of cover [test rerun]
+
+1999 Jul 1 tfill.c
+  Earlyish program to fill time gaps.  time_interp.C replaced this.
+
+1999 Jul 1 ukmo.algorithm
+  Rayner program for going from PS to LL [test in rerun] 
+
+1999 Jul 8 icefamily.h
+  start on a class to make consistent family of grids N times the resolution
+    of northgrid.
+
+1999 Jul 29 iceclim.tex
+  draft of an ice climatology document
+
+1999 Aug 30 age.ice.C
+  tool to pick up age characteristics of global file
+
+1999 Sep 14 hudson.C
+  noodle a notion on making 'regions' a class
+
+1999 Sep 15 globdel.C delta.rec.C
+  globdel -- ages and general differences between files
+  delta.rec.C -- more grid/grid comparisons
+
+1999 Sep 15 scripts
+  scripts used in reanalysis runs
+
+1999 Sep 16 globfig.C
+  global figures, superceded by globxpm and toxpm
+
+1999 Sep 23 area.C
+  test areas of initial ps grid versus the area of the llgrid interpolated to
+
+1999 Oct 4 f13.jcl, f13.expt
+  control scripts for rg processing of ice
+
+1999 Oct 4 del.C, hemifig.C
+  difference grids 
+  plot hemispheres
+  
+1999 Oct 4 y2k/
+  y2k testing outputs for operations
+
+1999 Oct 4 build.sh fill.sh update.sh
+  scripts to manage rebuilding global ice concentrations from PSgrids
+
+1999 Oct 4 monthly.C
+  Construct average and conditional average concentrations for a 'month'
+
+1999 Oct 4 nestobg.c
+  Remap from nesdis PS grid to RG PS grid (includes own mapll, mapxy)
+
+1999 Oct 4 fields.f fielder.f
+  Variations to read in ssmi mastermap files, actually date from 1994.
+
+1999 Oct 22 gmt/
+  testing attempts to use GMT to plot a concentration-line field.  
+
+1999 Oct 21 clim0.tex
+  another (see above too) draft doc for sea ice climatology
+
+1999 Nov 23 dec99.directors.meet/
+  Figures for DB to present at the annual briefing of region directors.
+
+1999 Dec 3 months.html
+  Display months of the Chapman and Walsh climatology as prepared in NCEP
+
+1999 Dec 29 old.icegrids
+  An old edition of the icegrids.h
+
+1999 Sep 13 moore.intercompare
+  GWK Moore (U Toronto) comparison of walsh/ncep ice in polynya years
+
+1999 Oct 4 ecmwf.mail nomura.data nomura1 iceQC.f iceQC.cntl
+  Nomura information for/on ECMWF/ERA ice, used through Dec 1991 in NCEP/NCAR as well
+
+1999 Oct 4 nasa.c reanl.README reanl.del.jcl
+  Team algorithm implementation used in constructing reanalysis files
+  Script description for reanalysis production
+  Delta between old and new reanalysis ice
+
+1999 Nov 22 grads.ctl grib.grads
+  Grads control file working with grib
+  Note on what you need to do to use preceding control file
+
+1999 Dec 20 grads.control
+  Diane Stokes sample grads control files for RG data
+
+------------------------------------------------------
+
+2000 Jan 7 ice.ctl, grib.ctl
+  grads control for global ice, cofs regular, respectively.
+
+2000 Feb 17 rename_8digit.sh
+  Rename files to 8 digit yyyymmdd format
+
+2000 Feb 17 tochar.C
+  Translate a floating point GRIDTYPE to an unsigned char GRIDTYPE
+
+2000 Feb 17 hindmovie
+  Construct movies (whirlgif) of a month's concentrations from the grib archives
+
+2000 Feb 22 build.old.y2k
+  Rebuild concentrations using the old (erroneous remapping) filter
+
+2000 Feb 23 ak.html
+  From web, a page to manage clickable ak maps.  This was replaced by nh.html.
+
+2000 Mar 20 bottom.up
+  List of ideas for ssmi products
+
+2000 Jun 27 mon
+  script to make northern hemisphere monthly animations
+
+2000 Aug 14 ssmitest.C regress.C 
+  Read in ssmi grid and write out brightness temperatures and various functions
+of them
+  read in a time series of a vector of data points and compute the correlation matrix,
+start a bit of orthogonalization w.r.t. selected elements
+
+2000 Sep 13 toprocess1.C
+  For 85GHz work, translate from bufr to process1 class
+
+2000 Sep 14 delta.85.C
+  Compute some difference statistics between 85 GHz algorithm and reference
+
+2000 Sep 14 proc1.mar.sh
+  Run through a month and process for 85 GHz tests
+
+2000 Oct 12 test.mar.sh
+  Later version to run through a month and process for 85 GHz tests
+
+2000 Oct 19 test.daily.sh
+  Daily executable to construct test versions of 85 GHz concentrations (all 16 params)
+
+2000 Oct 24 flop.C
+  First try at looking at 'floppiness' of an ice vector (switching between ice/noice)
+as a data qc step.
+
+2000 Oct 31 in2
+  ctl for working with global ice concs in ieee format
+
+2000 Oct 31 grads.usage
+  How to do gribmap for grads
+
+2000 Nov 1 inref ref.gs high.gs inhigh
+  controls for producing reference graphic and high resolution graphic
+
+2000 Nov 1 rescale.C
+  Automatically rescale floating point concentrations and write out chars
+
+2000 Nov 7 oi.info, ssttobin.f
+  Information on the Reynolds OI SST files (last update 1997/07/09)
+  Reynolds program to read in OI file
+
+2000 Nov 8 time_interpf.C
+  Interpolate GRIDTYPES of DATTYPE over missing data spans of specified length
+
+2000 Dec 6 test.catch.sh
+  Catchup version of above test.daily.sh 
+
+2000 Dec 7 north.C south.C glob.sh
+  85GHz north, south hemisphere versions, and a control script to cycle 
+
+2000 Dec 8-10 rerun.pl retry.pl piece.sh README.retry
+  scripts to backfill days with missing information (85GHz expts)
+
+2000 Dec 8 corner.C regions ijcorners figs.sh map.C
+  corner.C takes in lat-lon corners and prints out ij corners from PS grids
+  regions defines some regions of interest by lat-lon coners
+  ijcorners is output of above
+  figs.sh generates figures of the land masks using map.C
+  map.C prints out an xpm map and the water area included
+
+2000 Dec 8 lakes/
+  source, scripts, output of doing above for Canadian lakes list
+
+2000 Dec 8 reg.pl
+  perl to read in the region/lake information from above programs and format an
+html page with it.
+
+2000 Dec 10 ams.abst.2001
+  AMS abstract on 85 GHz analysis
+
+2000 Dec 11 swap
+  miniscript to swab bytes and replace original
+
+2000 Dec 11 flop.north.C greatlakes.C newfl.C
+  Continue floppiness testing on north grid, great lakes, revised method north grid
+
+----------------------------------------------------------------------------
+
+2001 Jan 5 areas.C areas2k.sh
+  Compute areas of ice grids, area over given concentration limit
+
+2001 Jan 18, Jun 14 build.old.jan2001 build.new.nov2000
+  Rebuilding scripts (again)
+
+2001 Jan 24 kalesh/
+  Kalesh 'artist' 85GHz algorithm
+
+2001 Feb 20 nic_notice0101.txt
+  NIC notice on product changes
+
+2001 Feb 21 climate.html
+  Draft of web document for NCEP climatology
+
+2001 Feb 28 gl.gs, baltic.gs, alaska.gs
+  Script for grads plotting over the great lakes, baltic sea, alaska
+
+2001 Mar 1 inaa mcmurdo.gs
+  Controls, script for grads plotting over mcmurdo sound
+
+2001 Mar 1 tograds.C
+  Program to do a controlled interpolation from PS to LL for grads presentations
+(vs. letting grads do it while ignoring the flag nature)
+
+2001 Mar 2 regions.sh g.pl inhigh.ref
+  script to call for plot of multiple areas
+  perl to make up appropriate 'inhigh' files
+  reference sample
+
+2001 Mar 2 laur.gs
+  script for grads plotting over the Laurentians
+
+2001 Mar 7, 12 assel.retry, assel.june
+  emails with Ray Assel on great lakes ice covers
+
+2001 Mar 8 daily85.sh
+  later control script for 85Ghz test control
+
+2001 Mar 17 ampltoxpm.C phasetoxpm.C
+  produce graphics of amplitude and phase files
+
+2001 May 3 catch.eng
+  script to catch up on the global files when the hemispheres are ok
+
+2001 Jun 1 inlow low.alaska.gs
+  grads plotting of low resolution ice for alaska region
+
+2001 Jun 7 cmc_check.c
+  function to count up how many times the CMC QC check on brightness temperatures
+catches something that the other method(s) miss.
+
+2001 Jun 12 recomp6.c, redo.sh
+  recompute ice concentrations using Team algorithm, working from [ns]3ssmi grids
+  script to control recomp6
+
+2001 Jun 14 tofloat.C
+  Convert a GRIDTYPE of floats to unsigned chars
+
+2001 Jun 15 scan.C date.h
+  scan reads in a month (or tries to) and cleans up the last day's file some
+  date.h is a start to MMABLIB class for date management
+
+2001 Jul 16 partington.algorithms/
+  concentration algorithm collection via Kim Partington
+
+2001 Jul 16 statsubs.C
+  Assorted stastical subroutines, mostly developed for ssmi work but are general
+purpose
+
+2001 Aug 24 icedelta.C
+  Relatively thorough ice concentration grid differencing program
+
+2001 Aug 24 alg.intercompare.C
+  Read in a 'true' column of data and a number of estimators and compute
+max, min, average, rms, sdev of differences between estimates and 'true'
+
+2001 Aug 24 all.C northtest.out
+  Program for working on any grid type with 85GHz development
+  Sample output for northern hemisphere test
+
+2001 Oct  5 northflop.C
+  Continue floppiness work
+
+2001 Oct 12 new25.C
+  Translate from 12.7 km to 25.4 km grids, superceded by the reduce program(s)
+
+2001 Oct 17 nsidcland.translate.C
+  Translate from nsidc flags for land to NCEP flags for land
+
+2001 Oct 18 oldparam.C
+  Test of 37 Ghz data files from nsidc
+
+2001 Oct 19 f13.c
+  Read in oldssmi data grids and do a bit of checking on them.
+
+2001 Oct 24, 30 nsidc.hdf.c hdfconc.c 
+  get tb's from nsidc hdf grids and make concentrations
+  read in nsidc hdf ice concentrations
+
+2001 Oct 24 trim.c
+  program to avoid using hdf -- read in hdf file and skip 'BUF' bytes, then
+write out.
+
+2001 Oct 26 stats.nsidc.C
+  compute some statistics on nsidc concentration grids
+2001 Oct 26 param.C
+  Compute v^2 - h^2 on 37 Ghz from nsidc
+2001 Oct 26 nsidcflop.C
+  Floppiness on nsidc grids, with some statistics
+
+2001 Dec 7, 10 build.new.sh build.old.sh
+  Yet another rebuild script pair
+
+2001 Dec 18 alaska/
+  Correspondance over years with Kemper in Alaska region
+
+----------------------------------------------------------------------------
+
+2002 Jan 2 genetic.weather.filter/
+  Aug 2, 2001 to Jan 2, 2002 work on developing improved weather filtering.
+
+2002 Jan 15 hard.redo.sh
+  Script for 3 satellite processing of ssmi
+
+2002 Mar 11 thickness.pdf
+  Sample of not-then operational Gulf of St. Lawrence ice thickness analysis
+from CIS.
+
+2002 Jul 19 ssmi_nav_errors.pdf, ssmi_problems_1.pdf, ssmi_problems_2.pdf
+  From ?Soren Anderson, bad scan problem in SSMI.  Their fix is drop whole orbit.
+
+2002 Jul 19 findcorresp.C
+  Sample program to find points in grid B which correspond to points in grid A
+and save them.
+
+2002 Jul 19 sorensen.tar
+  figures on bad scan line problem from Sorensen
+
+2002 Aug 13 VariableTable.(tex, html, desc)
+  Correspondance from Tom Gross, NOS marine modeling and analysis program, on
+grib tables.
+
+2002 Nov 17 configure
+  Probably more like 1998, configure execution of all sea ice stuff on 
+crays
+
+2002 Nov 18 iceconc.drg.wpd
+  8 July 1997 DRG request for sea ice concentration on gts.
+
+2002 Nov 26 model.sh model.gs
+  Control construction of a number of Grads plots in different areas
+
+2002 Dec 9 tobytes.C
+  Convert floats to bytes for grads
+
+2002 Dec 9 nomura
+  Nomura grid spec for grads
+
+-------------------------------------------------------
+
+2003 Jan 23 connolley/
+  William Connolley info comparing BAS and AWI obs with MMAB ice cover maps
+
+2003 Jan 28 regional.reanalysis/
+  Regional reanalysis files
+     link to /usr1/data/2d/reg.reanaly
+     full output /usr1/data/3d/reg.reanalysis, /usr1/data2/1970s/reg.reanaly/,
+       /usr1/data2/reg.reanalysis/
+
+2003 Apr 3 first.C first.sh icessmi85.h
+  For more 85GHz experiments
+
+2003 May 15 bufr.sh
+  Debufrize a tank (only)
+
+2003 Jul 17 lltest
+  Script for 3 ssmi processing
+
+2003 Oct 22 flopsub.C
+  Functions (only) for computing floppiness, with and without flag value
+
+2003 Oct 24 ice.gs aa.gs arctic.gs arctic.ctl aa.ctl grib.notes
+  control files for making grads plots
+  notes on how to use grib in grads 
+
+2003 Nov 10 rtxpm.C
+  Fairly general 'read a concentration file and produce a graphic' program
+
+2003 Dec 5 toxpm.C
+  Even more general 'read a concentration file and produce a graphic' program
+  
+---------------------------------------------------------------------
+
+2004 Jan 22 asi-n6250-20030714_visual2.png
+  Sample of Kalesch figure from high res satellite
+
+2004 Feb 18 modis.ims.2004
+  IMS project plan (Tom Schott forward)
+
+2004 Feb 25 kalesch
+  2003 Jul 18 email from L. Kalesch on their AMSR ice
+
+2004 Mar 16 stats.c
+  Check some statistics and do some qc on ssmi (n3ssmi) data files
+
+2004 Mar 30 analy
+  Yet another (bootstrap, ex) list of things to try/think about
+
+2004 Apr 2 stats.funs.C
+  correlation, dot product, gram-schmidt orthogonalization on mvectors
+
+2004 Apr 2 seaice_users.html
+  list of some sea ice users
+
+2004 Apr 20 qc/
+  quality control on n3ssmi-type files
+
+2004 Apr 21 intersatellite/
+  regress between the 3 (then) satellites and check that they give same 
+answers where they should.
+
+2004 Apr 27 unfillable.C unfillable
+  Program to see which points on the globe (land masked) cannot be filled
+by ice concentrations from the ps grids.
+  Sample output of same.
+
+2004 Apr 30 weather_count.C
+  Compare two data files and construct graphic of relative weather counts
+
+2004 May 5 questions, jif.notes.20040505
+  questions (unasked, unanswered) on operations and codes
+  jif notes for the 2004 resolution improvement implementation
+
+2004 May 7 round1.codes
+  more notes for jif
+
+2004 May 7 psg.sh
+  script to just grib the psgrids
+
+2004 May 19 fix.jif
+  notes on jiffing the new fixed fields
+
+2004 May 19 debufr.sh
+  script to just de-bufr the data tanks
+
+2004 May 20 round2.codes, round2
+  more notes on resolution implementation
+
+2004 Jun 10 modis
+  daac info for/from modis
+
+2004 Jun 16 iceclimate/
+  Files/work from 9 Dec 1998 to above date on sea ice climatology
+
+2004 Jun 22 find.graphics.sh
+  Search for which graphics are missing from ftp archive
+
+2004 Jun 23 4km/
+  try to match locations with nesdis 4 km grid
+
+2004 Jul 13 time_interp.C
+  interpolate in time on sea ice grids
+
+2004 Jul 13 north.leastsq.C
+  Use IBM essl library to do N-th order polynomial regression for 
+sea ice parameters
+
+2004 Jul 13 simple_getcell.C
+  Read in a GRIDTYPE of VARTYPE and give value at input lat-long location
+
+2004 Jul 30 ssmi.cluster.C, ssmi.cluster.sh
+  Sample of genetically looking for clusters in brightness temperature space on ssmi data
+
+2004 Jul 30 land.os/
+  Land mask-related files, but not land masks, from 19 Nov 1998 to 30 Jul 2004
+
+2004 Aug 3 display.land.C
+  Flag information on land maps
+
+2004 Aug 12 biologists
+  email from biologists about the sea ice concentration product
+
+2004 Aug 25 Weddell.html rotation.html
+  Weddell sea (polynya) page
+  rotation - explain about the rotation of magnified images
+
+

@@ -1,0 +1,23 @@
+#!/bin/csh -f 
+#PBS -N gpu_testing
+#PBS -l walltime=00:00:15
+#PBS -l nodes=2:ppn=8
+#PBS -A omd
+#PBS -e gpu_testing.err
+#PBS -o gpu_testing.out
+#PBS -q fge
+
+source /etc/csh.cshrc
+module purge
+module load pgi/17.7 cuda/8.0 
+module list
+
+setenv I_MPI_FABRICS shm:ofa
+cd ~/gpu
+pgcc  -acc -ta=nvidia,cc60,nofma -Minfo=accel -Msafeptr test1.c
+time ./a.out > fout
+
+#This version of cuda doesn't allow gpu profiling
+#pgprof -o alpha ./a.out > fout
+#pgprof -i alpha
+

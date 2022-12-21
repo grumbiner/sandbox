@@ -1,0 +1,46 @@
+Phase I:
+  Working with walsh data/climo versus soi -- 1973-1990, 18 years.
+
+1) Brute force correlations between all points in grid that have ever
+   have any ice and the SOI
+-- Some areas (note it is areas) have 'good' r^2
+
+2) Try again with transformed SOI
+-- sgn * sqrt(soi) -> poor correlations everywhere
+-- sgn * soi^2     -> Better correlations than with original 
+          -- ?deviations of ice cover are very spiky and this gives 
+              spikier record.
+-- sgn * soi^3     -> Even better
+-- sgn * soi^4     -> Ditto
+-- peaks keep improving with power, eventually the only thing scored
+   is an anomaly correlative to the 82-83 El Nino.
+a) eyeballing says ^3 is fair compromise between spikiness and focussing
+   on only 82-83.
+b) putting in a limit (2.15, 2.50) decreases the peak and average correlations,
+   but still responds to the same regions.
+
+3) 4, 18, 30 months seem to be best pointwise, with 4, 30 having
+   area-averaged support.
+
+A) Use first 20 years of soi record as a null test, to ensure that we aren't
+   just getting noise values.
+B) Important to consider the average r^2, rather than peak values.  
+   (Better discriminator)
+C) Note that the areas which (ever) have 'good' correlations also tend to 
+   be areas that have some variance.  It's hard to say much when the
+   series is only non-zero (non-climatological) for a point or two.
+
+
+Phase II:
+  Working with Reanalysis data/climo versus soi -- 1979-1990, 12 years.
+(Strictly nomura period)
+-- Take the 28th of each month into reanaly.allmonths
+-- Get global 1 degree land mask
+
+1)  If anything, slightly better correlations, in spite of instantaneous nature
+    and summer melt problems.  
+
+
+Trying the cpc soi instead of the bas soi shows some differences in
+peak values and somewhat in timing of optimal lage.
+

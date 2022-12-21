@@ -1,0 +1,10 @@
+hdf (~v2) tool: hdftor8
+
+RG: keep an uncapped age file -- do we ever fill in the point from obs?
+RG: Intercomparison of bar(conc) v. conc(tBar)
+
+note my locations are cell-center, not corner
+n.b. for ~1 km precision, want at least 0.01 degree precision
+
+cold start method for analysis system
+

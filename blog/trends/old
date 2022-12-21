@@ -1,0 +1,62 @@
+      PROGRAM trends
+C     compute forward, centered, backward trends on monthly data
+C     Robert Grumbine 21 Dec 2008
+
+      IMPLICIT none
+      INTEGER npts
+      PARAMETER (npts = 1543) !monthly NCDC data
+      REAL anomalies(npts)
+      INTEGER i, length, start, max_span
+      REAL mean, slope
+
+      DO i = 1, npts
+        READ (*,*) anomalies(i)
+!        PRINT *,i,anomalies(i)
+      ENDDO
+
+      max_span = 31*12 !longest period a trend will be computed over
+      DO length = 36, max_span, 24 
+        !backwards
+        DO start = max_span + 1, npts - max_span, 12
+          CALL fit(anomalies, npts, start, length, mean_b, slope_b)
+          CALL fit(anomalies, npts, start-length/2, length, mean_c, slope_c)
+          WRITE (*,9001) length, start, mean, slope*1200
+ 9001     FORMAT ("back,",I5,",",I5,",", F8.4,",", F9.4)
+        ENDDO
+        !centered
+        DO start = max_span + 1 - length/2, npts - max_span, 12
+          WRITE (*,9002) length, start, mean, slope*1200
+ 9002     FORMAT ("cent,",I5,",",I5,",", F8.4,",", F9.4)
+        ENDDO
+        !forward
+        DO start = max_span + 1 - length, npts - max_span, 12
+          CALL fit(anomalies, npts, start, length, mean, slope)
+          WRITE (*,9003) length, start, mean, slope*1200
+ 9003     FORMAT ("forw,",I5,",",I5,",", F8.4,",", F9.4)
+        ENDDO
+      ENDDO
+
+      END 
+      SUBROUTINE fit(anomalies, npts, start, length, mean, slope)
+      IMPLICIT none
+      INTEGER npts, start, length
+      REAL anomalies(npts), mean, slope
+      DOUBLE PRECISION delta, sy, sxy, sx, sx2
+      INTEGER i
+
+      sx = 0
+      sy = 0
+      sxy = 0
+      sx2 = 0
+      DO i = start, start+length-1
+        sy = sy + anomalies(i)
+        sxy = sxy + anomalies(i)*(i-start)
+        sx  = sx + (i-start)
+        sx2 = sx2 + (i-start)*(i-start)
+      ENDDO
+
+      slope = (length*sxy - sx*sy) / (length*sx2 - sx*sx)
+      mean = (sy - slope*sx)/length
+
+      RETURN
+      END

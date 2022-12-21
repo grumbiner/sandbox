@@ -1,0 +1,143 @@
+47.75 -86.75 Lake Superior
+-82 42      Lake Erie          
+-78 43.75   Lake Ontario        
+-112.5 41.2 Great Salt Lake    
+104.40 51.55 Lake Baikal        
+74.57 46.50  Lake Balkhash      
+35.50 61.50 Lake Onega          
+32.0 61.0   Lake Ladoga        
+245.3  61.4 Great Slave Lake    
+239.5  66.0 Great Bear Lake    
+262.3  52.6 Lake Winnipeg  
+
+Black_Sea               402.192    402.192  1.000       0.000   486.425
+Gulf_of_Maine            30.939     30.939  1.000       0.000    50.212
+Chesapeake_Bay           17.734     17.734  1.000       0.000    86.099
+Delaware_Bay              0.341      0.341  1.000       0.000     0.934
+
+ Other Laurentian Lakes, 125 W, 45 N, 60 W, 70 N
+ Nordic Seas, 35 W, 60 N, 10 E, 85 N
+ McMurdo Sound, 150 E, 80 S, 180 E, 70 S
+
+ // Gulf of Alaska
+ if (ll.lat >= 51.0 && ll.lat < 60.5 &&
+   ( (ll.lon > -155.0 && ll.lon < -120.) ||
+   (ll.lon >  205.0 && ll.lon <  240.)   )   )
+
+28 NIC Chukchi
+1 NIC Skagerrak
+3 NIC Grand Banks
+12 NIC Davis Strait
+13 NIC Foxe Basin
+31 NIC Kamchatka Peninsula
+
+
+zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+ 49 45      Caspian Sea        
+ Caspian Sea, 45 E, 35 N, 55 E, 48 N
+14 44.75 49.25 Caspian
+
+-87 43      SupHurMich Lake    
+
+60 45       Aral Sea            
+ Aral Sea, 55 E, 42 N, 65 E, 48 N
+
+49.75 -59.25 Gulf of St. Lawrence
+ Gulf of St. Lawrence, 72 W, 45 N, 55 W, 52 N
+Gulf_of_St_Lawrence     191.212    191.212  1.000       0.000   356.458
+4 NIC Gulf of St Lawerence
+
+62.25 -83.25 Hudson Bay
+Hudson_Bay             1096.597   1096.597  1.000       0.000  1245.503
+ Hudson Bay, 95 W, 50 N, 75 W, 65 N
+14 NIC Hudson Bay
+
+80.25 -110.25 Upper Archipelago 
+ Canadian Archipelago, 130 W, 65 N, 55 W, 85 N
+
+74.75 -145.25 Beaufort Gyre
+26 NIC Beaufort
+
+64.75 -169.75 Bering Sea
+32 NIC Bering East
+34 NIC Bering West
+ Bering Sea, 165 E, 50 N, 150 W, 70 N
+Bering_Sea             2580.709   2580.709  1.000       0.000   699.191
+
+61.25  158.25 Okhotsk
+Sea_of_Okhotsk         1503.511   1503.511  1.000       0.000   863.013
+ Sea of Okhotsk, 130 E, 45 N, 160 E, 65 N
+27 NIC Sea of Okhotsk West
+30 NIC Sea of Okhotsk East
+37 NIC Sea of Okhotsk South
+38 NIC Sea of Okhotsk Southeast
+
+72.25  166.25 Siberean Shelf
+25 NIC East Siberian Sea
+
+74.75  124.75 Laptev
+23 Laptev Sea
+
+86.25   77.75  High Arctic
+18 NIC High Arctic East
+20 NIC Canadian Arctic East
+21 NIC High Arctic West 2
+22 NIC Canadian Arctic West
+24 NIC High Arctic West 1
+
+75.75  76.75 Kara
+16 NIC Kara Sea South
+19 NIC Kara Sea North
+
+78.25 -14.25 East Greenland
+7 NIC Greenland Southwest
+8 NIC Greenland South
+9 NIC Greenland Central
+15 NIC Greenland North
+
+61.25  19.25 Baltic
+Baltic_Sea              303.774    303.774  1.000       0.000   479.370
+ Baltic Sea, 10 E, 53 N, 34 E, 65 N
+2 NIC Baltic Sea
+
+46.25 36.25 Azov
+Sea_of_Azov              28.061     28.061  1.000       0.000   276.461
+ Sea of Azov, 26 E, 40 N, 45 E, 48 N
+
+ Great Lakes, 90 W, 40 N, 75 W, 51 N
+
+ Sea of Japan, 125 E, 40 N, 150 E, 55 N
+35 NIC Sea of Japan
+36 NIC Sea of Japan South
+Sea_of_Japan            996.811    996.811  1.000       0.000   462.629
+
+ Yellow Sea, 116 E, 36 N, 126 E, 42 N
+Yellow_Sea              433.274    433.274  1.000       0.000   606.767
+33 NIC Yellow Sea
+
+Cook Inlet
+29 NIC Cook Inlet
+
+Barents Sea
+10 NIC Barents Sea South
+11 NIC Barents Sea North
+
+Labrador_Sea           1686.998   1686.998  1.000       0.000   518.422
+5 NIC Labrador
+
+17 NIC Baffin Bay
+Baffin_Bay              675.640    675.640  1.000       0.000   490.686
+
+White_Sea                29.288     29.288  1.000       0.000   115.366
+ White Sea, 30 E, 59 N, 45 E, 70 N
+6 NIC White Sea
+
+Gulf_of_Ob               34.950     34.950  1.000       0.000   217.509
+ Gulf of Ob, 65 E, 65 N, 80 E, 75 N
+
+zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+NIC (23 Mar 2005)
+Arctic/Northern Hemisphere NIC GIS regions as follows
+
+

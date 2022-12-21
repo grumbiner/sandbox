@@ -1,0 +1,35 @@
+Round 2 codes:
+This involves changes which must all be done concurrently to produce the
+higher resolution sea ice fields, and correctly produce the lower resolution
+sea ice fields.
+
+seaice_ssmibufr.fd:
+  high resoution output added
+  includes all satellites in output
+
+seaice_seaissmi.cd: replace seaice_seaissmi.fd
+  Source code split in to logical groups
+  Many code modifications to produce new, higher resolution, 12.7 km sea
+    ice concentrations from ssmi information.
+
+seaice_filtanal.Cd : replaces seaice_filtanal.fd
+  change to 12.7 km and 5' grids from 25.4 km and 30' grids
+  change a logical test to be less verbose
+  remove unused variables
+
+seaice_icegrid.Cd : replaces seaice_icegrid.fd
+  change to 5' global grid from 30'
+  handle case of there being no prior global analysis field
+
+
+Executable	time (s) 	Max resident set size (kb)
+seaice_ssmibufr	180		  2,972
+seaice_seaissmi	 28		 83,328
+seaice_filtanal	 21		111,452
+seaice_icegrid	  4.4		334,732
+
+ex990 total	300		334,732
+(includes dumpjb, and codes from round1; dumpjb is most of the time)
+
+
+Fixed fields:

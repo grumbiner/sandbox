@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for yr in 93 94 95 96 97 98 99 100
+do
+  if [ -f $yr ] ; then
+    if [ $yr -ge 98 ] ; then
+      score $yr 16 > score.$yr
+    else
+      score $yr 6 > score.$yr
+    fi    
+  fi
+done

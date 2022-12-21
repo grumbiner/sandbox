@@ -1,0 +1,8 @@
+200                Number of bodies
+10.               Time step (seconds)
+6060000.          Run time (seconds) (pendulum day at 67)
+10.               Radius of floes
+1.                Thickness
+1000.             Size of bounding box (m)
+0.1               Magnitude of limit speed (m/s)
+1.E-4             Limit rotation rate (s**-1)

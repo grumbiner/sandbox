@@ -1,0 +1,66 @@
+Jan 14  2000
+DB,
+
+  This is as much to settle my thoughts a bit as to let you know what
+is up.  I've been working on the sea ice - SOI connection some more.
+The nagging question, which I've been trying to not waste too much
+time on, is why John Walsh, who assembled the data I'm using in the
+first place and who has worked on the sea ice prediction problem for
+a long time -- from a statistical point of view -- didn't publish
+anything about soi links, nor the interannual predictability.  He's
+only published on time ranges of a few weeks-few months.
+
+Briefest:
+  It looks very strong that a large percentage of the variance in
+the Southern Hemisphere ice cover itself can be predicted at 12 and 
+24 +- 3 months.  Large = 60-80 % of variance (|r| of 0.75 to 0.9).  
+The half years, 6 and 18 +- 3, show little potential, variance explained 
+of 20-40%.  (Statistically significant, but not impressive.)
+  
+  It looks strong that the SOI can be predicted at leads of up to 
+24 months, with a relative maximum around 16 months.  The variance
+explained is on the order of 35-50% throughout the range of 0-24 months
+leads.  The figure is not impressive in its own right, but for comparison,
+the soi predictions from CPC, predicting 3 month average values (I'm
+doing indivicual months) are considered useful at 20% variance explained
+at 9 months lead (9 being the longest range of skill -- they cannot
+cross May/June even on short lead).  
+
+Slightly Longer:
+  In both cases, on the order of two dozen ice points are involved in
+the predictive model, with 5-10% of variance being explained by the 
+first term.  Given the 270 points which had sufficiently gap-free 
+records, using 10% of them in a predictor didn't seem unreasonable.
+(More than I'd like, 5% would be nicer, and could be done at a loss
+of only about 20% of the otherwise explained variance.  40% down from 50%,
+e.g.)
+
+  More phenomenology:
+  The spatial correlations and which points are involved in the lag
+predictions do show physical behaviors: local points show relatively
+high correlation, which drops off with distance, and there are remote
+zones which display relatively good correlation.  As the lag increases,
+the remote zones usually show a phase shift (as in the zone corresponding
+to highest predictive value migrates e/w with lead, expected for a 
+propagating wave of some kind).
+
+  Interannual, but not semi-annual, 'skill' suggests that the ocean is
+the driver rather than the atmosphere.  The Antarctic atmosphere is 
+the type case for a semiannual pressure wave.  That the ocean 'remembers'
+a light/heavy ice year from year to year is not implausible as a light
+ice year should result in a changed mixed layer/thermocline that could 
+be 'remembered' a year later.  The absence of skill at 6 months suggests that
+a seasonal effect is involved -- the freeze or melt season is the one
+and only season which truly feels the effects (whatever they are).  Test:
+separate record by months and recompute.  
+
+  I've done most with the southern hemisphere because it appears to have
+the best skill on SOI.  Phenomenologies in the northern hemisphere look
+proper.  The lag relations clearly picks up the Beaufort Gyre and the
+Transpolar Drift.  Again there is some question of why Walsh did not
+notice this in that the interannual correlations can be high.  The
+northern hemisphere shows only a few percent variance explained in
+soi.  (Statistically significant, given the record length, but again
+not something impressive.) 
+
+

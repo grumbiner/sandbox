@@ -1,0 +1,97 @@
+      SUBROUTINE TD(MS,I,J,CC)
+  
+      COMMON/CNB22/M,MM,AT(4,44),BT(4,44),CT(4,44),DT(4,44),ET(4,44)
+     1 ,FT(4,44)
+      COMMON/CNQSC/QT(4,44) 
+      COMMON/TDCOM/DELX,DELX2,DELPHI,PI2
+  
+C     ADD ENTRIES TO TRIDIAGONAL CORRESPONDING TO VARIOUS SORTS OF TERMS
+C     MS IS SUBSCRIPT 1 TO M (POLES NOT INCLUDED) 
+C     THE TERM CONTRIBUTES TO THE THETA(I)
+C     THE TERM IS COMPUTED FROM THETA(J)
+C     I,J=1,2 
+C     CC IS COEFFICENT OF TERM
+C     TD ENTRY   CC*THETA(J) AT MS
+  
+      K=I+2*(J-1) 
+      AT(K,MS)=AT(K,MS)-0.5*CC
+      ET(K,MS)=ET(K,MS)+0.5*CC
+      RETURN
+  
+C     TDM ENTRY   CC*THETA(J) AT MS-1 
+      ENTRY TDM(MS,I,J,CC)
+      K=I+2*(J-1) 
+      BT(K,MS)=BT(K,MS)-0.5*CC
+      DT(K,MS)=DT(K,MS)+0.5*CC
+      RETURN
+  
+C     TDP ENTRY   CC*THETA(J) AT MS+1 
+      ENTRY TDP(MS,I,J,CC)
+      K=I+2*(J-1) 
+      CT(K,MS)=CT(K,MS)-0.5*CC
+      FT(K,MS)=FT(K,MS)+0.5*CC
+      RETURN
+  
+C     FOR ALL MS SCALE BY CC/COS(PHI) 
+C     FOR ALL MS ADD IDENTITY MATRIX TERMS
+C     DUE TO THETA DIFFERENCING IN TIME 
+C     TREAT BOUNDARY CONDITIONS 
+      ENTRY TDEND(MS,I,J,CC)
+C     SCALING 
+      PHI=-PI2
+      DO 10 JJ=1,M
+        PHI=PHI+DELPHI
+        SC=CC/COS(PHI)
+        DO 20 II=1,4
+          AT(II,JJ)=AT(II,JJ)*SC
+          BT(II,JJ)=BT(II,JJ)*SC
+          CT(II,JJ)=CT(II,JJ)*SC
+          DT(II,JJ)=DT(II,JJ)*SC
+          ET(II,JJ)=ET(II,JJ)*SC
+          FT(II,JJ)=FT(II,JJ)*SC
+20      CONTINUE
+10    CONTINUE
+  
+C     PLUS IDENTITY MATRIX
+      DO 30 II=1,M
+        AT(1,II)=AT(1,II)+1.
+        AT(4,II)=AT(4,II)+1.
+        ET(1,II)=ET(1,II)+1.
+        ET(4,II)=ET(4,II)+1.
+30    CONTINUE
+  
+C     BOUNDARY CONDITION ASSUME THETA AT POLES IS EQUAL TO
+C     ADJACENT THETA
+      DO 40 II=1,4
+        AT(II,1)=AT(II,1)+BT(II,1)
+        ET(II,1)=ET(II,1)+DT(II,1)
+        AT(II,M)=AT(II,M)+CT(II,M)
+        ET(II,M)=ET(II,M)+FT(II,M)
+40    CONTINUE
+      RETURN
+  
+C     ENTRY TDSET 
+      ENTRY TDSET(MS,I,J,CC)
+C     ZERO ARRAYS ,SET M,MM IN /CNB22/
+      M=MS
+      MM=M-1
+      DO 50 JJ=1,M
+        DO 50 II=1,4
+          AT(II,JJ)=0.0 
+          BT(II,JJ)=0.0 
+          CT(II,JJ)=0.0 
+          DT(II,JJ)=0.0 
+          ET(II,JJ)=0.0 
+          FT(II,JJ)=0.0 
+50    CONTINUE
+  
+C     INITIALIZE Q SCALING AS IDENTITY*CC 
+      DO 60 JJ=1,M
+        QT(1,JJ)=CC 
+        QT(4,JJ)=CC 
+        QT(2,JJ)=0. 
+        QT(3,JJ)=0. 
+60    CONTINUE
+  
+      RETURN
+      END 

@@ -1,0 +1,35 @@
+
+RISKS-LIST: Risks-Forum Digest  Tuesday 14 December 1999  Volume 20 : Issue 68
+
+
+Date: Wed, 01 Dec 1999 18:28:12 -0500
+From: meeroh <meeroh@MIT.EDU>
+Subject: Re: No bounds checking in Microsoft RTF controls (Downes, R-20.66)
+
+>I can think of hundreds, thousands, hundreds of thousands of loops I
+>have written and seen over the years, everyone of course having a bounds
+>check built in. I mean, this is very _basic_ programming, isn't it?
+>  for (cp = buf; cp < buf + BUFSIZE; cp++)
+>    /* * */
+
+It may be worth pointing out that a more correct way of implementing this
+loop is
+
+  size_t size = BUFSIZE;
+  while (size-- > 0) {
+     /* ... */
+  }
+
+The original code fails in the subtle case when buf + BUFSIZE extends past
+the end of the address space. Note that the ANSI C guarantee that you should
+be able to compute the address of the first element beyond the end of a
+named array doesn't apply if buf is dynamically allocated.
+
+This common idiom, while it's guaranteed to work if buf is a named array of
+characters, will fail if buf was dynamically allocated -- yet almost every
+programmer I've seen uses the same idiom for both cases.
+
+(See Writing Solid Code by Steve Maguire, p 132.)
+
+meeroh
+

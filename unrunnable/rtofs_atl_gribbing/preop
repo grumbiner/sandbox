@@ -1,0 +1,37 @@
++ export execnc=/nfsuser/g01/wx21rg/abin/archiv_for_grib/exec
++ echo /nfsuser/g01/wx21rg/abin/archiv_for_grib/exec
+/nfsuser/g01/wx21rg/abin/archiv_for_grib/exec
++ export INPUTDIR=/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs
++ export WORKDIR=/gpfstmp/wx21rg/grib
++ export ARCHDIR=/gpfs/b/ptmp/seas/hycom.para/forecast
++ export DEPTHFILEa=/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.depth.a
++ export DEPTHFILEb=/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.depth.b
++ export GRIDFILEa=/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.grid.a
++ export GRIDFILEb=/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.grid.b
++ echo WORKDIR = /gpfstmp/wx21rg/grib
+WORKDIR = /gpfstmp/wx21rg/grib
++ echo /nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.depth.a
+/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.depth.a
++ echo /nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.grid.a
+/nfsuser/g01/seaspara/users/avichal/archiv_for_grib/inputs/regional.grid.a
++ mkdir -p /gpfstmp/wx21rg/grib
++ cd /gpfstmp/wx21rg/grib
++ [ ! -f regional.grid.a ]
++ [ ! -f regional.grid.b ]
++ [ ! -f archv.b ]
++ [ ! -f archv.a ]
++ touch archv2grib3z.in
++ /bin/rm archv2grib3z.in
++ cat
++ 1> archv2grib3z.in 0< /tmp/sh610404.2
++ [ ! -f regional.depth.a ]
++ [ ! -f regional.depth.b ]
++ /nfsuser/g01/wx21rg/abin/archiv_for_grib/exec/archvgrib
++ 0< archv2grib3z.in 1> archvgrib.log
+STOP (normal)
++ wgrib -V fort.51
++ 1> out
+
+Real   179.74
+User   109.78
+System 7.30

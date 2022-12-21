@@ -3,7 +3,6 @@ C*************************************************----------++++++++++!!
 C     Now, given a psi function, compute the velocities.
 C     Now should have a complete soln for psi.
       IMPLICIT none
-
       INTEGER nx, ny
       REAL psi(nx, ny), ut(nx, ny), vt(nx, ny)
       REAL dx, dy

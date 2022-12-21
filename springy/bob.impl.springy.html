@@ -1,0 +1,48 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"></head><body>
+<script src="demo_files/jquery.js"></script>
+<script src="demo_files/springy.js"></script>
+<script src="demo_files/springyui.js"></script>
+<script>
+var graph = new Springy.Graph();
+
+var dennis = graph.newNode({
+  label: 'Implementation structure',
+  ondoubleclick: function() { console.log("Noodling with implementation structure!"); }
+});
+
+var implementation = graph.newNode({label: 'implementation'});
+var ccb      = graph.newNode({label: 'ccb'});
+var eecoding = graph.newNode({label: 'eecoding'});
+var skillscores = graph.newNode({label: 'skillscores'});
+var journal     = graph.newNode({label: 'journal'});
+var tpb         = graph.newNode({label: 'tpb'});
+var graphics    = graph.newNode({label: 'graphics'});
+var grib_bufr   = graph.newNode({label: 'grib_bufr'});
+
+graph.newEdge(eecoding, implementation, {color: '#00A0B0'});
+graph.newEdge(ccb, implementation, {color: '#6A4A3C'});
+graph.newEdge(skillscores, implementation, {color: '#CC333F'});
+graph.newEdge(journal, implementation, {color: '#EB6841'});
+graph.newEdge(tpb, implementation, {color: '#EDC951'});
+graph.newEdge(graphics, implementation, {color: '#7DBE3C'});
+graph.newEdge(eecoding, ccb, {color: '#000000'});
+graph.newEdge(skillscores, ccb, {color: '#00A0B0'});
+graph.newEdge(tpb, journal, {color: '#6A4A3C'});
+graph.newEdge(grib_bufr, ccb, {color: '#CC333F'});
+graph.newEdge(grib_bufr, graphics, {color: '#EB6841'});
+
+jQuery(function(){
+  var springy = window.springy = jQuery('#springydemo').springy({
+    graph: graph,
+    nodeSelected: function(node){
+      console.log('Node selected: ' + JSON.stringify(node.data));
+    }
+  });
+});
+</script>
+
+<canvas id="springydemo" width="640" height="480">
+
+
+</canvas></body></html>

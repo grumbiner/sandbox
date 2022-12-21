@@ -1,0 +1,189 @@
+#!/bin/bash
+#Script to build all required files for the sea ice enviornment from
+#  the bare source and data files.
+#This script required that you correct the names of things like
+#  the source directories, data directory, fortran compiler, C 
+#  compiler, ...
+#Once you have fixed the variables in this script, you need not
+#  modify anything anywhere else.
+
+#QSUB -lT 150
+#QSUB -lM   2Mw
+#QSUB -me
+#QSUB -o   build.5
+
+set -xe
+#Home directory
+if [ -f /etc/sys_hp -o -f /etc/sys_id -o -f /etc/sys_sun ] ; then
+  BASE=$HOME
+  DHOME=$BASE/data
+  TDIR=$BASE/tmp
+ else
+   if [ -f /etc/linux ] ; then
+     echo 'On a linux system'
+     BASE=/home/wd21rg/archive/
+     DHOME=/home/wd21rg/archive/climate
+     TDIR=$BASE/tmp
+   else
+    echo 'On a cray system'
+
+    BASE=/jdsk41/wd21rg               #Cray 4
+    DHOME=/jdsk41/wd21rg/data               #Directory for data files:
+
+    BASE=/wd2/wd21/wd21rg               #Cray 3
+    DHOME=/wd2/wd21/wd21rg/data               #Directory for data files:
+
+    TDIR=/tmp/wd21rg           #Temporary working directory for large files
+   fi
+fi
+
+EXDIR=$BASE/execs                 #Location to collect the executables
+FORO=${BASE}/icefore              #Directory for data 'forothers'
+RHOME=${BASE}/icemodel            #Directory for the model proper:
+IHOME=${BASE}/icemodel/mpi.source #Directory which contains the include files:
+OHOME=${BASE}/lib          #Directory which contains the 'others' library:
+
+cd $RHOME
+
+
+#PHOME: Directory which contains the polar libraries:
+if [ -f /etc/linux -o -f /etc/sys_hp -o -f /etc/sys_id -o -f /etc/sys_sun ] ; then
+  PHOME=${BASE}/lib
+ else
+  PHOME=${BASE}/lib
+fi
+
+#W3 library site
+if [ -f /etc/linux -o -f /etc/sys_hp -o -f /etc/sys_id -o -f /etc/sys_sun ] ; then
+  W3=
+#W3=${BASE}/grib/w3lib.a
+ else
+  W3=/nwprod/w3lib
+fi
+
+export W3 BASE EXDIR DHOME RHOME IHOME OHOME PHOME FORO TDIR
+if [ ! -d $TDIR ] ; then
+  mkdir $TDIR
+fi
+
+#FC  Name of the Fortran compiler, in compile-only mode
+#LD  Name of the Fortran linker
+#CC  Name of the C compiler, in compile-only mode
+#CLD Name of the C linker
+if [ -f /etc/sys_hp ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='gcc -c'
+  CLD='gcc '
+  CLDFLAGS=' -lm '
+  FLDFLAGS=' '
+ elif [ -f /etc/sys_id ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='cc -c'
+  CLD='cc'
+  CLDFLAGS=' -lm '
+  FLDFLAGS=' '
+ elif [ -f /etc/sys_sun ] ; then
+  FC='f77 -c'
+  LD='f77'
+  LD='f77'
+  CC='acc -c'
+  CLD='cc'
+  CLDFLAGS=' -lm '
+  FLDFLAGS=' '
+ elif [ -f /etc/linux ] ; then
+  FC='f77 -c -O2 -m486'
+  LD='f77 '
+  FLDGLAGS=' -lf2c'
+  CC='gcc -c -O2 -funsigned-char'
+  CLD='gcc'
+  CLDFLAGS=' -lm '
+ else
+  FC='cf77 -c'
+  LD='segldr'
+  CC='cc -c'
+  CLD='cc'
+  FLDFLAGS=' '
+fi
+FLD=$LD
+FFC=$FC
+
+#declare the NCAR graphics linker
+#declare the library creating command
+NCARLD=ncargf77
+AR='ar rv'
+
+export AR FC FFC LD FLD CC CLD CLDFLAGS FLDFLAGS NCARLD
+
+#save the present directory as the icemodel directory.
+HDIR=`pwd`
+
+#Should need no changes below this point----------------------
+#No changes should be needed below this line ------------------------------
+#Be sure that the directories which are not unpacked get created:
+for d in $EXDIR $FORO bc/north bc/south bc/ak bc/glk 
+do
+  if [ ! -d $d ] ; then
+    mkdir -p $d
+  fi
+done
+
+
+#Create the program libraries
+cd $OHOME
+echo Creating the fortran library
+if [ ! -f others.lib ] ; then
+  $FC *.f
+  $AR others.lib *.o
+  rm *.o
+  chmod 444 others.lib
+fi
+
+cd $PHOME
+echo Creating the polar library
+if [ ! -f polarflib ] ; then
+  $FC *.f
+  $AR polarflib *.o
+  rm *.o
+  chmod -w polarflib
+fi
+
+if [ ! -f polarclib ] ; then
+  $CC *.c
+  $AR polarclib *.o
+  rm *.o
+  chmod -w polarclib
+fi
+
+
+#Now build the executable programs and required data files
+echo About to try building programs
+cd $HDIR
+set -x
+for pole in north south ak glk 
+do 
+  export pole
+
+  #./analy.jcl
+  if [ $pole = "glk" ] ; then
+    cd bc/glk
+    make 
+  else
+    cd bc
+    ./bc.jcl
+  fi
+  cd $HDIR
+  echo Trying to build meteorology programs
+  ./met.jcl
+  echo Trying to build model programs 
+  ./model.jcl
+
+done
+cd ${RHOME}/bc    ; make clobber
+cd ${RHOME}/analy ; make clobber
+cd ${RHOME}/meteo ; make clobber
+
+cd ${RHOME}/ic
+make -i
+make clean

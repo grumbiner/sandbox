@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo smsmsg would have been called
+

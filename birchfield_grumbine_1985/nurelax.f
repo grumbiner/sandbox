@@ -1,0 +1,89 @@
+      PROGRAM RELAX
+C 
+      INTEGER MXSB
+      PARAMETER (MXSB  = 160) 
+  
+C     VARIABLES FOR THE EXTRAPOLATION 
+C     PHYSICAL TERMS
+      REAL D, MU, ETA, RHOI, G,PI, K,L
+      REAL RHOA, RHOL, EPSA, EPSL, TAU
+  
+C     COMPUTED CONSTANTS
+      REAL CHSQV, CHVSHV, V, VSQ, DET 
+      REAL MUETA, RHOG
+      REAL RHOR 
+      REAL D8, D9, SECPYR 
+      REAL GRDSTP, DELTAX 
+  
+C     ARRAY WITH RELAXATION TIMES  (  ,1)=WAVELENGTH  ( ,2)=TIME. 
+      REAL RELTIM(0:MXSB,5) 
+  
+      REAL A11, A12 
+      REAL B21, B22 
+C     I   IS A GENERIC LOOP CONTROL VARIABLE
+      INTEGER I 
+C     ELAST TELLS WHETHER YOU WANT THE CONTRIBUTION FROM THE ELASTIC
+C       RESPONSE. 
+      LOGICAL ELAST, ONELAY 
+
+      OPEN (UNIT=4,FILE='RELAX.DATA',STATUS='OLD')
+      OPEN (UNIT=2,FILE='RELAX.2',STATUS='NEW')
+
+C     SET UP THE CONSTANT MATRICES
+      SECPYR = 31556900.0 
+      RHOI  = 917.0 
+      G     = 9.80
+      PI    = 3.1415926535898 
+      READ (4,9003) GRDSTP
+      DELTAX = GRDSTP*111111.11111
+      READ (4,9003) D 
+      D     = 1000.*D 
+      READ (4,9003) MU
+      READ (4,9003) ETA 
+      READ (4,9003) RHOA
+      READ (4,9003) RHOL
+      RHOR  = .5*(RHOA+RHOL)
+      READ (4,9003) TAU 
+      MUETA = MU/ETA
+      RHOG  = RHOI*G
+      READ (4,9005) ELAST 
+      READ (4,9005) ONELAY
+      L    = (2*MXSB+4)*DELTAX
+  
+      DO 1000 I= 2, MXSB
+  
+        K      = 2.*PI*I/L
+        V      = K*D
+        EPSA   = RHOA*G/(2*MU*K)
+        EPSL   = RHOL*G/(2*MU*K)
+        VSQ    = V*V
+        CHVSHV = .5*SINH(2.*V)
+        CHSQV  = COSH(V)**2 
+C 
+        DET    = 1./(VSQ+CHSQV) 
+        A11 = -DET*MUETA*(CHVSHV+V+(EPSA-EPSL)*VSQ*CHSQV) 
+        A12 = DET*MUETA*(VSQ-(EPSA-EPSL)*(V*CHSQV-VSQ*CHVSHV))
+        B21 = DET*MUETA*(VSQ-(EPSA-EPSL)*(V*CHSQV+VSQ*CHVSHV))
+        B22 = -DET*MUETA*(CHVSHV-V+EPSA*(CHSQV-VSQ*(CHSQV-1.))
+     1            +EPSL*VSQ*CHSQV)
+  
+        D9     = B21*A12 - A11*B22
+        D8     = -(A11 + B22) 
+  
+        RELTIM(I,2) = 1./( D8*(-1.+(1.+4.*D9/D8**2)**.5)*SECPYR/2.) 
+        RELTIM(I,3) = 1./( D8*(-1.-(1.+4.*D9/D8**2)**.5)*SECPYR/2.) 
+        RELTIM(I,1) = L/I 
+  
+        WRITE (*,9001) RELTIM(I,1), -RELTIM(I,2), -RELTIM(I,3)
+        WRITE (2,9001) RELTIM(I,1), -RELTIM(I,2), -RELTIM(I,3)
+  
+ 1000 CONTINUE
+  
+ 9005 FORMAT (L14)
+  
+ 9003 FORMAT (E20.12) 
+  
+ 9001 FORMAT (3F14.4) 
+  
+  
+      END

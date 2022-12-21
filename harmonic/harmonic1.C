@@ -1,5 +1,6 @@
 #include "points.h"
 #include "grid_math.h"
+#include "ncepgrids.h"
 
 // do harmonic analysis at doodson-like-specified periods
 // ignore non-orthogonality for now.

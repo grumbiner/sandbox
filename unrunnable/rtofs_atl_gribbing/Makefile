@@ -1,0 +1,199 @@
+#
+# Makefile for archive processing
+#
+# --- usage: make -f Makefile
+# To create specific executables in this file
+# --- usage: make -f Makefile programs=hycomarchv
+#
+# ------------------------------------------------------------------------
+# common definitions for IBM SMP Power3, single processor, real*4, 64-bit.
+# ------------------------------------------------------------------------
+#
+# MACROS      DESCRIPTIONS:
+#
+# FC:         Fortran 90 compiler.
+# FCFFLAGS:   Fortran 90 compilation flags.
+# CC:         C compiler.
+# CCFLAGS:    C compilation flags.
+# CPP:        cpp preprocessor (may be implied by FC).
+# CPPFLAGS:   cpp -D macro flags.
+# LD:         Loader.
+# LDFLAGS:    Loader flags.
+# EXTRALIBS:  Extra local libraries (if any).
+#
+FC            = xlf95
+FCFFLAGS      = -g  -qfixed -O3 -qstrict -qcache=auto -qspillsize=32000   \
+               -qflttrap=overflow:zerodivide:invalid:enable:imprecise -qsigtrap
+CC            = cc
+CCFLAGS       =
+CPP           = /usr/lib/cpp -P
+CPPFLAGS      = -DAIX -DREAL4
+LD            = $(FC)
+LDFLAGS       = $(FCFFLAGS) -bloadmap:out
+EXTRALIBS     = -L/nwprod/lib -lw3_4 -lbacio_4
+
+#
+# --- generic make definitions
+#
+SHELL         = /bin/sh
+RM            = \rm -f
+
+#
+# rules.
+#
+.SUFFIXES: 
+.SUFFIXES: .c .F .f .o
+
+.c.o:
+	$(CC) $(CPPFLAGS) $(CCFLAGS)  -c $*.c
+
+.f.o:
+	$(FC)             $(FCFFLAGS) -c $*.f
+
+.F.o:
+	$(RM) $<.f
+	$(CPP) $(CPPFLAGS) $< | sed -e '/^ *$$/d' > $<.f
+	$(FC) $(FCFFLAGS) -c $<.f
+	-\mv $<.o $*.o
+	$(RM) $<.f
+
+
+MODS     =	mod_plot.o mod_xc.o mod_za.o          wtime.o
+MODB     =	mod_plot.o mod_xc.o mod_za.o mod_zb.o wtime.o
+EXEC     =      ../exec
+#LIBN     = /usrx/local/netcdf.3.5.0/lib/libnetcdf.a
+LIBN     = /nwprod/lib/libnetcdf.a
+
+#programs=  archvgrib archv2data3z archv2data2d
+programs=  archvgrib 
+#
+# ---------------------------------------------------------------------
+# Standard part of the Makefile starts here
+# ---------------------------------------------------------------------
+#
+
+#install: ${programs} clean movetoexec
+install: ${programs} movetoexec
+
+clean:
+	/bin/rm -f *.o *.a *.mod 
+#M*log *2d *3z *restart *hv
+
+movetoexec:
+	mv -f ${programs} ${EXEC}
+
+
+DATAX_OBJ = 	bigrid.o  bigrd1.o blkin.o    \
+		extrct.o  extrot.o fordate.o  \
+                getdat.o  getdtm.o getdepth.o \
+		          indxi.o  indxj.o    \
+                pakk.o    poisnd.o psmoo.o    \
+		sbmerg.o  zebra.o  zh.o       \
+                dum_gks.o
+
+DATAH_OBJ = 	$(DATAX_OBJ) horout.o
+DATAZ_OBJ = 	$(DATAH_OBJ) layer2z.o
+
+ARCHM_OBJ = 	bigrid.o blkin.o  \
+		extrct.o extrot.o \
+                getdat.o getdtm.o getdepth.f putdat.o \
+		indxi.o  indxj.o  \
+		zebra.o  zh.o     dum_gks.o \
+		pakk.o   
+# 		pakk_micom.o   
+
+ARCHV_OBJ = 	bigrid.o blkin.o  \
+		extrct.o extrot.o \
+                getdat.o getdtm.o getdepth.o putdat.o \
+		indxi.o  indxj.o  pakk.o  \
+		zebra.o   zh.o    dum_gks.o 
+
+GRIB_OBJ  = gribit.o engrib_hycom.o
+
+ARCHV_SRC = 	hycomarchv.f micomarchv.f trim_archv.f mrgl_archv.f \
+                archv2data2d.f archv2data3dz.f archv2restart.f putdat.f
+
+#
+# --- executables.
+#
+
+archvgrib:       $(MODB) gribmain.o  $(DATAH_OBJ) $(DATAZ_OBJ) $(GRIB_OBJ)
+	$(LD) $(LDFLAGS) -o archvgrib  gribmain.o  $(MODB) $(DATAH_OBJ) $(DATAZ_OBJ) $(GRIB_OBJ) $(EXTRALIBS)
+
+archv2data2d:       $(MODB) archv2data2d.o  $(DATAH_OBJ)
+	$(LD) $(LDFLAGS) -o archv2data2d  archv2data2d.o  $(MODB) $(DATAH_OBJ)
+
+archm2data2d:       $(MODB) archm2data2d.o  $(DATAH_OBJ)
+	$(LD) $(LDFLAGS) -o archm2data2d  archm2data2d.o  $(MODB) $(DATAH_OBJ)
+
+archv2data3z:       $(MODB) archv2data3z.o  $(DATAZ_OBJ)
+	$(LD) $(LDFLAGS) -o archv2data3z  archv2data3z.o  $(MODB) $(DATAZ_OBJ)
+
+archm2data3z:       $(MODB) archm2data3z.o  $(DATAZ_OBJ)
+	$(LD) $(LDFLAGS) -o archm2data3z  archm2data3z.o  $(MODB) $(ATAZ_OBJ)
+
+archv2restart:      $(MODB) archv2restart.o $(DATAH_OBJ)
+	$(LD) $(LDFLAGS) -o archv2restart archv2restart.o $(MODB) $(DATAH_OBJ)
+
+archm2restart:      $(MODB) archm2restart.o $(DATAH_OBJ)
+	$(LD) $(LDFLAGS) -o archm2restart archm2restart.o $(MODB) $(DATAH_OBJ)
+
+hycomarchv:         $(MODS) hycomarchv.o   $(ARCHV_OBJ)
+	$(LD) $(LDFLAGS) -o hycomarchv  hycomarchv.o $(MODS) $(ARCHV_OBJ)
+
+micomarchv:         $(MODS) micomarchv.o   $(ARCHM_OBJ)
+	$(LD) $(LDFLAGS) -o micomarchv  micomarchv.o $(MODS) $(ARCHM_OBJ)
+
+mrgl_archv:         $(MODS) mrgl_archv.o   $(ARCHV_OBJ)
+	$(LD) $(LDFLAGS) -o mrgl_archv  mrgl_archv.o $(MODS) $(ARCHV_OBJ)
+
+trim_archv:         $(MODS) trim_archv.o   $(ARCHV_OBJ)
+	$(LD) $(LDFLAGS) -o trim_archv  trim_archv.o $(MODS) $(ARCHV_OBJ)
+
+#
+# --- explicit dependencies for each .[fF] file.
+#
+
+gribmain.o:  gribmain.f  grib_parms.h $(GRIB_OBJ) mod_plot.o mod_za.o
+archv2data2d.o:  archv2data2d.f  mod_plot.o mod_za.o
+archm2data2d.o:  archm2data2d.f  mod_plot.o mod_za.o
+archv2data3z.o:  archv2data3z.f  mod_plot.o mod_za.o
+archm2data3z.o:  archm2data3z.f  mod_plot.o mod_za.o
+archv2restart.o: archv2restart.f mod_plot.o mod_za.o
+archm2restart.o: archm2restart.f mod_plot.o mod_za.o
+
+hycomarchv.o:    hycomarchv.f    mod_plot.o mod_za.o
+micomarchv.o:    micomarchv.f    mod_plot.o mod_za.o
+mrgl_archv.o:    mrgl_archv.f    mod_plot.o mod_za.o
+trim_archv.o:    trim_archv.f    mod_plot.o mod_za.o
+
+bigrd1.o:   bigrd1.f      mod_plot.o
+bigrid.o:   bigrid.f      mod_plot.o
+blkin.o:    blkin.f
+dum_gks.o:  dum_gks.f
+extrct.o:   extrct.f
+extrot.o:   extrot.f
+fordate.o:  fordate.f
+getdat.o:   getdat.f      mod_plot.o mod_za.o
+getdepth.o: getdepth.f    mod_plot.o mod_za.o
+getdtm.o:   getdtm.f      mod_plot.o mod_za.o
+horout.o:   horout.f      grib_parms.h mod_plot.o mod_xc.o mod_zb.o
+engrib_hycom.o: engrib_hycom.f  grib_parms.h mod_plot.o mod_xc.o mod_zb.o
+indxi.o:    indxi.f       mod_plot.o
+indxj.o:    indxj.f       mod_plot.o
+layer2z.o:  layer2z.f
+pakk.o:     pakk.f
+poisnd.o:   poisnd.f      mod_plot.o
+prtmsk.o:   prtmsk.f
+psmoo.o:    psmoo.f       mod_plot.o
+putdat.o:   putdat.f      mod_plot.o mod_za.o
+sbmerg.o:   sbmerg.f      mod_plot.o
+wtime.o:    wtime.F
+zebra.o:    zebra.f
+
+mod_plot.o: mod_plot.F
+mod_xc.o:   mod_xc.F   
+mod_za.o:   mod_za.F   mod_xc.o
+mod_zb.o:   mod_zb.F
+
+zh.o:       zh.F zh_sun.f zh_t3e.f zh_ymp.f

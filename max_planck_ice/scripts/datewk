@@ -1,0 +1,58 @@
+yy=`echo $1 | cut -c1-2`
+mm=`echo $1 | cut -c3-4`
+dd=`echo $1 | cut -c5-6`
+
+touch date
+
+for fdays in 1 2 3 4 5 6 7
+do
+  dd=`expr $dd + 1`
+  mm=`expr $mm + 0`
+  
+  if [ $dd -gt 31 ] ; then
+    dd=1
+    mm=`expr $mm + 1`
+  fi
+  
+  if [ $dd -gt 30 -a \( $mm -eq 4 -o $mm -eq 6 -o $mm -eq 9 -o $mm -eq 11 \) ] ; then
+    dd=1
+    mm=`expr $mm + 1`
+  fi
+  
+  if [ $dd -gt 29 -a \( $mm -eq 2 \) ] ; then
+    dd=1
+    mm=3
+  fi
+  
+  if [ $dd -eq 29 -a $mm -eq 2 ] ; then
+    leap=`expr $yy % 4 `
+    if [ $leap  -eq 0 ] ; then
+      echo Leap year problems
+     else
+       dd=1
+       mm=3
+    fi
+  fi 
+  
+#Now clean up after months and years, and ensure that there are leading zeroes.
+  if [ $mm -lt 10 ] ; then
+    mm=0$mm
+  fi
+  
+  if [ $dd -lt 10 ] ; then
+    dd=0$dd
+  fi
+     
+  if [ $mm -gt 12 ] ; then
+    mm=01
+    yy=`expr $yy + 1`
+  fi
+  
+  if [ $yy -gt 99 ] ; then
+    yy=00
+  fi
+  
+# Finally, put the date into the date file
+  echo $yy$mm$dd >> date
+
+done

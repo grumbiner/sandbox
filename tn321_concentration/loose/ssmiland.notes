@@ -1,0 +1,69 @@
+Notes on files originally in ssmiland directory -- collection of files for
+land masks used in ssmi ice concentration processing.
+
+These notes run through 2004, the initial implementation of the high resolution
+analysis.  From that point, the separate 'land' directory/system has been used.
+
+Robert Grumbine 
+
+1995-8 (old1)
+sland.c  : scan through a month's a2 conc files and look for land flags 
+           vs. concentration observations, print out maps of land fraction 
+           (observations) and observable conc values
+nland.c  : same, for northern hemisphere
+engrib.lands : script to engrib land masks using opnl grid gribber
+maskps.c     : work from ice obs files to construct a land mask on polar 
+               stereographic grids 
+maskll.c     : same, but for lat-long grids
+mask2.c      : briefer version of maskps
+eng2.c       : early version of reading a char file and making an .xpm
+nesbitps.c   : work from nesdis 1/16th degree (3.75 minute) land mask to make
+               polar stereographic land masks
+nesbitll.c   : as above but for lat-long grids
+
+1998-1999 (old2)
+makeland     : notes on using psn, pss, global, masktest
+global.C     : C++ version of working with nesdis 1/16th land masks
+glob4.C      : Similar to above, but also printing out some local graphics
+region.C     : plot out a region from a larger grid
+pss4.C       : generalized polar stereo for nesdis 1/16th (GRIDTYPE)
+area.C       : for input grid, compute area of land, ice, concentration, 
+                 and extent
+pss.C, psn.C : As global.C, superceded by pss4.C
+README       : summary as of 28 Dec 1999
+
+2001 (old3)
+filter.C     : lineage to old2.  Working with nesdis masks.
+bordfilt.C   : "", ?
+landin.C     : parse nesdis mask file
+psbord.C     : use bordfilt and region making masks on arbitrary ncepgrids.
+land.html    : documentation of land masking and its importance
+higher.res.globals : mask points on global which change due to using 
+                       12.7 km ps as source
+newland.delta.list : much longer version of above (?)
+landdel.20010412.C : compute areas of flags, and print land mask differences 
+make.delta         : makefile for the above program
+global12.7.deltas  : sample output of above landdel
+masktest.C       : 
+engribhigh.C     : gribbing, of landmask in GRIDTYPE
+engribpct.C      : gribbing a land percentage
+land.pathology.C : related to unfillable
+Makefile         : makefile for most of the preceding
+nsidcland.translate.C : read nsidc land mask (short int) and write out 
+                          in unsigned char
+makeland.C       : land mask for sea ice in NARR, working from nesdis 1/16th
+make.etaland     : makefile for above and related
+
+2004 (old4) 
+flag.C    : another take on flagging
+all.C     : read in a bunch (until eof) of grid files, count up number 
+              of days with ice concentrations, and then whine about 
+              ice showing up in places it shouldn't.
+landdel.C : construct a graphic of land flag flips
+unfillable.C  : check for unfillable target grid points.   
+tolower.C     : given a higher resolution grid and a lower resolution 
+                  grid, map from former to latter and give statistics
+landflags.C : make a land mask graphic and print off frequency of flag types
+display.C   : related to above, and mysterious 
+nh.C        : nh version of above(s)
+land.C      : use with stl.h from hycom for land masking in hycom regions

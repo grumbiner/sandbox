@@ -1,0 +1,107 @@
+1999 Jan 5 miville/
+  Email and figures on problems with coastal matching of global ice grids
+
+1999 Jan 11 J990.sms
+  Operational Job script for ssmi ice production
+
+1999 Jan 11 fix.html
+  Fixed fields used by operational processing
+
+1999 Jan 11 bgoperations.html
+  RG programs in operations
+
+1999 Jan 25 bas.truth
+  Field observations from BAS ship James Clark Ross [test rerun with]
+
+1999 Jan 25 walshgrid
+  Correspondance with Bill Chapman on the gridding for climatology
+
+1999 Mar 14 client.mail
+  Correspondance with various people interested in sea ice [after opnl, notify]
+
+1999 Apr 8 reget.now
+  cray script to 'reget' the ssmi bufr tank for the day
+1999 Apr 23 ssmigets
+  crayscript to get and dmput bufr tank data
+
+1999 May 5 testwmo
+  Test construction of wmo files
+
+1999 Jun 11 icelaptst.C
+  Look at ice grid to see how many points are 'ignorable' (nearly same as
+    4 neighbors).
+
+1999 Jun 28 loc.C
+  Given i,j print out lat lon of the grid point
+
+1999 Jun 29-30 area/
+  Directory of tools and some results for computing areas of cover [test rerun]
+
+1999 Jul 1 tfill.c
+  Earlyish program to fill time gaps.  time_interp.C replaced this.
+
+1999 Jul 1 ukmo.algorithm
+  Rayner program for going from PS to LL [test in rerun] 
+
+1999 Jul 8 icefamily.h
+  start on a class to make consistent family of grids N times the resolution
+    of northgrid.
+
+1999 Jul 29 iceclim.tex
+  draft of an ice climatology document
+
+1999 Aug 30 age.ice.C
+  tool to pick up age characteristics of global file
+
+1999 Sep 14 hudson.C
+  noodle a notion on making 'regions' a class
+
+1999 Sep 15 globdel.C delta.rec.C
+  globdel -- ages and general differences between files
+  delta.rec.C -- more grid/grid comparisons
+
+1999 Sep 15 scripts
+  scripts used in reanalysis runs
+
+1999 Sep 16 globfig.C
+  global figures, superceded by globxpm and toxpm
+
+1999 Sep 23 area.C
+  test areas of initial ps grid versus the area of the llgrid interpolated to
+
+1999 Oct 4 f13.jcl, f13.expt
+  control scripts for rg processing of ice
+
+1999 Oct 4 del.C, hemifig.C
+  difference grids 
+  plot hemispheres
+  
+1999 Oct 4 y2k/
+  y2k testing outputs for operations
+
+1999 Oct 4 build.sh fill.sh update.sh
+  scripts to manage rebuilding global ice concentrations from PSgrids
+
+1999 Oct 4 monthly.C
+  Construct average and conditional average concentrations for a 'month'
+
+1999 Oct 4 nestobg.c
+  Remap from nesdis PS grid to RG PS grid (includes own mapll, mapxy)
+
+1999 Oct 4 fields.f fielder.f
+  Variations to read in ssmi mastermap files, actually date from 1994.
+
+1999 Oct 22 gmt/
+  testing attempts to use GMT to plot a concentration-line field.  
+
+1999 Oct 21 clim0.tex
+  another (see above too) draft doc for sea ice climatology
+
+1999 Nov 23 dec99.directors.meet/
+  Figures for DB to present at the annual briefing of region directors.
+
+1999 Dec 3 months.html
+  Display months of the Chapman and Walsh climatology as prepared in NCEP
+
+1999 Dec 29 old.icegrids
+  An old edition of the icegrids.h

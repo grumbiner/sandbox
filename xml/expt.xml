@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="experiment.xsl" type="text/xsl" ?>
+
+<experiment>
+  <title>OFS Baseline Guidance Run</title>
+  <topic>ocean, temperature, analysis, forecast</topic>
+  <status>developmental</status>
+  <model>
+    <base>Hycom x.x.x</base>
+    <grid>Mercator</grid>
+    <spacing>1/3rd</spacing>
+    <forcing>NCEP GFS</forcing>
+    <mixing>GISS</mixing>
+  </model>
+
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <experimenter>Y. Y. Chao</experimenter>
+  <purpose>Standard run of the model for baseline purposes</purpose>
+  <date>
+    <begin>19 March 2004</begin>
+  </date>
+  <parameters>
+    <parm>Ocean Temperature</parm>
+    <parm>Ocean Salinity</parm>
+    <parm>Ocean Velocity</parm>
+    <parm>Sea Surface Height</parm>
+  </parameters>
+
+<!-- The directory information should be filled in by lower-level xml 
+     processing -->
+  <directories>
+    <location>20040319/nowcast/</location>
+    <title>Nowcast</title>
+  </directories>
+  <directories>
+    <location>20040319/forecast/</location>
+    <title>Forecast</title>
+  </directories>
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</experiment>

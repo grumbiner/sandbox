@@ -1,0 +1,16 @@
+#/bin/ksh
+
+FSRCS = \
+        amsr2_1b_module.f90 
+
+F90OBJS = $(FSRCS:.f90=.o)
+
+all:    $(F90OBJS) libmodules.a
+
+libmodules.a:  $(F90OBJS)
+		$(AR) $(AR_FLAGS) libmodules.a $?
+
+depend:
+	makedepend $(FSRCS)
+
+include ../config/rules.make

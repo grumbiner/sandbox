@@ -1,0 +1,19 @@
+/nfsuser/g01/cfspom/GSFINDER/readme.txt 
+
+GSFINDER_SAVE        - subdirectory with old code 
+
+degrib.sh            - script called by run_gsf_graphics.sh  which
+                       processes ROFS output files, creates IDL
+                       plotting program, and plots with IDL.  
+
+idl                  - subdirectory with IDL plotting program
+                       The scripts are set up to only plot the
+                       Gulf Stream files on the ROFS SSH output. 
+
+run_gsf_graphics.sh  - script to plot the ROFS SSH nowcast,
+                       24-h forecast, and 48-h forecast with
+                       the GSFINDER north wall overplotted,
+                       and the Navy north wall overplotted. 
+                       This script runs daily in a cron job.
+
+Jan. 2004     William O'Connor 

@@ -1,0 +1,124 @@
+Start Prologue v4.0-ad-2017.03.14 Fri Nov 24 19:16:22 UTC 2017 on Mother Superior(head node): tg001
+Node Access Status = SINGLEJOB
+Job 28767389.bqs3 started for user Robert.Grumbine in queue fge
+======= Running Sanity Checks =======
+----------------
+tg[001-002]
+----------------
+PASS!
+=======  Ended Sanity Checks  =======
+End Prologue v4.0-ad-2017.03.14 Fri Nov 24 19:16:31 UTC 2017 
+_______________________________________________________________
+
+Welcome to Theia
+  This system is Cray CS400 Linux Cluster
+
+Update History:
+
+  Version: v4.0-ad-2017.03.14
+    -- Included other informational messages to
+       better identify anomalies and provide
+       additional troubleshooting info.
+
+  Version: v3.5-ad-2017.02.23
+    -- Modified prologue for RHEL7 cmem clearing
+
+  Version: v3.3-ad-2016.04.08
+    -- Added cach clearing before streams check
+       to eliminate potential false positives
+
+type:
+  module avail
+  for various Available Modules
+
+_______________________________________________________
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+
+Currently Loaded Modules:
+  1) pgi/17.7   2) cuda/8.0
+
+ 
+
+0.076u 5.462s 0:06.61 83.6%	0+0k 29088+8io 11pf+0w
+_______________________________________________________________
+Start Epilogue v4.0-ad-2017.03.14 Fri Nov 24 19:16:48 UTC 2017 
+=====================================
+Peak memory usage summary:
+  min =      62768  KB
+  ave =     232538  KB
+  max =     402308  KB
+
+All nodes sorted by nodelist order: (memory usage in KB)
+          % of      user        user          user         total       total
+Node      limit     max         limit        current      current      phys
+tg001      0.2      402308    260673536        79032      3950140    264037156 
+tg002      0.0       62768    260673536        58072      2455908    264037156 
+=====================================
+Job 28767389.bqs3 finished for user Robert.Grumbine in queue fge with exit code 0
+Node Access Status = SINGLEJOB
+Statistics  cput=00:00:06,energy_used=0,mem=17944kb,vmem=358092kb,walltime=00:00:10
+End Epilogue v4.0-ad-2017.03.14 Fri Nov 24 19:16:51 UTC 2017
+_______________________________________________________________
+Start Prologue v4.0-ad-2017.03.14 Fri Nov 24 19:21:19 UTC 2017 on Mother Superior(head node): tg001
+Node Access Status = SINGLEJOB
+Job 28767467.bqs3 started for user Robert.Grumbine in queue fge
+======= Running Sanity Checks =======
+----------------
+tg[001-002]
+----------------
+PASS!
+=======  Ended Sanity Checks  =======
+End Prologue v4.0-ad-2017.03.14 Fri Nov 24 19:21:28 UTC 2017 
+_______________________________________________________________
+
+Welcome to Theia
+  This system is Cray CS400 Linux Cluster
+
+Update History:
+
+  Version: v4.0-ad-2017.03.14
+    -- Included other informational messages to
+       better identify anomalies and provide
+       additional troubleshooting info.
+
+  Version: v3.5-ad-2017.02.23
+    -- Modified prologue for RHEL7 cmem clearing
+
+  Version: v3.3-ad-2016.04.08
+    -- Added cach clearing before streams check
+       to eliminate potential false positives
+
+type:
+  module avail
+  for various Available Modules
+
+_______________________________________________________
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+
+Currently Loaded Modules:
+  1) pgi/17.7   2) cuda/8.0
+
+ 
+
+0.075u 5.614s 0:06.59 86.1%	0+0k 29088+8io 11pf+0w
+_______________________________________________________________
+Start Epilogue v4.0-ad-2017.03.14 Fri Nov 24 19:21:46 UTC 2017 
+=====================================
+Peak memory usage summary:
+  min =      65036  KB
+  ave =     233674  KB
+  max =     402312  KB
+
+All nodes sorted by nodelist order: (memory usage in KB)
+          % of      user        user          user         total       total
+Node      limit     max         limit        current      current      phys
+tg001      0.2      402312    260673536        78584      3951744    264037156 
+tg002      0.0       65036    260673536        58008      2455744    264037156 
+=====================================
+Job 28767467.bqs3 finished for user Robert.Grumbine in queue fge with exit code 0
+Node Access Status = SINGLEJOB
+Statistics  cput=00:00:07,energy_used=0,mem=0kb,vmem=0kb,walltime=00:00:11
+End Epilogue v4.0-ad-2017.03.14 Fri Nov 24 19:21:49 UTC 2017
+_______________________________________________________________

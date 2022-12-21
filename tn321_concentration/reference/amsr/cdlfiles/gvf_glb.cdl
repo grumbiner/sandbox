@@ -1,0 +1,20 @@
+netcdf gvf_glb {
+//---------
+dimensions:
+//---------
+	latitude = 5000 ;
+	longitude = 10000 ;
+//---------
+variables:
+//---------
+// This is the first array
+	ubyte 4km_gvf(latitude, longitude) ;
+		4km_gvf:_FillValue = 255UB ;
+		4km_gvf:valid_minimum_value = 0UB ;
+		4km_gvf:valid_maximum_value = 100UB ;
+		4km_gvf:add_offset = 0UB ;
+		4km_gvf:scale_factor = 1.f ;
+// This is the last array
+	ubyte Number_Of_Pixels(latitude, longitude) ;
+
+}

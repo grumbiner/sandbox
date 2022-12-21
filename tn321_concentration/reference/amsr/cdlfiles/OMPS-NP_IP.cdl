@@ -1,0 +1,63 @@
+netcdf OMPS-NP_IP {
+dimensions:
+	phony_dim_0 = 1 ; // (1 currently)
+	phony_dim_1 = 12 ; // (12 currently)
+	phony_dim_2 = 10 ; // (10 currently)
+	phony_dim_3 = 5 ; // (5 currently)
+	phony_dim_4 = 8 ; // (8 currently)
+	phony_dim_5 = 4 ; // (4 currently)
+	phony_dim_6 = 19 ; // (19 currently)
+	phony_dim_7 = 13 ; // (13 currently)
+variables:
+	float A-PairReflectivity(phony_dim_0, phony_dim_0) ;
+	float A-PairSensitivity(phony_dim_0, phony_dim_0) ;
+	float A-PairTotalO3(phony_dim_0, phony_dim_0) ;
+	float A-PairWeight(phony_dim_0, phony_dim_0) ;
+	float B-PairReflectivity(phony_dim_0, phony_dim_0) ;
+	float B-PairSensitivity(phony_dim_0, phony_dim_0) ;
+	float B-PairTotalO3(phony_dim_0, phony_dim_0) ;
+	float B-PairWeight(phony_dim_0, phony_dim_0) ;
+	float BPrime-PairSensitivity(phony_dim_0, phony_dim_0) ;
+	float BPrime-PairTotalO3(phony_dim_0, phony_dim_0) ;
+	float BestReflectivity(phony_dim_0, phony_dim_0) ;
+	float C-PairSensitivity(phony_dim_0, phony_dim_0) ;
+	float C-PairTotalO3(phony_dim_0, phony_dim_0) ;
+	float CParameter(phony_dim_0, phony_dim_0) ;
+	float ColumnAmountO3(phony_dim_0, phony_dim_0) ;
+	float D-PairSensitivity(phony_dim_0, phony_dim_0) ;
+	float D-PairTotalO3(phony_dim_0, phony_dim_0) ;
+	float OzoneErrorFlagForProfile(phony_dim_0, phony_dim_0) ;
+	float FinalO3Profile(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	float FinalO3Profile_Std(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	float FinalQValueResidues(phony_dim_0, phony_dim_0, phony_dim_2) ;
+	float FirstGuessO3Profile(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	float FirstGuessO3_Std(phony_dim_0, phony_dim_0, phony_dim_1) ;
+	float FirstGuessTotalO3(phony_dim_0, phony_dim_0) ;
+	float InitialResiduals(phony_dim_0, phony_dim_0, phony_dim_2) ;
+	float Iterations(phony_dim_0, phony_dim_0) ;
+	float MultipleScatteringMix(phony_dim_0, phony_dim_0, phony_dim_3) ;
+	float MultipleScatteringSensitivity(phony_dim_0, phony_dim_0, phony_dim_3) ;
+	float N_Values_InterpolatedToSBUVmon(phony_dim_0, phony_dim_0, phony_dim_4) ;
+	float NormalizedRadiance_340nm_331nm_318nm_312nm(phony_dim_0, phony_dim_0, phony_dim_5) ;
+	float NormalizedRadiance_380nm(phony_dim_0, phony_dim_0) ;
+	float O3MixingRatio(phony_dim_0, phony_dim_0, phony_dim_6) ;
+	float QValues(phony_dim_0, phony_dim_0, phony_dim_2) ;
+	float QValuesCorrectionsLonger(phony_dim_0, phony_dim_0, phony_dim_3) ;
+	float QValues_Std(phony_dim_0, phony_dim_0, phony_dim_2) ;
+	float ReflectivitiesLonger(phony_dim_0, phony_dim_0, phony_dim_3) ;
+	ubyte SAA(phony_dim_0) ;
+	float SO2index(phony_dim_0, phony_dim_0) ;
+	float SigmaParameter(phony_dim_0, phony_dim_0) ;
+	float SnowIceCode(phony_dim_0, phony_dim_0) ;
+	ubyte SolarEclipse(phony_dim_0, phony_dim_0) ;
+	ubyte SunGlint(phony_dim_0, phony_dim_0) ;
+	float TerrainPressure(phony_dim_0, phony_dim_0) ;
+	float OzoneErrorFlagForBestOzone(phony_dim_0, phony_dim_0) ;
+	float TotalO3SolutionProfile(phony_dim_0, phony_dim_0) ;
+	float VolcanoContaminationIdx(phony_dim_0, phony_dim_0) ;
+	float Wavelengths(phony_dim_0, phony_dim_0, phony_dim_7) ;
+	float reflSurfPressure(phony_dim_0, phony_dim_0) ;
+	float tableIndex(phony_dim_0, phony_dim_0) ;
+
+// global attributes:
+}

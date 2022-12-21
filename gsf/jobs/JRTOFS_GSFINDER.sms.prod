@@ -1,0 +1,158 @@
+#!/bin/sh
+
+set -xa
+# #### 06/25/2003 ###################
+# SET SHELL PROCESSING VARIABLES
+# ###################################
+export PS4='$SECONDS + ' 
+date
+# 
+# obtain unique process id (pid) and make temp directories
+#
+echo cyc is ${cyc:?}
+echo envir is ${envir:?}
+echo model_ver is ${model_ver:?} #ensure model_ver is defined
+export pid=$$
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] ; then
+  #NCO
+  export BASEDIR=/tmpnwprd
+else
+  #developer
+  export BASEDIR=/ptmpd2/Robert.Grumbine/
+fi
+
+export DATA=$BASEDIR/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+export TMPDIR=$DATA
+
+####################################
+# File To Log Msgs
+####################################
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] ; then
+  #NCO
+  if [ "$envir" = 'prod' ] ; then
+    export jlogfile=/com/logs/jlogfile
+  else
+    export jlogfile=/com/logs/${envir}/jlogfile
+  fi
+else
+  #developer
+  export jlogfile=~/jlogfile
+fi
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z 
+
+####################################
+# variables that control processing
+# Determine variable settings before testing and set them accordingly
+#    SENDDBN=YES        file will be sent to OSO
+#    SENDCOM=YES        copy files from TMPDIR to $COMOUT
+#    SENDSMS=YES        Flag Events on SMS
+####################################
+export SENDCOM=YES
+export SENDSMS=YES
+
+if [ "$envir" = "prod" ] ; then
+  export SENDDBN=YES
+  export SENDDBN_GB2=YES
+else
+  if [ $envir = "para" ] ; then
+    export SENDDBN=YES
+    export SENDDBN_GB2=NO
+  else
+    export SENDDBN=NO
+    export SENDDBN_GB2=NO
+  fi
+fi
+
+export NET=omb
+export RUN=gsf
+#################################################
+# Specify job's execution areas (directory paths)
+#################################################
+
+#Path to home directory:
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] ; then
+  #NCO
+  export HOMEbase=/nw${envir}
+else
+  #dev
+  export HOMEbase=/u/Robert.Grumbine/save
+fi
+
+export HOMEomb=$HOMEbase/rtofs_gsf.${model_ver}
+
+export EXEComb=$HOMEomb/exec
+export FIXomb=$HOMEomb/fix
+export PARMomb=$HOMEomb/parm
+export USHomb=$HOMEomb/ush
+
+
+
+###################################
+# Set up the UTILITIES
+###################################
+export HOMEutil=/nwprod/util
+export EXECutil=$HOMEutil/exec
+export FIXutil=$HOMEutil/fix
+export PARMutil=$HOMEutil/parm
+export USHutil=$HOMEutil/ush
+
+# Run setup to initialize working directory and utility scripts
+sh $USHutil/setup.sh
+# Run setpdy and initialize PDY variables
+sh $USHutil/setpdy.sh
+. ./PDY
+#TESTexport PDY=20121115
+#TESTexport PDYm1=20121114
+#TESTexport jdy=320
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] ; then
+  export COMbase=/com/${NET}/${envir}
+  export pcom=/pcom/mrf
+  export DCOMROOT=/dcom
+#Additional directory -- operational output of RTOFS-Atlantic
+  export COMINOFS=/com/ofs/prod/ofs.${PDY}
+else
+  export COMbase=/u/Robert.Grumbine/noscrub/com/${NET}/${envir}/
+  export pcom=/u/Robert.Grumbine/noscrub/pcom/$RUN/
+  export DCOMROOT=/u/Robert.Grumbine/noscrub/com/
+#Additional directory -- operational output of RTOFS-Atlantic
+  #export COMINOFS=/u/Robert.Grumbine/noscrub/com/ofs/prod/ofs.${PDY}
+  export COMINOFS=/com/ofs/prod/ofs.${PDY}
+fi
+
+export COMIN=$COMbase/${RUN}.${PDY}
+export COMINm1=$COMbase/${RUN}.${PDYm1}
+export COMOUT=$COMbase/${RUN}.${PDY}
+export DCOM=$DCOMROOT/us007003
+
+mkdir -p $COMOUT
+mkdir -p $pcom
+
+env
+
+########################################################
+# Execute the script.
+
+sh $HOMEomb/scripts/exrtofs_gsfinder.sh.sms
+export err=$?
+$DATA/err_check
+
+########################################################
+
+cat $pgmout
+
+date
+
+rm -rf $DATA
+

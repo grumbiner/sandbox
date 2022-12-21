@@ -1,0 +1,15 @@
+
+EXDIR=$HOME3/execs
+
+echo `date +'%y' ` > psin
+echo `date +'%m' ` >> psin
+echo `date +'%d' ` >> psin
+
+for pole in north south
+do
+  cpole=`echo $pole | cut -c1`
+  assign -a ${cpole}land.map  -s unblocked fort.10
+  assign -a ${cpole}land.psg -s unblocked fort.11
+  ${EXDIR}/psgrib.$pole < psin
+done
+

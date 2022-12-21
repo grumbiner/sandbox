@@ -1,0 +1,593 @@
+From owner-emc@ncep.noaa.gov  Thu Aug 21 18:12:15 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h7LMCDM19980
+	for <wd21rg@polar.wwb.noaa.gov>; Thu, 21 Aug 2003 18:12:14 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h7LMBwfA020690
+	for <grumbine@ncep.noaa.gov>; Thu, 21 Aug 2003 18:11:58 -0400
+Received: from relay-west.nems.noaa.gov ([161.55.16.21]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HJZPOC00.I4K; Thu, 21 Aug 2003 18:12:12 -0400 
+Received: from nems.noaa.gov ([161.55.16.20]) by
+          relay-west.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          ESMTP id HJZPO800.CZB; Thu, 21 Aug 2003 15:12:08 -0700 
+Received: by nems.noaa.gov; id OAA07564; Wed, 20 Aug 2003 14:01:37 -0700 (PDT)
+Received: from tstunx38.ncep.noaa.gov(140.90.193.252) by scan-west.nems.noaa.gov via csmap (V4.1)
+	id srcGAAtIaqqi; Wed, 20 Aug 03 14:01:33 -0700
+Received: from sgi72.wwb.noaa.gov (sgi72.wwb.noaa.gov [140.90.193.211])
+	by tstunx38.wwb.noaa.gov (8.11.6/8.11.6) with ESMTP id h7KKsPp06874;
+	Wed, 20 Aug 2003 16:54:25 -0400
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id QAA40375
+	for emc-outgoing; Wed, 20 Aug 2003 16:54:18 -0400 (EDT)
+Message-ID: <3F43DFE8.24BE888F@noaa.gov>
+Date: Wed, 20 Aug 2003 16:54:00 -0400
+From: "Dennis Keyser" <Dennis.Keyser@noaa.gov>
+Organization: NOAA/NWS/NCEP/EMC
+X-Mailer: Mozilla 4.79 [en] (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: emc <emc@ncep.noaa.gov>,
+   "emc-contractors@ncep.noaa.gov" <emc-contractors@ncep.noaa.gov>,
+   emc-visitors <emc-visitors@ncep.noaa.gov>,
+   Sim Aberson <Sim.Aberson@noaa.gov>, Stan Benjamin <Stan.Benjamin@noaa.gov>,
+   Maxine Brown <Maxine.Brown@noaa.gov>,
+   Wesley Ebisuzaki <Wesley.Ebisuzaki@noaa.gov>, Jim Jung <Jim.Jung@noaa.gov>,
+   Richard Kelley <Richard.Kelley@noaa.gov>, Tim Marchok <tpm@gfdl.gov>,
+   Patty Miller <Patricia.A.Miller@noaa.gov>,
+   Laurie Morone <Lauren.Morone@noaa.gov>, Tim Schmit <tims@ssec.wisc.edu>,
+   Tony Schreiner <tonys@ssec.wisc.edu>,
+   Barry Schwartz <Barry.E.Schwartz@noaa.gov>, SDM <sdm@noaa.gov>,
+   Brad Ballish <Bradley.Ballish@noaa.gov>,
+   Chris Velden <chrisvelden@ssec.wisc.edu>,
+   Bill Whitmore <William.Whitmore@noaa.gov>,
+   Tom Zapotocny <tom.zapotocny@ssec.wisc.edu>, Roy Smith <Roy.Smith@noaa.gov>,
+   Dave Michaud <David.Michaud@noaa.gov>
+Subject: more on Restricted Observational Data
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Dennis Keyser" <Dennis.Keyser@noaa.gov>
+X-MailScanner-Information: Testing Virus Scanner - postmaster@loft.ncep.noaa.gov
+X-MailScanner: Found to be clean
+Status: R
+
+If you are a member of the rstprod group, then whenever you "chgrp" a gpfs file
+(e.g., a file in /gpfstmp or /ptmp) to rstprod this file counts against the
+rstprod group quota.  Since the group quota is not all that large (100 MBytes),
+and since production is writing restricted files into gpfs (in the /com
+directory) under the rstprod group, checkout users should not generate many
+rstprod files.
+
+George Vandenberghe and Eric Monrad have put together the following README file
+which instructs users on how to restrict files in gpfs without using any rstprod
+group space.  See:
+
+http://ibmdocs.ncep.noaa.gov/userman/rstprod.txt
+
+If you are in the rstprod group and you would like to check the quota and
+current usage of group rstprod,  type:
+
+ /usr/lpp/mmfs/bin/mmlsquota -g rstprod
+
+From owner-emc@ncep.noaa.gov  Wed Aug 20 10:31:34 2003
+Return-Path: <owner-emc@ncep.noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.11.6/8.11.6) with ESMTP id h7KEVXM05607
+	for <wd21rg@polar.wwb.noaa.gov>; Wed, 20 Aug 2003 10:31:33 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id h7KEVBJJ013709
+	for <grumbine@ncep.noaa.gov>; Wed, 20 Aug 2003 10:31:11 -0400
+Received: from relay-east.nems.noaa.gov ([205.156.4.216]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HJX9OC00.GNZ; Wed, 20 Aug 2003 10:31:24 -0400 
+Received: from mx-west.nems.noaa.gov ([140.90.121.148]) by
+          relay-east.nems.noaa.gov (Netscape Messaging Server 4.15) with
+          SMTP id HJX9OB00.V9H; Wed, 20 Aug 2003 10:31:23 -0400 
+Received: from tstunx38.wwb.noaa.gov(140.90.193.252) by mx-west.nems.noaa.gov via csmap 
+	 id 11393; Wed, 20 Aug 2003 10:30:46 -0400 (EDT)
+Received: from sgi72.wwb.noaa.gov (sgi72.wwb.noaa.gov [140.90.193.211])
+	by tstunx38.wwb.noaa.gov (8.11.6/8.11.6) with ESMTP id h7KDxbj01646;
+	Wed, 20 Aug 2003 09:59:37 -0400
+Received: (from majordomo@localhost)
+	by sgi72.wwb.noaa.gov (SGI-8.9.3/8.9.3) id JAA01729
+	for emc-outgoing; Wed, 20 Aug 2003 09:59:28 -0400 (EDT)
+Message-ID: <3F437EA1.CB733178@noaa.gov>
+Date: Wed, 20 Aug 2003 09:58:57 -0400
+From: "Dennis Keyser" <Dennis.Keyser@noaa.gov>
+Organization: NOAA/NWS/NCEP/EMC
+X-Mailer: Mozilla 4.79 [en] (Windows NT 5.0; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: emc <emc@ncep.noaa.gov>,
+   "emc-contractors@ncep.noaa.gov" <emc-contractors@ncep.noaa.gov>,
+   emc-visitors <emc-visitors@ncep.noaa.gov>,
+   Sim Aberson <Sim.Aberson@noaa.gov>, Stan Benjamin <Stan.Benjamin@noaa.gov>,
+   Maxine Brown <Maxine.Brown@noaa.gov>,
+   Wesley Ebisuzaki <Wesley.Ebisuzaki@noaa.gov>, Jim Jung <Jim.Jung@noaa.gov>,
+   Richard Kelley <Richard.Kelley@noaa.gov>, Tim Marchok <tpm@gfdl.gov>,
+   Patty Miller <Patricia.A.Miller@noaa.gov>,
+   Laurie Morone <Lauren.Morone@noaa.gov>, Tim Schmit <tims@ssec.wisc.edu>,
+   Tony Schreiner <tonys@ssec.wisc.edu>,
+   Barry Schwartz <Barry.E.Schwartz@noaa.gov>, SDM <sdm@noaa.gov>,
+   Brad Ballish <Bradley.Ballish@noaa.gov>,
+   Chris Velden <chrisvelden@ssec.wisc.edu>,
+   Bill Whitmore <William.Whitmore@noaa.gov>,
+   Tom Zapotocny <tom.zapotocny@ssec.wisc.edu>, Roy Smith <Roy.Smith@noaa.gov>
+Subject: Restricted Observational Data
+Content-Type: multipart/mixed;
+ boundary="------------4B2B3B5A9375E1E37D3E85B8"
+Sender: owner-emc@ncep.noaa.gov
+Precedence: bulk
+Reply-To: "Dennis Keyser" <Dennis.Keyser@noaa.gov>
+X-MailScanner-Information: Testing Virus Scanner - postmaster@loft.ncep.noaa.gov
+X-MailScanner: Found to be clean
+Status: RO
+
+This is a multi-part message in MIME format.
+--------------4B2B3B5A9375E1E37D3E85B8
+Content-Type: multipart/alternative;
+ boundary="------------B9C411985EB8ED0D57CE37D6"
+
+
+--------------B9C411985EB8ED0D57CE37D6
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+NCO's restricted data policy went into effect at 12Z on August 19.
+
+If you are not a member of the rstprod group you will not be able to dump from
+any of the restricted data files in /dcom or /dcomdev (see list below).  You
+will either get an empty dump file (if you dump ONLY a restricted type) or you
+will get a dump which excludes the restricted type (if you dump using a group
+mnemonic which represents a mixture of restricted and unrestricted data, e.g.
+"aircft").  You will also not be able to copy any restricted file in /com (see
+list below).
+
+If you are a member of the rstprod you will be able to dump from the restricted
+files (see list below), however it is up to you to ensure that any output dump
+files that contain restricted data are either set to owner only read permission,
+or are changed to owner and group only read permission and changed to group
+rstprod.  This is also true for any copies you make of any restricted file in
+/com (see list below).  This must be done for all checkout files, including
+those in temporary, working, and parallel model directory locations.  IF YOU DO
+NOT DO THIS YOU ARE VIOLATING THE AGREEMENT YOU ACCEPTED WHEN YOU JOINED THE
+RSTPROD GROUP!  [Note: The files in the list below that are italicized may be
+distributed 48-hours after the observation time (i.e., any copies of such files
+may have world read permission).]
+
+If you are dumping using the dumpjb driver /nwprod/ush/bufr_dump_obs.sh (which
+executes dumpjb), the script will automatically change any restricted output
+dump files to the rstprod group with owner and group read only permission.
+
+External web sites can no longer display any restricted data in either text or
+graphical form.  THIS INCLUDES SIMPLE DATA DISTRIBUTION PLOTS, INCLUDING THOSE
+WITH NO OBSERVATION VALUES PLOTTED.  (Again note that files in the list below
+that are italicized may be plotted/listed 48-hours after observation time.)
+
+If you would like to learn more about the restrictions on observational data
+(and join the rstprod group), go to
+http://ibmdocs.ncep.noaa.gov/userman/rstprod.html  .
+
+
+Below is a listing of the files on frost and snow which can be read only by
+users in the rstprod group (files that are italicized are removed from
+restriction on redistribution 48-hours after the observation time, however they
+still cannot be read by users who are not in the rstprod group):
+
+in /dcom/us007003/YYYYMMDD (operational BUFR database directory) and
+/dcomdev/us007003/YYYYMMDD (development BUFR database directory) (where YYYYMMDD
+is 20030819 or later):
+
+b000/xx000 (WMO Resolution 40 SYNOPs)
+b004/xx003 (ASDAR/ACARS data originating in AMDAR format)
+b004/xx004 (MDCRS ACARS via ARINC to NCEP)
+b004/xx006 (European ASDAR/ACARS originating in BUFR format)
+b004/xx007 (MDCRS ACARS via ARINC to AFWA to NCEP)
+b255/xx* (Mesonet data - all types)
+
+
+in /com/avn/prod/avn.YYYYMMDD (operational GFS directory) and
+/com/avn/test/avn.YYYYMMDD (test GFS directory) (where YYYYMMDD is 20030819 or
+later):
+
+gblav.t*z.adpsfc.tm00.bufr_d (SYNOP and METAR surface land data dump)
+gblav.t*z.adpsfc.tm00.bufr_d.listing (listing of SYNOP and METAR surface land
+data dump)
+gblav.t*z.aircar.tm00.bufr_d (MDCRS ACARS aircraft data dump)
+gblav.t*z.aircar.tm00.bufr_d.listing (listing of MDCRS ACARS aircraft data dump)
+
+gblav.t*z.aircft.tm00.bufr_d (AIREP, PIREP, AMDAR aircraft data dump)
+gblav.t*z.aircft.tm00.bufr_d.listing (listing of AIREP, PIREP, AMDAR aircraft
+data dump)
+gblav.t*z.prepbufr (PREPBUFR file read by analysis)
+gblav.t*z.prepbufr.unblok (unblocked version of analysis PREPBUFR file)
+gblav.t*z.prepbufr_pre-qc (PREPBUFR file prior to automated quality control
+steps)
+gblav.t*z.sdm_acarsqc (output file from PREPBUFR ACARS quality control step)
+gblav.t*z.sdmacqc (output file from PREPBUFR AIREP, PIREP, AMDAR quality control
+step)
+gblav.t*z.sdmstac (output file from PREPBUFR AIREP, PIREP, AMDAR quality control
+step)
+gblav.t*z.tosslist (output file from PREPBUFR OIQCBUFR quality control step)
+
+
+in /com/cdas/prod/cdas.YYYYMMDD (operational CDAS directory) and
+/com/cdas/test/avn.YYYYMMDD (test CDAS directory) (where YYYYMMDD is 20030819 or
+later):
+
+cdas.t*z.adpsfc.tm00.bufr_d
+cdas.t*z.adpsfc.tm00.bufr_d.listing
+cdas.t*z.adpsfc.tm00.bufr_d.unblok (unblocked version of SYNOP and METAR surface
+land data dump)
+cdas.t*z.aircar.tm00.bufr_d
+cdas.t*z.aircar.tm00.bufr_d.listing
+cdas.t*z.aircar.tm00.bufr_d.unblok (unblocked version of MDCRS ACARS aircraft
+data dump)
+cdas.t*z.aircft.tm00.bufr_d
+cdas.t*z.aircft.tm00.bufr_d.listing
+cdas.t*z.aircft.tm00.bufr_d.unblok (unblocked version of AIREP, PIREP, AMDAR
+aircraft data dump)
+cdas.t*z.msonet.tm00.bufr_d (MESONET data dump)
+cdas.t*z.msonet.tm00.bufr_d.listing (listing of MESONET data dump)
+cdas.t*z.msonet.tm00.bufr_d.unblok (unblocked version of MESONET data dump)
+cdas.t*z.prepbufr
+cdas.t*z.prepbufr.unblok
+cdas.t*z.prepbufr_pre-qc
+cdas.t*z.sdm_acarsqc
+cdas.t*z.sdmacqc
+cdas.t*z.sdmstac
+cdas.t*z.tosslist
+
+
+in /com/eta/prod/eta.YYYYMMDD (operational Eta directory) and
+/com/eta/test/eta.YYYYMMDD (test Eta directory) (where YYYYMMDD is 20030819 or
+later):
+
+eta.t*z.adpsfc.tm00.bufr_d
+eta.t*z.adpsfc.tm00.bufr_d.listing
+eta.t*z.aircar.tm00.bufr_d
+eta.t*z.aircar.tm00.bufr_d.listing
+eta.t*z.aircft.tm00.bufr_d
+eta.t*z.aircft.tm00.bufr_d.listing
+eta.t*z.msonet.tm00.bufr_d
+eta.t*z.msonet.tm00.bufr_d.listing
+eta.t*z.prepbufr.tm00
+eta.t*z.prepbufr_pre-qc.tm00
+eta.t*z.sdm_acarsqc.tm00
+eta.t*z.sdmacqc.tm00
+eta.t*z.sdmstac.tm00
+
+
+in /com/eta/prod/edas.YYYYMMDD (operational EDAS directory) and
+/com/eta/test/edas.YYYYMMDD (test EDAS directory) (where YYYYMMDD is 20030819 or
+later):
+
+edas.t*z.adpsfc.tm*.bufr_d
+edas.t*z.adpsfc.tm*.bufr_d.listing
+edas.t*z.aircar.tm*.bufr_d
+edas.t*z.aircar.tm*.bufr_d.listing
+edas.t*z.aircft.tm*.bufr_d
+edas.t*z.aircft.tm*.bufr_d.listing
+edas.t*z.msonet.tm*.bufr_d
+edas.t*z.msonet.tm*.bufr_d.listing
+edas.t*z.prepbufr.tm*
+edas.t*z.prepbufr_pre-qc.tm*
+edas.t*z.sdm_acarsqc.tm*
+edas.t*z.sdmacqc.tm*
+edas.t*z.sdmstac.tm*
+
+
+in /com/fnl/prod/fnl.YYYYMMDD (operational GDAS directory) and
+/com/fnl/test/fnl.YYYYMMDD (test GDAS directory) (where YYYYMMDD is 20030819 or
+later):
+
+gdas1.t*z.adpsfc.tm00.bufr_d
+gdas1.t*z.adpsfc.tm00.bufr_d.listing
+gdas1.t*z.adpsfc.tm00.bufr_d.unblok
+gdas1.t*z.aircar.tm00.bufr_d
+gdas1.t*z.aircar.tm00.bufr_d.listing
+gdas1.t*z.aircar.tm00.bufr_d.unblok
+gdas1.t*z.aircft.tm00.bufr_d
+gdas1.t*z.aircft.tm00.bufr_d.listing
+gdas1.t*z.aircft.tm00.bufr_d.unblok
+gdas1.t*z.prepbufr
+gdas1.t*z.prepbufr.unblok
+gdas1.t*z.prepbufr_pre-qc
+gdas1.t*z.sdm_acarsqc
+gdas1.t*z.sdmacqc
+gdas1.t*z.sdmstac
+gdas1.t*z.tosslist
+
+
+in /com/ruc/prod/ruc2a.YYYYMMDD (operational RUC-2A directory) and
+/com/ruc/test/ruc2a.YYYYMMDD (test RUC-2A directory) (where YYYYMMDD is 20030819
+or later):
+
+ruc2a.t*z.adpsfc.tm00.bufr_d
+ruc2a.t*z.adpsfc.tm00.bufr_d.listing
+ruc2a.t*z.aircar.tm00.bufr_d
+ruc2a.t*z.aircar.tm00.bufr_d.listing
+ruc2a.t*z.msonet.tm00.bufr_d
+ruc2a.t*z.msonet.tm00.bufr_d.listing
+ruc2a.t*z.prepbufr.tm00
+ruc2a.t*z.prepbufr_pre-qc.tm00
+ruc2a.t*z.sdm_acarsqc.tm00
+
+
+in /com/ruc/prod/ruc2b.YYYYMMDD (operational RUC-2B directory) and
+/com/ruc/test/ruc2b.YYYYMMDD (test RUC-2B directory) (where YYYYMMDD is 20030819
+or later):
+
+ruc2b.t*z.adpsfc.tm00.bufr_d
+ruc2b.t*z.adpsfc.tm00.bufr_d.listing
+ruc2b.t*z.aircar.tm00.bufr_d
+ruc2b.t*z.aircar.tm00.bufr_d.listing
+ruc2b.t*z.msonet.tm00.bufr_d
+ruc2b.t*z.msonet.tm00.bufr_d.listing
+ruc2b.t*z.prepbufr.tm00
+ruc2b.t*z.prepbufr_pre-qc.tm00
+ruc2b.t*z.sdm_acarsqc.tm00
+
+
+in /com/rucs/prod/rucs.YYYYMMDD (operational RSAS directory) and
+/com/rucs/test/rucs.YYYYMMDD (test RSAS directory) (where YYYYMMDD is 20030819
+or later):
+
+rucs.t*z.adpsfc.tm00.bufr_d
+rucs.t*z.adpsfc.tm00.bufr_d.listing
+rucs.t*z.msonet.tm00.bufr_d
+rucs.t*z.msonet.tm00.bufr_d.listing
+
+--------------B9C411985EB8ED0D57CE37D6
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+NCO's restricted data policy went into effect at 12Z on August 19.
+<p>If you are not a member of the rstprod group you will not be able to
+dump from any of the restricted data files in /dcom or /dcomdev (see list
+below).&nbsp; You will either get an empty dump file (if you dump ONLY
+a restricted type) or you will get a dump which excludes the restricted
+type (if you dump using a group mnemonic which represents a mixture of
+restricted and unrestricted data, e.g. "aircft").&nbsp; You will also not
+be able to copy any restricted file in /com (see list below).
+<p>If you are a member of the rstprod you will be able to dump from the
+restricted files (see list below), however it is up to you to ensure that
+any output dump files that contain restricted data are either set to owner
+only read permission, or are changed to owner and group only read permission
+and changed to group rstprod.&nbsp; This is also true for any copies you
+make of any restricted file in /com (see list below).&nbsp; This must be
+done for all checkout files, including those in temporary, working, and
+parallel model directory locations.&nbsp; IF YOU DO NOT DO THIS YOU ARE
+VIOLATING THE AGREEMENT YOU ACCEPTED WHEN YOU JOINED THE RSTPROD GROUP!&nbsp;
+[Note: The files in the list below that are <i>italicized </i>may be distributed
+48-hours after the observation time (i.e., any copies of such files may
+have world read permission).]
+<p>If you are dumping using the dumpjb driver /nwprod/ush/bufr_dump_obs.sh
+(which executes dumpjb), the script will automatically change any restricted
+output dump files to the rstprod group with owner and group read only permission.
+<p>External web sites can no longer display any restricted data in either
+text or graphical form.&nbsp; THIS INCLUDES SIMPLE DATA DISTRIBUTION PLOTS,
+INCLUDING THOSE WITH NO OBSERVATION VALUES PLOTTED.&nbsp; (Again note that
+files in the list below that are <i>italicized </i>may be plotted/listed
+48-hours after observation time.)
+<p>If you would like to learn more about the restrictions on observational
+data (and join the rstprod group), go to <a href="http://ibmdocs.ncep.noaa.gov/userman/rstprod.html">http://ibmdocs.ncep.noaa.gov/userman/rstprod.html</a>&nbsp;
+.
+<br>&nbsp;
+<p>Below is a listing of the files on frost and snow which can be read
+only by users in the rstprod group (files that are <i>italicized </i>are
+removed from restriction on redistribution 48-hours after the observation
+time, however they still cannot be read by users who are not in the rstprod
+group):
+<p>in /dcom/us007003/<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+BUFR database directory) and /dcomdev/us007003/</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(development
+BUFR database directory) (where
+</font><font color="#CC0000">YYYYMMDD </font><font color="#000000">is
+20030819 or later):</font>
+<p>b000/xx000 (WMO Resolution 40 SYNOPs)
+<br><i>b004/xx003 (ASDAR/ACARS data originating in AMDAR format)</i>
+<br><i>b004/xx004 (MDCRS ACARS via ARINC to NCEP)</i>
+<br><i>b004/xx006 (European ASDAR/ACARS originating in BUFR format)</i>
+<br><i>b004/xx007 (MDCRS ACARS via ARINC to AFWA to NCEP)</i>
+<br>b255/xx* (Mesonet data - all types)
+<br>&nbsp;
+<p>in /com/avn/prod/avn.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+GFS directory) and /com/avn/test/avn.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+GFS directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">gblav.t*z.adpsfc.tm00.bufr_d (SYNOP and METAR
+surface land data dump)</font>
+<br><font color="#000000">gblav.t*z.adpsfc.tm00.bufr_d.listing (listing
+of SYNOP and METAR surface land data dump)</font>
+<br><i><font color="#000000">gblav.t*z.aircar.tm00.bufr_d (</font>MDCRS
+ACARS aircraft data dump)</i>
+<br><i><font color="#000000">gblav.t*z.aircar.tm00.bufr_d.listing (listing
+of </font>MDCRS ACARS aircraft data dump)</i>
+<br><i><font color="#000000">gblav.t*z.aircft.tm00.bufr_d (AIREP, PIREP,
+AMDAR aircraft data dump)</font></i>
+<br><i><font color="#000000">gblav.t*z.aircft.tm00.bufr_d.listing (listing
+of AIREP, PIREP, AMDAR aircraft data dump)</font></i>
+<br><font color="#000000">gblav.t*z.prepbufr (PREPBUFR file read by analysis)</font>
+<br><font color="#000000">gblav.t*z.prepbufr.unblok (unblocked version
+of analysis PREPBUFR file)</font>
+<br><font color="#000000">gblav.t*z.prepbufr_pre-qc (PREPBUFR file prior
+to automated quality control steps)</font>
+<br><i><font color="#000000">gblav.t*z.sdm_acarsqc (output file from PREPBUFR
+ACARS quality control step)</font></i>
+<br><i><font color="#000000">gblav.t*z.sdmacqc (output file from PREPBUFR
+AIREP, PIREP, AMDAR quality control step)</font></i>
+<br><i><font color="#000000">gblav.t*z.sdmstac (output file from PREPBUFR
+AIREP, PIREP, AMDAR quality control step)</font></i>
+<br><font color="#000000">gblav.t*z.tosslist (output file from PREPBUFR
+OIQCBUFR quality control step)</font>
+<br>&nbsp;
+<p>in /com/cdas/prod/cdas.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+CDAS directory) and /com/cdas/test/avn.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+CDAS directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">cdas.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">cdas.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><font color="#000000">cdas.t*z.adpsfc.tm00.bufr_d.unblok (unblocked
+version of SYNOP and METAR surface land data dump)</font>
+<br><i><font color="#000000">cdas.t*z.aircar.tm00.bufr_d</font></i>
+<br><i><font color="#000000">cdas.t*z.aircar.tm00.bufr_d.listing</font></i>
+<br><i><font color="#000000">cdas.t*z.aircar.tm00.bufr_d.unblok (unblocked
+version of </font>MDCRS ACARS aircraft data dump)</i>
+<br><i><font color="#000000">cdas.t*z.aircft.tm00.bufr_d</font></i>
+<br><i><font color="#000000">cdas.t*z.aircft.tm00.bufr_d.listing</font></i>
+<br><i><font color="#000000">cdas.t*z.aircft.tm00.bufr_d.unblok (unblocked
+version of AIREP, PIREP, AMDAR aircraft data dump)</font></i>
+<br><font color="#000000">cdas.t*z.msonet.tm00.bufr_d (MESONET data dump)</font>
+<br><font color="#000000">cdas.t*z.msonet.tm00.bufr_d.listing (listing
+of MESONET data dump)</font>
+<br><font color="#000000">cdas.t*z.msonet.tm00.bufr_d.unblok (unblocked
+version of MESONET data dump)</font>
+<br><font color="#000000">cdas.t*z.prepbufr</font>
+<br><font color="#000000">cdas.t*z.prepbufr.unblok</font>
+<br><font color="#000000">cdas.t*z.prepbufr_pre-qc</font>
+<br><i><font color="#000000">cdas.t*z.sdm_acarsqc</font></i>
+<br><i><font color="#000000">cdas.t*z.sdmacqc</font></i>
+<br><i><font color="#000000">cdas.t*z.sdmstac</font></i>
+<br><font color="#000000">cdas.t*z.tosslist</font>
+<br>&nbsp;
+<p>in /com/eta/prod/eta.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+Eta directory) and /com/eta/test/eta.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+Eta directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">eta.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">eta.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><i><font color="#000000">eta.t*z.aircar.tm00.bufr_d</font></i>
+<br><i><font color="#000000">eta.t*z.aircar.tm00.bufr_d.listing</font></i>
+<br><i><font color="#000000">eta.t*z.aircft.tm00.bufr_d</font></i>
+<br><i><font color="#000000">eta.t*z.aircft.tm00.bufr_d.listing</font></i>
+<br><font color="#000000">eta.t*z.msonet.tm00.bufr_d</font>
+<br><font color="#000000">eta.t*z.msonet.tm00.bufr_d.listing</font>
+<br><font color="#000000">eta.t*z.prepbufr.tm00</font>
+<br><font color="#000000">eta.t*z.prepbufr_pre-qc.tm00</font>
+<br><i><font color="#000000">eta.t*z.sdm_acarsqc.tm00</font></i>
+<br><i><font color="#000000">eta.t*z.sdmacqc.tm00</font></i>
+<br><i><font color="#000000">eta.t*z.sdmstac.tm00</font></i>
+<br>&nbsp;
+<p>in /com/eta/prod/edas.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+EDAS directory) and /com/eta/test/edas.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+EDAS directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">edas.t*z.adpsfc.tm*.bufr_d</font>
+<br><font color="#000000">edas.t*z.adpsfc.tm*.bufr_d.listing</font>
+<br><i><font color="#000000">edas.t*z.aircar.tm*.bufr_d</font></i>
+<br><i><font color="#000000">edas.t*z.aircar.tm*.bufr_d.listing</font></i>
+<br><i><font color="#000000">edas.t*z.aircft.tm*.bufr_d</font></i>
+<br><i><font color="#000000">edas.t*z.aircft.tm*.bufr_d.listing</font></i>
+<br><font color="#000000">edas.t*z.msonet.tm*.bufr_d</font>
+<br><font color="#000000">edas.t*z.msonet.tm*.bufr_d.listing</font>
+<br><font color="#000000">edas.t*z.prepbufr.tm*</font>
+<br><font color="#000000">edas.t*z.prepbufr_pre-qc.tm*</font>
+<br><i><font color="#000000">edas.t*z.sdm_acarsqc.tm*</font></i>
+<br><i><font color="#000000">edas.t*z.sdmacqc.tm*</font></i>
+<br><i><font color="#000000">edas.t*z.sdmstac.tm*</font></i>
+<br>&nbsp;
+<p>in /com/fnl/prod/fnl.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+GDAS directory) and /com/fnl/test/fnl.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+GDAS directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">gdas1.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">gdas1.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><font color="#000000">gdas1.t*z.adpsfc.tm00.bufr_d.unblok</font>
+<br><i><font color="#000000">gdas1.t*z.aircar.tm00.bufr_d</font></i>
+<br><i><font color="#000000">gdas1.t*z.aircar.tm00.bufr_d.listing</font></i>
+<br><i><font color="#000000">gdas1.t*z.aircar.tm00.bufr_d.unblok</font></i>
+<br><i><font color="#000000">gdas1.t*z.aircft.tm00.bufr_d</font></i>
+<br><i><font color="#000000">gdas1.t*z.aircft.tm00.bufr_d.listing</font></i>
+<br><i><font color="#000000">gdas1.t*z.aircft.tm00.bufr_d.unblok</font></i>
+<br><font color="#000000">gdas1.t*z.prepbufr</font>
+<br><font color="#000000">gdas1.t*z.prepbufr.unblok</font>
+<br><font color="#000000">gdas1.t*z.prepbufr_pre-qc</font>
+<br><i><font color="#000000">gdas1.t*z.sdm_acarsqc</font></i>
+<br><i><font color="#000000">gdas1.t*z.sdmacqc</font></i>
+<br><i><font color="#000000">gdas1.t*z.sdmstac</font></i>
+<br><font color="#000000">gdas1.t*z.tosslist</font>
+<br>&nbsp;
+<p>in /com/ruc/prod/ruc2a.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+RUC-2A directory) and /com/ruc/test/ruc2a.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+RUC-2A directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">ruc2a.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">ruc2a.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><i><font color="#000000">ruc2a.t*z.aircar.tm00.bufr_d</font></i>
+<br><i><font color="#000000">ruc2a.t*z.aircar.tm00.bufr_d.listing</font></i>
+<br><font color="#000000">ruc2a.t*z.msonet.tm00.bufr_d</font>
+<br><font color="#000000">ruc2a.t*z.msonet.tm00.bufr_d.listing</font>
+<br><font color="#000000">ruc2a.t*z.prepbufr.tm00</font>
+<br><font color="#000000">ruc2a.t*z.prepbufr_pre-qc.tm00</font>
+<br><i><font color="#000000">ruc2a.t*z.sdm_acarsqc.tm00</font></i>
+<br>&nbsp;
+<p>in /com/ruc/prod/ruc2b.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+RUC-2B directory) and /com/ruc/test/ruc2b.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+RUC-2B directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">ruc2b.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">ruc2b.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><i><font color="#000000">ruc2b.t*z.aircar.tm00.bufr_d</font></i>
+<br><i><font color="#000000">ruc2b.t*z.aircar.tm00.bufr_d.listing</font></i>
+<br><font color="#000000">ruc2b.t*z.msonet.tm00.bufr_d</font>
+<br><font color="#000000">ruc2b.t*z.msonet.tm00.bufr_d.listing</font>
+<br><font color="#000000">ruc2b.t*z.prepbufr.tm00</font>
+<br><font color="#000000">ruc2b.t*z.prepbufr_pre-qc.tm00</font>
+<br><i><font color="#000000">ruc2b.t*z.sdm_acarsqc.tm00</font></i>
+<br>&nbsp;
+<p>in /com/rucs/prod/rucs.<font color="#CC0000">YYYYMMDD </font><font color="#000000">(operational
+RSAS directory) and /com/rucs/test/rucs.</font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">(test
+RSAS directory) (where </font><font color="#CC0000">YYYYMMDD
+</font><font color="#000000">is
+20030819 or later):</font>
+<p><font color="#000000">rucs.t*z.adpsfc.tm00.bufr_d</font>
+<br><font color="#000000">rucs.t*z.adpsfc.tm00.bufr_d.listing</font>
+<br><font color="#000000">rucs.t*z.msonet.tm00.bufr_d</font>
+<br><font color="#000000">rucs.t*z.msonet.tm00.bufr_d.listing</font></html>
+
+--------------B9C411985EB8ED0D57CE37D6--
+
+--------------4B2B3B5A9375E1E37D3E85B8
+Content-Type: text/x-vcard; charset=us-ascii;
+ name="Dennis.Keyser.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Description: Card for Dennis Keyser
+Content-Disposition: attachment;
+ filename="Dennis.Keyser.vcf"
+
+begin:vcard 
+n:Keyser;Dennis A.
+x-mozilla-html:FALSE
+org:NOAA/NWS<br>National Centers for Environmental Prediction<br>Environmental Modeling Center;Voice: 301-763-8056, ext.-7223<br>Fax: 301-763-8545<br>Work Home Page:<a href="http://www.emc.ncep.noaa.gov/mmb/papers/keyser/data_processing/">http://www.emc.ncep.noaa.gov/mmb/papers/keyser/data_processing/</a>
+version:2.1
+email;internet:Dennis.Keyser@noaa.gov
+title:Meteorologist/Data Specialist
+adr;quoted-printable:;;W/NP22, Room 207, WWBG<br>=0D=0ANOAA<br>=0D=0A5200 Auth Road;Camp Springs;MD;20746-4304;U.S.A.
+x-mozilla-cpt:;-21696
+fn:Dennis A. Keyser
+end:vcard
+
+--------------4B2B3B5A9375E1E37D3E85B8--
+
+

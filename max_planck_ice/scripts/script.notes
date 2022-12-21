@@ -1,0 +1,20 @@
+Differences to reconcile:
+FBASE is different between forecast and hindcast
+OUTBASE is different
+tag is set differently between the two (for a one day they should be the same)
+hindcast overwrites the hindcast restart file, forecast doesn't
+
+Future modifications: 
+It will be a very good idea to make dt a read parameter
+Match land masks between model and analysis
+Use a 'polelist' to list off the regions being forecast, and then use this
+  info to build any needed directories (list is in later)
+Use hcasttimes, fcsttimes lists
+
+For operations:
+Will need subdirectories in 'fix' for reference data
+Operations will want a copy rather than a ln -sf
+Will need to rewrite IO structure to include poles in file names as ops
+  won't permit subdirectories like this.
+Will need to have fixed files all pointing to same directory
+Will not be able to use tar cvzf (probably won't be necessary either

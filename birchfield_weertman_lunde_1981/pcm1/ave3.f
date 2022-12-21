@@ -1,0 +1,147 @@
+      SUBROUTINE AVE3(NS, JHL, JHO, JXIO) 
+C     IN-LINE AVERAGING  9/24/79
+C     SEPERATE ARRAYS INTO 6 COM BLOCKS TO EASE GRID CHANGES 1/8/81 
+C     AV4-8COM AND AX COMBINED INTO AVCOM TO EASE TRACING. 8/29/83
+C     AVE3 ACCUMULATES TOTALS ON SUBFIELDS
+C     OF THE FIELDS WA, WB, WC PASSED AS PARAMETERS 
+C     NS IS THE CURRENT TIME STEP.
+C     EVEN AND ODD YEARS ARE DONE SEPATELY. 
+C     AV3SET IS CALLED AT THE START OF A BLOCK WITH NS=NSZ
+C      TO INITIALIZE. 
+C     AV3CMP IS CALLED TO COMPUTE THE LAST YEAR MEAN AND LAST TWO 
+C     YEARS ACCUMULATION RATE.
+C     PARALLEL CODE IS USED TO SPEED EXECUTION
+  
+      COMMON W(46, 50)
+      COMMON/CONST/M, MM, MP, MPP, N, DUMA(42)
+      COMMON/CFCOM/NCG, NSC 
+      LOGICAL EVENYR
+  
+C     COMMON TO COMMUNICATE WITH PCMA MAIN
+      COMMON/AV3COM/JBLK, JBLKON, MZERO, MPREF, LSA, LSB, LSC 
+      COMMON/AVCOM/AX(10), BX(13), CX(13), AY(10), BY(13), CY(13) 
+  
+C     LSA, LSB, LSC ARE THE SIZE AND
+C     DIMENSION OF THE SUBFIELD TOTALS WHICH
+C     ARE IN AX, BX, AND CX FOR EVEN YEARS AND
+C     IN AY, BY, AND CY FOR ODD YEARS.THE FINAL 
+C     MEANS ARE PUT IN AX, BX, AND CX AND THE ACC. RATES
+C     ARE PUT IN AY, BY, AND CY.
+C     JBLK IS THE BLOCK NUMBER FROM PCMA MAIN 
+C     JBLKON IS THE BLOCK IN WHICH AVERAGING IS DONE
+C     MZERO, MPREF SPECIFY THE SOUTHERN LIMIT OF SUBFIELDS. 
+C     TEST FOR AVERAGING DONE AT CALL IN TWOB. 10/3/83 BG 
+C     CHECK FOR NEW YEAR
+  
+      IF (NS.LE.NSMAX) GO TO 200
+      NSMAX  = NSMAX +NCG 
+      EVENYR = .NOT.EVENYR
+      IF (.NOT.EVENYR) THEN 
+         CALL PRESET(0.0, AY, LSA)
+         CALL PRESET(0.0, BY, LSB)
+         CALL PRESET(0.0, CY, LSC)
+         ICY = 0
+       ELSE 
+         CALL PRESET(0.0, AX, LSA)
+         CALL PRESET(0.0, BX, LSB)
+         CALL PRESET(0.0, CX, LSC)
+         ICX = 0
+      ENDIF 
+  
+ 200  IF (.NOT.EVENYR) THEN 
+C       ODD YEAR TOTALS 
+        ICY = ICY+1 
+        MZ = MZERO
+        DO 20 L = 1, LSA
+          AY(L) = AY(L)+W(MZ, JHL)
+          MZ = MZ+1 
+  20    CONTINUE
+        MZ = MZERO
+        DO 22 L = 1, LSB
+          BY(L) = BY(L)+W(MZ, JHO)
+          MZ = MZ+1 
+  22    CONTINUE
+        MZ = MZERO
+        DO 24 L = 1, LSC
+          CY(L) = CY(L)+W(MZ, JXIO) 
+          MZ = MZ+1 
+  24    CONTINUE
+       ELSE 
+C       EVEN YEAR TOTALS
+        ICX = ICX+1 
+        MZ = MZERO
+        DO 10 L = 1, LSA
+          AX(L) = AX(L)+W(MZ, JHL)
+          MZ = MZ+1 
+  10    CONTINUE
+        MZ = MZERO
+        DO 12 L = 1, LSB
+          BX(L) = BX(L)+W(MZ, JHO)
+          MZ = MZ+1 
+  12    CONTINUE
+        MZ = MZERO
+        DO 14 L = 1, LSC
+          CX(L) = CX(L)+W(MZ, JXIO) 
+          MZ = MZ+1 
+  14    CONTINUE
+      ENDIF 
+      RETURN
+  
+C      INITIALIZE AT START OF BLOCK 
+       ENTRY AV3SET(NS) 
+       IF (JBLK.NE.JBLKON) RETURN 
+       NSMAX = NS 
+C      HERE  EVEN AND ODD ARE RELATIVE TO THE AV3SET CALL NOT NS
+       EVENYR = .TRUE.
+       ICX    = 0 
+       ICY    = 0 
+       IF (MP.NE.MPREF) CALL ENDIT
+       RETURN 
+  
+C      COMPUTE FINAL AVERAGES 
+       ENTRY AV3CMP 
+       IF ((ICX.NE.N).OR.(ICY.NE.N)) CALL ENDIT 
+       X = 1./FLOAT(N)
+       DO 61 L = 1, LSA 
+         AX(L) = AX(L)*X
+         AY(L) = AY(L)*X
+  61   CONTINUE 
+       DO 62 L = 1, LSB 
+         BX(L) = BX(L)*X
+         BY(L) = BY(L)*X
+  62   CONTINUE 
+       DO 63 L = 1, LSC 
+         CX(L) = CX(L)*X
+         CY(L) = CY(L)*X
+  63   CONTINUE 
+C      SECONDS PER YEAR 31556900
+       IF (.NOT.EVENYR) THEN
+         DO 71 L = 1, LSA 
+           AV = AY(L) 
+           AY(L) = (AY(L)-AX(L))/31556900.
+           AX(L) = AV 
+  71     CONTINUE 
+         DO 72 L = 1, LSB 
+           AV = BY(L) 
+           BY(L) = (BY(L)-BX(L))/31556900.
+           BX(L) = AV 
+  72     CONTINUE 
+         DO 73 L = 1, LSC 
+           AV = CY(L) 
+           CY(L) = (CY(L)-CX(L))/31556900.
+           CX(L) = AV 
+  73     CONTINUE 
+       ELSE 
+        DO 81 L = 1, LSA
+          AY(L) = (AX(L)-AY(L))/31556900. 
+  81    CONTINUE
+        DO 82 L = 1, LSB
+          BY(L) = (BX(L)-BY(L))/31556900. 
+  82    CONTINUE
+        DO 83 L = 1, LSC
+          CY(L) = (CX(L)-CY(L))/31556900. 
+  83    CONTINUE
+      ENDIF 
+  
+      RETURN
+      END 

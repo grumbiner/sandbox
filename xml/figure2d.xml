@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="figure2d.xsl" type="text/xsl" ?>
+
+<figure2d>
+  <title>OFS Surface Salinity</title>
+  <topic>ocean, surface, salinity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">10 March 2004</constructed>
+    <valid time="00">10 March 2004</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Salinity</parm>
+  </parameters>
+  <graphic source="salinity_0.jpg"/>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>

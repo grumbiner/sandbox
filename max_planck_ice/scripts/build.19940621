@@ -1,0 +1,138 @@
+#Script to build all required files for the sea ice enviornment from
+#  the bare source and data files.
+#This script required that you correct the names of things like
+#  the source directories, data directory, fortran compiler, C 
+#  compiler, ...
+#Once you have fixed the variables in this script, you need not
+#  modify anything anywhere else.
+
+#Home directory
+if [ -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  BASE=$HOME
+  DHOME=$BASE/data
+ else
+  BASE=$HOME2
+  DHOME=${DHOME}/data               #Directory for data files:
+fi
+
+EXDIR=$BASE/execs                 #Location to collect the executables
+RHOME=${BASE}/icemodel            #Directory for the model proper:
+IHOME=${BASE}/icemodel/mpi.source #Directory which contains the include files:
+FORO=${BASE}/forothers            #Directory for data 'forothers'
+OHOME=${BASE}/others          #Directory which contains the 'others' library:
+
+#PHOME: Directory which contains the polar libraries:
+if [ -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  PHOME=${BASE}/library
+ else
+  PHOME=${BASE}/library
+fi
+
+#W3 library site
+if [ -f /etc/sys_hp -o -f /etc/sys_id ] ; then
+  W3=
+ else
+  W3=/nwprod/w3lib
+fi
+#W3=${BASE}/grib/w3lib.a
+
+export W3 BASE EXDIR DHOME RHOME IHOME OHOME PHOME FORO
+
+#FC  Name of the Fortran compiler, in compile-only mode
+#LD  Name of the Fortran linker
+#CC  Name of the C compiler, in compile-only mode
+#CLD Name of the C linker
+if [ -f /etc/sys_hp ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='c89 -c'
+  CLD='c89 '
+  CLDFLAGS=' -lm '
+ elif [ -f /etc/sys_id ] ; then
+  FC='f77 -c'
+  LD='f77'
+  CC='cc -c'
+  CLD='cc'
+  CLDFLAGS=' -lm '
+ else
+  FC='cf77 -c'
+  LD='segldr'
+  CC='cc -c'
+  CLD='cc'
+fi
+
+#declare the NCAR graphics linker
+NCARLD=ncargf77
+#declare the library creating command
+AR='ar rv'
+
+export AR FC LD CC CLD CLDFLAGS NCARLD
+
+#save the present directory as the icemodel directory.
+HDIR=`pwd`
+#Be sure that the directories which are not unpacked get created:
+if [ ! -d $EXDIR ] ; then
+  mkdir $EXDIR
+fi
+if [ ! -d $FORO ] ; then
+  mkdir $FORO
+fi
+if [ ! -d bc/north ] ; then
+  mkdir bc/north
+fi
+if [ ! -d bc/south ] ; then
+  mkdir bc/south
+fi
+
+
+#Create the program libraries
+cd $OHOME
+$FC *.f
+if [ -f others.lib ] ; then
+  chmod u+w others.lib
+  rm others.lib
+fi
+$AR others.lib *.o
+rm *.o
+chmod -w others.lib
+
+cd $PHOME
+$FC *.f
+if [ -f polarflib ] ; then
+  chmod u+w polarflib
+  rm polarflib
+fi
+$AR polarflib *.o
+rm *.o
+chmod -w polarflib
+
+$CC *.c
+if [ -f polarclib ] ; then
+  chmod u+w polarclib
+  rm polarclib
+fi
+$AR polarclib *.o
+rm *.o
+chmod -w polarclib
+
+
+#Now build the executable programs and required data files
+cd $HDIR
+for pole in north south
+do 
+  export pole
+
+  ./analy.jcl
+  ./bc.jcl
+  ./met.jcl
+  ./model.jcl
+
+done
+cd ${RHOME}/bc    ; make clobber
+cd ${RHOME}/analy ; make clobber
+cd ${RHOME}/meteo ; make clobber
+
+cd ${RHOME}/ic
+make
+mv *nh *sh $EXDIR
+make clean

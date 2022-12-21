@@ -1,0 +1,31 @@
+#!/bin/csh
+#PBS -l procs=8
+#PBS -l walltime=00:04:00
+#PBS -A marine-cpu
+#PBS -N shallow
+#PBS -e /home/Robert.Grumbine/shallow/shallow.out
+#PBS -o /home/Robert.Grumbine/shallow/shallow.out
+#PBS -q batch
+module purge
+module load intel
+module load impi
+
+set echo
+setenv OS `uname`
+setenv NOMP 0
+setenv NMPI 8
+
+setenv S /scratch3/NCEPDEV/marine/shallow/test
+setenv HEXE /home/Robert.Grumbine/shallow/shallow
+mkdir -p $S
+cd       $S
+
+switch ($OS)
+case 'Linux':
+    /bin/rm -f core
+    touch core
+    time mpirun -np $NMPI ${HEXE}
+    breaksw
+default:
+    echo wrong OS
+endsw

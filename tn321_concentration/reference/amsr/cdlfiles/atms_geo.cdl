@@ -1,0 +1,207 @@
+// QSS Group
+//
+//
+// NAME:
+//       atms_geo.cdl
+//
+// PURPOSE:
+//       netCDF file specification for ATMS geolocation file.  ATMS data
+//       contains
+//
+//       This file specification document is written in the network Common
+//       Data Form Language (CDL) to define NetCDF dimension names and
+//       sizes, and to declare attributes and arrays in terms of the
+//       dimensions.
+//
+// CATEGORY:
+//       NUCAPS: Data Storage
+//
+// LANGUAGE:
+//       CDL
+//
+// RESTRICTIONS:
+//       None
+//
+// EXAMPLE:
+//       This file specification should be used with the ncgen utility to
+//       produce the initial (empty) file for CrIS granule data:
+//
+//           $ ncgen -b -k3 atms_geo.cdl
+//
+//
+// MODIFICATION HISTORY:
+//       Written by:   Kexin Zhang, PSGS, 9/05/08
+//                     kexin.Zhang@noaa.gov
+
+
+
+netcdf atms_geo {
+
+
+//---------
+dimensions:
+//---------
+      IN_TRACK = 12;
+      CROSS_TRACK = 96;
+      ATMS_CHANNEL = 22;
+      ECRCoordinate = 3;
+      BEAM_CHANNEL = 5;
+//--------
+variables:
+//--------
+
+
+// This is the first array
+
+      UBYTE QF1_ATMSSDRGEO(IN_TRACK) ;
+            QF1_ATMSSDRGEO:long_name="Attitude Ephemeris availability status";
+            QF1_ATMSSDRGEO:unit = "none" ;
+            QF1_ATMSSDRGEO:scale_factor = 1.0d ;
+            QF1_ATMSSDRGEO:add_offset = 0.0d ;
+            QF1_ATMSSDRGEO:parameter_type = "ATMS data" ;
+            QF1_ATMSSDRGEO:valid_range = 0ub, 3ub ;
+            QF1_ATMSSDRGEO:_FillValue = 95ub ;
+
+      INT64 StartTime(IN_TRACK) ;
+            StartTime:long_name = "Starting Time of scan in IET(1/1/1958)" ;
+            StartTime:units = "microseconds" ;
+            StartTime:scale_factor = 1.0d ;
+            StartTime:add_offset = 0.0d ;
+            StartTime:parameter_type = "ATMS data" ;
+            StartTime:valid_range = 0L, 1000000000000000000L ;
+            StartTime:_FillValue = -9999L ;
+ 
+      INT64 MidTime(IN_TRACK) ;
+            MidTime:long_name = "Mid Time of scan in IET(1/1/1958)" ;
+            MidTime:units = "microseconds" ;
+            MidTime:scale_factor = 1.0d ;
+            MidTime:add_offset = 0.0d ;
+            MidTime:parameter_type = "ATMS data" ;
+            MidTime:valid_range = 0L, 1000000000000000000L ;
+            MidTime:_FillValue = -9999L ; 
+
+      float Latitude(IN_TRACK,CROSS_TRACK) ;
+            Latitude:long_name = "Latitude of channel 17 (positive North)" ; 
+            Latitude:units = "degrees" ;
+            Latitude:scale_factor = 1.0d ;
+            Latitude:add_offset = 0.0d ;
+            Latitude:parameter_type = "ATMS data" ;
+            Latitude:valid_range = -90.0f, 90.0f ;
+            Latitude:_FillValue = -9999.0f ; 
+            
+      float Longitude(IN_TRACK,CROSS_TRACK) ;
+            Longitude:long_name = "Longitude of channel 17 (positive East)" ;
+            Longitude:units = "degrees" ;
+            Longitude:scale_factor = 1.0d ;
+            Longitude:add_offset = 0.0d ;
+            Longitude:parameter_type = "ATMS data" ;
+            Longitude:valid_range = -180.0f, 180.0f ;
+            Longitude:_FillValue = -9999.0f ; 
+
+      float SolarZenithAngle(IN_TRACK,CROSS_TRACK) ;
+            SolarZenithAngle:long_name = "Zenith angle of sun" ; 
+            SolarZenithAngle:units = "degrees" ;
+            SolarZenithAngle:scale_factor = 1.0d ;
+            SolarZenithAngle:add_offset = 0.0d ;
+            SolarZenithAngle:parameter_type = "ATMS data" ;
+            SolarZenithAngle:valid_range = 0.0f, 180.0f ;
+            SolarZenithAngle:_FillValue = -9999.0f ;
+       
+      float SolarAzimuthAngle(IN_TRACK,CROSS_TRACK) ;
+            SolarAzimuthAngle:long_name = "Azimuth angle of sun" ;
+            SolarAzimuthAngle:units = "degrees" ;
+            SolarAzimuthAngle:scale_factor = 1.0d ;
+            SolarAzimuthAngle:add_offset = 0.0d ;
+            SolarAzimuthAngle:parameter_type = "ATMS data" ;
+            SolarAzimuthAngle:valid_range = -180.0f, 180.0f ;
+            SolarAzimuthAngle:_FillValue = -9999.0f ;
+
+
+      float SatelliteZenithAngle(IN_TRACK,CROSS_TRACK) ;
+            SatelliteZenithAngle:long_name = "Zenith angle to satellite" ;
+            SatelliteZenithAngle:units = "degrees" ;
+            SatelliteZenithAngle:scale_factor = 1.0d ;
+            SatelliteZenithAngle:add_offset = 0.0d ;
+            SatelliteZenithAngle:parameter_type = "ATMS data" ;
+            SatelliteZenithAngle:valid_range =0.0f, 70.0f ;
+            SatelliteZenithAngle:_FillValue = -9999.0f ; 
+
+      float SatelliteAzimuthAngle(IN_TRACK,CROSS_TRACK) ;
+            SatelliteAzimuthAngle:long_name = "Azimuth angle to satellite" ;
+            SatelliteAzimuthAngle:units = "degrees" ;
+            SatelliteAzimuthAngle:scale_factor = 1.0d ;
+            SatelliteAzimuthAngle:add_offset = 0.0d ;
+            SatelliteAzimuthAngle:parameter_type = "ATMS data" ;
+            SatelliteAzimuthAngle:valid_range = -180.0f, 180.0f ;
+            SatelliteAzimuthAngle:_FillValue = -9999.0f ;  
+
+      float Height(IN_TRACK,CROSS_TRACK) ;
+            Height:long_name = "Ellipsoid-Geoid separation" ;
+            Height:units = "meters" ;
+            Height:scale_factor = 1.0d ;
+            Height:add_offset = 0.0d ;
+            Height:parameter_type = "ATMS data" ;
+            Height:valid_range = 0.0f, 1000.0f ;
+            Height:_FillValue = -9999.0f ;
+ 
+      float SatelliteRange(IN_TRACK,CROSS_TRACK) ;
+            SatelliteRange:long_name = "Line of sight distance" ; 
+            SatelliteRange:units = "meters" ;
+            SatelliteRange:scale_factor = 1.0d ;
+            SatelliteRange:add_offset = 0.0d ;
+            SatelliteRange:parameter_type = "ATMS data" ;
+            SatelliteRange:valid_range = 0.0f, 1000.0f ;
+            SatelliteRange:_FillValue = -9999.0f ;
+           
+      float BeamLatitude(IN_TRACK,CROSS_TRACK,BEAM_CHANNEL) ;
+            BeamLatitude:long_name = "Latitude (channels 1,2,3,16,17)" ;
+            BeamLatitude:units = "degree" ;
+            BeamLatitude:scale_factor = 1.0d ;
+            BeamLatitude:add_offset = 0.0d ;
+            BeamLatitude:parameter_type = "ATMS data" ;
+            BeamLatitude:valid_range = -90.0f, 90.0f ;
+            BeamLatitude:_FillValue = -9999.0f ;
+
+      float BeamLongitude(IN_TRACK,CROSS_TRACK,BEAM_CHANNEL) ;
+            BeamLongitude:long_name = "Longitude (channels 1,2,3,16,17)" ;
+            BeamLongitude:units = "degree" ;
+            BeamLongitude:scale_factor = 1.0d ;
+            BeamLongitude:add_offset = 0.0d ;
+            BeamLongitude:parameter_type = "ATMS data" ;
+            BeamLongitude:valid_range = -180.0f, 180.0f ;
+            BeamLongitude:_FillValue = -9999.0f ;
+
+      float SCPosition(IN_TRACK,ECRCoordinate) ;
+            SCPosition:long_name = "Spacecraft position" ; 
+            SCPosition:units = "meters" ;
+            SCPosition:scale_factor = 1.0d ;
+            SCPosition:add_offset = 0.0d ;
+            SCPosition:parameter_type = "ATMS data" ;
+            SCPosition:valid_range = 0.0f, 1000.0f ;
+            SCPosition:_FillValue = -9999.0f ;
+ 
+      float SCVelocity(IN_TRACK,ECRCoordinate) ;
+            SCVelocity:long_name = "Spacecraft velocity" ; 
+            SCVelocity:units = "m/s" ;
+            SCVelocity:scale_factor = 1.0d ;
+            SCVelocity:add_offset = 0.0d ;
+            SCVelocity:parameter_type = "ATMS data" ;
+            SCVelocity:valid_range = 0.0f, 1000.0f ;
+            SCVelocity:_FillValue = -9999.0f ;
+
+
+// This is the last array
+
+      float SCAttitude(IN_TRACK,ECRCoordinate) ;
+            SCAttitude:long_name = "Spacecraft attitude" ; 
+            SCAttitude:unit = "arcsecond" ;
+            SCAttitude:scale_factor = 1.0d ;
+            SCAttitude:add_offset = 0.0d ;
+            SCAttitude:parameter_type = "ATMS data" ;
+            SCAttitude:valid_range = 0.0f, 1000.0f ;
+            SCAttitude:_FillValue = -9999.0f ;
+
+
+}
+
+

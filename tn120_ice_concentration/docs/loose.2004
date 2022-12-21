@@ -1,0 +1,23 @@
+pole=n
+read x
+set -x
+
+while [ ! -z $x ] 
+do
+  yy=`echo $x | cut -c1-4`
+  if [ -z $yy -o $yy -lt 1995 ] ; then
+    exit
+  fi
+  if [ ! -f index.$yy ] ; then
+    wgrib ${pole}psg.$yy > index.$yy
+  fi
+  gribtag=`echo $x | cut -c3-8`
+  y=`grep $gribtag index.$yy`
+  echo $x $yy $y $gribtag
+  if [ ! -z $y ] ; then
+    echo $y | wgrib -i -nh ${pole}psg.$yy -o ${pole}.$x
+    ./seaice_northfxpm ${pole}.$x /usr/local/data/seaice_nland.map n.${x}.xpm
+    rm ${pole}.$x
+  fi
+  read x
+done

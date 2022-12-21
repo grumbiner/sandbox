@@ -1,0 +1,82 @@
+From owner-climlist@lnxpd06.ocs.LSU.EDU  Wed Mar  3 13:16:17 2004
+Return-Path: <owner-climlist@lnxpd06.ocs.LSU.EDU>
+Received: from listserv.lsu.edu (lnxpd06.ocs.lsu.edu [130.39.175.26])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i23IGGFj011722
+	for <rmg3@POLAR.WWB.NOAA.GOV>; Wed, 3 Mar 2004 13:16:16 -0500
+Received: from lnxpd06.ocs.lsu.edu (listserv.lsu.edu [130.39.175.26])
+	by listserv.lsu.edu (8.11.6/8.11.6) with ESMTP id i23IBrK16777;
+	Wed, 3 Mar 2004 12:11:53 -0600
+Received: from LISTSERV.LSU.EDU by LISTSERV.LSU.EDU (LISTSERV-TCP/IP release
+          1.8e) with spool id 2328 for CLIMLIST@LISTSERV.LSU.EDU; Wed, 3 Mar
+          2004 12:11:48 -0600
+Received: from mistral.srcc.lsu.edu (mistral.srcc.lsu.edu [130.39.188.225]) by
+          listserv.lsu.edu (8.11.6/8.11.6) with ESMTP id i23IBmK16715 for
+          <climlist@lnxpd06.ocs.lsu.edu>; Wed, 3 Mar 2004 12:11:48 -0600
+Received: from srcc.lsu.edu (climlist.srcc.lsu.edu [130.39.189.216]) by
+          mistral.srcc.lsu.edu (SGI-8.9.3/8.9.3) with ESMTP id MAA82375 for
+          <climlist@listserv.lsu.edu>; Wed, 3 Mar 2004 12:10:17 -0600 (CST)
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2.1) Gecko/20030225
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Message-ID:  <40462368.7040504@srcc.lsu.edu>
+Date:         Wed, 3 Mar 2004 12:26:48 -0600
+Reply-To: CLIMLIST <climlist@SRCC.LSU.EDU>
+Sender: CLIMLIST Climatology Distribution List <CLIMLIST@lnxpd06.ocs.LSU.EDU>
+From: CLIMLIST <climlist@SRCC.LSU.EDU>
+Organization: Southern Regional Climate Center
+Subject: AMSR-E L2B and L3 products now available from NSIDC
+To: CLIMLIST@lnxpd06.ocs.LSU.EDU
+Precedence: list
+Status: RO
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+CLIMLIST Mailing Number 04-03-05
+Origin: NSIDC User Services <nsidc@sitka.colorado.edu>
+  >>>>> DO NOT USE REPLY FUNCTION <<<<<
+  >>>>> REPEAT - DO NOT USE REPLY! <<<<<
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Dear colleague,
+
+The Advanced Microwave Scanning Radiometer - Earth Observing System
+(AMSR-E) is a passive microwave instrument launched aboard NASA's Aqua
+Satellite on 4 May 2002. Daily Level-2B and Level-3 products are now
+available from the National Snow and Ice Data Center (NSIDC), beginning
+with dates from 18 February 2004.  These derived geophysical AMSR-E
+products include measurements of:
+
+-land: soil moisture, land surface temperature, vegetation water content.
+-oceans: sea surface temperature, near-surface wind speed, columnar
+water vapor, and columnar cloud liquid water.
+-rainfall: rate, type, and accumulation.
+-snow: snow water equivalent.
+-sea ice: sea ice concentration, snow depth over sea ice, and ice
+surface temperature.
+
+5-day, weekly, and monthly products will be available soon (3 March, 7
+March, and 9 April, respectively). For more information and instructions
+for ordering these and other AMSR-E data products, including the
+Level-1A raw observation counts and Level-2A brightness temperatures,
+please visit the following web site:
+
+        http://nsidc.org/data/amsr/
+
+NSIDC also distributes AMSR-E validation data.  See
+"http://nsidc.org/data/amsr_validation" for more
+details.  If you have any questions, please contact NSIDC User Services.
+
+Regards,
+John Maurer
+NSIDC User Services
+________________________________________________________________________
+   NSIDC User Services            Phone: +1 303-492-6199
+   CIRES, 449 UCB                 Fax: +1 303-492-2468
+   University of Colorado         Email: nsidc@nsidc.org
+   Boulder, CO 80309-0449, USA    WWW URL: http://nsidc.org
+
+   National Snow and Ice Data Center * Distributed Active Archive Center
+               * World Data Center for Glaciology, Boulder *
+________________________________________________________________________
+

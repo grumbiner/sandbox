@@ -1,0 +1,75 @@
+\subsection{Regional Definitions NCEP 12/8/2000}
+\begin{tabular}{lrrrr}
+ Great Lakes& 90 W& 40 N& 75 W& 51 N\\
+ Other Laurentian Lakes& 125 W& 45 N& 60 W& 70 N\\
+ Canadian Archipelago& 130 W& 65 N& 55 W& 85 N\\
+ Hudson Bay& 95 W& 50 N& 75 W& 65 N\\
+ Gulf of St. Lawrence& 72 W& 45 N& 55 W& 52 N\\
+ Bering Sea& 165 E& 50 N& 150 W& 70 N\\
+ Sea of Okhotsk& 130 E& 45 N& 160 E& 65 N\\
+ Sea of Japan& 125 E& 40 N& 150 E& 55 N\\
+ Yellow Sea& 116 E& 36 N& 126 E& 42 NN\\
+ Aral Sea& 55 E& 42 N& 65 E& 48 N\\
+ Caspian Sea& 45 E& 35 N& 55 E& 48 N\\
+ Sea of Azov& 26 E& 40 N& 45 E& 48 N\\
+ Baltic Sea& 10 E& 53 N& 34 E& 65 N\\
+ White Sea& 30 E& 59 N& 45 E& 70 N\\
+ Gulf of Ob& 65 E& 65 N& 80 E& 75 N\\
+ Nordic Seas& 35 W& 60 N& 10 E& 85 N\\
+ McMurdo Sound& 150 E& 80 S& 180 E& 70 S\\
+ \end{tabular}
+ij-space\\
+\begin{tabular}{lrrrrr}
+Name & i & j & & \\
+Great Lakes   &   300 & 29 &410& 125\\
+Other Laurentian Lakes &190 &130 &500 &330\\
+Canadian Archipelago  & 225& 270 &415 &420\\
+Hudson Bay            & 305 &125 &405 &255\\
+Gulf of St. Lawrence  & 435 & 85& 520 &170\\
+Bering Sea             & 70 &370& 225 &640\\
+Sea of Okhotsk   &       95& 555 &215 &740\\
+Sea of Japan       &     85 &680 &200 &840\\
+Yellow Sea          &   180& 850 &250 &910\\
+Aral Caspian Azov &     600 &575& 770& 800\\
+White Sea          &    515 &530& 615& 575\\
+Gulf of Ob          &   420 &570& 480& 640\\
+Nordic Seas        &    425 &250 &610& 500\\
+Baltic Sea            & 570 &430& 690& 550\\
+\end{tabular}
+
+Web page corners \\
+Alaska 30 Jan 2006:
+lower left  corner lat lon 54.549572 -152.953400
+upper right corner lat lon 72.252441  161.514160
+i1, j1, i2, j2  93 372 251 530
+
+Sea of Okhotsk and Sea of Japan
+lower left  corner lat lon 50.718647 169.564026
+upper right corner lat lon 52.044247 125.692192
+i1, j1, i2, j2  66 577 240 751
+
+Great Lakes:
+lower left  corner lat lon 37.715355 -92.164299
+upper right corner lat lon 51.785202 -74.885307
+i1, j1, i2, j2 283  10 409 136
+
+Great Bear through Hudson Bay:
+lower left  corner lat lon 45.334393 -107.495529
+upper right corner lat lon 73.008163 -69.330215
+i1, j1, i2, j2 202 118 406 322
+
+Weddell Sea:
+lower left  corner lat lon -78.679008 -346.308624
+upper right corner lat lon -60.230335 -18.720327
+i1, j1, i2, j2 393 354 519 480
+
+Amery Basin:
+lower left  corner lat lon -62.868065 -270.417847
+upper right corner lat lon -66.776123 -319.850342
+i1, j1, i2, j2 341 137 467 263
+
+Ross Sea:
+lower left  corner lat lon -65.397896 -187.904449
+upper right corner lat lon -78.649910 -127.602562
+i1, j1, i2, j2 105 297 231 423
+
