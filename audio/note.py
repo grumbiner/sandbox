@@ -155,7 +155,7 @@ class note(music):
     #a**2
     #a**2/omega
     #a**2/omega**2
-    return(a**2/omega)
+    return(a)
 
 # Given amplitudes and base frequency, composite a note for this 'instrument'
   def from_harmonics(self, ampls, harms, phase):
