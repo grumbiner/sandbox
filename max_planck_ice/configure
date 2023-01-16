@@ -1,0 +1,132 @@
+#!/bin/ksh
+echo What is the name of the directory which will have the 
+echo   sea ice drift model executables?
+read IRHOME
+echo
+echo What is the name of the directory which will have the 
+echo   sea ice drift model control and static data files?
+read ICHOME
+while [ $ICHOME = `pwd` ] 
+do
+  echo The control directory cannot be the current directory!
+  echo You are in the source directory, which must be kept separate!
+  echo Please enter a new directory
+  echo 'What is the name of the directory which will have the' 
+  echo '  sea ice drift model control and static data files?'
+  read ICHOME
+done
+echo
+echo What is the name of the directory which will hold the
+echo   sea ice drift model output?
+read IOHOME
+
+export IRHOME ICHOME IOHOME
+if [ ! -d $IRHOME ] ; then
+  mkdir -p $IRHOME
+fi
+if [ ! -d $ICHOME ] ; then
+  mkdir -p $ICHOME
+fi
+if [ ! -d $IOHOME ] ; then
+  mkdir -p $IOHOME
+fi
+
+
+cat << \EOF > $ICHOME/geo.jcl
+#QSUB -lT 50
+#QSUB -lM 3Mw
+#QSUB -me
+
+#----------------------------------------------------------
+#Skile2 sea ice drift forecast model control script.
+#Robert Grumbine, author.  30 June 1997.
+#----------------------------------------------------------
+EOF
+echo RHOME=$IRHOME >> $ICHOME/geo.jcl
+echo CHOME=$ICHOME >> $ICHOME/geo.jcl
+echo OHOME=$IOHOME >> $ICHOME/geo.jcl
+cat << \EOF >> $ICHOME/geo.jcl
+
+#----------------------------------------------------------
+# Nothing below this point should need changing 
+#----------------------------------------------------------
+
+cd $TMPDIR
+
+NCPUS=1
+export NCPUS
+
+tag=`date +'%y%m%d'`
+
+ja
+
+#-----------------------------------------------------
+# copy over the executable 
+#-----------------------------------------------------
+cp $RHOME/skile2.model    .
+
+#-----------------------------------------------------
+#If there is not a copy of the forecast points file in the control 
+#  directory, create one and put it there.
+#-----------------------------------------------------
+if [ ! -s $CHOME/forecast.points ] ; then
+  $RHOME/skpoints > forecast.points
+  cp forecast.points $CHOME
+ else
+  cp $CHOME/forecast.points .
+fi
+
+
+#-----------------------------------------------------
+##make unit assignments
+#-----------------------------------------------------
+assign -a forecast.points   fort.40
+assign -a fl.out            fort.60
+assign -a ops.out           fort.61
+assign -a ak.out            fort.62
+
+#-----------------------------------------------------
+#get the ice line points
+#-----------------------------------------------------
+rcp cray4:/home/wx12rd/COM.IPASAIJI.NPOC.ARCTIC niceline
+rcp cray4:/home/wx12rd/COM.IPASAIJI.NPOC.ANTARC siceline
+assign -a niceline   fort.41
+assign -a siceline   fort.42
+
+#-----------------------------------------------------
+#copy the iceline to the geo directory, every day.
+#-----------------------------------------------------
+cp niceline ${OHOME}/nice.$tag
+cp siceline ${OHOME}/sice.$tag
+
+#-----------------------------------------------------
+#units for the mrf data
+#-----------------------------------------------------
+BASE=/com/mrf/PROD/mrf.$tag/drfmr.T00Z.SF
+i=19
+for hh in 00 12 24 36 48 60 72 84 96 108 120 132 144
+do
+  i=`expr $i + 1 `
+  assign -a ${BASE}$hh -Fcos -Cascii -Nibm fort.$i
+done
+#
+#-----------------------------------------------------
+#execute the model
+#-----------------------------------------------------
+skile2.model
+
+#-----------------------------------------------------
+#Distribute the output
+#-----------------------------------------------------
+cp ops.out $OHOME/sk2.$tag
+cp ak.out $OHOME/ak.$tag
+
+ja -chlst
+
+EOF
+
+#------------------------------------------------------------------
+# Make the executables and flat files and distribute them as needed
+#------------------------------------------------------------------
+make
+make clean
