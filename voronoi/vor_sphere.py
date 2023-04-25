@@ -57,6 +57,8 @@ center = np.array([0, 0, 0])
 sv = SphericalVoronoi(points, radius, center)
 
 #note that even for small subset, it is apportioning the globe. RG: Need to crop
+#better, look for points in regions which are -1 == off the grid
+
 
 x = sv.calculate_areas()
 #debug print(sv.calculate_areas(), flush=True)
@@ -64,7 +66,7 @@ x = sv.calculate_areas()
 
 
 for i in range(0,len(x)):
-  print(i,x[i]/1e6)
+  print(i,x[i]/1e3, len(sv.regions[i]), sv.regions[i])
 
 exit(0)
 

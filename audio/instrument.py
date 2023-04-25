@@ -27,7 +27,7 @@ for i in range(len(ampls)):
   print(harms[i], ampls[i], phase[i])
 
 #-------------------------------------------------------------
-base = note(music.quarter_note, note.parse('C4'), phase = phase[0])
+base = note(music.quarter_note, note.parse('C5'), phase = phase[0])
 
 #base.from_harmonics(ampls, harms, phase)
 base.from_piano(ampls, harms, phase)
@@ -37,9 +37,9 @@ y = note(music.quarter_note, note.parse('C1'))
 z = note()
 zz = note()
 
-base.shift("G4",y)
-base.shift("A4",z)
-base.shift("G4",zz, music.half_note)
+base.shift("G5",y)
+base.shift("A5",z)
+base.shift("G5",zz, music.half_note)
 #RG: How to deal with slurs? triplets?
 
 song = np.append(base.note, base.note)
