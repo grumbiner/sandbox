@@ -1,0 +1,12 @@
+echo edit makeall.mk for home
+sleep 2
+vi ../makeall.mk
+echo edit makefile for home
+sleep 2
+vi makefile
+
+export VER="" 
+export BASE=~/usrlocal/mmablib
+export NETCDF_INCLUDE="-I ~/usrlocal/include"
+export NETCDF_LDFLAGS_C="-L ~/usrlocal/lib"
+

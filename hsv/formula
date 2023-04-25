@@ -1,0 +1,37 @@
+from http://www.rapidtables.com/convert/color/rgb-to-hsv.htm
+
+* Scale rgb to [0..1] (e.g. from 0..255)
+Cmax = max(r,g,b)
+Cmin = min(r,g,b)
+delta = Cmax - Cmin
+
+H = 0 if delta = 0
+if cmax = r, H = 60degrees * (g-b)/delta (mod6)
+if cmax = g, H = 60degrees * (b-r)/delta + 2)
+if cmax = b, H = 60degrees * (r-g)/delta + 4)
+
+Saturation 
+= 0 if cmax = 0, else
+S = delta / cmax
+
+Value
+V = cmax
+
+
+* Converting hsv to rgb
+let 
+C = V*S
+m = V-C
+X = C*(1- | (H/60degrees)mod 2 - 1 |)
+
+H in      -> color' 
+[0,60)    -> (C,X,0)
+[60,120)  -> (X,C,0)
+[120,180) -> (0,C,X)
+[180,240) -> (0,X,C)
+[240,300) -> (X,0,C)
+[300,360) -> (C,0,X)
+
+then (r,g,b) = (color' + m)*255 
+
+

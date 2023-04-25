@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+
+  <atom:link href="http://polar.ncep.noaa.gov/mmab/rss/current_conditions.xml" rel="self" type="application/rss+xml" />
+
+
+    <title>Marine Modeling and Analysis Branch (MMAB) : Current Conditions</title>
+    <description>Current analysis and nowcast graphics for ocean conditions
+    </description>
+    <link>http://polar.ncep.noaa.gov/</link>
+    <language>en-us</language>
+    <managingEditor>Hendrik.Tolman@noaa.gov (Hendrik Tolman)</managingEditor>
+    <webMaster>Robert.Grumbine@noaa.gov (Robert Grumbine)</webMaster>
+
+  <item>
+    <title>Marine Modeling and Analysis Branch (MMAB) Current Conditions</title>
+    <description>Current analysis and nowcast graphics for ocean conditions
+    </description>
+    <link>http://polar.ncep.noaa.gov/</link>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="true">http://polar.ncep.noaa.gov/</guid>
+  </item>
+
+    <item>
+    <title>MMAB Waves : East Coast and Gulf of Mexico </title>
+    <description>East Coast and Gulf of Mexico significant wave height, wind speed, and peak wave direction, from Western North Atlantic model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/wna_ecg.h000h.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/wna_ecg.h000h.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : Pacific Ocean </title>
+    <description>Significant wave heights for Pacific Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_pa.h000h.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_pa.h000h.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : Pacific Ocean </title>
+    <description>Peak wave period and direction for Pacific Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_pa.h000h.2.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_pa.h000h.2.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : North Pacific Ocean </title>
+    <description>Significant wave heights for North Pacific Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_np.h000h.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_np.h000h.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : North Pacific Ocean </title>
+    <description>Peak wave period and direction for North Pacific Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_np.h000h.2.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_np.h000h.2.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : West Coast US </title>
+    <description>Peak wave period and direction for West Coast US from Eastern North Pacific wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/enp_wc.h000h.2.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/enp_wc.h000h.2.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : North Atlantic Ocean </title>
+    <description>Significant wave heights, wind speed, and peak direction for North Atlantic Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_na.h000h.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_na.h000h.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Waves : Indian Ocean </title>
+    <description>Significant wave heights, wind speed, and peak direction for Indian Ocean from global wave model
+    </description>
+    <link>http://polar.ncep.noaa.gov/waves/latest_run/nww3_in.h000h.gif</link>
+    <author>NCEP.EMC.waves@noaa.gov (NCEP/EMC/MMAB waves group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/waves/latest_run/nww3_in.h000h.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Ice - high res global</title>
+    <description>Sea ice concentration analysis - Global high resolution (5 minutes)
+    </description>
+    <link>http://polar.ncep.noaa.gov/seaice/hires/global.xml</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Seaice group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/seaice/hires/global.xml</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Ice - high res NH</title>
+    <description>Sea ice concentration analysis - Northern Hemisphere high resolution (12.7 km)
+    </description>
+    <link>http://polar.ncep.noaa.gov/seaice/hires/nh.xml</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Seaice group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/seaice/hires/nh.xml</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Ice - High resolution Alaskan region</title>
+    <description>Sea ice concentration analysis - Alaskan region high resolution (12.7 km)
+    </description>
+    <link>http://polar.ncep.noaa.gov/seaice/analysis/ak.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Seaice group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/seaice/analysis/ak.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Ice - high res SH</title>
+    <description>Sea ice concentration analysis - Southern Hemisphere high resolution (12.7 km)
+    </description>
+    <link>http://polar.ncep.noaa.gov/seaice/hires/sh.xml</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Seaice group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/seaice/hires/sh.xml</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Ice - Lores</title>
+    <description>Sea ice concentration analysis - Global and hemispheric at reduced (30 minute and 25.4 km, respectively) resolution
+    </description>
+    <link>http://polar.ncep.noaa.gov/seaice/Analyses.html</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Seaice group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/seaice/Analyses.html</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Surface Temperature - North Atlantic</title>
+    <description>Near real time analysis of sea surface temperature for North Atlantic Ocean
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/natl_sst_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/natl_sst_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Anomaly Sea Surface Temperature - North Atlantic</title>
+    <description>Near real time anomaly in sea surface temperature relative to climatology for North Atlantic Ocean
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/natl_anomaly_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/natl_anomaly_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Surface Temperature - Northeast Pacific Ocean</title>
+    <description>Near real time analysis of sea surface temperature for Northeast Pacific Ocean Ocean
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/nepac_sst_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/nepac_sst_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Anomaly Sea Surface Temperature - Northeast Pacific Ocean</title>
+    <description>Near real time anomaly in sea surface temperature relative to climatology for Northeast Pacific Ocean
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/nepac_anomaly_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/nepac_anomaly_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Surface Temperature - Global</title>
+    <description>Near real time analysis of sea surface temperature for the globe
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/global_sst_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/global_sst_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Anomaly Sea Surface Temperature - Global</title>
+    <description>Near real time anomaly in sea surface temperature relative to climatology for the globe
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/global_anomaly_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/global_anomaly_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Sea Surface Temperature - North America</title>
+    <description>Near real time analysis of sea surface temperature centered on North America
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/namer_sst_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/namer_sst_oper0.gif</guid>
+    </item>
+
+    <item>
+    <title>MMAB Anomaly Sea Surface Temperature - North America</title>
+    <description>Near real time anomaly in sea surface temperature relative to climatology for North American region
+    </description>
+    <link>http://polar.ncep.noaa.gov/sst/namer_anomaly_oper0.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Marine Meteorology group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/sst/namer_anomaly_oper0.gif</guid>
+    </item>
+
+
+    <item>
+    <title>MMAB Automated Gulf Stream</title>
+    <description>Automated finder for the location of the north wall of the Gulf Stream.
+    </description>
+    <link>http://polar.ncep.noaa.gov/gsf/n003.gif</link>
+    <author>Robert.Grumbine@noaa.gov (NCEP/EMC/MMAB Coastal oceanography group)</author>
+    <source url="http://polar.ncep.noaa.gov/mmab/current_conditions.xml">MMAB current conditions</source>
+    <pubDate>Thu, 02 Mar 2006 19:20:00 UT</pubDate>
+    <guid isPermaLink="false">http://polar.ncep.noaa.gov/gsf/n003.gif</guid>
+    </item>
+
+</channel>
+</rss>

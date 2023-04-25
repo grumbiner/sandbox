@@ -1,0 +1,2254 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="a.xsl" type="text/xsl" ?>
+<parmset>
+
+<figure2d>
+  <title>OFS Surface Salinity</title>
+  <topic>ocean, surface, salinity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Salinity</parm>
+  </parameters>
+  <depth>0</depth>
+  <graphic source="salinity_0.jpg"/>
+  <full>salinity_0.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Salinity</title>
+  <topic>ocean, salinity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">12 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Salinity</parm>
+  </parameters>
+  <depth>1000</depth>
+  <graphic source="salinity_1000.jpg"/>
+  <full>salinity_1000.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Salinity</title>
+  <topic>ocean, salinity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Salinity</parm>
+  </parameters>
+  <depth>100</depth>
+  <graphic source="salinity_100.jpg"/>
+  <full>salinity_100.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_x26N.jpg"/> 
+  <full>salinity_x26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection> Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<figure2d>
+  <title>OFS Salinity</title>
+  <topic>ocean, salinity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Salinity</parm>
+  </parameters>
+  <depth>30</depth>
+  <graphic source="salinity_30.jpg"/>
+  <full>salinity_30.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_x69W.jpg"/> 
+  <full>salinity_x69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xEEq.jpg"/> 
+  <full>salinity_xEEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xEquator.jpg"/> 
+  <full>salinity_xEquator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xGFO20.jpg"/>
+  <full>salinity_xGFO20.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 20</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="45" lon="-53.7"/>
+      <loc lat="22" lon="-75.4"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xGFO25.jpg"/> 
+  <full>salinity_xGFO25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xMia-Bda.jpg"/> 
+  <full>salinity_xMia-Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xNYC-Bda.jpg"/>
+  <full>salinity_xNYC-Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_xWEq.jpg"/>
+  <full>salinity_xWEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_26N.jpg"/> 
+  <full>salinity_26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection> Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_69W.jpg"/> 
+  <full>salinity_69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_Eeq.jpg"/> 
+  <full>salinity_Eeq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_equator.jpg"/> 
+  <full>salinity_equator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_GFO_20.jpg"/>
+  <full>salinity_GFO_20.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 20</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="45" lon="-53.7"/>
+      <loc lat="22" lon="-75.4"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_GFO_25.jpg"/> 
+  <full>salinity_GFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_Mia_Bda.jpg"/> 
+  <full>salinity_Mia_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_NYC_Bda.jpg"/>
+  <full>salinity_NYC_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, salinity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Salinity</parm>
+  </parameters>
+  <graphic source="salinity_Weq.jpg"/>
+  <full>salinity_Weq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<figure2d>
+  <title>OFS Surface Height</title>
+  <topic>ocean, surface, height, elevation, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Height</parm>
+  </parameters>
+  <depth>0</depth>
+  <graphic source="ssh.jpg"/>
+  <full>ssh.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Surface Temperature</title>
+  <topic>ocean, surface, Temperature, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Temperature</parm>
+  </parameters>
+  <depth>0</depth>
+  <graphic source="temp_0.jpg"/>
+  <full>temp_0.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Temperature</title>
+  <topic>ocean, temperature, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Temperature</parm>
+  </parameters>
+  <depth>1000</depth>
+  <graphic source="temp_1000.jpg"/>
+  <full>temp_1000.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area>90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Temperature</title>
+  <topic>ocean, Temperature, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Temperature</parm>
+  </parameters>
+  <depth>100</depth>
+  <graphic source="temp_100.jpg"/>
+  <full>temp_100.html</full>
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, temperature, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_x26N.jpg"/>
+  <full>temp_x26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<figure2d>
+  <title>OFS Temperature</title>
+  <topic>ocean, temperature, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Temperature</parm>
+  </parameters>
+  <graphic source="temp_30.jpg"/>
+  <full>temp_30.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_x69W.jpg"/> 
+  <full>temp_x69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xEEq.jpg"/> 
+  <full>temp_xEEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xEquator.jpg"/> 
+  <full>temp_xEquator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xGFO_20.jpg"/> 
+  <full>temp_xGFO_20.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 20</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xGFO_25.jpg"/>
+  <full>temp_xGFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="32.0389" lon="-80"/>
+      <loc lat="31.7943" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xMia_Bda.jpg"/> 
+  <full>temp_xMia_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_xNYC-Bda.jpg"/>
+  <full>temp_xNYC-Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_WEq.jpg"/>
+  <full>temp_WEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS Salinity Section</title>
+  <topic>ocean, temperature, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_26N.jpg"/>
+  <full>temp_26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_69W.jpg"/> 
+  <full>temp_69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_Eeq.jpg"/> 
+  <full>temp_Eeq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_equator.jpg"/> 
+  <full>temp_equator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_GFO_20.jpg"/> 
+  <full>temp_GFO_20.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 20</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_GFO_25.jpg"/>
+  <full>temp_GFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="32.0389" lon="-80"/>
+      <loc lat="31.7943" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_Mia_Bda.jpg"/> 
+  <full>temp_Mia_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_NYC_Bda.jpg"/>
+  <full>temp_NYC_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS temp Section</title>
+  <topic>ocean, temp, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>temp</parm>
+  </parameters>
+  <graphic source="temp_Weq.jpg"/>
+  <full>temp_Weq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<figure2d>
+  <title>OFS Surface Velocity</title>
+  <topic>ocean, surface, Velocity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Velocity</parm>
+  </parameters>
+  <graphic source="velocity_0.jpg"/>
+  <full>velocity_0.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <status>Operational</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Velocity</title>
+  <topic>ocean, velocity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Velocity</parm>
+  </parameters>
+  <depth>1000</depth>
+  <graphic source="velocity_1000.jpg"/>
+  <full>velocity_1000.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<figure2d>
+  <title>OFS Velocity</title>
+  <topic>ocean, velocity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Velocity</parm>
+  </parameters>
+  <depth>100</depth>
+  <graphic source="velocity_100.jpg"/>
+  <full>velocity_100.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_x26N.jpg"/>
+  <full>velocity_x26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<figure2d>
+  <title>OFS Velocity</title>
+  <topic>ocean, velocity, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Ocean Velocity</parm>
+  </parameters>
+  <depth>30</depth>
+  <graphic source="velocity_30.jpg"/>
+  <full>velocity_30.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_x69W.jpg"/> 
+  <full>velocity_x69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xEEq.jpg"/> 
+  <full>velocity_xEEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xEquator.jpg"/> 
+  <full>velocity_xEquator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xGFO_20.jpg"/> 
+  <full>velocity_xGFO_20.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xGFO_25.jpg"/>
+  <full>velocity_xGFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="32.0389" lon="-80"/>
+      <loc lat="31.7943" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xMia_Bda.jpg"/> 
+  <full>velocity_xMia_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xNYC-Bda.jpg"/>
+  <full>velocity-xNYC_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_xWEq.jpg"/>
+  <full>velocity_xWEq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_26N.jpg"/>
+  <full>velocity_26N.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>26 N</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="26" lon="-80"/>
+      <loc lat="26" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_69W.jpg"/> 
+  <full>velocity_69W.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>69 W</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="12" lon="-69"/>
+      <loc lat="40" lon="-69"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_Eeq.jpg"/> 
+  <full>velocity_Eeq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="5" lon="-9"/>
+      <loc lat="-8" lon="-9"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_equator.jpg"/> 
+  <full>velocity_equator.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Eastern Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="0" lon="-45"/>
+      <loc lat="0" lon="5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_GFO_25.jpg"/> 
+  <full>velocity_GFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-68.7"/>
+      <loc lat="8" lon="-52.5"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_GFO_25.jpg"/>
+  <full>velocity_GFO_25.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Geosat Follow-On Section 25</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="32.0389" lon="-80"/>
+      <loc lat="31.7943" lon="-10"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_Mia_Bda.jpg"/> 
+  <full>velocity_Mia_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Miami-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="28.8" lon="-81"/>
+      <loc lat="32.2" lon="-65"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_NYC_Bda.jpg"/>
+  <full>velocity_NYC_Bda.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>New York City-Bermuda</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="42" lon="-73.2"/>
+      <loc lat="32" lon="-64.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+
+<section>
+  <title>OFS velocity Section</title>
+  <topic>ocean, velocity, section, cross-section, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>velocity</parm>
+  </parameters>
+  <graphic source="velocity_Weq.jpg"/>
+  <full>velocity_Weq.html</full>
+
+  <domain_section>
+    <title>Definition of Cross Section</title>
+    <topic>Display, domains, grids</topic>
+    <status>Developmental</status>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+    <name>Western Equatorial</name>
+    <length>4000 km</length>
+    <bounds>
+      <loc lat="9" lon="-23.9"/>
+      <loc lat="-9" lon="-24.6"/>
+      <depth_range top="0" bottom="400"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain_section>
+
+</section>
+</parmset>
