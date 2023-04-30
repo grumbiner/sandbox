@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet href="b.xsl" type="text/xsl" ?>
+<directory>
+<link type="plan">
+<text>Plan view graphics</text>
+<ref>2003_095_00/plan.index</ref>
+</link>
+<link type="xsec">
+<text>Cross Sections</text>
+<ref>2003_095_00/xsec.index</ref>
+</link>
+<link type="plan">
+<text>Plan view graphics</text>
+<ref>2003_098_00/plan.index</ref>
+</link>
+<link type="xsec">
+<text>Cross Sections</text>
+<ref>2003_098_00/xsec.index</ref>
+</link>
+<link type="plan">
+<text>Plan view graphics</text>
+<ref>2003_101_00/plan.index</ref>
+</link>
+<link type="xsec">
+<text>Cross Sections</text>
+<ref>2003_101_00/xsec.index</ref>
+</link>
+</directory>

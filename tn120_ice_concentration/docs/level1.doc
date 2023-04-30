@@ -1,0 +1,59 @@
+README
+
+#Control files:
+ssmi5.jcl
+ssrerun.jcl
+bgnh.h
+nesdisnh.h
+inc8.h
+nic.h
+ssmigrid.inc
+ssmi.h
+icessmi.h
+
+#New ssmi, decoding
+check_short.c
+check_long.c
+process_long.c
+process_short.c
+process_header.c
+process_data.c
+
+#New ssmi, remapping
+ice_zero.c
+ice_add_data.c
+pole_fill.c
+
+#Old ssmi and af, nesdis
+nesbgmain.c
+geticefl.c
+usetie.c
+af.f
+
+#Other tools
+nictrim.c
+
+getmain.c
+
+reducer.c
+freduce.c
+
+any.c
+ssmimain.c
+hdfconv.c
+creduce.c
+maptst.c
+sremap.c
+nremap.c
+fielder.f
+hdf5n.c
+hdf5s.c
+ice2main.c
+nasa91.c
+Makefile
+fields.f
+nasa_team.c
+execmove
+getfld.c
+ice_avg_data.c
+reicemain.c

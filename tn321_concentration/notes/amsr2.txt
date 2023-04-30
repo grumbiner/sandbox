@@ -1,0 +1,581 @@
+
+####  UNIX Script Documentation Block
+#
+# Script name:   dumpjb      Dump script to get data from BUFR tanks
+#
+# JIF contact:  Woollen     Org: NP20        Date: 2013-01-22
+#
+# Abstract: The dumpjb script is an all-purpose dump utility for
+#   time windowing, geographical filtering, eliminating duplicates,
+#   and applying corrections to, BUFR observation database tank data.
+#   The script is driven by script parameters which specify the time
+#   window and the list of data to dump.  Data to dump is indicated by
+#   mnemonic references to individual data types and/or groups of data
+#   types.  Several imported script variables determine other
+#   characteristics of the dump, such as geographical filtering, more
+#   selective time windowing, skipping over specific subtypes, and the
+#   final presentation and form of the dumped datasets. Each data group
+#   requested as a parameter, generates one or more process threads
+#   which each dump one data type.  The script is setup so all the
+#   process threads from all the data groups can be either: run in
+#   parallel under poe thus allowing threads to run across nodes; spun
+#   off into background shells to execute in parallel processors on the
+#   same node; or run serially.  Note that running under background
+#   shells will require greater memory as more shells are added.
+#   Something to keep in mind if a job slows down due to page faults
+#   resulting from a lack of memory when executing in parallel.
+#
+# Script history log:
+# 1996-09-25  J. Woollen  Original version for implementation
+# 1996-10-28  J. Woollen  Added variable DUPC to allow duplicate checking to be
+#     disabled; added additional error checking and modified UCL for DUMPMD
+#     program
+# 1996-11-27  J. Woollen  Records the status of each individual subtype dump,
+#     along with the status of each data group dump; two new executables;
+#     DUPMAR and CHKBFR, added
+# 1996-12-11  J. Woollen  Added GMT dump time to DUMPMD standard input so it
+#     can write this into the BUFR dump file
+# 1997-01-22  J. Woollen  Added new executable DUPAIR to dup-check combinations
+#     of aircraft data; added new executable EDTBFR to process manual SDM
+#     hold/purge flags and data reject list flags in sdmedit text file; added
+#     new executable QUIPC to process marine q.c. information in quips text
+#     file
+# 1997-02-19  J. Woollen  Protect DUPAIR-EDTBFR-QUIPC from zero length inputs 
+# 1998-02-12  D. Keyser   Check for zero-byte tanks that actually exist, if
+#     found sleeps for 30 seconds and checks again - if still empty gives up
+#     (gets around problems that tanks may be momentarily "empty" when tranjb
+#     is writing to them)
+# 1999-02-02  B. Facey    Modified to interface with the Y2K compliant dump
+#     codes, it will accept a date with either a 2 or 4 digit year and will
+#     resolve it to a BUFR database directory name containing a 4 digit year
+# 1999-07-14  L. Sager/D. Keyser Updated to run on IBM; added poe option; added
+#     geographical filtering via new executable GEOFIL
+# 1999-09-22  B. Facey    Updated to dump monthly BATHY data
+# 2000-02-10  D. Keyser   Added option to override the input script positional
+#     parameter "radius of time window" for a particular BUFR type/subtype in
+#     the data group list, here both the earliest and latest requested report
+#     times in the dump are represented by offset values from the center time
+#     (negative value meaning prior to center time and positive value meaning
+#     after center time - note that the magnitudes for these can be different);
+#     added option to skip the dumping of a particular BUFR type/subtype in the
+#     data group list
+# 2000-03-06  D. Keyser   Modified to remove file "fort.20" after BUFR_EDTBFR
+#     program has ended and before BUFR_QUIPC program has begun, both programs
+#     read input text data from unit 20 (sdmedit for BUFR_EDTBFR and quips for
+#     BUFR_QUIPC) and cases have occurred where the sdmedit file was available
+#     but the quips file was missing resulting in BUFR_QUIPC reading the
+#     sdmedit data and generating read error messages missing.
+# 2000-07-25  C. C. Magee Dup-check executable DUPSST will now run for new BUFR
+#     type 012, subtype 012 (NAVY hi-res. SST data)
+# 2000-08-01  D. Keyser   Modified reading of dumplist file to allow lines up
+#     to 500 columns (was 132) and to allow dumplist file to contain comments
+#     (i.e., descriptions of message types/subtypes that used to be in the
+#     docblock of this script)
+# 2000-09-05  D. Keyser   Modified to remove a potential fatal error which
+#     could occur if a BUFR database tank exists but has size zero (either
+#     through some actual occurrence or because a tank is suddenly offline due
+#     to a system glitch), fortunately, this situation has not occurred in
+#     operations since the dump jobs were converted to the IBM SP
+# 2000-09-25  D. Keyser   Modified to correct a problem which will cause an
+#     abort if the parent script exports the variable to override the offset
+#     value from the center time for a particular BUFR type (TTT) and subtype
+#     (SSS)
+# 2000-10-12  D. Keyser   Modified to initialize all output data dump files
+#     (for a particular BUFR type and subtype) in the working directory as null
+#     files prior to any processing, if there is a failure in a particular dump
+#     thread, the empty output file will still be in the list of files read by
+#     BUFR_CHKBUFR (will write out zero reports dumped for that subtype)
+# 2000-12-14  D. Keyser   Modified to add new parameters "DTIM_earliest_@@@@"
+#     and "DTIM_latest_@@@@", where "@@@@" is a valid group name from the
+#     dumplist, this allows the earliest and latest time in the dump window to
+#     be modified for all BUFR types/subtypes in a group; added new script
+#     variables representing each of the programs that are executed by this
+#     script
+# 2001-03-08  D. Keyser   Modified to set the root directory tree for the path
+#     to the script's temporary work files (TMPDIR) to /gpfstmp/$USER, rather
+#     than /nfstmp/$USER, for checkout runs when the parent script has not
+#     modified TMPDIR from its global value (assumed to be either "/nfstmp" or
+#     "/gpfstmp"), this change does not affect production runs, which set
+#     TMPDIR to $DATA, or checkout runs where the parent script modifies TMPDIR
+#     from its global value prior to executing this script (this change is
+#     necessary because quotas placed on /nfstmp have resulted in the failure
+#     of some large data dump checkout jobs due to a lack of disk space on
+#     /nfstmp
+# 2002-01-15  D. Keyser   Dup-check executable BUFR_DUPSAT will now run for new
+#     BUFR type 021, subtype 041 (NESDIS GOES imager clear radiances)
+# 2002-03-19  D. Keyser   Modified to add call to new dup-checking executable
+#     BUFR_DUPS1B for BUFR 1B satellite dumps in BUFR type 021, subtypes 21-25
+#     (for HIRS-2, MSU, AMSU-A, AMSU-B and HIRS-3, respectively); modified to
+#     call new dup-checking executable BUFR_DUPRAD for superobed NEXRAD radial
+#     wind dumps in BUFR type 006, subtype 001; will no longer attempt to
+#     execute BUFR_GEOFIL if user program wishes to dump the entire globe; will
+#     no longer attempt to execute BUFR_DUPAIR if the input dump file(s) is/are
+#     not one of the following types: AIREP, PIREP, AMDAR; passes geographical
+#     filtering parameters into the duplicate checking program via Fortran unit
+#     11 (currently, BUFR_DUPS1B, is the only one which reads this, since
+#     geographical filtering must be performed here rather than in BUFR_GEOFIL
+#     which process these BUFR compressed data dumps); modified to work
+#     properly in CRON job runs where the global variable $TMPDIR is not set -
+#     the script sets it to /nfstmp in this case; added several new imported
+#     script variables to override operational program executables for
+#     duplicate checking, SDM and quips quality mark processing, and file
+#     merging and checking
+# 2002-04-29  D. Keyser   Modified to clear out any "current" XLF variables
+#     associated with Fortran unit numbers since the executables in this script
+#     do not call the utility script prep_step (which performs this function)
+#     prior to their execution, this will prevent the occurrence of unit number
+#     conflicts in the event that a unit number used by a program in this
+#     script was also used by a program executed earlier in a parent script
+# 2002-06-25  L. Sager    Added option to dump the bathymetric data, BUFR type
+#     031, from daily tanks if the BUFR subtype is .ge. 100 (if the BUFR
+#     subtype is .lt. 100,  dumping will occur from the monthly tanks) - this
+#     change is needed to handle the new data type "TOPEX altimeter processed
+#     qc data" which will be stored in daily tanks
+# 2002-11-20  D. Keyser   Modified to recognize when the program BUFR_DUPAIR
+#     stops abnormally - an abnormal stop in this program will now cause this
+#     script to exit with return code 99, but not until it has finished
+#     processing all data types
+# 2003-08-19  D. Keyser   Treats input tanks that do not have READ permission
+#     as MISSING (these tanks contain RESTRICTED data)
+# 2004-04-13  D. Keyser   Includes E-ADAS (004.006) in DUPAIR dup-checking;
+#     now processes subtypes in the order they are listed for a group mnemonic
+#     in dumplist, rather than always in ascending order (regardless of how
+#     they were arranged) (done by calling filenames "01_xxx.aaa",
+#     "02_xxx.bbb", etc. instead of "xxx.aaa" & "xxx.bbb") (002.009 needs to be
+#     read last by W3UNPKB7 but now with new 002.011 and 002.013 in "proflr"
+#     this would no longer be the case without this change); echos group name
+#     into fort.30 to be read by CHKBFR for new listing of counts by sat. id;
+#     no longer executes "timex" command prior to poe command (necessary with
+#     conversion to IBM Frost/Snow); will not execute BUFR_QUIPC unless one or
+#     more dumps in group incl. 001.001-001.005; will not execute BUFR_EDTBFR
+#     unless one or more dumps in group incl. 000.*, 001.*, 002.*, 004.*,
+#     005.*; if either BUFR_EDTBFR or BUFR_QUIPC does not complete properly,
+#     this script now returns with r.c.=99 (before ignored any problems in
+#     these two scripts); mesonet data in BUFR type 255 now uses DUPMAR
+#     followed by DUPCOR rather than DUPCOR only for duplicate checking; if
+#     final return code for dump is 22, script now copies dump file to $DATA
+#     even though it will contain no reports (it should, however, contain
+#     dictionary messages and the center and dump time messages), done so
+#     BUFRLIB will not complain that file is null when CHKBFR opens it (Note:
+#     if no database files yet exist w/i requested date range, checks
+#     availability of database file from previous day and uses it so dump file
+#     will have dictionary and dummy messages and thus not be null) (before,
+#     r.c.=22 resulted in no copy of dump file to $DATA); fixed bug: test on
+#     LALO = 0 fails when LALO includes spaces; added quotes (discovered by J.
+#     Whiting)
+# 2004-04-20  D. Keyser   Modified to correct error that occurs if parent
+#     script exports FORM=copy, in this case dumpjb was creating dump files
+#     with the naming convention "nn_ttt.sss" [where "nn" is the dump order
+#     index (01-99), ttt is the BUFR type and sss is the BUFR subtype] - this
+#     change restores the dump file name to just "ttt.sss"
+# 2005-09-22  D. Keyser   All satellite types previously using dup-check code
+#     BUFR_DUPS1B now use BUFR_DUPSAT (since latter can now handle compressed
+#     BUFR messages), all references to BUFR_DUPS1B, including script variable
+#     S1BX, removed; removed reference to scratch file scr.uncompressed_* in
+#     script executing BUFR_CHKBFR because it is no longer used by this
+#     program; added new script variable "TIME_TRIM", when imported as "off" it
+#     will cause the particular dup-checking code to NOT perform any time
+#     window trimming of subsets in the BUFR file being read by the dup-
+#     checking code, regardless of the requested time window (the default is
+#     "on", time window trimming will occur, as before, if "TIME_TRIM" is not
+#     exported to this script), NOTE: because of a bug in all dup-check codes
+#     except BUFR_DUPCOR and BUFR_DUPSAT, TIME_TRIM=off currently applies ONLY
+#     to these two dup-check codes; removed copy of LALO (lat/lon filtering
+#     boundary) into fort.11 for dup-check codes (was used only by
+#     BUFR_DUPS1B); all types using dup-check code BUFR_DUPSAT are now
+#     geographically filtered in BUFR_DUPSAT when such filtering is requested
+#     (previously all types using BUFR_DUPSAT] were geographically filtered
+#     using BUFR_GEOFIL while all types using the now obsolete dup-checking
+#     code BUFR_DUPS1B where geographically filtered in BUFR_DUPS1B - it is
+#     more efficient, computationally, to do this filtering within the dup-
+#     check code), all other types continue to use BUFR_GEOFIL if geographic
+#     filtering is requested
+# 2006-01-31  D. Keyser   Script logic for executing $RADX is expanded out
+#     because previous structure caused $RADX to be skipped, on rare occasions
+#     for reasons unknown, when $RADX was compiled with the 29 November 2005
+#     version of BUFRLIB (BUFRLIB implemented 31 January 2006)
+# 2006-02-01  D. Keyser   Level 2 radial wind or reflectivity types are in
+#     1-hour tanks to speed up their dump processing time (because there is
+#     SO MUCH DATA), to further speed up their dump processing time, logic is
+#     added which allows them to skip the BUFR_DUMPMD processing step - e.g. if
+#     the dump window spans two days only one day's database file is considered
+#     (the approriate day with data within the requested time window), also the
+#     generation of two "dummy" messages containing the dump center and
+#     processing times, resp. at the top of the dump file is moved from
+#     BUFR_DUMPMD to BUFR_COMBFR (this applies to ALL types of data when script
+#     variable FORM is NOT set to "copy", if FORM is set to "copy" then
+#     BUFR_DUMPMD must still be run for all types because it will write the
+#     dummy messages to the dump file since BUFR_COMBFR does not run in this
+#     case); added new script variable DUMPMD which controls the execution of
+#     BUFR_DUMPMD {there may be cases where BUFR_DUMPMD need not run in order
+#     to save computation time (e.g., Level 2 radial wind or reflectivity types
+#     in 1-hour tanks) - before BUFR_DUMPMD always ran in every thread), see
+#     comments about script variable DUMPMD in remarks section below; checks to
+#     see if file fort.60 exists after BUFR_CHKBFR completes - this indicates
+#     that BUFR_CHKBFR completed properly, if the file does not exist, dumpjb
+#     exits AT THE END with status code 99 which will cause calling script/job
+#     to FAIL (prior to this an improper completion of BUFR_CHKBFR could result
+#     in dumpjb continuing normally but causing problems later); $pos is now
+#     incremented only for those dump subtypes in a group mnemonic that are not
+#     set to be skipped by parent script {before $pos was incremented for each
+#     subtype in group mnemonic prior to test for skipping subtype(s)}; if
+#     BUFR_DUMPMD does not run but BUFR_GEOFIL does, copies original database
+#     tank to nominal working directly location before feeding into BUFR_GEOFIL
+#     because BUFR_GEOFIL writes output back into this file (and can't
+#     overwrite database tank!); no longer copies output file from BUFR_GEOFIL
+#     to $DEST/$FILO, it is not necessary and wastes time; after BUFR_COMBFR
+#     now moves fort.50 to $DATA/$NAME.$FORM rather than copies it (to save
+#     time); new BUFR type 12 subtypes 017 and 018 (AVHRR physical SST
+#     retrievals) defined to use dup-check code BUFR_DUPSST; script variable
+#     TIME_TRIM=off now applies to all dup-check codes (had only applied to
+#     dup-check codes BUFR_DUPCOR and BUFR_DUPSAT); includes new Canadian AMDAR
+#     (004.009) in types of aircraft reports that are dup-checked by
+#     BUFR_DUPAIR
+# 2006-10-10  D. Keyser   Now tests checkout runs for cases where global value
+#     of TMPDIR is set to /stmp, in which case it resets TMPDIR to /stmp/$USER
+#     (if /stmp not found, then tests for TMPDIR set to /gpfstmp and resets it
+#     to /gpfstmp/$USER, as before), needed because new Mist machine has
+#     replaced /gpfstmp with /stmp
+# 2007-06-13  D. Keyser   Accounts for (new) option of a mask file in imported
+#     script variable LALO
+# 2010-12-10  D. Keyser   Added logic to execute the new cross-tank duplicate-
+#     check program BUFR_DUPSHP when dumping from BUFR tanks b001/xx001 and
+#     b001/xx013 (time-windowed data from both tanks must be present to invoke
+#     this); updated to handle the dumping of Tail Doppler Radar winds which
+#     will be present in the new tank b006/xx070 in the near future; if the
+#     initial duplicate check run is BUFR_DUPMAR, checks for the existence of a
+#     file named $DIRD/$FILO.fort.60 upon its completion and if found will
+#     execute a second duplicate check run BUFR_DUPCOR (if a second dup-check
+#     run is not already specified) (means BUFR_DUPMAR encountered reports from
+#     > 1 embedded BUFR table and thus not all duplicates could be removed by
+#     it - BUFR_DUPCOR will complete the duplicate checking
+# 2012-12-02  J. Woollen  Initial port to WCOSS - updated TMPDIR default;
+#     added ksh specification.
+# 2013-01-22  J. Whiting  Final WCOSS port: trapped POE=on option, w/ printed 
+#     notice and graceful exit (this option not currently tested on WCOSS); 
+#     replaced XLF logical unit number clearing w/ appropriate FORTxx logic.
+#
+#
+# Usage: dumpjb  yyyymmddhh<.hh> hh<.hh> dgrp1 dgrp2 dgrp3 ... dgrpN
+#
+#   Script parameters:
+#     yyyymmddhh<.hh> - center of time window for dump
+#     hh<.hh>         - radius of time window for dump
+#                        (NOTE: This can be overidden for any individual BUFR
+#                                type/subtype in the list - see variables
+#                                "DTIM_earliest_TTTSSS" and
+#                                "DTIM_latest_TTTSSS" below
+#                                        -- or --
+#                               this can be overidden for any individual data
+#                                group in the list - see variables
+#                                "DTIM_earliest_DGRP" and "DTIM_latest_DGRP"
+#                                below)
+#     dgrp1           - data group 1 - see %% below
+#     dgrp2           - data group 2
+#     dgrp3           - data group 3
+#     ...            ...
+#     dgrpN           - data group N
+#                        (NOTE: A particular BUFR type/subtype in this list of
+#                                data groups can be skipped over - see
+#                                variable "SKIP_TTTSSS" below)
+#
+#   Modules and files referenced:
+#     scripts     : mpmd.sh
+#     fixed fields: bufr_dumplist
+#     executables : bufr_raddate bufr_dumpmd bufr_dupcor bufr_dupsat
+#                   bufr_dupsst  bufr_dupmrg bufr_edtbfr bufr_quipc
+#                   bufr_chkbfr  bufr_combfr bufr_dupair bufr_dupshp
+#                   bufr_dupmar  bufr_geofil bufr_duprad
+#                   /nwprod/util/exec/ndate
+#
+# Remarks:
+#
+#   Condition codes:
+#     00 - no problem encountered
+#     11 - all groups dumped - missing data from at least one group
+#     22 - at least one group had no data dumped
+#     99 - catastrophic problem - thread script abort
+#
+#   The following script variables are user controllable with operational
+#   defaults defined in the script. If a user exports non-null values
+#   for any of these variables, the user value will override the default.
+#
+#   envir  - environment under which job runs ('prod' or 'test')
+#                                                   (default:prod)
+#   DUEX   -  directory path to dump executables    (default:/nwprod/exec)
+#   RADX   -  path to RADDATE executable            (default:$DUEX/bufr_raddate)
+#   DMDX   -  path to DUMPMD executable             (default:$DUEX/bufr_dumpmd)
+#   GEOX   -  path to GEOFIL executable             (default:$DUEX/bufr_geofil)
+#   CORX   -  path to DUPCOR executable             (default:$DUEX/bufr_dupcor)
+#   SATX   -  path to DUPSAT executable             (default:$DUEX/bufr_dupsat)
+#   SSTX   -  path to DUPSST executable             (default:$DUEX/bufr_dupsst)
+#   MRGX   -  path to DUPMRG executable             (default:$DUEX/bufr_dupmrg)
+#   MARX   -  path to DUPMAR executable             (default:$DUEX/bufr_dupmar)
+#   RDWX   -  path to DUPRAD executable             (default:$DUEX/bufr_duprad)
+#   AIRX   -  path to DUPAIR executable             (default:$DUEX/bufr_dupair)
+#   SHPX   -  path to DUPSHP executable             (default:$DUEX/bufr_dupshp)
+#   EDTX   -  path to EDTBFR executable             (default:$DUEX/bufr_edtbfr)
+#   QPCX   -  path to QUIPC  executable             (default:$DUEX/bufr_quipc)
+#   CHKX   -  path to CHKBFR executable             (default:$DUEX/bufr_chkbfr)
+#   COMX   -  path to COMBFR executable             (default:$DUEX/bufr_combfr)
+#   DFIX   -  directory path to dump script fixed files
+#                                                   (default:/nwprod/fix)
+#   LIST   -  directory path/filename of dump script dumplist file
+#                                                   (def:$DFIX/bufr_dumplist)
+#   LALO   -  geographical data filter              (default:0  (off))
+#   DTIM_earliest_TTTSSS (where TTT is BUFR data type and SSS is BUFR data
+#    subtype in the list to dump, either specified explicitly or contained in
+#    one of the data groups) - if this string exists for a particular BUFR
+#    type/subtype, then it will use this as the offset value (in hh<.hh>) from
+#    the center time specified in the first script positional parameter to
+#    obtain the earliest report time in the output dump.  A negative value
+#    means prior to the center time and a positive value means after the center
+#    time.  {If this does not exist for this BUFR type/subtype then the default
+#    time window radius value, passed in via the second script positional
+#    parameter (see above) is used.}
+#    Example: DTIM_earliest_000007=-2.1 means that for METAR data, the earliest
+#             reports dumped will be 2.1 hours PRIOR to the center time.
+#             DTIM_earliest_001001=0.25 means that for ship data, the earliest
+#             reports dumped will be 0.25 hours AFTER the center time.
+#   DTIM_latest_TTTSSS (where TTT is BUFR data type and SSS is BUFR data
+#    subtype in the list to dump, either specified explicitly or contained in
+#    one of the data groups) - if this string exists for a particular BUFR
+#    type/subtype, then it will use this as the offset value (in hh<.hh>) from
+#    the center time specified in the first script positional parameter to
+#    obtain the latest report time in the output dump.  A negative value means
+#    prior to the center time and a positive value means after the center time.
+#    {If this does not exist for this BUFR type/subtype then the default time
+#    window radius value, passed in via the second script positional parameter
+#    (see above) is used.}
+#    Example: DTIM_latest_004004=0.5 means that for ACARS data, the latest
+#             reports dumped will be 0.5 hours AFTER to the center time.
+#             DTIM_latest_002007=-1 means that for wind profiler data, the
+#             latest reports dumped will be 1.0 hour PRIOR to the center time.
+#   DTIM_earliest_DGRP (where DGRP is a data group in the list to dump,
+#    specified explicitly) - works like DTIM_earliest_TTTSSS defined above,
+#    except all BUFR types and subtypes in the specified data group are
+#    affected.
+#    Example: DTIM_earliest_adpupa=-2.1 means that for all BUFR types/subtypes
+#             currently defined under the data group "adpupa", the earliest
+#             reports dumped will be 2.1 hours PRIOR to the center time.
+#   DTIM_latest_DGRP (where DGRP is a data group in the list to dump, specified
+#    explicitly) - works like DTIM_latest_TTTSSS defined above, except all BUFR
+#    types and subtypes in the specified data group are affected.
+#    Example: DTIM_latest_satwnd=0.5 means that for all BUFR types/subtypes
+#             currently defined under the data group "satwnd", the latest
+#             reports dumped will be 0.5 hours AFTER to the center time.
+#    (NOTE1: For the pair DTIM_earliest_TTTSSS and DTIM_latest_TTTSSS or for
+#            the pair DTIM_earliest_DGRP and DTIM_latest_DGRP, if one is
+#            specified but not the other, the default time window radius is
+#            then used for the one not specified.  The time window radius is
+#            always PRIOR to the center time for the earliest report time in
+#            the dump and AFTER the center time for the latest report time in
+#            the dump.  The value is always positive.)
+#    (NOTE2: For the pair pair DTIM_earliest_TTTSSS and DTIM_earliest_DGRP or
+#            for the pair DTIM_latest_TTTSSS and DTIM_latest_DGRP, the
+#            value specified in DTIM_*_DGRP always takes precedence.
+#    (NOTE3: This script with exit with condition code 99 if the calculated
+#            earliest report time is LATER than the calculated latest report
+#            time.)
+#   SKIP_TTTSSS (where TTT is BUFR data type and SSS is BUFR data subtype in
+#    the list to dump, either specified explicitly or contained in one of the
+#    data groups) - if the length of this string is non-zero for a particular
+#    BUFR type/subtype (regardless of its contents), then this BUFR
+#    type/subtype will not be processed.  All other BUFR types/subtypes in the
+#    same data group or in other data groups listed in the script parameters
+#    will be processed (unless of course this variable is set to skip them)
+#    Example: If SKIP_000007 is of non-zero length (i.e., it was set to some
+#             value and exported by the parent script), then METAR data
+#             are not processed (even if data group "adpupa" is contained
+#             in the script parameters).
+#   TANK   -  directory path to database         (default:${DCOMROOT}/us007003)
+#   DATA   -  directory path to user data destination              (default:pwd)
+#   TMPDIR -  The root directory tree for the path to temporary work files
+#                             (For checkout:
+#                                If the parent script has not
+#                                modified TMPDIR from its global value of
+#                                either "/nfstmp", "/gpfstmp" or "/stmp" and if
+#                                the global variable $USER exists, and it
+#                                always should, then set to:
+#                                     /stmp/$USER (on machines where /stmp
+#                                                  exists, e.g., Mist)
+#                                            or to
+#                                     /gpfstmp/$USER (on machines where
+#                                                     /gpfstmp exists, e.g.,
+#                                                     White/Blue)
+#                                If the parent script has modified TMPDIR from
+#                                its global value, then:        default:$TMPDIR)
+#                             (For production: Always             default:$DATA)
+#   DATA_DUMPJB - directory path to working directories
+#                  (def:$TMPDIR/dumpjb.`hostname -s`.`date -u +%Y%m%d%H%M%S`.$$)
+#      WARNING 1: This script removes all files in DATA_DUMPJB prior to
+#                 writing into it - something to remember if you are exporting
+#                 DATA_DUMPJB to this script!!!
+#      WARNING 2: At the end of this script, all files in DATA_DUMPJB and
+#                 the directory itself are removed UNLESS: a) you exported
+#                 DATA_DUMPJB to this script; b) the return code from this
+#                 script is 99; or c) the imported script variable LOUD is
+#                 set to 'on'.
+#   EPRM   -  directory path/filename of edtbfr sdmedit/reject/list file
+#                                        (default:${DCOMROOT}/us007003/sdmedit)
+#   QPRM   -  directory path/filename of QUIPS flag file
+#                                         (default:${DCOMROOT}/us007003/quips)
+#   MPMD   -  directory path/filename of mpmd utility script that
+#              executes poe                   (default:/nwprod/util/ush/mpmd.sh)
+#   FORM   -  if != copy, the suffix qualifier for database dump files in
+#               $DATA {the database dump files for each data group will be
+#                      combined into a single file called $DATA/dgrp.$FORM }
+#               BUFR_COMBFR is executed and writes two "dummy" messages
+#               containing the dump center and processing times, resp. to the
+#               top of the combined output dump file
+#             if  = copy, each database dump file will be copied to $DATA as
+#               is {dump files are not combined into dgrp; each dump file is
+#                   called $DATA/TTT.SSS (where TTT is BUFR data type and SSS
+#                   is BUFR data subtype in the list to dump, either specified
+#                   explicitly or contained in one of the data groups dgrp)}
+#               BUFR_COMBFR is not executed, so BUFR_DUMPMD writes the two
+#               "dummy" messages containing the dump center and processing
+#               times, resp. to the top of each output dump file   (default:ibm)
+#
+#  The following 4 variables should be set to either "on" or "off"
+#   (if set to anything but "on", assumed to be "off")
+#  ---------------------------------------------------------------
+#   LOUD   -  if 'on', turns on script trace (set -x), echos more information,
+#             prints out dumpjb environment variables, and does not
+#             delete files in DATA_DUMPJB working directory path   (default:off)
+##############
+## WARNING: NEVER, EVER EXPLICITLY SET LOUD TO "on" IN THIS SCRIPT BECAUSE
+##          IT CAN RESULT IN A GARBLED DUMP STATUS FILE. TO INVOKE LOUD=on
+##          HERE, PRODUCTION/PARALLEL/TEST RUNS SHOULD ALWAYS EXPORT LOUD AS
+##          "on" AT THE HIGHEST (JOB) SCRIPT LEVEL.
+###############
+#   BACK   -  runs background shells to execute in parallel processors on
+#             the same node                                         (default:on)
+#   POE    -  run in parallel under poe thus allowing threads to run across
+#             nodes (MUST run under LoadLeveler)                   (default:off)
+#             [ currently, POE=on is not supported -- untested on WCOSS ]
+#     NOTE: Only one of BACK and POE can be switched on -- if both are
+#           switched on, the script will abort
+#   DUMPMD -  if imported as "on" will ALWAYS execute DUMPMD via $DMDX
+#             if not imported will ALWAYS execute DUMPMD via $DMDX UNLESS:
+#               BUFR type/subtype is 006/xx010-xx033 or 006/xx040-xx063 (see $
+#               below) and there is only one database file being windowed
+#               {i.e., requested dump interval does not span two days (see +
+#               below)} and $FORM is NOT set to "copy" (see % below)
+#             if imported as anything other than "on" will NEVER execute DUMPMD
+#               via $DMDX UNLESS: there are two database files being windowed
+#               {i.e., requested dump interval spans two days (see + below)}
+#               and $FORM is set to "copy" (see % below)            (default:on)
+#             $ - The database files in BUFR type/subtype 006/xx010-xx033 and
+#                   006/xx040-xx063 each contain only one hour of data, unique
+#                   to each subtype.  For this reason, a dump of any one of
+#                   these databases alone or some combination of the databases
+#                   (e.g., group mnemonics "rd2w04", "rd2r21" or "nexrad")
+#                   spanning two days need only process one database file
+#                   (e.g., a dump with center time 2005052100 and radius 1.5
+#                   hours need only process the database file containing data
+#                   for 20050520 for 22 and 23Z data, and 20050521 for 00, 01
+#                   02Z data - the logic has been changed to handle this
+#                   since normally with the 24-hour tanks a dump with this
+#                   center and radius value would have to process two database
+#                   files, 20050520 and 20050521)
+#             + - If there are two database files being windowed {e.g., the
+#                   dump center time is 2005052100 and the radius is 1.5 hours
+#                   and the BUFR type/subtype is NOT 006/xx010-xx033 or
+#                   006/xx040-xx063 (see $ above)} then DUMPMD must always be
+#                   executed (even if it is imported as something other than
+#                   "on") because it must combine the two database files into
+#                   one windowed file
+#             % - If FORM=copy then DUMPMD must always be executed (even for
+#                   BUFR type/subtype 006/xx010-xx033 and 006/xx040-xx063)
+#                   because in this case COMBFR is NOT executed and DUMPMD
+#                   must then write the two dummy messages containing the dump
+#                   center and processing times, respectively, to the top of
+#                   the windowed file (the writing of the dummy messages has
+#                   otherwise been moved from DUMPMD to COMBFR except for this
+#                   case where COMBFR does not run)
+#             Normally DUMPMD should NOT be imported by this script (i.e.,
+#               allow it to default "on") so that the 24-hour database files
+#               can be properly windowed by the DUMPMD and the 1-hour database
+#               files (BUFR type/subtype 006/xx010-xx033 and 006/xx040-xx063)
+#               can skip over this processing (unless FORM=copy) to save
+#               valuable wall-clock time in their dump processing.
+#   DUPC   -  turns off duplicate check                             (default:on)
+#   TIME_TRIM - turns off time window trimming in duplicate check code
+#                                                                   (default:on)
+#  
+#   Geographical filtering of the data
+#   ----------------------------------
+#   LALO   -  Geographical data filter.
+#             Set to either a rectangular lat/lon box where:
+#              LALO=sssnnneeewww  where sss=southern latitude limit in degrees
+#                                           (N+, S-)
+#                                       nnn=northern latitude limit in degrees
+#                                           (N+, S-)
+#                                       eee=eastern longitude limit in degrees
+#                                           (0.-360. West)
+#                                       www=western longitude limit in degrees
+#                                           (0.-360. West)
+#      e.g.,  LALO=" 10 50 70120"  dumps everything in the rectangle bounded by
+#                                  10-50 degrees North latitude by 70-120
+#                                  degrees West longitude (note that quotes
+#                                  are needed if leading zeroes are not
+#                                  specified)
+#
+#             -- or --
+#
+#             Set to a lat/lon circle where:
+#              LALO=yyyxxxdddddC  where yyy=latitude in center of circle in
+#                                           degrees (N+,S-)
+#                                       xxx=longitude in center of circle in
+#                                           degrees (0.-360. West)
+#                                       ddddd=radius for circle filter in km
+#      e.g.,  LALO="045269 6500C"  dumps everything in a circle of radius 6500
+#                                  km centered at 45 degrees North latitude and
+#                                  260 degrees West longitude (note that quotes
+#                                  are needed if leading zeroes are not
+#                                  specified)
+#
+#             -- or --
+#
+#             Set to a mask file where:
+#              LALO=F<file name>  where <file name>=full path to mask file
+#                    There is currently only possible mask:
+#                         full global lat/lon
+#                         grid spacing is 0.5 deg
+#                         integer*4 with dimension mask(720,361)
+#                         mask(1,1) is at 0.0 E lon, 90.0 S lat
+#                         mask(720,1) is at 359.5 E lon, -90.0 S lat
+#                         mask(1,361) is at 0.0 E lon, 90.0 N lat
+#                         mask(720,361) is at 359.5 E lon, 90.0 N lat
+#                         mask(i,j) = 0 --> grid point is outside domain
+#                         mask(i,j) = 1 --> grid point is inside domain
+#      e.g.,  LALO="F/nwprod/fix/nam_expdomain_halfdeg_imask.gbl"
+#                                  dumps everything inside the 0,5 deg lat/lon
+#                                  mask specified in the file
+#                                  /nwprod/fix/nam_expdomain_halfdeg_imask.gbl
+#                                  (the expanded NAM domain)
+#
+#             -- or --
+#
+#             LALO=0             bypasses geographical filtering       (default)
+#
+#
+#   %% - Data Groups by Message Type/Subtype
+#   ----------------------------------------
+#   View dump script parameter file valid for this execution of dumpjb
+#   ($LIST as imported or set here) for current list of valid data
+#   group names (in both mnemonic and message type form) and their
+#   descriptions.
+#
+#-----------------------------------------------------------------------
+#   NOTE: If the third argument is a message type (000,001,...), the
+#         arguments following (if any) are interpreted as message
+#         subtypes. This maintains compatibility for users of earlier
+#         versions of dumpjb.
+#-----------------------------------------------------------------------
+#
+# Attributes:
+#
+#   Language: ksh script
+#   Machine:  WCOSS

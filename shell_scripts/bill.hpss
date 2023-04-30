@@ -1,0 +1,35 @@
+From William.Oconnor@noaa.gov  Wed Feb  4 17:12:24 2004
+Return-Path: <William.Oconnor@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i14MCNeE013337
+	for <wd21rg@polar.wwb.noaa.gov>; Wed, 4 Feb 2004 17:12:24 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i14MC5IV020199
+	for <grumbine@ncep.noaa.gov>; Wed, 4 Feb 2004 17:12:05 -0500
+Received: from noaa.gov ([140.90.192.75]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HSKZ0N00.RDQ;
+          Wed, 4 Feb 2004 17:12:23 -0500 
+Sender: woconnor@mx1.ncep.noaa.gov
+Message-ID: <40216E47.6953D02C@noaa.gov>
+Date: Wed, 04 Feb 2004 17:12:23 -0500
+From: "William P. OConnor" <William.Oconnor@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: Robert Grumbine <Robert.Grumbine@noaa.gov>, dan.iredell@noaa.gov,
+        Robert Grumbine <Robert.Grumbine@noaa.gov>
+Subject: HPSS script
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Status: RO
+
+To:      Dan Iredell,  Bob Grumbine
+From:   Bill O'Connor
+
+I wrote a simple script that transfers the month-long
+ROFS simulation .sgb files to the IBM HPSS mass
+storage system.  I transferred over the results for
+the Dec 2003 run (+- 5 days altimetry window).
+The script is
+/nfsuser/g01/cfspom/cfs0.5/hpss_transfer.sh
+

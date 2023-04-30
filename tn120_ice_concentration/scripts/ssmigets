@@ -1,0 +1,6 @@
+base=199902
+for dy in 10 11 12
+do
+  rcp wd21rg@cray4:/dm/wd21rg/ssmi.arc/ssmi.${base}${dy}.16L ssmi.${base}${dy}.16L
+  rsh -l wd21rg cray4 dmput -r -w /dm/wd21rg/ssmi.arc/ssmi.${base}${dy}.16L 
+done

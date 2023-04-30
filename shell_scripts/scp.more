@@ -1,0 +1,128 @@
+From William.Oconnor@noaa.gov  Sat Mar 20 15:37:25 2004
+Return-Path: <William.Oconnor@noaa.gov>
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by polar.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2KKbPFj002265
+	for <wd21rg@polar.wwb.noaa.gov>; Sat, 20 Mar 2004 15:37:25 -0500
+Received: from lnx337.wwb.noaa.gov ([140.90.193.252]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id HUW6MD00.AT5 for <wd21rg@polar.wwb.noaa.gov>; Sat, 20 Mar
+          2004 15:37:25 -0500 
+Received: from mx1.ncep.noaa.gov (mx1.wwb.noaa.gov [140.90.193.27])
+	by lnx337.wwb.noaa.gov (8.12.10/8.12.10) with ESMTP id i2KKbLUK027758
+	for <wd21rg@polar.wwb.noaa.gov>; Sat, 20 Mar 2004 15:37:21 -0500
+Received: from loft.ncep.noaa.gov (loft.wwb.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i2KKb8aZ010033
+	for <grumbine@ncep.noaa.gov>; Sat, 20 Mar 2004 15:37:09 -0500
+Received: from noaa.gov ([140.90.192.75]) by loft.ncep.noaa.gov
+          (Netscape Messaging Server 4.15) with ESMTP id HUW6M900.TRA for
+          <Robert.Grumbine@noaa.gov>; Sat, 20 Mar 2004 15:37:21 -0500 
+Sender: woconnor@ncep.noaa.gov
+Message-ID: <405CAB81.A9152670@noaa.gov>
+Date: Sat, 20 Mar 2004 15:37:21 -0500
+From: "William P. OConnor" <William.Oconnor@noaa.gov>
+X-Mailer: Mozilla 4.79 [en] (X11; U; Linux 2.4.18-3 i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: Robert Grumbine <Robert.Grumbine@noaa.gov>
+Subject: SCP script
+Content-Type: multipart/mixed;
+ boundary="------------5890E4210E0EFEEA10DE4D37"
+X-NCEP-MailScanner-Information: Please contact ncep.helpdesk@noaa.gov for info
+X-NCEP-MailScanner: Found to be clean
+X-NCEP-MailScanner-SpamCheck: 
+Status: RO
+
+This is a multi-part message in MIME format.
+--------------5890E4210E0EFEEA10DE4D37
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+
+--------------5890E4210E0EFEEA10DE4D37
+Content-Type: text/plain; charset=us-ascii;
+ name="scp_stommel.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="scp_stommel.txt"
+
+                                                     Mar. 20, 2004 
+Memo
+To:       Bob Grumbine
+From:     Bill O'Connor
+Subj:     SCP script 
+
+At Chandra's request on Friday I wrote a script on stommel 
+/usr1/home/seaspara/users/bill/scp_to_polar.sh
+(included below) to push daily seaspara files from stommel to polar. 
+They wanted it done quickley and to use a recursive copy of a 
+directory, which make a directory if it is not there.  If you wish 
+I can sometime rewrite the script to be more like the ROFS scripts,
+that make a directory each day and delete yesterdays. However, this
+got the job done yesterday as Dan and Chandra wished.
+Bill  
+*********************************************************************
+     WILLIAM P OCONNOR
+     NOAA/NWS/NCEP/EMC/
+     MARINE MODELING AND ANALYSIS BRANCH 
+     MAIL CODE W/NP21 
+     5200 AUTH ROAD  RM 209   
+     CAMP SPRINGS MD 20746 
+
+     Phone   301-763-8000 Ext 7245 
+     fax     301-763-8545  
+     e-mail  william.oconnor@noaa.gov    
+*********************************************************************
+#! /bin/sh
+# /usr1/home/seaspara/users/bill/scp_to_polar.sh 
+# This script uses secure copy to push files from
+# the seaspara account on STOMMEL to seaspara account on
+# POLAR.  Specify the date YYYYMMDD when calling the script.
+# Usage:   sh scp_to_polar.sh  YYYYMMDD 
+# Mar. 2004  William O'Connor 
+#-----------------------------------------------------
+set -x 
+#-----------------------------------------------------
+# get the input 
+if test $# -eq 1
+then
+   yyyymmdd=$1
+   echo 'yyyymmdd = ' ${yyyymmdd}
+else
+   echo 'INPUT ERROR'
+   echo 'Usage: sh ftp_to_polar.sh yyyymmdd'
+   echo 'SCRIPT WILL EXIT'
+   exit 1
+fi 
+#-----------------------------------------------------
+# set the local directory
+data_local_base='/usr1/home/seaspara/users/pre_op/outgoing'
+echo 'data_local_base = ' ${data_local_base}
+data_local_dir=${data_local_base}/${yyyymmdd}
+echo 'data_local_dir = '  ${data_local_dir}  
+#
+# test to see if local directory present
+if [ -d ${data_local_dir} ]
+then
+   echo ${data_local_dir} 'directory present' 
+else
+   echo ${data_local_dir} 'DIRECTORY NOT PRESENT - SCRIPT WILL EXIT'
+   exit 1
+fi 
+#---------------------------------------------------------
+# set the remote directory
+data_remote_dir='/data/WWW/ofs/developmental/main' 
+echo 'data_remote_dir = '  ${data_remote_dir} 
+scp='/usr/bin/scp' 
+#--------------------------------------------------------
+# make the directories on the remote host 
+#  ssh -l seaspara stommel.ncep.noaa.gov mkdir -p ${data_remote_2d}
+#  ssh -l seaspara stommel.ncep.noaa.gov mkdir -p ${data_remote_3z}
+#--------------------------------------------------------
+# copy the files with secure copy 
+${scp} -rp ${data_local_dir} seaspara@polar.ncep.noaa.gov:${data_remote_dir}  
+#----------------------------------------------------------
+# end 
+
+--------------5890E4210E0EFEEA10DE4D37--
+

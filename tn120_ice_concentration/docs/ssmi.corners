@@ -1,0 +1,15 @@
+Corner points on the ice maps, latitude, longitude
+Latitude is negative south, longitude is negative west.
+
+Northern hemisphere
+  1,   1  25.00 -119.55
+  1, 465  24.46  139.07
+385,   1  24.56  -39.85
+385, 465  24.02   60.33
+
+Southern hemisphere
+  1,   1 -36.90 -220.19
+  1, 355 -37.80 -120.76
+345,   1 -31.09 -307.14
+345, 355 -31.85  -31.88
+

@@ -1,3 +1,7 @@
+C     Include file specifying the grid to work on (sea ice grid)
+C     Robert Grumbine
+C     Last Modified 27 Mar 1996
+
       INTEGER L, M, LM, MM, LP, MP, LMDP, LDO, LM2, MM2 
       INTEGER divisor
       PARAMETER (divisor = 5 )

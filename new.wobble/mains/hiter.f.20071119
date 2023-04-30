@@ -1,0 +1,82 @@
+      PROGRAM hiter
+C     Program to act as a front end to the harmonic analysis routines.
+C     Robert Grumbine 8-25-86.
+C     Version to individually compute the components of frequencies
+C       which are too closely spaced for matrix handling. 
+
+      IMPLICIT none
+
+      INTEGER m, n
+      INTEGER maxfreqs
+      PARAMETER (maxfreqs = 5000)
+      !REAL a(maxfreqs), b(maxfreqs), freq(maxfreqs)
+      REAL a, b, freq(maxfreqs)
+
+      INTEGER i
+      CHARACTER*40 fname
+      REAL f, start, stop, step
+
+      REAL pi
+      PARAMETER (pi = 3.141592654)
+C 2006/06/06 for iers data
+      INTEGER npts
+      PARAMETER (npts = 75972) 
+      DOUBLE PRECISION x(npts)
+      REAL y(npts)
+      DOUBLE PRECISION sum
+
+      READ (*,*) fname
+      OPEN (10, FILE=fname, FORM="FORMATTED", STATUS="OLD")
+      DO i = 1, npts
+        READ(10, *) x(i)
+        !PRINT *,x(i)
+      ENDDO
+      m = npts
+
+      PRINT *,'At what frequency do you want to start?'
+      READ (*,9002) start
+      PRINT *,'At what freq. do you want to end?'
+      READ (*,9002) stop
+      PRINT *,'What interval do you want to step with?'
+      READ (*,9002) step 
+      n = INT( (stop-start)/step )
+      IF (n .GE. maxfreqs) THEN
+        STOP "would have tried to run with too many frequencies"
+      ENDIF
+
+      f = start
+      DO 1000 i = 1, n
+        freq(i) = f * 2. * pi
+        f       = f + step
+ 1000 CONTINUE
+
+C     Write out results:
+      PRINT *,'What do you want to call the harmonic data file?'
+      READ (*,9003) fname
+      OPEN (12, FILE=fname, FORM='FORMATTED', STATUS='NEW')
+
+C     Find to best fit amplitudes for the given frequencies.
+      sum = 0.0
+      DO i = 1, n
+        sum = sum + x(i)
+      ENDDO
+      sum = sum / n
+      PRINT *,'mean was ',sum
+      DO i = 1, n
+        x(i) = x(i) - sum
+        y(i) = x(i) ! convert to single for old progs
+      ENDDO
+
+      DO i = 1, n
+        CALL harmrn(y, m, freq(i), a, b, 1)
+        WRITE (12,9002) freq(i)/2./pi, 2.*pi*0.25/freq(i),
+     1              (a*a+b*b)**.5,
+     1              ATAN2(b,a)*180./pi 
+      ENDDO
+
+
+ 9002 FORMAT (4G15.7)
+
+ 9003 FORMAT (A40)
+
+      END
