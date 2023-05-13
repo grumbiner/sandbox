@@ -1,70 +1,53 @@
 #include "ncepgrids.h"
 
-int main(void) {
-  FILE *fin, *ferr;
-  global_sst<float> oi1;
-  global_12th<float> rtg;
-  gaussian<float> nsst, icec, land;
+#define GFS_LAND 1
 
-  fin = fopen("oi.1deg", "r");
-  oi1.binin(fin);
-  fclose(fin);
-  fin = fopen("rtghr", "r");
-  rtg.binin(fin);
-  fclose(fin);
-  fin = fopen("nsstish","r");
-  nsst.binin(fin);
-  fclose(fin);
-  fin = fopen("icec", "r");
-  icec.binin(fin);
-  fclose(fin);
-  fin = fopen("land", "r");
-  land.binin(fin);
-  fclose(fin);
+int main(int argc, char *argv[]) {
+  gaussian<float> nsst, land, icec;
+  global_12th<float> rtg, delta;
+  FILE *nin, *rin;
+  float undef = -999.;
+
+  rin = fopen(argv[1], "r");
+  rtg.binin(rin);
+  fclose(rin);
+  delta.set(undef);
+  //printf("rtg stats %f %f %f %f\n",rtg.gridmax(), rtg.gridmin(), rtg.average(), rtg.rms() );
+
+
+  //printf("gaussian grids: %d by %d\n",nsst.xpoints(), nsst.ypoints() );
+  nin = fopen(argv[2], "r");
+  nsst.binin(nin);
+  land.binin(nin);
+  icec.binin(nin);
+  fclose(nin);
+  //printf("nsst stats %f %f %f %f\n",nsst.gridmax(), nsst.gridmin(), nsst.average(), nsst.rms() );
+  //printf("land stats %f %f %f %f\n",land.gridmax(), land.gridmin(), land.average(), land.rms() );
+  //printf("icec stats %f %f %f %f\n",icec.gridmax(), icec.gridmin(), icec.average(), icec.rms() );
+
 
   ijpt loc;
   latpt ll;
-  fijpt floc, floc1, floc2;
-  //printf("gaussian nx ny %d %d\n",icec.xpoints(), icec.ypoints() ); fflush(stdout);
+  fijpt floc;
 
-  ferr = fopen("error_outputs","w");
-  float d1, d2;
-  for (loc.j = 0; loc.j < icec.ypoints(); loc.j++) { 
-  for (loc.i = 0; loc.i < icec.xpoints(); loc.i++) {
-    if (icec[loc] > 0.50 || land[loc] == 1.0) continue;
-
-    ll = icec.locate(loc);
-    if (fabs(ll.lat) < 45.0 ) continue;
-    floc1 = oi1.locate(ll);
-    floc2 = rtg.locate(ll);
-    if (nsst[loc] > 280. && oi1[floc1] > 280. && rtg[floc2] > 280.) continue;
-
-    printf("%4d %4d  %7.3f %7.3f %6.2f %4.2f %3.1f  ",loc.i, loc.j, ll.lon, ll.lat, nsst[loc], icec[loc], land[loc]);
-//    if (icec[loc] > 0. && nsst[loc] < 273.15 - 1.9) {
-//      fprintf(ferr,"hotice %4d %4d  %.3f %.3f %.2f %.2f\n",loc.i, loc.j, ll.lon, ll.lat, nsst[loc], icec[loc]);
-//    }
-
-    d1 = nsst[loc] - oi1[floc1];
-    printf(" %6.2f %.2f ",oi1[floc], d1);
-    
-    d2 = nsst[loc] - rtg[floc2];
-    printf(" %6.2f %.2f ",rtg[floc], d2);
-  
-    printf("   %.2f ",rtg[floc2] - oi1[floc1]);
-
-    printf("\n");
-
-    if (fabs(d1) > 1. || fabs(d2) > 1.) {
-      fprintf(ferr, "%4d %4d  %7.3f %7.3f %6.2f %4.2f %3.1f  ",loc.i, loc.j, ll.lon, ll.lat, nsst[loc], icec[loc], land[loc]);
-      fprintf(ferr, " %6.2f %.2f ",oi1[floc1], d1);
-      fprintf(ferr, " %6.2f %.2f ",rtg[floc2], d2);
-      fprintf(ferr, "   %.2f ",rtg[floc2] - oi1[floc1]);
-      fprintf(ferr, "\n");
+  for (loc.j = 0; loc.j < rtg.ypoints(); loc.j++) {
+  for (loc.i = 0; loc.i < rtg.xpoints(); loc.i++) {
+    ll   = rtg.locate(loc);
+    floc = nsst.locate(ll);
+    if (!nsst.in(floc)) {
+      printf("ran off nsst grid at rtg location %f %f\n",ll.lat, ll.lon);
     }
-   
-
+    else {
+      if (land[floc] != GFS_LAND && icec[floc] == 0.) {
+        delta[loc] = (rtg[loc] - nsst[floc]);
+        //printf("%8.4f %8.4f  %.2f %.2f %.2f  %.2f %.2f\n",ll.lat, ll.lon, rtg[loc], nsst[floc], (rtg[loc] - nsst[floc]), land[floc], icec[floc]);
+        printf("%8.4f %8.4f  %.2f %.2f %6.2f\n",ll.lat, ll.lon, rtg[loc], nsst[floc], delta[loc] );
+      }
+    }
   }
   }
-
+  
+  printf("delta stats %f %f %f %f\n",delta.gridmax(undef), delta.gridmin(undef), delta.average(undef), delta.rms(undef) );
+  
   return 0;
 }
