@@ -1,0 +1,22 @@
+#!/bin/bash
+base=0001
+
+dy=01
+count=0
+rm ../forcing/*/met*
+sync
+
+while [ $dy -lt 27 ] 
+do
+  count=`expr $count + 1`
+  time ./new.sh ${base}$dy  > ${base}$dy 2> ${base}${dy}.2
+  if [ $count -ge 4 ] ; then
+    rm ../forcing/*/met* ../forcing/*/flxf*
+    sync
+  fi
+  dy=`expr $dy + 1`
+  if [ $dy -lt 10 ] ; then
+    dy=0$dy
+  fi
+done
+  

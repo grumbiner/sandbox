@@ -1,0 +1,8 @@
+for l in 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+do
+  grep 'Ocean' 0001$l | wc >> ocean.count
+done
+for l in 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+do
+  grep -i 'ice' 0001$l | wc >> ice.count
+done
