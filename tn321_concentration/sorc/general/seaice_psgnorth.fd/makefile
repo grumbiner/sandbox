@@ -1,7 +1,6 @@
 #Makefile for generating the executables for the sea ice concentration
 #  product.
 #Robert Grumbine 26 June 1997
-#
  
 include ../makeall.mk
 
@@ -12,12 +11,12 @@ all: psgnorth psgnorth12
 
 psgnorth12 : 
 	ln -sf $(MMAB_INC)/icegrid.north12 icegrid.inc
-	$(FC) $(FOPTS)     psgrib.f $(MMAB_SRC)/GRIBIT.f -I $(MMAB_INC)
-	$(FLD) $(FLDFLAGS) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgnorth12
-	rm -f icegrid.inc
+	$(FC) $(FOPTS)  psgrib.f $(MMAB_SRC)/GRIBIT.f90
+	$(FLD) $(FLDFLAGS) psgrib.o GRIBIT.o $(LIBS) $(MMAB_LIBF4) -o seaice_psgnorth12
+	rm -f icegrid.inc psgrib.o
 
 psgnorth : 
 	ln -sf $(MMAB_INC)/icegrid.north icegrid.inc
-	$(FC) $(FOPTS)     psgrib.f $(MMAB_SRC)/GRIBIT.f -I $(MMAB_INC)
-	$(FLD) $(FLDFLAGS) psgrib.o GRIBIT.o $(LIBS) -o seaice_psgnorth
-	rm -f icegrid.inc
+	$(FC) $(FOPTS)   psgrib.f $(MMAB_SRC)/GRIBIT.f90
+	$(FLD) $(FLDFLAGS) psgrib.o GRIBIT.o $(LIBS) $(MMAB_LIBF4) -o seaice_psgnorth
+	rm -f icegrid.inc psgrib.o

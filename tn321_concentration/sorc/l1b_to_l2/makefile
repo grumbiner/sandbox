@@ -1,73 +1,39 @@
 #Robert Grumbine 27 May 2016
 SHELL=/bin/sh
         
-# include ../makeall.mk
-#work
-#MMAB_LIB=-L/u/Robert.Grumbine/rgdev/mmablib/v3.5.0/
-#MMAB_INC=-I/u/Robert.Grumbine/rgdev/mmablib/v3.5.0/include
-#module load NetCDF
-#module load bufr w3nco w3emc
+include ../makeall.mk
+#work -- from makeall.mk or makeall.sh as a rule
+#
+#Home:
+#NCEPLIB=-L /Users/rmg3/usrlocal/nceplibs/lib
+#LIBS=-l ombf_4 -l bufr_4_DA -l w3nco_4 
+#Ncep
 NCEPLIB=$(BUFR_LIB4) $(W3EMC_LIB4) $(W3NCO_LIB4)
-FC=ifort
-#FOPTS=-c -std90 -O2 $(MMAB_INC)
-FOPTS=-c -O2 $(MMAB_INC)
-
-#home:
-##MMAB_LIB=-L/Volumes/ncep/mmablib/v3.5.0/
-##MMAB_INC=-I/Volumes/ncep/mmablib/v3.5.0/include
-#NETCDF_INCLUDE=-I /Users/rmg3/usrlocal/include/
-#NETCDF_LDFLAGS_C=-L /Users/rmg3/usrlocal/lib/
-#NCEPLIB=/Volumes/ncep/nceplibs/*4.a
-#FC=gfortran
-
-#FOPTS=-c -std=f95 -O2 $(MMAB_INC) $(NETCDF_INCLUDE)
-FOPTS=-c -O2 $(MMAB_INC) $(NETCDF_INCLUDE) 
-
-#all -- makeall.mk suitable:  
-LIBS=$(MMAB_LIB) -lombc_4 -lombf_4 -lm
-CPP=g++
-#CPPOPTS= -c -ansi -Wall -O2 -DLINUX -DCPLUS $(MMAB_INC)
-CPPOPTS= -c -O2 -DLINUX -DCPLUS $(MMAB_INC) $(NETCDF_INCLUDE)
-CPPLD=g++
-CPPLDFLAGS=-lombf_4 -lombc_4
-
-CC=gcc
-#COPTS=-c -Wall -O2 -DLINUX $(MMAB_INC)
-COPTS=-c -Wall -ansi -O2 -DLINUX $(MMAB_INC) $(NETCDF_INCLUDE)
-
-#Building elements
-%.o: %.C
-	$(CPP) $(CPPOPTS) $< -o $(@)
-%.o: %.c
-	$(CC) $(COPTS) $< -o $(@)
-
-%.o: %.f
-	$(FC) $(FOPTS) $< -o $(@)
-%.o: %.F
-	$(FC) $(FOPTS) $< -o $(@)
-%.o: %.F90
-	$(FC) $(FOPTS) $< -o $(@)
-
-
 
 #Should be no changes below this point---------------------------------
 
-all : ssmis_tol2 bayes demo 
+all : ssmi_tol2 ssmisu_tol2 
 
-bayes : bayes.o
-	g++ $< $(LIBS) -o $(@)
+ssmisu_tol2 : ssmisu_algorithm.o filter.o bufr.o skel.o ssmisu_decode.o
+	$(FC) ssmisu_decode.o filter.o skel.o bufr.o ssmisu_algorithm.o  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
 
-demo : demo.o
-	g++ $< $(LIBS) -o $(@)
+ssmi_tol2 : ssmi_algorithm.o ssmi_filter.o ssmi_bufr.o ssmi.bufr.o ssmi_binary.o ssmi_skel.o 
+	$(FC) ssmi.bufr.o ssmi_filter.o ssmi_skel.o ssmi_bufr.o ssmi_algorithm.o ssmi_binary.o  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
 
-ssmis_tol2 : algorithm.o filter.o bufr.o skel.o ssmisu_decode.o
-	$(FC) ssmisu_decode.o filter.o skel.o bufr.o algorithm.o  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
-
+amsr_tol2 : amsr_algorithm.o filter.o bufr.o skel.o amsr_decode.o
+	$(FC) amsr_decode.o filter.o skel.o bufr.o amsr_algorithm.o  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
 
 # ---------------------------------------------------------------------
-
 clean :
 	rm *.o
 
 distclean : clean
-	rm ssmis_tol2 bayes demo
+	rm ssmi_tol2 ssmis_tol2 bayes demo
+# ---------------------------------------------------------------------
+bayes : bayes.o
+#	g++ $<  $(NETCDF_LDFLAGS_C) $(NCEPLIB) $(LIBS) -o $(@)
+	$(CPP) $<  $(NETCDF_LDFLAGS_C) $(NCEPLIB) $(LIBS) -o $(@)
+
+demo : demo.o
+#	g++ $<  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
+	$(CPP) $<  $(NETCDF_LDFLAGS_C) -lnetcdf  $(NCEPLIB) $(LIBS) -o $(@)
