@@ -1,9 +1,8 @@
-#include <stdio.h>
+#include <cstdio>
+using namespace std;
 
 #include "ncepgrids.h"
-
-#define COAST 195
-#define LAND 157
+#include "params.h"
 
 // Take information on a high resolution grid and transfer as much as
 //   possible to a low resolution grid.  Assumes that the grids are

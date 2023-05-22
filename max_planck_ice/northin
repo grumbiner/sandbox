@@ -1,0 +1,19 @@
+-119.5597          Longitude of lower left corner
+ 60.5722           Longitude of upper right corner
+25.0095            Latitude of lower left corner
+25.0095            Latitude of upper right corner
+ 1                 Projection type
+90.                Reference lat
+-80.               Reference longitude
+errdel.north
+0                  Assign -s unblocked? (0 = no, 1 = yes)
+3                  Number of frames
+2.0                Contour increment
+-10.                Minimum
+10.0               Maximum
+2.0                Contour increment
+-10.                Minimum
+10.0               Maximum
+1.0                Contour increment
+-10.                Minimum
+10.0               Maximum

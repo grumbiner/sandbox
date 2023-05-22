@@ -1,0 +1,24 @@
+#!/bin/bash
+base=9912
+
+for dy in 22 23 
+do
+  time ./new.sh ${base}$dy > ${base}$dy 2> ${base}${dy}.2
+done
+rm ../forcing/*/met*
+sync
+
+for dy in 24 25 26 27
+do
+  time ./new.sh ${base}$dy > ${base}$dy 2> ${base}${dy}.2
+done
+rm ../forcing/*/met*
+sync
+
+for dy in 28 29 30 31
+do
+  time ./new.sh ${base}$dy > ${base}$dy 2> ${base}${dy}.2
+done
+rm ../forcing/*/met*
+sync
+

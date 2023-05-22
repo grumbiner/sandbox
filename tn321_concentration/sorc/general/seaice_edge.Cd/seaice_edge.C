@@ -113,7 +113,7 @@ void  edger(metricgrid<unsigned char> &conc, metricgrid<unsigned char> &land,
     }
   }
 
-  printf("found %d points on arctic edge\n",npts);
+  printf("found %d points on Arctic edge\n",npts);
 
 
 // Antarctic edge:

@@ -1,0 +1,27 @@
+
+
+
+W3=
+BUFR=
+NETCDF=
+
+INCDIR=/usr1/home/wd21rg/includes
+CC=cc -c -O2 -I$(INCDIR)
+CPLUS=CC -c -O2 -DCPLUS -DSGI -I$(INCDIR)
+CLD=CC
+
+COPTS =" -ansi -pedantic -funsigned-char"
+LIBS = -L/nwprod/lib/ -lombc_4 -lombf_4 -lw3_4 -lm
+
+
+a.o : a.C
+        $(CPLUS) a.C
+
+.C :
+        $(CPLUS) $<
+
+
+
+clean :
+	rm */*.o
+

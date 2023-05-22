@@ -1,0 +1,58 @@
+C-----------------------------------------------------------------------
+      SUBROUTINE BAREAD(LU,IB,NB,KA,A)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM: BAREAD         BYTE-ADDRESSABEL READ
+C   PRGMMR: IREDELL          ORG: W/NMC23     DATE: 94-04-01
+C
+C ABSTRACT: READ A GIVEN NUMBER OF BYTES FROM AN UNBLOCKED FILE,
+C   SKIPPING A GIVEN NUMBER OF BYTES.
+C
+C PROGRAM HISTORY LOG:
+C   94-04-01  IREDELL
+C
+C USAGE:    CALL BAREAD(LU,IB,NB,KA,A)
+C   INPUT ARGUMENTS:
+C     LU           INTEGER UNIT TO READ
+C     IB           INTEGER NUMBER OF BYTES TO SKIP
+C     NB           INTEGER NUMBER OF BYTES TO READ
+C   OUTPUT ARGUMENTS:
+C     KA           INTEGER NUMBER OF BYTES READ
+C     A            REAL (KA) DATA READ
+C
+C SUBPROGRAMS CALLED:
+C   SETPOS         SET FILE POSITION
+C   BUFFERIN       READ FILE
+C   LENGTH         GET LENGTH IN WORDS OF BUFFER
+C   STRMOV         COPY DATA
+C
+C ATTRIBUTES:
+C   LANGUAGE: CRAY FORTRAN (SHOULD BE REWRITTEN IN C)
+C
+C$$$
+      CHARACTER A(NB)
+      PARAMETER(NWK=512,NBW=8,NBK=NWK*NBW)
+      DIMENSION B(NWK)
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      IW=IB/NBW
+      NW=(IB+NB-1)/NBW+1-IB/NBW
+      CALL SETPOS(LU,3,IW)
+      NWL=NW
+      KA=0
+      KB=IB-IW*NBW
+      KW=MIN(NWL,NWK)
+      BUFFERIN(LU,0) (B(1),B(KW))
+      LW=LENGTH(LU)
+      DOWHILE(NWL.GT.0.AND.LW.GT.0)
+        KN=MIN(NB-KA,LW*NBW-KB)
+        CALL STRMOV(B,KB+1,KN,A,KA+1)
+        NWL=NWL-LW
+        KA=KA+KN
+        KB=0
+        KW=MIN(NWL,NWK)
+        BUFFERIN(LU,0) (B(1),B(KW))
+        LW=LENGTH(LU)
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END

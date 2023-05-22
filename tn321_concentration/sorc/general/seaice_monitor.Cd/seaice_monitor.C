@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
     if (nyesterday[x] < 15 ) nyesterday[x] = 0;
   }
   }
-  // will want to do something about the points that one has an analysis and the
-  //   other doesn't
+  // will want to do something about the points that one has an analysis 
+  //   and the other doesn't
 
 
 // Bulk Statistics:
@@ -110,18 +110,19 @@ int main(int argc, char *argv[]) {
 // Verbose intercomparisons -- kml out file:
   kml(ntoday, nyesterday, kmlout);
   fclose(kmlout);
-  //latpt ll;
-  //for (x.j = 0; x.j < ntoday.ypoints() ; x.j++) {
-  //for (x.i = 0; x.i < ntoday.xpoints() ; x.i++) {
-  //  if (ntoday[x] != nyesterday[x]) {
-  //    ll = ntoday.locate(x);
-  //    printf("differ %4d %4d  %7.3f %7.3f  %3d %3d  %4d\n",x.i, x.j,
-  //          ll.lat, ll.lon, ntoday[x], nyesterday[x], ntoday[x] - nyesterday[x]);
-  //  }
-  //}
-  //}
+  #ifdef VERBOSE
+    latpt ll;
+    for (x.j = 0; x.j < ntoday.ypoints() ; x.j++) {
+    for (x.i = 0; x.i < ntoday.xpoints() ; x.i++) {
+      if (ntoday[x] != nyesterday[x]) {
+        ll = ntoday.locate(x);
+        printf("differ %4d %4d  %7.3f %7.3f  %3d %3d  %4d\n",x.i, x.j,
+              ll.lat, ll.lon, ntoday[x], nyesterday[x], ntoday[x] - nyesterday[x]);
+      }
+    }
+    }
+  #endif
 
-    
   // delta grids:
   ndelta.set((float) 0.0);
 
