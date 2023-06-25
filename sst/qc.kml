@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<kml xmlns='http://earth.google.com/kml/2.2'>
+
+<qc>
+  <low>23.3</low>
+  <navy>25.5</navy>
+  <high>28.8</high>
+  <lmask>1</lmask>
+  <hmask>0</hmask>
+</qc>

@@ -1,0 +1,11 @@
+number, name, depends, time, who, computer, cpu-intensity 
+1 : Coding Lagrangian Drifter for Ice Velocity inputs : 0 : 8 : RG : desk : 0.1 
+2 : Coding Retail drift verification : 0, 9 : 4 : RG : desk : 0.1 
+3 : Apply to RTOFS : 1, 2 : 8 : RG : desk : 0.1
+4 : Apply to CAFS  : 1, 2 : 9 : RG : desk : 0.1
+5 : Apply to GOFS  : 1, 2 : 10 : RG : desk : 0.1
+6 : Apply to RIOPS : 1, 2 : 11 : RG : desk : 0.1
+7 : Apply to GIOPS : 1, 2 : 12 : RG : desk : 0.1
+8 : Write Paper : 3, 4, 5, 6, 7 : 32 : RG : desk : 0.0
+9 : Acquire buoy information : 0 : 20 : RG: desk : 0.0 
+end : 8

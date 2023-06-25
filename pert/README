@@ -1,0 +1,12 @@
+work on idea of pert management via graph theory representation
+http://bluehawk.monmouth.edu/~rclayton/web-pages/s07-503/grapha.html
+
+Python Package NetworkX
+https://networkx.org/documentation/stable/install.html
+python3 -m pip install networkx
+
+
+n.b.: directed graph as some have to be done before others
+Nodes:
+0 -> start
+N -> end
