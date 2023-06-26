@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="1">
+        <Placemark id="3">
+            <name>fred</name>
+            <Polygon id="2">
+<outerBoundaryIs>
+<LinearRing>
+                <coordinates>85,85,0.0
+                86,85,0.0
+                87,85,0.0
+                85,85,0.0</coordinates>
+</LinearRing>
+</outerBoundaryIs>
+            </Polygon>
+        </Placemark>
+    </Document>
+</kml>

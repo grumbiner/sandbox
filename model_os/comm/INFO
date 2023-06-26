@@ -1,0 +1,8 @@
+creates named pipe 'dycore' in /tmp
+start the dycore (which creates pipe) before the reader
+demo sends only one message
+
+n.b.: system pipes are limited in size -- 16 Kb on osx
+
+
+

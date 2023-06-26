@@ -1,0 +1,45 @@
+25 June 1999
+29 September 2004
+
+Notes on using the sea ice data grids:
+
+  northpsg.yymmdd --  25.4 km northern hemisphere sea ice analyst's grid
+  north12psg.yymmdd --  12.7 northern hemisphere sea ice analyst's grid
+  southpsg.yymmdd --  25.4 km southern hemisphere sea ice analyst's grid
+  south12psg.yymmdd --  12.7 km southern hemisphere sea ice analyst's grid
+  eng.yymmdd      --  global 0.5 degree modeller's grid.
+  eng5min.yymmdd  --  global 5 minute modeller's grid.
+
+  The analyst's grids are 25.4 km or 12.7 km polar stereographic grids.  The
+modeller's grids are 0.5 degree or 5 minute latitude-longitude projection.
+
+  Values are stored as fractional concentration -- 0.00 to 1.00 for ice
+cover.  In the analyst's grids, values of up to 1.28 are possible, and
+seem to relate to physical processes.  Most users will want to reset
+all values between 1.00 and 1.28 to 1.00.  In the modeller's grid,
+this is already done.  
+
+  Flag values which may be encountered:
+1.57 -- Land
+1.66 -- Bad data
+1.77 -- Weather
+1.95 -- Coast
+2.24 -- No data
+
+  The modeller's grid will not display any of these, but the analyst's grid
+will.
+
+  The modeller's grid set ice concentrations to zero over land currently
+until August 10, 2004, when it reverted to the practice of showing the
+land flags.  This has not always been the case, and the archive has not yet been 
+corrected to reflect this current practice.  Ice concentrations over 
+'coastal' points are and always have been given.  In ideal circumstances,
+these values would not be used.  In order to aid usage of the grids, 
+the land masks are available in ftp://polar.ncep.noaa.gov/seaice/ice/support/
+
+  See README.land for notes on the land masks and grids.
+
+  More detail regarding the production of these data files is given in
+OMB Tech. Note 120, which is available as a postscript file in
+ftp://polar.ncep.noaa.gov/seaice/ssmi/ssmi120.ps
+
