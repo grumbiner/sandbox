@@ -5,13 +5,7 @@
 #define NX 200
 #define NMODES 5
 
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) ;
-double dot(mvector<double> &x, mvector<double> &y) ;
-
-void random(mvector<double> &x) ;
-void show(mvector<double> &eta) ;
-void gradients(mvector<double> &eta, mvector<double> &dx);
-void divergence(mvector<double> &dx, mvector<double> &div);
+#include "shared.C"
 
 int main(void) {
   mvector<double> bathy(NX), eta(NX);
@@ -20,6 +14,7 @@ int main(void) {
   mvector<mvector<double> > eigenmodes(NMODES);
   mvector<double> values(NMODES);
   int i, iter, modes;
+  double deltax = DX;
 
   c2       = 4080.;
   c2[0]    = 0.;
@@ -46,44 +41,4 @@ int main(void) {
 
 
   return 0;
-}
-// orthogonalize x w.r.t. each of the first modemax members of y
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) {
-  int i, n;
-  double rx, ry, tmp;
-  mvector<double> tvec(x.xpoints());
-
-  for (n = 0; n < modemax; n++) {
-    tmp = dot(x,y[n]);
-    ry  = dot(y[n],y[n]);
-    tvec = y[n];
-    tvec *= tmp/ry;
-    x -= tvec;
-  }
-  x /= sqrt(dot(x,x));
-
-  return;
-}
-double dot(mvector<double> &x, mvector<double> &y) {
-  double sum = 0.0;
-  for (int i = 0; i < x.xpoints(); i++) {
-    sum += x[i]*y[i];
-  }
-  return (double) sum;
-}
-
-void show(mvector<double> &eta) {
-  int loc;
-  for (loc = 0; loc < eta.xpoints(); loc++) {
-      printf("%3d  %12.5e\n",loc, eta[loc]);
-  }
-
-  return ;
-}
-
-void random(mvector<double> &x) {
-  for (int loc = 0; loc < x.xpoints() ; loc++) {
-    x[loc] = drand48();
-  }
-  return;
 }

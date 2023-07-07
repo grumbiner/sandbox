@@ -1,0 +1,71 @@
+\section{Average depth over full scale vs. full resolution eigenperiods}
+
+  We start by taking the 4342 ocean points from Etopo2 along 
+30 degrees 1 minute west and finding the full set of eigenvalues for 
+purely gravity modes.  While this is not precisely the ocean case, 
+gravity modes with relatively little effect of rotation do form much 
+of the ocean normal mode spectrum even at periods of hours [Platzman, 
+xxxx-xxxx].  So this is a simple and illustrative starting point.
+
+  The gravest mode (numbered 0) has a period of 158,617 seconds (44.06 hours),
+5th mode has a period of 28966 seconds (8.05 hours, 8 hours being the fast
+limit for Platzman's normal mode evaluations [Platzman, 198x]), 7th mode has 
+a period of 22094 seconds (6.14 hours), and 16th is 10911 seconds 
+(3.03 hours).  The 100th is 1815 seconds, while 1000th is 190.4 seconds.
+
+  The 4 bathymetry averaging ideas we have are to average H 
+(volume-conserving, simplest and certainly most common), average 
+sqrt(H) (preserve wave speed, in that shallow water waves have a 
+speed of sqrt(gH)), average 1/sqrt(H) (preserve wave travel time 
+across a distance), and average 1/H (arrives naturally in considering 
+vorticity, which we aren't here, and is symmetric to averaging H in 
+the sense that having the pair sqrt(H), 1/sqrt(H) is).
+
+  Figure 1 shows the ratio between averaging method's period and 
+full bathymetry's period for each of the modes.  Preserving travel
+time is unquestionably the best averaging method in terms of reproducing 
+the periods for these modes faster than 3.4 hours.  
+
+  For the slower modes, slower than 3.4 hours, table 1 gives the 
+ratios as computed for each averaging method vs. the eigenperiods
+as computed:
+
+   Period (s)       H       sqrt(H) 1/sqrt(H)  1/H 
+ 0 158616.921875  1.025058 1.046656 1.147677 1.305420
+  1 86144.515625  0.943714 0.963598 1.056603 1.201828
+  2 56781.351562  0.954489 0.974600 1.068667 1.215550
+  3 41468.593750  0.980209 1.000862 1.097464 1.248305
+  4 35520.730469  0.915475 0.934763 1.024985 1.165865
+  5 28965.669922  0.935543 0.955254 1.047454 1.191421
+  6 24583.158203  0.944850 0.964757 1.057874 1.203274
+  7 22094.478516  0.919867 0.939248 1.029903 1.171458
+  8 20616.109375  0.876293 0.894756 0.981117 1.115967
+  9 18695.568359  0.869682 0.888005 0.973714 1.107547
+ 10 17297.593750  0.854517 0.872521 0.956736 1.088235
+ 11 15683.805664  0.863906 0.882108 0.967248 1.100192
+ 12 14562.420898  0.858861 0.876956 0.961599 1.093766
+ 13 13445.416992  0.863769 0.881968 0.967094 1.100017
+
+  Preserving 1/H is always much worse than preserving 1/sqrt(H).
+Preserving H is worse than preserving sqrt(H) except for the gravest
+mode, where it makes a period error of 2.5\% vs. 4.7\%
+
+  For the slowest modes -- numbered 0-6 here -- preserving sqrt(H)
+is typically better than preserving 1/sqrt(H), though by little
+on modes 5 and 6, and is worse on mode 4.  Modes 7-13 (hence, 7-1000,
+periods shorter than 6.14 hours) are clearly better when preserving 
+1/sqrt(H) than sqrt(H).
+
+  On the other hand, if we want the periods to be correct to within,
+say, 2\%, it is also clear that no global averaging method is very 
+good for the slowest modes exept by chance (sqrt(H) for mode 3 is
+very good, 0.1\% relative error, but next best for that method 
+is more than 2.5\% off.)  Averaging 1/sqrt(H) provides this degree of
+accuracy from mode 14 (12290 seconds) and faster.
+
+  This appears to argue that to obtain good values for the slowest 
+gravity modes, it is necessary to permit depth to vary along the
+channel.  Given our experience here, we expect that the best averaging
+method for this regionally-varying bathymetry will be the 1/sqrt(H). 
+We will explore this in the next section.
+

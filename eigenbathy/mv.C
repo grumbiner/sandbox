@@ -5,13 +5,7 @@
 #define NX 23
 #define NMODES (NX-2)
 
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) ;
-double dot(mvector<double> &x, mvector<double> &y) ;
-
-void random(mvector<double> &x) ;
-void show(mvector<double> &eta) ;
-void gradients(mvector<double> &eta, mvector<double> &dx);
-void divergence(mvector<double> &dx, mvector<double> &div);
+#include "shared.C"
 
 int main(void) {
   mvector<double> c2(NX), ddx(NX), div(NX);
@@ -19,6 +13,7 @@ int main(void) {
   mvector<mvector<double> > eigenmodes(NMODES);
   mvector<double> values(NMODES);
   int i, iter, modes;
+  double deltax = DX;
 
   c2       = 408.0;
   c2[0]    = 0.;
@@ -45,10 +40,10 @@ int main(void) {
 
     // Iterations:
     for (iter = 0; iter < 500; iter++) {
-      gradients(etain, ddx);
+      gradients(etain, ddx, deltax);
     
       ddx *= c2;
-      divergence(ddx, div);
+      divergence(ddx, div, deltax);
       etaout = div;
       values[modes] = sqrt(  dot(etain,etain)/dot(etaout,etaout)  );
       etaout *= values[modes];
@@ -75,65 +70,4 @@ int main(void) {
   //}
 
   return 0;
-}
-// orthogonalize x w.r.t. each of the first modemax members of y
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) {
-  int i, n;
-  double rx, ry, tmp;
-  mvector<double> tvec(x.xpoints());
-
-  for (n = 0; n < modemax; n++) {
-    tmp = dot(x,y[n]);
-    rx  = dot(x,x);
-    ry  = dot(y[n],y[n]);
-    //printf("%d %d  %e %e %e %d\n",n, modemax, tmp, rx, ry, y[n].xpoints() );
-    tvec = y[n];
-    tvec *= tmp/ry;
-    x -= tvec;
-  }
-  x /= sqrt(dot(x,x));
-
-  return;
-}
-double dot(mvector<double> &x, mvector<double> &y) {
-  double sum = 0.0;
-  for (int i = 0; i < x.xpoints(); i++) {
-    sum += x[i]*y[i];
-  }
-  return (double) sum;
-}
-
-void show(mvector<double> &eta) {
-  int loc;
-  for (loc = 0; loc < eta.xpoints(); loc++) {
-      printf("%3d  %12.5e\n",loc, eta[loc]);
-  }
-
-  return ;
-}
-
-void random(mvector<double> &x) {
-  for (int loc = 0; loc < x.xpoints() ; loc++) {
-    x[loc] = drand48();
-  }
-  return;
-}
-void gradients(mvector<double> &eta, mvector<double> &dx) {
-  int i;
-  dx = 0.0;
-  for (i = 1; i < dx.xpoints() - 1 ; i++) {
-    dx[i] = (eta[i+1]-eta[i-1])/2./DX;
-  }
-
-  return;
-}
-void divergence(mvector<double> &dx, mvector<double> &div) {
-  int i;
-  div = 0.0;
-
-  for (i = 1; i < dx.xpoints() - 1 ; i++) {
-    div[i] = (dx[i+1]-dx[i-1])/2./DX;
-  }
-
-  return;
 }
