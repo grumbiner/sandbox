@@ -15,4 +15,7 @@ reading : reading.C shared.o
 tmp : tmp.C shared.o
 	g++ -Wall -O2 -DLINUX $< -I $(INC) $(LIB) -o $@
 
+rotational : rotational.f90
+	gfortran -Wall $<  -L $(HOME)/usrlocal/lib -l lapack -l refblas -o $@
+
 all : mv2 mv reading tmp
