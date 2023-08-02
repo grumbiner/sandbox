@@ -1,4 +1,4 @@
-class Fluid:
+"""
 # 3d
   attributes: density, temperature, pressure
   attributes: u, v, w
@@ -7,6 +7,9 @@ class Fluid:
 
 #atmosphere also has moisture
 #ocean, sea ice --  also has salinity
+
+"""
+class Fluid:
 
   def state_p(temperature, density):
 

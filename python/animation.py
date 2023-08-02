@@ -32,8 +32,8 @@ ax.grid()
 count = int(0)
 
 def run(z):
-    print("hello from run, count = ",count)
     count += 1
+    print("hello from run, count = ",count)
     z *= -1
 #    line.set_data()
     return line,

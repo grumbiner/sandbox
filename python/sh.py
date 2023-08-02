@@ -1,9 +1,9 @@
 import os
 cwd=os.getcwd()
-print cwd
+print(cwd)
 
 cmd='ls -l'
 fp=os.popen(cmd)
 res=fp.read()
 stat=fp.close()
-print stat
+print(stat)

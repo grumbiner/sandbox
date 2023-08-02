@@ -160,7 +160,7 @@ for x in machines:
     break
 
 if not machine:
-    print ('ice verification is currently only supported on: %s' % ' '.join(machines))
+    print('ice verification is currently only supported on: %s' % ' '.join(machines))
     raise NotImplementedError('Cannot auto-detect platform, ABORT!')
 
 # Establish paths to verification data:
@@ -182,7 +182,7 @@ elif (machine == 'RG_Home'):
   dirs['ncepdir'] = '/Volumes/ncep/allconc/ice5min/'
   dirs['nsidcdir'] = '/Volumes/ncep/allconc/nsidc_nc/'
 else:
-  print ('ice verification is currently only supported on: %s' % ' '.join(machines))
+  print('ice verification is currently only supported on: %s' % ' '.join(machines))
   raise NotImplementedError('Cannot find verification data directory, ABORT!')
 
 #Test on whether we have verf data directories

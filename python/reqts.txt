@@ -1,0 +1,12 @@
+astropy
+pandas
+scipy
+pygrib
+argparse
+numpy 
+matplotlib
+netCDF4 
+Cartopy
+
+#glob
+#os
