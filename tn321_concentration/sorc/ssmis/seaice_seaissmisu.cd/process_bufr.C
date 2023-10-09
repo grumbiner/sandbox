@@ -16,10 +16,8 @@ extern int err_lat      ;
 extern int err_lon      ;
 
 int ice_add_bufr(ssmis_tmp *north_tmp, ssmis_tmp  *south_tmp, 
-                 ssmisupt *a, team2_tables &arctic, team2_tables &antarctic) {
+                 ssmisupt *a, ssmis_team2_tables &arctic, ssmis_team2_tables &antarctic) {
 /* Version of the SDR ice_add_data suited to work with BUFR input */ 
-
-  int j, k;
   float tlat, tlon;
   float t19v, t19h, t22v, t37v, t37h, t92v, t92h, t150h;
   float nasa;
@@ -62,7 +60,7 @@ int ice_add_bufr(ssmis_tmp *north_tmp, ssmis_tmp  *south_tmp,
                                 t37v, t37h, t92v, t92h, t150h, arctic, satno)  );
           #else
           nasa = (int) (0.5 + nasa_team(t19v, t19h, t22v, 
-                                t37v, t37h, t92v, t92h, t150h, 'n', ANTENNA, satno)   );
+                                t37v, t37h, t92v, t92h, t150h, 'n', SSMIS_ANTENNA, satno)   );
           #endif
           if (nasa != BAD_DATA && nasa != WEATHER) {
 /* Units Issues Resolved 16 March 2004 */
@@ -130,7 +128,7 @@ int ice_add_bufr(ssmis_tmp *north_tmp, ssmis_tmp  *south_tmp,
                                 t37v, t37h, t92v, t92h, t150h, antarctic, satno)  );
           #else
           nasa = (int) (0.5 + nasa_team(t19v, t19h, t22v, 
-                                t37v, t37h, t92v, t92h, t150h, 's', ANTENNA, satno)   );
+                                t37v, t37h, t92v, t92h, t150h, 's', SSMIS_ANTENNA, satno)   );
           #endif
           if (nasa != BAD_DATA && nasa != WEATHER ) {
             if ( ( south_tmp[index].conc_bar == NO_DATA ||
@@ -198,7 +196,6 @@ void show_bufr(ssmisupt *b);
 
 int check_bufr(ssmisupt *b) {
   int nerr = 0, npts = 0;
-  int i, k;
 
   #ifdef VERBOSE2
   show_bufr(b);

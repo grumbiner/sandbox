@@ -1,9 +1,8 @@
 #include "ncepgrids.h"
 #include "icessmi.h"
 
-#include "params.h"
-//to 2021/04 #define MAXAGE  16 
-#define MAXAGE  4 
+#define MAXICE 127 
+#define MAXAGE  16 
 
 /* Construct a filled lat-long grid of sea ice data from yesterday's
      filled map and today's observations.  If today has a valid 
@@ -19,21 +18,18 @@ template <class T>
 int isolani(metricgrid<T> &x); // remove points which are surrounded by
                                // zeroes
 /* Argument for size, with malloc of the arrays? */
-int main(int argc, char *argv[]) {
-  FILE *fiage, *foage, *fice1, *fice2, *foice, *fno, *fims;
+int main(int argc, char *argv[])
+{
+  FILE *fiage, *foage, *fice1, *fice2, *foice;
   GRIDTYPE<unsigned char> iage, oage, ice1, ice2;
   GRIDTYPE<unsigned char> oice;
-  GRIDTYPE<float> noice, imsice;
-  ijpt x, tloc;
-  latpt ll;
+  ijpt x;
 
   fice1 = fopen(argv[1], "r");
   fice2 = fopen(argv[2], "r");
   fiage = fopen(argv[3], "r");
   foage = fopen(argv[4], "w");
   foice = fopen(argv[5], "w");
-  fno   = fopen(argv[6], "r");
-  fims  = fopen(argv[7], "r");
 
 // If no old age file, correct and carry on 26 April 2004
   if ( fice2 == (FILE *) NULL ) {
@@ -67,31 +63,13 @@ int main(int argc, char *argv[]) {
     iage.binin(fiage);
   }
 
-// Get the new (10 July 2014) noice, imsice files:
-  if (fno == (FILE*) NULL) {
-    printf("could not open noice file, setting to no_data\n"); fflush(stdout);
-    noice.set((float) NO_DATA / 100.0);
-  }
-  else {
-    noice.binin(fno);
-  }
-  if (fims== (FILE*) NULL) {
-    printf("could not open ims file, setting to no_data\n"); fflush(stdout);
-    imsice.set((float) NO_DATA / 100.0);
-  }
-  else {
-    imsice.binin(fims);
-  }
-  if (imsice.gridmax() < 3.) imsice *= 100.; // back to units of other fields
-  if (noice.gridmax()  < 3.) noice  *= 100.;
-
 //Do not need to scale the ice concentrations, because the global fields
 //  being input are guaranteed (unsigned char) to be in percents, rather
 //  than fractions.
 
   for (x.j = 0; x.j < ice1.ypoints() ; x.j++) {
     for (x.i = 0; x.i < ice1.xpoints() ; x.i++) {
-      if (ice2[x] >= ( (unsigned char) MAX_ICE ) ) { 
+      if (ice2[x] >= ( (unsigned char) MAXICE ) ) { 
         if (ice2[x] == (unsigned char) WEATHER ) {
           oice[x] = 0;
           oage[x] = 0;
@@ -105,38 +83,20 @@ int main(int argc, char *argv[]) {
         oice[x] = ice2[x];
         oage[x] = 0;
       }
-      if (oice[x] > MAX_ICE) {
+      if (oice[x] > MAXICE) {
         oice[x] = 100;
       }
       else if (oice[x] < MIN_CONC) {
         oice[x] = 0;
       }
       if (iage[x] > MAXAGE ) { 
-        ll   = oice.locate(x);
-        tloc = imsice.locate(ll);
         #ifdef VERBOSE
-        printf("Reset %4d %4d  %7.3f %7.3f  overage %2d from conc %3d ",
-            x.i, x.j, ll.lon, ll.lat, iage[x], (int) oice[x]);
-        #endif
-
-        if (imsice[tloc] < MAX_ICE) {
-          #ifdef VERBOSE
-          printf(" via imsice ");
-        #endif
-          oice[x] = imsice[tloc];
-        }
-        else if (noice[tloc] < MAX_ICE) {
-          #ifdef VERBOSE
-          printf(" via noice ");
-          #endif
-          oice[x] = noice[tloc];
-        }
-        else {
-          oice[x] = 0;
-        }
-          #ifdef VERBOSE
-        printf(" to %3d  %f %f\n",oice[x], imsice[tloc], noice[tloc]);
-        #endif
+         if (oice[x] != 0) {
+           printf("Reset point %d %d for overage %d from conc. %d\n",
+            x.i, x.j, oage[x], (int) oice[x]);
+          }
+        #endif 
+        oice[x] = 0; 
         oage[x] = 0; 
       }
 

@@ -1,55 +1,55 @@
       PROGRAM psgrib
-!$$$  MAIN PROGRAM DOCUMENTATION BLOCK
-!                .      .    .                                       .
-! MAIN PROGRAM: PSGSOUTH     ENGRIB POLAR STEREOGRAPHIC DATA
-!   PRGMMR: GRUMBINE         ORG: NP21        DATE: 1998-01-29
-!
-! ABSTRACT: READ IN 1 BYTE VALUES FROM A GRID SPECIFIED BY THE
-!    ICEGRID.INC FILE AND WRITE THEM OUT AS A GRIB FIELD.
-!
-! PROGRAM HISTORY LOG:
-!    97-06-24 ROBERT GRUMBINE
-!    98-01-28 Robert Grumbine  -- Add generation of WMO bulletin
-!    98-07-21 Robert Grumbine  -- Y2K and F90
-!    98-11-18 Robert Grumbine    Drop W3FQ02 in favor of utcdat
-!  1999-09-02 Robert Grumbine    IBM SP Conversion: change WRYTE to bacio
-!  2006-01-23 Boi    Vuong       REPLACED THE ROUTINE WMOOUT WITH MAKWMO
-!                                AND MKFLDSEP TO ADD FIELD SEPARATOR FOR TOC
-!
-! USAGE:
-!    INPUT FILES:
-!     FTNF06 - STANDARD INPUT - DATE FLAG FOR GRIB
-!     FTNF11 - CONCENTRATION GRID TO ENGRIB
-!    OUTPUT FILES:
-!     FTNF51 - GRIBBED CONCENTRATION FILE
-!     FTNF52 - WMO-Encoded file
-!
-!  SUBPROGRAMS CALLED:
-!    UNIQUE: GRIBIT, MAKWMO , MKFLDSEP
-!    LIBRARY: 
-!      W3LIB - WRYTE, W3FI72, GTBITS, utcdat, W3FI92, W3AI19
-!      BACIO
-!
-!  EXIT STATES:
-!    COND = 0 - SUCCESSFUL RUN
-!
-!  REMARKS:
-!
-!  ATTRIBUTES:
-!    LANGUAGE: FORTRAN 77
-!    MACHINE: Any
-!
-!$$$
-!     Engrib character data from polar stereographic grids.  
-!     Robert Grumbine 4 June 1997.  
-! Last known change of any kind 7 Feb 2006
+C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C MAIN PROGRAM: PSGSOUTH     ENGRIB POLAR STEREOGRAPHIC DATA
+C   PRGMMR: GRUMBINE         ORG: NP21        DATE: 1998-01-29
+C
+C ABSTRACT: READ IN 1 BYTE VALUES FROM A GRID SPECIFIED BY THE
+C    ICEGRID.INC FILE AND WRITE THEM OUT AS A GRIB FIELD.
+C
+C PROGRAM HISTORY LOG:
+C    97-06-24 ROBERT GRUMBINE
+C    98-01-28 Robert Grumbine  -- Add generation of WMO bulletin
+C    98-07-21 Robert Grumbine  -- Y2K and F90
+C    98-11-18 Robert Grumbine    Drop W3FQ02 in favor of utcdat
+C  1999-09-02 Robert Grumbine    IBM SP Conversion: change WRYTE to bacio
+C  2006-01-23 Boi    Vuong       REPLACED THE ROUTINE WMOOUT WITH MAKWMO
+C                                AND MKFLDSEP TO ADD FIELD SEPARATOR FOR TOC
+C
+C USAGE:
+C    INPUT FILES:
+C     FTNF06 - STANDARD INPUT - DATE FLAG FOR GRIB
+C     FTNF11 - CONCENTRATION GRID TO ENGRIB
+C    OUTPUT FILES:
+C     FTNF51 - GRIBBED CONCENTRATION FILE
+C     FTNF52 - WMO-Encoded file
+C
+C  SUBPROGRAMS CALLED:
+C    UNIQUE: GRIBIT, MAKWMO , MKFLDSEP
+C    LIBRARY: 
+C      W3LIB - WRYTE, W3FI72, GTBITS, utcdat, W3FI92, W3AI19
+C      BACIO
+C
+C  EXIT STATES:
+C    COND = 0 - SUCCESSFUL RUN
+C
+C  REMARKS:
+C
+C  ATTRIBUTES:
+C    LANGUAGE: FORTRAN 77
+C    MACHINE: Any
+C
+C$$$
+C     Engrib character data from polar stereographic grids.  
+C     Robert Grumbine 4 June 1997.  
+C Last known change of any kind 7 Feb 2006
 
       IMPLICIT none
-!     Includes for bacio
+C     Includes for bacio
       INCLUDE "locale.inc"
       INCLUDE "clib.inc"
 
-!     Variables for Gribbing
+C     Variables for Gribbing
       INCLUDE "icegrid.inc"
       REAL map(LP, MP)
       LOGICAL lbm(LP, MP)
@@ -62,21 +62,21 @@
       INTEGER lgrib, ierr, iret
       INTEGER IOPT,INSIZE,LENOUT
       
-!     Variables for WMO encoding
+C     Variables for WMO encoding
       INTEGER wmounit
-      CHARACTER(1)  CSEP(80)
-      CHARACTER(1) HEADER(21)
+      CHARACTER * 1  CSEP(80)
+      CHARACTER*1 HEADER(21)
 
-      CHARACTER(6) BULHEAD
-      CHARACTER(4) KW
+      CHARACTER*6 BULHEAD
+      CHARACTER*4 KW
       PARAMETER (wmounit = 52 )
       PARAMETER (KW      = "KWBM")
       PARAMETER (BULHEAD = "OESA88")
 
-!     Local Utility variables
+C     Local Utility variables
       INTEGER i, j, cen, yy, mmm, dd
       INTEGER fdes, newpos, nactual, start, bacio
-      CHARACTER(7) fname
+      CHARACTER*7 fname
       INTEGER MOVA2I
 
       CALL W3TAGB('PSGSOUTH',2006,0023,0095,'NP21   ')
@@ -142,17 +142,17 @@
             WRITE(6,FMT='(" BAOPENW ERROR = ",I5)') IRET
             STOP 20
           ENDIF
-!
-!       MAKE FLAG FIELD SEPARATOR BLOCK
-!
+C
+C       MAKE FLAG FIELD SEPARATOR BLOCK
+C
           CALL MKFLDSEP(CSEP,IOPT,INSIZE,LGRIB+LENHEAD,LENOUT)
-!
-!         MAKE WMO HEADER
-!
+C
+C         MAKE WMO HEADER
+C
           CALL MAKWMO (BULHEAD,DD,0,KW,HEADER)
-!
-!       WRITE OUT SEPARATOR BLOCK, ABBREVIATED WMO HEADING,
-!
+C
+C       WRITE OUT SEPARATOR BLOCK, ABBREVIATED WMO HEADING,
+C
           CALL WRYTE(WMOUNIT,LENOUT,CSEP)
           CALL WRYTE(WMOUNIT,LENHEAD,HEADER)
           CALL WRYTE(WMOUNIT,LGRIB,GRIB)

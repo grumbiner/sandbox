@@ -1,4 +1,4 @@
-int getfld(ssmis *ice, int npts, unsigned char *cfld, float *ffld, int sel) {
+int ssmis_getfld(ssmis *ice, int npts, unsigned char *cfld, float *ffld, int sel) {
 /* Extract a desired field (specified by sel) from a full ssmis map
    (ice) and copy to both a character array (cfld) and a floating
    point array (ffdl) for some other routine to use.
@@ -15,79 +15,79 @@ int getfld(ssmis *ice, int npts, unsigned char *cfld, float *ffld, int sel) {
   limit = npts;
 
   switch (sel) {
-  case T19V :
+  case SSMIS_T19V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t19v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T19H :
+  case SSMIS_T19H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t19h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T22V :
+  case SSMIS_T22V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t22v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T37V :
+  case SSMIS_T37V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t37v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T37H :
+  case SSMIS_T37H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t37h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T92V :
+  case SSMIS_T92V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t92v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T92H :
+  case SSMIS_T92H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t92h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T150H :
+  case SSMIS_T150H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t150h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case CONC_BAR :
+  case SSMIS_CONC_BAR :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].conc_bar/100.;
       cfld[i] = (unsigned char) (0.5 + ice[i].conc_bar) ;
     }
     break;
-  case BAR_CONC :
+  case SSMIS_BAR_CONC :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].bar_conc/100.;
       cfld[i] = (unsigned char) ice[i].bar_conc ;
     }
     break;
-  case COUNT :
+  case SSMIS_COUNT :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].count;
       cfld[i] = (unsigned char) ice[i].count;
     }
     break;
-  case WEATHER_COUNT :
+  case SSMIS_WEATHER_COUNT :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].count;
       cfld[i] = (unsigned char) ice[i].count;
     }
     break;
-  case HIRES_CONC :
+  case SSMIS_HIRES_CONC :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].hires_conc/100.;
       cfld[i] = (unsigned char) ice[i].hires_conc ;

@@ -16,8 +16,8 @@ C Modifications to operational sea ice implementation by Robert Grumbine 28 Marc
       integer :: igds(5),igdstmpl(200),ipdstmpl(200)
       integer :: ideflist,idefnum
       integer :: idrstmpl(200)
-      Logical(KIND=1) bmp(maxpts)
-      character(11) envvar
+      Logical*1 bmp(maxpts)
+      character*11 envvar
       character(len=8) :: g2file, gifile
 c
       INTEGER ierr, ipdsnum, ifhr, ndpts, idrsnum

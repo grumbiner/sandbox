@@ -1,0 +1,33 @@
+
+update nsidc classes in ncepgrids.h, include 12.5 km and any others that have come out.
+
+download full series/set of nsidc data in current versions 
+
+update nesdis grids and put classes in ncepgrids.h
+update walsh/chapman grids and put classes in ncepgrids.h
+
+bring up to date a program to recompute ice concentrations from nsidc grids (recompN.c)
+
+document bar(conc) vs. conc(bar)
+
+n3cmsk.dat, s3cmsk.dat -- 25 km land masks from 1995
+landmask_north_125 -- 12.5 km land masks from 9/25/1996
+
+
+web: fix 25 km xpm files
+web: monthly and annual movies
+web: getcell tool
+tool/web: output global extent, area
+tool/function: output a page-printable coding of ice concentrations in spec'd region (dontrim)
+tool: print out a constant field grid
+
+
+nsidc notes announcement
+
+write up current methods document in nsidc format
+
+nsidc ease grid status?
+
+package analysis system software for possible outside users/help
+
+try running analysis on 4 km grid, 2 km?

@@ -38,12 +38,16 @@ void gridset(grid2_base<T> &x, grid2_base<U> &y);
 int main(int argc, char *argv[]) {
   FILE *in10, *in11, *in12, *out13, *out14, *out15, *in16, *in17, *in18;
 
+// Change to 12.7 km polar grids, 5 minute ice grid
   northhigh<unsigned char> nland, nmap;
   southhigh<unsigned char> sland, smap;
   northhigh<float> nf, count, nlandf;
   southhigh<float> sf, scount, slandf;
   global_12th<unsigned char> cout2, gmap, refmap;
   global_12th<float> outmap, altmap;
+// Change to 0.5 degree rtg sst 26 April 2004
+  //global_ice<float> sst; 
+// Change to 5 minute degree rtg sst 5 July 2006
   global_12th<float> sst; 
 
   ijpt ijloc, destloc, ijloc2;
@@ -125,7 +129,7 @@ int main(int argc, char *argv[]) {
 //    -- note that range = 0, as we're accepting up to the very edge
   flag = 224.;
   gridset(nf, nmap);
-
+//
   for (index = 0; index < nf.xpoints()*nf.ypoints(); index++) {
     if (nf[index] > 100. && nf[index] < MAX_ICE) {
        nf[index] = 100.;
@@ -148,6 +152,7 @@ int main(int argc, char *argv[]) {
   filled += gapfill(nf, (float)0., (float)100., (float)224.); //no-data points
   filled += gapfill(nf, (float)0., (float)100., (float)166.); //bad-data points
 
+//
   for (index = 0; index < nf.xpoints()*nf.ypoints(); index++) {
        if (nf[index] == WEATHER) {
          nf[index] = 0.;
@@ -178,7 +183,7 @@ int main(int argc, char *argv[]) {
 // Transfer values, cap, and then fill in gaps.
   gridset(slandf, sland);
   gridset(sf, smap);
-
+//
   for (index = 0; index < smap.xpoints()*smap.ypoints(); index++) {
        if (sf[index] > 100. && sf[index] < MAX_ICE) {
          sf[index] = 100.;
@@ -270,7 +275,8 @@ int gapfill(grid2<T> &x, T lowest_valid, T highest_valid, T flag) {
   jp1.i =  0; jp1.j =  1;
   jm1.i =  0; jm1.j = -1;
 
-//This portion does a 1 point fill -- point surrounded by valid points.
+//This portion does a 1 point fill -- point surrounded by valid
+//  points.
 //Must skip bounding 0, [xy]lim as we're looking +- 1 
   count = 0;
   for (loc.j = 1; loc.j < ylim -1 ; loc.j++) {
@@ -291,7 +297,7 @@ int gapfill(grid2<T> &x, T lowest_valid, T highest_valid, T flag) {
         x[loc] = tmp;
         if (x[loc] < MIN_CONC) x[loc] = 0.0;
         count += 1;
-
+// 
         if (x[loc] > highest_valid && x[loc] < LAND) {
           printf("Gapfill failure, %3d %3d %f \n",loc.i, loc.j, x[loc]);
         }
@@ -347,7 +353,7 @@ int gapfill(grid2<T> &x, T lowest_valid, T highest_valid, T flag) {
     }
     count += tcount;
     #ifdef VERBOSE
-      printf("Gapfill Pass %d tcount %d\n",passno, tcount);
+    printf("Gapfill Pass %d tcount %d\n",passno, tcount);
     #endif
 
   } while (tcount > 0 && passno < 10);

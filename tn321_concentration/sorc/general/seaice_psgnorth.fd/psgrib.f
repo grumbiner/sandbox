@@ -63,11 +63,11 @@
       
 !     Variables for WMO encoding
       INTEGER wmounit
-      CHARACTER(1)  CSEP(80)
-      CHARACTER(1) HEADER(21)
+      CHARACTER * 1  CSEP(80)
+      CHARACTER*1 HEADER(21)
 
-      CHARACTER(6) BULHEAD
-      CHARACTER(4) KW
+      CHARACTER*6 BULHEAD
+      CHARACTER*4 KW
       PARAMETER (wmounit = 52 )
       PARAMETER (KW      = "KWBM")
       PARAMETER (BULHEAD = "OENA88")
@@ -75,7 +75,7 @@
 !     Local Utility variables
       INTEGER i, j, cen, yy, mmm, dd
       INTEGER fdes, newpos, nactual, start, bacio
-      CHARACTER(7) fname
+      CHARACTER*7 fname
       INTEGER MOVA2I
 
       CALL W3TAGB('PSGNORTH',2006,0023,0054,'NP21')

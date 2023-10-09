@@ -1,5 +1,4 @@
-#include <cstdio>
-using namespace std;
+#include <stdio.h>
 
 // This is a generalized program to construct sea ice xpm files
 //   for any known grid (GRIDTYPE).  GRIDTYPE must be specified in compilation.

@@ -1,0 +1,32 @@
+------------------------------------------------------
+Things to include in new summary of current status of ice concentration processing:
+
+grid specifications, including corner points
+++ new mapxy from nsidc and changes therefrom
+
+
+
+ncep algorithm -- sqrt(v85^2 - h85^2)
+* verification vs. canadian lakes
+
+
+improved (22 Ghz-free) weather filter
+* split to 'ocean here' vs. 'weather here'
+
+consideration of area conservation between source and target grids
+
+data flow map
+data output descriptions -- names, formats, ...
+
+
+------------------------------------------------------
+For web:
+ice model guidance
+ice model verification
+
+?auto-tracking of alaska ice edge for ak.html
+
+-------------------------------------------------------
+Land mask difference files
+-- old, new mask, coded delta map
+

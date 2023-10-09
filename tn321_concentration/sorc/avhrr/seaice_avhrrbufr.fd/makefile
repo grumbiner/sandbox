@@ -3,7 +3,7 @@
 #
 include ../makeall.mk
 
-SRCS=	gac_readsst.f gac_binary.c
+SRCS=	gac_readsst.f90 gac_binary.c
 OBJS=	gac_readsst.o gac_binary.o
 # Tunable parameters
 #

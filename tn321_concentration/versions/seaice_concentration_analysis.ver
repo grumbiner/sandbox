@@ -1,5 +1,7 @@
-export code_ver=v4.0.0
-export mmablib_ver=v3.3.1
+export code_ver=v4.1.5
+export mmablib_ver=v3.4.1
+export obsproc_dump_ver=v3.1.0
+export obsproc_shared_bufr_dumplist_ver=v1.0.0
 
 #Note that the following are included for notional purposes only.  
 #  They are reference numbers to fixed field versions.  In principle,

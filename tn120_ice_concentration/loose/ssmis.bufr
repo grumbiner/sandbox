@@ -1,0 +1,14 @@
+| SSMISTEM | SAID                                                              |
+| SSMISTEM | TSIG YEAR MNTH DAYS HOUR MINU 201138 202131 SECO 202000 201000    |
+*          | ----------------------- scan start time ----------------------    |
+|          |                                                                   |
+| SSMISTEM | 201132  SLNM     201000     201129   FOVN   201000  CLAT  CLON    |
+| SSMISTEM | SFLG    RFLAG   "SSMISCHN"24        "SATEPHEM"3                   |
+| SSMISTEM | TSIG    YEAR     MNTH       DAYS     HOUR   MINU                  |
+*          | --------------- orbit start time ---------------                  |
+|          |                                                                   |
+| SSMISTEM | ORBN   "WLTMSEQN"3          SSID    "MUHOSEQN"4     DIMS          |
+| SSMISTEM | "SCLINGEO"28                                                      |
+|          |                                                                   |
+|          |                                                                   |
+| SSMISCHN | CHNM  TMBR  WTCA   CTCA      

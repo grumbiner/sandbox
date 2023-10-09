@@ -30,8 +30,7 @@ int main(int argc, char *argv[]) {
   float lat, lon, frange;
   latpt ll;
   fijpt center;
-  char *len[5];
-//  char *sublen[5];
+  char *len[5], *sublen[5];
   char *null, delim;
 
   mag = 0;
@@ -65,7 +64,7 @@ int main(int argc, char *argv[]) {
     else {
       for (i = 0; i < 1; i++) {
          len[i]    = (char *) malloc(MAXSTR*sizeof(char) );
-         //sublen[i] = (char *) malloc(MAXSTR*sizeof(char) );
+         sublen[i] = (char *) malloc(MAXSTR*sizeof(char) );
       }
       null = NULL;
       delim = ',';

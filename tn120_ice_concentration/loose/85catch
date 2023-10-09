@@ -1,0 +1,12 @@
+#!/bin/ksh
+
+tag=20061007
+today=`date +"%Y%m%d"`
+
+while [ $tag -le $today ]
+do
+  bin/get85.sh $tag
+  tag=`expr $tag + 1`
+  tag=`dtgfix3 $tag`
+done
+

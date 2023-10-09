@@ -1,0 +1,16 @@
+Files involved in the run up/searching for pure 85 GHz algorithm
+
+icessmi85.h -- includes a class for such work
+all.C -- global processing on all candidates
+north.C -- nh processing on all candidates
+south.C -- sh ""
+toprocess1.C -- translate from bufr to a processing format
+makefile
+makefile.new 
+
+glob.sh -- set up graphics for the hires tests
+
+daily.sh -- run each parameter type (above codes) daily
+ 
+northtest.out -- sample output of correlations and regression line params
+
