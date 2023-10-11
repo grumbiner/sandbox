@@ -1,6 +1,5 @@
 #include <cstdio>
 
-#include "icessmi.h"
 #include "icegrids.h"
 
 /* For error qc 16 March 2004 */
@@ -19,7 +18,7 @@ extern int err_lat      ;
 extern int err_lon      ;
 
 int ice_add_bufr(ssmi_tmp *north_tmp, ssmi_tmp  *south_tmp, 
-                 bufr_line *a, team2_tables &arctic, team2_tables &antarctic) {
+                 ssmi_bufr_line *a, ssmi_team2_tables &arctic, ssmi_team2_tables &antarctic) {
 /* Version of the SDR ice_add_data suited to work with BUFR input */ 
 
   int j, k;
@@ -83,7 +82,7 @@ int ice_add_bufr(ssmi_tmp *north_tmp, ssmi_tmp  *south_tmp,
                                 t37v, t37h, t85v, t85h, arctic, satno)  );
           #else
           nasa = (int) (0.5 + nasa_team(t19v, t19h, t22v, 
-                                t37v, t37h, t85v, t85h, 'n', ANTENNA, satno)   );
+                                t37v, t37h, t85v, t85h, 'n', SSMI_ANTENNA, satno)   );
           #endif
           if (nasa != BAD_DATA && nasa != WEATHER) {
 /* Units Issues Resolved 16 March 2004 */
@@ -149,7 +148,7 @@ int ice_add_bufr(ssmi_tmp *north_tmp, ssmi_tmp  *south_tmp,
                                 t37v, t37h, t85v, t85h, antarctic, satno)  );
           #else
           nasa = (int) (0.5 + nasa_team(t19v, t19h, t22v, 
-                                t37v, t37h, t85v, t85h, 's', ANTENNA, satno)   );
+                                t37v, t37h, t85v, t85h, 's', SSMI_ANTENNA, satno)   );
           #endif
           if (nasa != BAD_DATA && nasa != WEATHER ) {
             if ( ( south_tmp[index].conc_bar == NO_DATA ||
@@ -201,12 +200,11 @@ int ice_add_bufr(ssmi_tmp *north_tmp, ssmi_tmp  *south_tmp,
 
 }
 
-int process_bufr(bufr_line *b)
+int process_bufr(ssmi_bufr_line *b) {
 /* Process the bufr data records, which will eventually include the short 
     data as well. 
    Only processing is to check for qc purposes.
 */
-{
   return check_bufr(b);
 }
 
@@ -215,12 +213,11 @@ int process_bufr(bufr_line *b)
    a given field is erroneous */
 /* Note that typically if one number is wrong, so are several others */
 /* Robert Grumbine 10 February 1994 */
-void show_bufr(bufr_line *b);
+void show_bufr(ssmi_bufr_line *b);
 
-int check_bufr(bufr_line *b)
-{
+int check_bufr(ssmi_bufr_line *b) {
   int nerr = 0, npts = 0;
-  int i, k;
+  int i;
 
   #ifdef VERBOSE2
   show_bufr(b);
@@ -298,6 +295,7 @@ int check_bufr(bufr_line *b)
     }
 
     #ifdef HIRES
+    int k;
     for (k = 0; k < 3; k++) {
       if (check_short_bufr(&(b->full[i].hires[k]) ) != 0) {
         nerr += 1;
@@ -317,9 +315,7 @@ int check_bufr(bufr_line *b)
   
 }
 
-void zero_bufr(bufr_line *b, int i)
-{
-   int k;
+void zero_bufr(ssmi_bufr_line *b, int i) {
 
    b->full[i].scan_counter = 0;
    b->full[i].latitude     = 0;
@@ -334,6 +330,7 @@ void zero_bufr(bufr_line *b, int i)
    b->full[i].surface_type = 0;
    b->full[i].position_num = 0;
    #ifdef HIRES
+   int k;
    for (k = 0; k < 3; k++) {
      b->full[i].hires[k].t85v = 0;
      b->full[i].hires[k].t85h = 0;
@@ -348,8 +345,7 @@ void zero_bufr(bufr_line *b, int i)
 /* Bounds checking on a short data record */
 /* Robert Grumbine 1 March 1995 */
 
-int check_short_bufr(short_bufr *c)
-{
+int check_short_bufr(ssmi_short_bufr *c) {
   int nerr = 0;
 
   if (c->latitude > 180.) {
@@ -384,7 +380,7 @@ int check_short_bufr(short_bufr *c)
   return nerr;
   
 }
-void show_bufr(bufr_line *b) {
+void show_bufr(ssmi_bufr_line *b) {
   
   printf("in bufr, %d %d %d %d %d %d %d %d\n", b->satno, b->year, 
            b->month, b->day, b->hour, b->mins, b->secs, b->scan_no);
