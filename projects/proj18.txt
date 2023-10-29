@@ -1,0 +1,12 @@
+﻿Project: Improved sst quality control bounds
+
+End point: global grid of bounds beyond which sst observation is considered unreliable
+
+Requires:
+sst analyses
+sst observations
+programming
+statistics
+
+Discussion:
+Current system uses a limit of 5 K deviation from the first guess, symmetric about the first guess.  The distribution of analysis temperatures, however, is very skewed.  In the hot regions of the ocean, warm excursions are much smaller than the cold excursions.  Conversely, in the cold regions, cold excursions are much smaller than warm excursions.  For quality control purposes, this skewness should be represented properly.

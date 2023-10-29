@@ -1,0 +1,8 @@
+﻿Project: Day to day jump QC check – ice, sst
+
+End Point: Program to check the day to day changes in ice, sst analysis that will alert us to when there is too much (or too little) change.
+Alerts should be often enough, but not too often.
+
+Requires:
+Programming
+ice, sst analysis fields

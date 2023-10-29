@@ -1,0 +1,8 @@
+﻿Project: HSV coding of sst analysis error field
+
+End Point: program to read in sst, error field, and produce a graphic (.xpm or other) which uses hsv encoding to display the data – more saturation for less error
+
+Requires:
+programming
+learn hsv
+graphic arts/design to adjust color bar

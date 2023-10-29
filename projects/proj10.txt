@@ -1,0 +1,7 @@
+﻿Project: Establish RSS feed for MMAB – announcements
+
+End Point: Functioning rss feed which can be used to update our users (and selves)
+
+Requires:
+rss
+polar access

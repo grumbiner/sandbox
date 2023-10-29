@@ -1,0 +1,10 @@
+﻿Project: AMSU-B 89GHz sea ice concentration
+
+End Point: Automated ice concentration analysis from AMSU-B incorporated in operational ice concentration system
+
+Requires:
+AMSU-B data access
+ice analysis system access
+programming
+(see Kongoli, ...)
+

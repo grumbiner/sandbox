@@ -1,0 +1,12 @@
+#!/bin/sh
+set -x
+
+#Set up something like sms environment for calling J job
+export cyc=00
+export envir=developer
+export code_ver=v4.0.2
+export job=seaice_drift
+export SMSBIN=/u/Robert.Grumbine/save/${job}.${code_ver}/sms/
+
+#Now call J job, which will call the ex
+/u/Robert.Grumbine/save/${job}.${code_ver}/jobs/JSEAICE_DRIFT.para

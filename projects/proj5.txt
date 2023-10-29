@@ -1,0 +1,8 @@
+﻿Project: Collect pictures of polar animals (e.g. ribbon seals)
+
+End point: library of pix suitable for inclusion in presentations
+
+Requires:
+web access
+saving, transferring
+

@@ -1,0 +1,8 @@
+﻿Project: netcdf readers on desk, laptop
+
+End Point: per name
+
+Requires:
+compilation on my desk
+compilation on my laptop
+netcdf source libraries
