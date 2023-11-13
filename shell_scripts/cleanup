@@ -1,0 +1,16 @@
+dir
+chmod u+w *.f *.F *.batch
+for f in *.f *.F *.batch
+do
+  cat $f | ../trim.pl > ${f}.s
+  touch -r $f ${f}.s
+  mv ${f}.s $f
+done
+chmod a-w *.f
+
+exit
+
+gfortran -c *.f -I ../0
+dir
+rm *.o
+t2
