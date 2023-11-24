@@ -1,1 +1,1 @@
-../icegrid.inc
+/Users/rmg3/sandbox/inverse/icegrid.inc
