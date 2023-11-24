@@ -22,6 +22,9 @@ endif()
 set(CMAKE_INSTALL_PREFIX "/Users/rmg3/sandbox/cmake.demos")
 #------------------------------------
 
+# Using a remote include directory -- specifying a path to check for include files
+include_directories( mmablib/include )
+
 
 # ? Do these after setting up environments --
 
@@ -32,12 +35,9 @@ add_executable(Tutorial tutorial.c++ )
 # Importing configuration parameters
 configure_file(TutorialConfig.h.in TutorialConfig.h)
 
-target_include_directories(Tutorial PUBLIC
-                           "."
-                          )
+target_include_directories(Tutorial PUBLIC ".")
 
-# Using a remote include directory -- specifying a path to check for include files
-include_directories( mmablib/include )
+add_subdirectory(ssmi.Cd)
 
 # Libraries to link against:
 target_link_libraries(Tutorial ombf_4 )
