@@ -1,0 +1,24 @@
+Contents of the ftp directory: pub/ice/archive
+
+pub/ice/archive/  : Directory with a monthly archive of ice 
+  concentrations.  These are the grib'bed daily fields (northpsg, 
+  southpsg, north12psg, south12psg) that have been concatenated 
+  and unix compressed (.Z), or gzip'ed (.gz).  
+
+pub/wgrib/: Wes Ebisuzaki's grib reader.  Most current version is at 
+        http://www.cpc.ncep.noaa.gov/products/wesley/wgrib.html
+
+Land masks were updated 19 May 2004
+
+pub/ice/support/  : Directory with various support files for users of the 
+  ice concentration data fields.  This includes:
+ssmi.corners   : Specifications of the sea ice concentration gridding.
+forecast.points: location of 'skiles points' for ice drift model
+seaice_nland.map      : Raster map, 385x465, of northern hemisphere land mask.
+seaice_sland.map      : Raster map, 345x355, of southern hemisphere land mask. 
+seaice_nland127.map      : Raster map, 770x930, of northern hemisphere 12.7 km land mask.
+seaice_sland127.map      : Raster map, 390x710, of southern hemisphere 12.7 km land mask. 
+seaice_newland : Raster map, 720x360, of global 0.5 degree land mask.
+seaice_gland5min : Raster map 4320x2160 of global 5 minute land mask
+onedeg.map     : Raster map, 360x180, of global land mask -- for old (pre-10/31/1995)
+

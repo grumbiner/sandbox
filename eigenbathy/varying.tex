@@ -1,0 +1,78 @@
+\section{Locally-averaged bathymetry}
+
+  To explore the effects of averaging, it is desirable to perform 
+averaging over many different scales.  On the other hand, it is
+also desirable to be able to refer to an 'exact' calculation.
+Averaging over many different scales argues for selecting a number
+of points which is factorable many different ways.  4342 is not
+(= 2*13*167), but is close to a number which is -- 4320 (= 2$^5$ *3$^3$ * 5)
+Consequently, we will delete 22 points from the bathymetry -- 
+3 from the Antarctic end (making minimum depth there 249 meters
+instead of 130) and 19 from the Greenland end, and recompute the
+full reference spectrum.
+
+  Given our reference spectrum we can return to assessing how 
+well bathymetric averaging methods perform in reproducing the
+slowest eigenperiods.  (It is also always an option also to compute
+degree of match on eigenmode structure, and will be done later.)
+We will therefore average over 432, 288, 160, 80, 40, 20, 10, 8, 5, 4, 3, 2
+points 
+by each of the 4 methods, and compute the spectra for each method.
+We expect to see a convergence to the exact calculation as the range 
+of averaging shrinks.  The question is rather one of which method
+produces the most rapid convergence.
+
+  Figures N1-N2 show the periods of modes 0-7 for each of the 4 
+averaging references, against the exact computation.  Except for
+the two slowest, all show a J curve with respect to amount of averaging.
+When there is relatively little averaging, the each method converges towards 
+the correct period as averaging is reduced.  For all modes, averaging
+1/sqrt(H) is best and remains closest to the correct value in the bowl
+of the 'J' (averaging 2-160 points, 4 minutes to 5.333 degrees averaging),
+with averaging 1/H being always next best, sqrt(H) next, and always worst
+is averaging H.  The two slowest modes show this order of preference 
+everywhere (to the over 14 degree averaging tested). 
+
+  For extremely coarse averaging, coarser than 5-10 degrees, these
+relative results are reversed for modes 2-7. 
+
+  Figures M1-M2 show the relative error in eigenperiod for the first
+100 modes (down to 30 minute period) for each averaging method, in
+sequence of degree of averaging 40, 20, 10, 5, 2 points.  At 40 point
+averaging we see that all averaging methods give eigenperiods which 
+diverge ever-increasingly as the mode number increase above about 40
+(about 75 minute period, for a nominal 4000 m depth, this corresponds
+to about 900 km wavelength).  From gravest mode to about mode 25 (2 hours
+period, nominal 1440 km wavelength), 1/sqrt(H) averaging is best, with
+1/H averaging nearly equal.  The latter is generally best in 25-40.
+
+  For 20 point averaging (Figure N) the point of ever-increasing divergence 
+is delayed to about mode 55 (55 minutes, 660 km).  Between about 35 and
+55, averaging H gives best results.  From about 20 to 25, averaging 1/H is
+best.  And 0-20 is again best with averaging 1/sqrt(H).  This behavior is
+repeated at 10 point averaging.  
+
+  With 5 point averaging (10 minute resolution) 1/sqrt(H) is best for
+almost all modes to about 50.  With 2 point averaging, 1/sqrt(H) is best
+for almost all 100 modes.  In those cases where it isn't, 1/H averaging 
+is best.
+
+  A consistent behavior is the the 10th mode (5 hour period, nominal 
+3650 km wavelength) is consistently, with respect to both averaging 
+method and degree of averaging, the most difficult to obtain accurately.
+Even 2 point averaging by H and sqrt(H) does not obtain this mode within
+2\%.  It suffices, barely, for 1/H averaging, while 3 point averaging
+(not shown) is already 2.7\% in error.  1/sqrt(H) averaging suffices
+to even 10 point averaging, though next examined (20) shows 4.5\% error.
+
+
+
+  In terms of averaging method I conclude that 1/sqrt(H) is the best
+for all modes likely to be of interest for tidal synthesis or 
+ocean response to meteorological forcing -- circumstances with strong
+forcing at diurnal and semidiurnal period.  Taking 4 hours as the most
+rapid of interest indicates that the first 13 modes are the ones of
+concern.  Following [] gives the first 6.  For these slow modes, 1/sqrt(H)
+is always best.  For higher modes, if the resolution of averaging is
+fairly fine, the 1/sqrt(H) is again best.
+

@@ -1,0 +1,294 @@
+      SUBROUTINE INIT(UB, VB, UT, VT, SS, SD, TS, TD, CS, CD,
+     1                UWIND, VWIND, WE, H, LNH, NX, NY,
+     2                AHM, AVM, AHT, AVT, AHS, AVS,
+     3                SREF, SDREF, SSREF, TREF, TDREF, TSREF, RHOREF,
+     4                G, F,
+     5                DELX, DELY, DELT, GAMMA, NOUT, NFLOUT, NTOT,
+     6                XMIN, XMAX, YMIN, YMAX, QFMAX, QFREF, QM,
+     7                STRSPR, STRSUM, STRFLL, STRWIN, LOY,
+     8                BETA, CONTOL, ITMAX, LNORM,
+     9                CSREF, CDREF, LAMBDA, DCADT                    )
+C     INITIALIZE THE DATA ARRAYS AND CONSTANTS
+
+      INTEGER NFIELD
+      PARAMETER (NFIELD = 14)
+      REAL SECPYR
+      PARAMETER (SECPYR = 3.1556908E7)
+
+      INTEGER NX, NY
+      REAL UB(NX, NY), VB(NX, NY), UT(NX, NY), VT(NX, NY)
+      REAL SS(NX, NY), SD(NX, NY), TS(NX, NY), TD(NX, NY)
+      REAL CS(NX, NY), CD(NX, NY)
+      REAL UWIND(NX, NY), VWIND(NX, NY), WE(NX, NY)
+      REAL H(NX, NY), LNH(NX, NY)
+
+      REAL AHM, AVM, AHT, AVT, AHS, AVS
+      REAL SREF, SDREF, SSREF, TREF, TDREF, TSREF, RHOREF
+      REAL G, F
+      REAL DELX, DELY, DELT, GAMMA
+      INTEGER NOUT, NFLOUT, NTOT
+
+C     PARAMETERS FOR BUOYANCY FORCING
+      INTEGER XMIN, XMAX, YMIN, YMAX
+      REAL QFMAX, QFREF, QM
+      INTEGER STRSPR, STRSUM, STRFLL, STRWIN, LOY
+C     PARAMETERS FOR CHEMISTRY
+      REAL CSREF, CDREF, LAMBDA, DCADT
+C     PARMS FOR BAROTROPIC FLOW
+      REAL BETA, CONTOL
+      INTEGER ITMAX, LNORM
+
+      REAL RHO
+      CHARACTER*6 FNAME
+      INTEGER I, J, LOC
+      LOGICAL YES
+      INTEGER DUMMY
+      REAL VALUE
+
+C***********************************************************----------**
+C     GET ARRAY DATA:
+
+      PRINT *,'WOULD YOU LIKE TO USE OUTPUT FROM AN OLD RUN?'
+      IF (YES(.FALSE.)) THEN
+        PRINT *,'WHAT IS THE FILE NAME FOR UB?'
+        READ (*,9001) FNAME
+        OPEN (12, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR VB?'
+        READ (*,9001) FNAME
+        OPEN (13, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        WRITE (*,9011) 'UT   '
+        READ (*,9001) FNAME
+        OPEN (14, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        WRITE (*,9011) 'VT   '
+        READ (*,9001) FNAME
+        OPEN (15, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR SS?'
+        READ (*,9001) FNAME
+        OPEN (16, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR SD?'
+        READ (*,9001) FNAME
+        OPEN (17, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR TS?'
+        READ (*,9001) FNAME
+        OPEN (18, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR TD?'
+        READ (*,9001) FNAME
+        OPEN (19, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR CS?'
+        READ (*,9001) FNAME
+        OPEN (20, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+        PRINT *,'WHAT IS THE FILE NAME FOR CD?'
+        READ (*,9001) FNAME
+        OPEN (21, FILE=FNAME, FORM='UNFORMATTED', STATUS='OLD')
+
+        PRINT *,'AT WHAT TIME STEP DO YOU WANT THE DATA?'
+        READ (*,9014) DUMMY
+        DO 1000 I = 1, DUMMY
+          READ (12) UB
+          READ (13) VB
+          READ (14) UT
+          READ (15) VT
+          READ (16) SS
+          READ (17) SD
+          READ (18) TS
+          READ (19) TD
+          READ (20) CS
+          READ (21) CD
+ 1000   CONTINUE
+        CLOSE (12)
+        CLOSE (13)
+        CLOSE (14)
+        CLOSE (15)
+        CLOSE (16)
+        CLOSE (17)
+        CLOSE (18)
+        CLOSE (19)
+        CLOSE (20)
+        CLOSE (21)
+
+       ELSE
+        WRITE (*,9011) 'UB   '
+        READ (*,9012) VALUE
+        CALL ARSET(UB, NX, NY, VALUE)
+        WRITE (*,9011) 'VB   '
+        READ (*,9012) VALUE
+        CALL ARSET(VB, NX, NY, VALUE)
+        WRITE (*,9011) 'UT   '
+        READ (*,9012) VALUE
+        CALL ARSET(UT, NX, NY, VALUE)
+        WRITE (*,9011) 'VT   '
+        READ (*,9012) VALUE
+        CALL ARSET(VT, NX, NY, VALUE)
+        WRITE (*,9011) 'SS   '
+        READ (*,9012) VALUE
+        CALL ARSET(SS, NX, NY, VALUE)
+        WRITE (*,9011) 'SD   '
+        READ (*,9012) VALUE
+        CALL ARSET(SD, NX, NY, VALUE)
+        WRITE (*,9011) 'TS   '
+        READ (*,9012) VALUE
+        CALL ARSET(TS, NX, NY, VALUE)
+        WRITE (*,9011) 'TD   '
+        READ (*,9012) VALUE
+        CALL ARSET(TD, NX, NY, VALUE)
+        WRITE (*,9011) 'CS   '
+        READ (*,9012) VALUE
+        CALL ARSET(CS, NX, NY, VALUE)
+        WRITE (*,9011) 'CD   '
+        READ (*,9012) VALUE
+        CALL ARSET(CD, NX, NY, VALUE)
+      ENDIF
+
+      WRITE (*,9011) 'UWIND'
+      READ (*,9012) VALUE
+      CALL ARSET(UWIND, NX, NY, VALUE)
+      WRITE (*,9011) 'VWIND'
+      READ (*,9012) VALUE
+      CALL ARSET(VWIND, NX, NY, VALUE)
+CO    PRINT *,'WHAT IS THE NAME OF THE EKMAN PUMPING FILE?'
+CO      READ (*,9001) FNAME
+CO      CALL READ2(WE, NX, NY, 2, FNAME, .TRUE., .TRUE.)
+      WRITE (*,9011) 'WE   '
+      READ (*,9012) VALUE
+      CALL ARSET(WE, NX, NY, VALUE)
+
+CO    PRINT *,'WHAT IS THE NAME OF THE TOPOGRAPHY FILE?'
+CO      READ (*,9001) FNAME
+CO      CALL READ2(H, NX, NY, 1, FNAME, .TRUE., .TRUE.)
+      WRITE (*,9011) 'H    '
+      READ (*,9012) VALUE
+      CALL ARSET(H, NX, NY, VALUE)
+
+ 9011 FORMAT (' WHAT IS THE VALUE OF ',A5,'?')
+
+ 9012 FORMAT (E13.6)
+
+ 9014 FORMAT (I5)
+
+C***********************************************************----------**
+      PRINT *,'WHAT IS THE NAME OF THE SCALAR PARAMETER FILE?'
+      READ (*,9001) FNAME
+      WRITE (*,9001) FNAME
+      OPEN (11, FILE=FNAME, FORM='FORMATTED', STATUS='OLD')
+C        FORCING
+        READ (11,9003) XMIN
+        READ (11,9003) XMAX
+        READ (11,9003) YMIN
+        READ (11,9003) YMAX
+        READ (11,9002) QFMAX
+        READ (11,9002) QFREF
+        READ (11,9002) QM
+        READ (11,9003) STRSPR
+        READ (11,9003) STRSUM
+        READ (11,9003) STRFLL
+        READ (11,9003) STRWIN
+C        OUTPUT
+        READ (11,9003) NOUT
+        READ (11,9003) NFLOUT
+        READ (11,9003) NTOT
+C        GRID
+        READ (11,9002) DELX
+        READ (11,9002) DELY
+        READ (11,9002) DELT
+C        BOUNDARY CONDITION INFO.
+        READ (11,9002) SREF
+        READ (11,9002) SDREF
+        READ (11,9002) SSREF
+        READ (11,9002) TREF
+        READ (11,9002) TDREF
+        READ (11,9002) TSREF
+        READ (11,9002) GAMMA
+C        DIFFUSION
+        READ (11,9002) AHM
+        READ (11,9002) AVM
+        READ (11,9002) AHT
+        READ (11,9002) AVT
+        READ (11,9002) AHS
+        READ (11,9002) AVS
+C        PHYSICAL CONSTANTS
+        READ (11,9002) F
+        READ (11,9002) G
+C        TERMS FOR BAROTROPIC SOLUTION.
+        READ (11,9002) BETA
+        READ (11,9002) CONTOL
+        READ (11,9003) ITMAX
+        READ (11,9003) LNORM
+C        TERMS FOR CHEMISTRY
+        READ (11,9002) CSREF
+        READ (11,9002) CDREF
+        READ (11,9002) LAMBDA
+        READ (11,9002) DCADT
+      CLOSE (11, STATUS='KEEP')
+
+C     COMPUTED PARAMETERS:
+      RHOREF = RHO(SREF, TREF, 0.)
+      LOY    = INT(SECPYR/DELT)
+      DO 2000 J = 1, NY
+        DO 2010 I = 1, NX
+           LNH(I, J) = ALOG( H(I,J)  )
+ 2010   CONTINUE
+ 2000 CONTINUE
+C     RESCALE INPUT VALUES OF QFMAX (M/DAY), QFREF,QM (M/SEASON) TO
+C       KG/M**2/S.  MUST DIFIVE BY H IN UVEXT.  8-10-88.
+        QFMAX = QFMAX / 2.88E3
+        QFREF = QFREF * (30./FLOAT(STRSPR-STRWIN)/DELT)
+        QM    = QM    * (30./FLOAT(STRFLL-STRSUM)/DELT)
+C        FORCING
+        WRITE (*,9003) XMIN
+        WRITE (*,9003) XMAX
+        WRITE (*,9003) YMIN
+        WRITE (*,9003) YMAX
+        WRITE (*,9002) QFMAX
+        WRITE (*,9002) QFREF
+        WRITE (*,9002) QM
+        WRITE (*,9003) STRSPR
+        WRITE (*,9003) STRSUM
+        WRITE (*,9003) STRFLL
+        WRITE (*,9003) STRWIN
+C        OUTPUT
+        WRITE (*,9003) NOUT
+        WRITE (*,9003) NFLOUT
+        WRITE (*,9003) NTOT
+C        GRID
+        WRITE (*,9002) DELX
+        WRITE (*,9002) DELY
+        WRITE (*,9002) DELT
+C        BOUNDARY CONDITION INFO.
+        WRITE (*,9002) SREF
+        WRITE (*,9002) SDREF
+        WRITE (*,9002) SSREF
+        WRITE (*,9002) TREF
+        WRITE (*,9002) TDREF
+        WRITE (*,9002) TSREF
+        WRITE (*,9002) GAMMA
+C        DIFFUSION
+        WRITE (*,9002) AHM
+        WRITE (*,9002) AVM
+        WRITE (*,9002) AHT
+        WRITE (*,9002) AVT
+        WRITE (*,9002) AHS
+        WRITE (*,9002) AVS
+C        PHYSICAL CONSTANTS
+        WRITE (*,9002) F
+        WRITE (*,9002) G
+C        TERMS FOR BAROTROPIC SOLUTION.
+        WRITE (*,9002) BETA
+        WRITE (*,9002) CONTOL
+        WRITE (*,9003) ITMAX
+        WRITE (*,9003) LNORM
+C        TERMS FOR CHEMISTRY
+        WRITE (*,9002) CSREF
+        WRITE (*,9002) CDREF
+        WRITE (*,9002) LAMBDA
+        WRITE (*,9002) DCADT
+C        COMPUTED CONSTANTS
+        WRITE (*,9003) LOY
+
+ 9001 FORMAT (A6)
+
+ 9002 FORMAT (BN, E14.6)
+
+ 9003 FORMAT (BN, I8)
+
+      RETURN
+      END

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #Parameters have been set up by J job
-set -x
+set -xe
 
 #Note, tanks are:
   #export XLFUNIT_11=/dcom/us007003/$PDY/b012/xx012 -- navy SST tank
@@ -13,14 +13,18 @@ set -x
 #The navy tank is unused, just noting the existence and difference.
 
 #Note that date is PDYm1 -- this gives full calendar day of data 
-echo working on land $PDYm1
-ln -sf ${DCOM}/b021/xx054 fort.11
-time $EXECseaice_concentration_analysis/seaice_avhrrbufr
-cp fort.51 $COMOUT/land.$PDYm1
-rm fort.51
+if [ ! -f $COMOUT/land.$PDYm1 ] ; then
+  echo working on land $PDYm1
+  ln -sf ${DCOM}/b021/xx054 fort.11
+  time $EXECseaice_concentration_analysis/seaice_avhrrbufr
+  cp fort.51 $COMOUT/land.$PDYm1
+  rm fort.51
+fi
 
-echo working on seas $PDYm1
-ln -sf ${DCOM}/b021/xx053 fort.11
-time $EXECseaice_concentration_analysis/seaice_avhrrbufr 
-cp fort.51 $COMOUT/seas.$PDYm1
-rm fort.51
+if [ ! -f $COMOUT/seas.$PDYm1 ] ; then
+  echo working on seas $PDYm1
+  ln -sf ${DCOM}/b021/xx053 fort.11
+  time $EXECseaice_concentration_analysis/seaice_avhrrbufr 
+  cp fort.51 $COMOUT/seas.$PDYm1
+  rm fort.51
+fi

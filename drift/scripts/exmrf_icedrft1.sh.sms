@@ -1,0 +1,120 @@
+#!/bin/ksh 
+########################################################### 
+# Sea ice drift forecast model control script for
+# Arctic and Antarctic.
+# Produce Bulletins for OSO
+# History: Sep 1997 - First implementation of new      
+#        : Robert Grumbine, author.  30 June 1997.
+#        : Modified 09 September 1997 by L. D. Burroughs
+#        : June 1998 - Modified to collaborate with T-170 MRF  
+#        : FEB 2000 - Convert to IBM SP."
+#        : jun 2001 - modified to increase output from 6 to 16 days 
+#        : Oct 2004 - Modified for CCS Phase 2
+#        :            It is originally Job 930
+########################################################### 
+
+cd $DATA
+
+########################################
+set -x
+msg="HAS BEGUN!"
+postmsg "$jlogfile" "$msg"
+###########################
+
+export FILENV=$DATA/.assign.FORTRAN
+
+#set MP_HOLDTIME to a larger number to speed up processing by 
+# preventing CPUs from being rescheduled as frequently
+
+export MP_HOLDTIME=2666666
+
+#-----------------------------------------------------
+# copy over the fix files
+#-----------------------------------------------------
+cp $FIXsice/seaice_quote seaice_quote   
+cp $FIXsice/seaice_forecast.points seaice_forecast.points
+
+pgm=seaice_sicedrft
+export pgm; prep_step
+
+ln -s seaice_forecast.points fort.47
+ln -s seaice_quote fort.91
+
+echo $PDY > alpha
+ln -s alpha     fort.90
+
+#-----------------------------------------------------
+#get the ice line points
+#-----------------------------------------------------
+cp $FIXsice/seaice_com.ipasaiji.npoc.arctic niceline
+cp $FIXsice/seaice_com.ipasaiji.npoc.antarc siceline
+ln -s niceline   fort.48
+ln -s siceline   fort.49
+
+#-----------------------------------------------------
+#units for the mrf data
+#-----------------------------------------------------
+BASE=$COMIN/drfmr.t00z.sf
+iunit=10
+for hh in  00  12  24  36  48  60  72  84  96 108 120 132 144 156 168 180 192 \
+          204 216 228 240 252 264 276 288 300 312 324 336 348 360 372 384
+do
+  iunit=`expr $iunit + 1 `
+  cp ${BASE}$hh fort.$iunit
+done
+
+#-----------------------------------------------------
+#execute the model
+#-----------------------------------------------------
+msg="pgm sicedrft has BEGUN!"
+postmsg "$jlogfile" "$msg"
+
+echo 32 | $EXECsice/seaice_sicedrft >> $pgmout 2> errfile
+err=$?; export err; err_chk
+
+ln -s fort.60 fl.out
+ln -s fort.61 ops.out
+ln -s fort.62 ak.out
+ln -s fort.63 global.tran
+ln -s fort.64 alaska.tran
+
+#-----------------------------------------------------
+#Distribute the output
+#-----------------------------------------------------
+if [ $SENDCOM = "YES" ] ; then
+  cp ops.out $COMOUT/global.$PDY
+  cp ak.out $COMOUT/alaska.$PDY
+  cp global.tran $COMOUT/global.tran.$PDY
+  cp alaska.tran $COMOUT/alaska.tran.$PDY
+  cp global.tran $pcom/global.tran.${cycle}
+  cp alaska.tran $pcom/alaska.tran.${cycle}
+  if [ "$SENDDBN" = 'YES' ] ; then
+    $USHutil/make_ntc_bull.pl  WMOHD NONE KWBC NONE  \
+       alaska.tran $pcom/alaska.tran.${cycle}
+    $USHutil/make_ntc_bull.pl  WMONV NONE KWBC NONE  \
+       global.tran $pcom/global.tran.${cyc}.$job
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job $COMOUT/global.$PDY
+    $DBNROOT/bin/dbn_alert MODEL OMBICE $job $COMOUT/alaska.$PDY
+  fi
+fi
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+set -x
+#####################################################################
+
+#################################
+
+msg='HAS COMPLETED NORMALLY.'
+echo $msg
+postmsg "$jlogfile" "$msg"
+
+
+#------------------------------------------------------------------
+# End of script
+#------------------------------------------------------------------
+

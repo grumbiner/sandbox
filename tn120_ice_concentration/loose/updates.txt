@@ -1,0 +1,40 @@
+Updates to the old 25.4 km and 1/2 degree (30 minute) MMAB sea ice products
+
+   10 August 2004
+
+     * The digital files now carry a flag value of 157, specifying the point
+       as being land .
+     * More points are now water than formerly.  Any point at these
+       resolutions which corresponds to at least one grid point resolvable at
+       higher resolution is treated as water, and the value for the non-land
+       higher resolution grid is averaged onto the low resolution grid.
+     * The masking around the Aral Sea was changed, to be more in accord with
+       the shrinkage it has undergone in the past 40 years.  There are now
+       many more land points there.
+     * The weather filtering seems to be more effective at removing points
+       which are severe weather, rather than ice cover.  If you formerly
+       relied on the ice flag being 'bad conditions', let us recommend the
+       Hazard Summary at [1]http://polar.ncep.noaa.gov/mmab/products.html as
+       a more direct way to get a look at bad conditions.
+
+   ---------------------------------------------------------------------------
+
+   Please e-mail errors or additional analysis sites to Robert Grumbine at 
+   [2]NCEP.EMC.Seaice@noaa.gov
+
+   Last Modified 25 August 2004
+
+   [3]Return to main sea ice page
+   [4]Return to MMAB products page
+   [5]Return to Marine Modeling and Analysis Branch main page
+
+   ---------------------------------------------------------------------------
+
+References
+
+   Visible links
+   1. http://polar.ncep.noaa.gov/mmab/products.html
+   2. mailto:NCEP.EMC.Seaice@noaa.gov
+   3. http://polar.ncep.noaa.gov/seaice/Welcome.html
+   4. http://polar.ncep.noaa.gov/mmab/products.html
+   5. http://polar.ncep.noaa.gov/Welcome.html

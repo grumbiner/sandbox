@@ -25,7 +25,7 @@ for i in range (0,nx):
     lons[i,j] = float(j)
     alpha[i,j] = float(j)
 
-print 4*nx*ny
+print(4*nx*ny)
 
 
 count = 0

@@ -3,10 +3,7 @@
 include ../makeall.mk
 
 #Linux
-#CLD=g++
-#INCDIR=$(BASE)/mmab/$(VER)/include
-#LIBS=$(BASE)/mmab/$(VER)/libombc_4.a $(BASE)/mmab/$(VER)/libombf_4.a -lm
-LIBS=$(MMAB_LIBC4) $(MMAB_LIBF4) -lm
+LIBS=$(MMAB_LIB) $(MMAB_LIBF4) -lm
  
 #Should be no changes below this point---------------------------------
 seaice_seaissmis : ssmis.main.o

@@ -1,0 +1,431 @@
+#include <stdio.h>
+#include <stdlib.h>
+#ifdef W3LIB
+  #include <time.h>
+#endif
+
+#include "icessmi.h"
+#include "ncepgrids.h"
+#define MAX_ICE 128
+#define MIN_CONC 15
+
+/* Filter the global ice concentration grid according to the SST and
+    to the land mask */
+/* Note that hooks are in place for filtering the hemispheric ice grids,
+    though this isn't done currently. */
+/* Robert Grumbine 4 June 1997 */
+/* Major revision: change to C++, go to wgrib decoding of sst files
+   Robert Grumbine 8 September 1999 */
+
+/* Function to fill in the large number of single-point dropouts (bad,
+     missing, or weather) that are surrounded by valid ice concentrations */
+template <class T>
+int gapfill(grid2<T> &x, T lowest_valid, T highest_valid, T flag);
+template <class T>
+int isolani(metricgrid<T> &x, T flag, T replace); // remove points which 
+               //are surrounded by flagged values and replace 
+template <class T>
+void weather_zero(grid2<T> &x);
+
+//////////////////////////////////
+// Something to incorporate in to a library
+template <class T, class U>
+void gridset(grid2_base<T> &x, grid2_base<U> &y);
+//////////////////////////////////
+
+
+int main(int argc, char *argv[])
+{
+  FILE *in16, *in17, *in18;
+  FILE *fin;
+
+  GRIDTYPE1<unsigned char> nland;
+  GRIDTYPE1<float> nmap, nf, count, nlandf;
+  GRIDTYPE2<unsigned char> sland;
+  GRIDTYPE2<float> smap, sf, scount, slandf;
+  global_ice<unsigned char> cout2, gmap, refmap;
+  global_ice<float> outmap, altmap;
+  global_sst<float> sst, errs; 
+
+  ijpt ijloc, destloc, ijloc2, x;
+  fijpt tloc;
+  latpt iceloc, outloc;
+  unsigned char tmp;
+  float filt_temp, flag;
+  int range = 0; //min distance to land for a valid concentration
+  int isolates, filled;
+  #ifdef W3LIB
+    char *grib;
+    int lgrib = 0;
+    tm*  date;
+    time_t secs;
+    FILE *fgrib;
+    int parmno = 255, mxbit = 8, depth = 0, lead = 0;
+  #endif
+
+  outmap.set(0.0);
+  altmap.set(0.0);
+  count.set(0.0);
+
+  in16 = fopen(argv[1],"r");
+  in17 = fopen(argv[2],"r");
+  in18 = fopen(argv[3],"r");
+
+  nland.binin(in17);
+  sland.binin(in18);
+  gmap.binin(in16);
+
+  nmap.set(100);
+  smap.set(100);
+  sst.set(278.0);
+  if (nmap.average() < 2.56) nmap *= 100;
+  if (smap.average() < 2.56) smap *= 100;
+  gridset(nlandf, nland);
+  gridset(slandf, sland);
+
+/* Now average from polar stereographic on to the lat-long grid */
+/* RG 8 Sept 1999: In C++, this can now be made a trivial function passing
+    a metricgrid in, arbitrary mapping and origin */
+  flag = 224.;
+// Mask out a range of grid points near land (set by 'range')
+  gridset(nf, nmap);
+  for (ijloc.j = 0; ijloc.j < nf.ypoints(); ijloc.j++) {
+    for (ijloc.i = 0; ijloc.i < nf.xpoints(); ijloc.i++) {
+       if (nf[ijloc] > 100. && nf[ijloc] < MAX_ICE) {
+          nf[ijloc] = 100.;
+       }
+       else if (nf[ijloc] < MIN_CONC) {
+          nf[ijloc] = 0.0;
+       }
+       if (nlandf.anyof((float) LAND, range, ijloc) > 0) {
+         nlandf[ijloc] = flag;
+       }
+    }
+  }
+  filled  = gapfill(nf, (float)0., (float)100., (float)224.); //no-data points
+  filled += gapfill(nf, (float)0., (float)100., (float)166.); //bad-data points
+  filled += gapfill(nf, (float)0., (float)100., (float)177.); //weather points
+  weather_zero(nf);
+  filled += gapfill(nf, (float)0., (float)100., (float)224.); //no-data points
+  filled += gapfill(nf, (float)0., (float)100., (float)166.); //bad-data points
+
+  for (ijloc.j = 0; ijloc.j < nf.ypoints(); ijloc.j++) {
+    for (ijloc.i = 0; ijloc.i < nf.xpoints(); ijloc.i++) {
+       if (nf[ijloc] == WEATHER) {
+         nf[ijloc] = 0.;
+       }
+       if (nf[ijloc] >= MAX_ICE || nlandf[ijloc] == COAST ) {
+        nf[ijloc] = 224.;
+        nlandf[ijloc] = flag;
+       }
+    }
+  }
+
+  outmap.fromall(nf, nlandf, flag, 224.);
+  #ifdef VERBOSE
+  for (ijloc.j = 0; ijloc.j < outmap.ypoints(); ijloc.j++) {
+  for (ijloc.i = 0; ijloc.i < outmap.xpoints(); ijloc.i++) {
+     if (outmap[ijloc] > 100. && outmap[ijloc] < 157.) {
+       outloc = outmap.locate(ijloc);
+       tloc = nf.locate(outloc);
+       printf("after %3d %3d %5.1f  %5.2f %6.2f  %6.2f %6.2f  %f\n",
+         ijloc.i, ijloc.j, outmap[ijloc], outloc.lat, outloc.lon, 
+         tloc.i, tloc.j, nlandf[tloc]);
+     }
+  }
+  }
+  #endif
+       
+
+// Mask out a range of grid points near land
+// Transfer values, cap, and then fill in gaps.
+  gridset(slandf, sland);
+  gridset(sf, smap);
+  for (ijloc.j = 0; ijloc.j < smap.ypoints(); ijloc.j++) {
+    for (ijloc.i = 0; ijloc.i < smap.xpoints(); ijloc.i++) {
+       if (slandf.anyof((float) LAND, range, ijloc) > 0) slandf[ijloc] = flag;
+       if (sf[ijloc] > 100. && sf[ijloc] < MAX_ICE) {
+         sf[ijloc] = 100.;
+       }
+       else if (sf[ijloc] < MIN_CONC) {
+         sf[ijloc] = 0.0;
+       }
+    }
+  }
+  filled += gapfill(sf, (float)0., (float)100., (float)224.); //no-data points
+  filled += gapfill(sf, (float)0., (float)100., (float)166.); //bad-data points
+  filled += gapfill(sf, (float)0., (float)100., (float)177.); //weather points
+  weather_zero(sf);
+  filled += gapfill(sf, (float)0., (float)100., (float)224.); //no-data points
+  filled += gapfill(sf, (float)0., (float)100., (float)166.); //bad-data points
+  printf("filled %d points\n",filled);
+
+  for (ijloc.j = 0; ijloc.j < smap.ypoints(); ijloc.j++) {
+    for (ijloc.i = 0; ijloc.i < smap.xpoints(); ijloc.i++) {
+       if (sf[ijloc] == WEATHER) {
+         sf[ijloc] = 0.;
+       }
+       if (sf[ijloc] >= MAX_ICE || slandf[ijloc] == COAST ) {
+        sf[ijloc] = 224.;
+        slandf[ijloc] = flag;
+       }
+    }
+  }
+  altmap.fromall(sf, slandf, flag, 224.);
+  
+  for (ijloc.j = 0; ijloc.j < outmap.ypoints(); ijloc.j++) {
+  for (ijloc.i = 0; ijloc.i < outmap.xpoints(); ijloc.i++) {
+     outloc = outmap.locate(ijloc);
+     if (outloc.lat < -20.) outmap[ijloc] = altmap[ijloc];
+     if (outmap[ijloc] > 100. && outmap[ijloc] != 224.) {
+       //printf("%3d %3d %f over\n",ijloc.i, ijloc.j, (float) outmap[ijloc]);
+       if (outmap[ijloc] < MAX_ICE) outmap[ijloc] = 100.;
+     }
+  }
+  }
+
+  
+/* Now do land mask filtering */
+    for (ijloc.j = 0; ijloc.j < outmap.ypoints(); ijloc.j++ ) {
+       for (ijloc.i = 0; ijloc.i < outmap.xpoints(); ijloc.i++ ) {
+          if (gmap[ijloc] == (unsigned char) LAND) cout2[ijloc] = (unsigned char) 0;
+       }
+    }
+
+// Now look to see that all non-land points have a valid concentration:
+ {  
+   latpt landlat;
+   bool ingrid;
+   global_high<float> path;
+   path.set(0.0);
+
+   for (ijloc.j = 0; ijloc.j < outmap.ypoints(); ijloc.j++) {
+   for (ijloc.i = 0; ijloc.i < outmap.xpoints(); ijloc.i++) {
+     ingrid = false;
+     if (gmap[ijloc] != (unsigned char) LAND && 
+         fabs(outmap[ijloc]-100) > 0.00001        ) {
+        landlat = gmap.locate(ijloc); 
+        if (landlat.lat > 20.0 ) {
+          tloc = nmap.locate(landlat); 
+          ingrid = nmap.in(tloc);
+        }
+        if (landlat.lat < -30.) {
+          tloc = smap.locate(landlat); 
+          ingrid = smap.in(tloc);
+        }
+        if (ingrid) {
+          printf("%3d %3d  %3d %f %6.2f %6.2f\n",ijloc.i, ijloc.j, 
+              gmap[ijloc], outmap[ijloc], landlat.lon, landlat.lat);
+          path[ijloc] = 1.0;
+        }
+        else {
+          outmap[ijloc] = 0.0;
+        }
+     }
+     if (gmap[ijloc] == (unsigned char) LAND ) {
+         outmap[ijloc] = 0.0;
+     }
+     // If we find a pathological point, flip it over to land
+     if (path[ijloc] == 1.0) gmap[ijloc] = LAND;
+   }
+   }
+   fin = fopen("remapped","w");
+   outmap.binout(fin);
+   fclose(fin);
+   fin = fopen("newland","w");
+   gmap.binout(fin);
+   fclose(fin);
+   printf("area covered by pathological points %f\n",path.integrate()/1.e12 );
+   path.set(1.0);
+   printf("area covered by earth %f\n",path.integrate()/1.e12 );
+
+// If the W3LIB is defined, we should write out a grib version of
+//   the filtered file.  Note that this also requests a fourth argument.
+  #ifdef W3LIB
+    grib = new char [ (gmap.xpoints() * gmap.ypoints())/8 + 200 ];
+
+    fgrib = fopen(argv[4], "w");
+    if (fgrib == (FILE *) NULL) {
+      printf("Failed to open the grib output file\n");
+      return 1;
+    }
+    secs = time(&secs);
+    date = gmtime(&secs);
+    date->tm_year += 1900;  //Need to add this and next because of referencing
+    date->tm_mon  += 1;
+    outmap.pds.set_precision(0.01);
+    outmap.pds.set_time(date->tm_year, date->tm_mon, date->tm_mday,
+                       date->tm_hour, date->tm_min);
+    for (x.j = 0; x.j < gmap.ypoints() ; x.j++) {
+    for (x.i = 0; x.i < gmap.xpoints() ; x.i++) {
+       outmap[x] = (float) gmap[x] ;
+    }
+    }
+
+    if (outmap.average() > 2.0) outmap /= 100.;
+    printf("About to call gribit\n"); fflush(stdout);
+    outmap.gribit(parmno, depth, lead, grib, lgrib, mxbit);
+    printf("back from gribit\n"); fflush(stdout);
+
+    printf(" wrote a %d length grib message\n",
+           fwrite(grib, sizeof(char), lgrib, fgrib)  ) ; fflush(stdout);
+    printf("lgrib = %d\n",lgrib); fflush(stdout);
+  #endif
+
+
+ }
+     return 0;
+
+}
+
+template <class T>
+int gapfill(grid2<T> &x, T lowest_valid, T highest_valid, T flag) {
+  ijpt loc, ip1, jp1, im1, jm1;
+  ijpt tip1, tjp1, tim1, tjm1;
+  int count = 0, passno=0, valid, tcount = 0;
+  T tmp;
+  int xlim = x.xpoints(), ylim= x.ypoints();
+
+  ip1.i =  1; ip1.j =  0;
+  im1.i = -1; im1.j =  0;
+  jp1.i =  0; jp1.j =  1;
+  jm1.i =  0; jm1.j = -1;
+
+//This portion does a 1 point fill -- point surrounded by valid
+//  points.
+  count = 0;
+  for (loc.j = 0; loc.j < ylim ; loc.j++) {
+      tjp1.j = loc.j + 1;
+      tjm1.j = loc.j - 1;
+  for (loc.i = 0; loc.i < xlim ; loc.i++) {
+    if (x[loc] == flag) {
+      tip1 = loc ; tip1 += ip1;
+      tim1 = loc ; tim1 += im1;
+      tjp1.i = loc.i ; 
+      tjm1.i = loc.i ; 
+      valid = (x[tip1] >= lowest_valid && x[tip1] <= highest_valid ) +
+              (x[tim1] >= lowest_valid && x[tim1] <= highest_valid ) +
+              (x[tjp1] >= lowest_valid && x[tjp1] <= highest_valid ) +
+              (x[tjm1] >= lowest_valid && x[tjm1] <= highest_valid ) ;
+      if (valid == 4) {
+        tmp =  0.25 * (x[tip1] + x[tim1] + x[tjp1] + x[tjm1]);
+        x[loc] = tmp;
+        if (x[loc] < MIN_CONC) x[loc] = 0.0;
+        count += 1;
+        if (x[loc] > highest_valid && x[loc] < 157) {
+          printf("Gapfill failure, %3d %3d %f \n",loc.i, loc.j, x[loc]);
+        }
+      }
+    }
+  }
+  }
+
+// This one is to be iterated as it is possible to fill in portions that
+//   can later be used to fill in further.
+  passno = 0;
+  do {
+    tcount = 0;
+    passno += 1;
+    for (loc.j = 0; loc.j < ylim ; loc.j++) {
+      tjp1.j = loc.j + 1;
+      tjm1.j = loc.j - 1;
+    for (loc.i = 0; loc.i < xlim ; loc.i++) {
+      if (x[loc] == flag) {
+        tip1 = loc ; tip1 += ip1;
+        tim1 = loc ; tim1 += im1;
+        tjp1.i = loc.i ; 
+        tjm1.i = loc.i ; 
+        valid = (x[tip1] >= lowest_valid && x[tip1] <= highest_valid ) +
+                (x[tim1] >= lowest_valid && x[tim1] <= highest_valid ) +
+                (x[tjp1] >= lowest_valid && x[tjp1] <= highest_valid ) +
+                (x[tjm1] >= lowest_valid && x[tjm1] <= highest_valid ) ;
+        if (valid == 4) {
+          tmp =  0.25 * (x[tip1] + x[tim1] + x[tjp1] + x[tjm1]);
+          x[loc] = tmp;
+          if (x[loc] < MIN_CONC) x[loc] = 0.0;
+        if (x[loc] > highest_valid && x[loc] < 157) {
+          printf("Gapfill failure, %3d %3d %f \n",loc.i, loc.j, x[loc]);
+        }
+          tcount += 1;
+        }
+        else if (valid == 3) {
+          tmp = 0.;
+          if (x[tip1] >= lowest_valid && x[tip1] <= highest_valid ) tmp += x[tip1];
+          if (x[tim1] >= lowest_valid && x[tim1] <= highest_valid ) tmp += x[tim1];
+          if (x[tjp1] >= lowest_valid && x[tjp1] <= highest_valid ) tmp += x[tjp1];
+          if (x[tjm1] >= lowest_valid && x[tjm1] <= highest_valid ) tmp += x[tjm1];
+          tmp /= valid;
+          tcount += 1;
+          x[loc] = tmp;
+          if (x[loc] < MIN_CONC) x[loc] = 0.0;
+        if (x[loc] > highest_valid && x[loc] < 157) {
+          printf("Gapfill failure, %3d %3d %f \n",loc.i, loc.j, x[loc]);
+        }
+        }
+      }
+    }
+    }
+    count += tcount;
+    #ifdef VERBOSE
+    printf("Gapfill Pass %d tcount %d\n",passno, tcount);
+    #endif
+
+  } while (tcount > 0 && passno < 10);
+
+  return count;
+}
+
+template <class T>
+int isolani(metricgrid<T> &x, T flag, T replace) {
+  int count = 0;
+  ijpt loc, ip1, jp1, im1, jm1 ;
+  ijpt  tip1, tjp1, tim1, tjm1 ;
+
+  ip1.i =  1; ip1.j = 0;
+  im1.i = -1; ip1.j = 0;
+  jp1.i =  0; jp1.j =  1;
+  jm1.i =  0; jm1.j = -1;
+
+  for (loc.j = 1; loc.j < x.ypoints() - 1; loc.j++) {
+  for (loc.i = 1; loc.i < x.xpoints() - 1; loc.i++) {
+    if ( x[loc] != flag && x[loc] != replace) {
+       tip1 = loc ; tip1 += ip1;
+       tim1 = loc ; tim1 += im1;
+       tjp1 = loc ; tjp1 += jp1;
+       tjm1 = loc ; tip1 += jm1;
+       if (x[tip1] == flag && x[tim1] == flag && x[tjp1] == flag && 
+           x[tjm1] == flag) {
+         x[loc] = replace;
+         count += 1;
+       }
+    }
+  }
+  }
+  return count;
+}
+template <class T>
+void weather_zero(grid2<T> &x) {
+  ijpt loc;
+  for (loc.j = 0; loc.j < x.ypoints(); loc.j++) {
+  for (loc.i = 0; loc.i < x.xpoints(); loc.i++) {
+    if (x[loc] == WEATHER) x[loc] = 0;
+  }
+  }
+  return;
+}
+
+//Set grid x = grid y, regardless of types
+template <class T, class U>
+void gridset(grid2_base<T> &x, grid2_base<U> &y) {
+  int i, npts = x.xpoints()*x.ypoints();
+
+  if (x.xpoints() != y.xpoints() || x.ypoints() != y.ypoints() ) {
+    x.set((T) 0);
+  }
+  else {
+    for (i = 0; i < npts; i++) {
+       x[i] = y[i];
+    }
+  }
+  return;
+} 

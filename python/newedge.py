@@ -39,8 +39,8 @@ for val2 in x:
   count += 1
 
 fin.close()
-print "land max = ",landmax
-print "reading time ",time.time() - start
+print("land max = ",landmax)
+print("reading time ",time.time() - start)
 
 ##########################################
 # Find ice edge (transitions over/under tolerance

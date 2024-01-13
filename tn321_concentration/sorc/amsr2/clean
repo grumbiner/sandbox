@@ -1,0 +1,17 @@
+#!/bin/sh
+
+find . -type f -name '*.o' -exec rm {} \;
+
+for ex in  \
+seaice_iceamsr2.Cd/seaice_iceamsr2 \
+seaice_amsrbufr.fd/seaice_amsrbufr \
+l1b_to_l2/ssmi_tol2 \
+l1b_to_l2/ssmisu_tol2 \
+l2_to_l3/ssmi_tol3 \
+l2_to_l3/ssmisu_tol3
+do
+  if [ -f $ex ] ; then
+    rm $ex 
+  fi
+done
+

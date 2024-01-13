@@ -1,0 +1,163 @@
+      SUBROUTINE UVEXT (UB, VB, SS, SD, TS, TD,
+     1                  UWIND, VWIND, H, LNH, NX, NY,
+     2                  SREF, TREF, RHOREF, G, F,
+     3                  AHM, AVM, DELX, DELY, DELT            )
+C     EXTRAPOLATE U, V TO THE NEXT TIME LEVEL
+C     COMPUTATION OF COMMON CONSTANTS ADDED PRIOR TO 5-26-88.
+C     USE OF MULTI-ENTRY RHO ADDED 5-25-88.
+C     FORCING ARRAYS ENLARGED TO 60X60 BY 5-26-88.
+C     EDDY DIFFUSION (LESS TOPOGRAPHIC TERMS) RE-ENTERED 3-30-88.
+C     BC 3-29 TO 5-25-88:
+C       Y = 0 NO SLIP
+C           YMAX  V = 0  DU/DY = 0
+C       X = XMAX  U,V(XMAX) = U,V(1)
+C       X = 0     U EXTRAPOLATED, DV/DX = 0
+C     BC ON 5-26-88 CHANGED TO
+C       X = 0     U, V BOTH EXTRAPOLATED USING FORWARD DIFFERENCES.
+      INTEGER NX, NY
+      REAL UB(NX, NY), VB(NX, NY)
+      REAL SS(NX, NY), SD(NX, NY), TS(NX, NY), TD(NX, NY)
+      REAL UWIND(NX, NY), VWIND(NX, NY), H(NX, NY), LNH(NX, NY)
+      REAL SREF, TREF, RHOREF, F, G, AHM, AVM
+      REAL DELX, DELY, DELT
+      REAL RHOS1P, RHOS(60,60), RHOD(60,60)
+      REAL FU(60, 60), FV(60, 60)
+      INTEGER I, J, K, L
+C     PARAMS FOR SPEEDIER NUMERICS:
+      REAL DX2, DY2, G8RREF, DIFUX, DIFUY
+C     STATEMENT FUNCTION TO COMPUTE RHOS, RHOD.  CHANGED TO ARRAYS 8-4-8
+C     RHOS(K,L) =
+C    1  RHOS1P(SREF+.5*(SS(K,L)+SD(K,L)), TREF+.5*(TS(K,L)+TD(K,L)), 0.)
+C    2+ RHOS1P(SREF+.5*(SS(K,L)-SD(K,L)), TREF+.5*(TS(K,L)-TD(K,L)), 0.)
+C     RHOD(K,L) =
+C    1  RHOS1P(SREF+.5*(SS(K,L)+SD(K,L)), TREF+.5*(TS(K,L)+TD(K,L)), 0.)
+C    2- RHOS1P(SREF+.5*(SS(K,L)-SD(K,L)), TREF+.5*(TS(K,L)-TD(K,L)), 0.)
+C     COMPUTE PARAMS FOR SPEEDIER NUMERICS:
+      DX2   = 2.*DELX
+      DY2   = 2.*DELY
+      G8RREF = G/8./RHOREF
+      DIFUX  = AHM/DELX/DELX
+      DIFUY  = AHM/DELY/DELY
+C     COMPUTE THE DENSITY FIELD BEFORE ENTERING THE EXTRAPOLATION.
+C     THIS REDUCES THE NUMBER OF CALLS TO THE DENSITY FUNCTION BY
+C       ALMOST A FACTOR OF 4.  8-4-88.
+      DO 900 L = 1, NY
+        DO 910 K = 1, NX
+            RHOS(K,L) =
+     1    RHOS1P( SS(K,L)+SD(K,L), TS(K,L)+TD(K,L), 0.)
+     2  + RHOS1P( SS(K,L)-SD(K,L), TS(K,L)-TD(K,L), 0.)
+  910   CONTINUE
+  900 CONTINUE
+C     COMPUTE THE FORCING FOR THE EXTRAPOLATION (INTERIOR POINTS):
+      DO 1000 J = 2, NY-1
+        DO 1010 I = 2, NX-1
+CD        PRINT *,'X, Y COORDINATES= ',I,J
+                    FU(I,J) =  F*VB(I,J)/2.
+     1  + G8RREF*H(I,J)*
+     2         ( RHOS(I+1,J) - RHOS(I-1,J) )/DX2
+C       NEXT LINE REMOVED 8-3-88 DUE TO ERROR IN MARCH DERIVATION,
+C          CAUGHT IN AUGUST DERIVATION.
+C    3        - RHOD(I,J)*(LNH(I+1,J)-LNH(I-1,J))/DX2  )
+     4  + DIFUX * (UB(I+1,J)-2.*UB(I,J)+UB(I-1,J))
+     5  + DIFUY * (UB(I,J+1)-2.*UB(I,J)+UB(I,J-1))
+C       VERTICAL DIFFUSION OF MOMENTUM ADDED 8-3-88.  QUESTIONABLE
+C         NECESSITY.
+     6  - 8.*AVM*UB(I,J)/H(I,J)/H(I,J)
+                     FV(I,J) = -F*UB(I,J)/2.
+     1    +G8RREF*H(I,J)*
+     2         ( RHOS(I,J+1) - RHOS(I,J-1) )/DY2
+C       NEXT LINE REMOVED 8-3-88 DUE TO ERROR IN MARCH DERIVATION,
+C          CAUGHT IN AUGUST DERIVATION.
+C    3        - RHOD(I,J)*(LNH(I,J+1)-LNH(I,J-1))/DY2  )
+     4   + DIFUX * (VB(I+1,J)-2.*VB(I,J)+VB(I-1,J))
+     5   + DIFUY * (VB(I,J+1)-2.*VB(I,J)+VB(I,J-1))
+C       VERTICAL DIFFUSION OF MOMENTUM ADDED 8-3-88.  QUESTIONABLE
+C         NECESSITY.
+     6  - 8.*AVM*VB(I,J)/H(I,J)/H(I,J)
+ 1010   CONTINUE
+ 1000 CONTINUE
+C     COMPUTE FU(I=1) WHERE ALPHA(I-1) = ALPHA(NX-1) [PERIODIC CONDITION
+C     WARNING!! MUST CHANGE THIS, PERIODIC CONDITION DROPPED 3-9-88.
+C     PERIODIC CONDITION IN U REINSTATED 3-29-88 WITH PROVISO THAT
+C       VALUES USED IN THE EXTRAPOLATION MUST NOT WRAP AROUND TO THE
+C       OTHER SIDE THROUGH THE PERIODICITY.  THIS ALSO REQUIRES THAT
+C       THE BC ON S, T AT I=1 MUST NOT BE NO NORMAL GRAD FOR LARGE DU/DT
+C     WITH THE CHANGE OF BC TO NO GRAD ON 7-26-88 THIS SECTION IS
+C       NOT NECESSARY.  IN FACT IT CORRESPONDS TO A SIMPLE OPEN
+C       BOUNDARY.
+C     I = 1
+C     DO 2000 J = 2, NY-1
+CD      PRINT *,'X Y COORDINATES', I, J
+C                   FU(I,J) =  F*V(I,J)/2.
+C    1  + G8RREF*H(I,J)*
+C    2      (   ( RHOS(I+1,J) - RHOS(I,J) )/DELX
+C    3        - RHOD(I,J)*(LNH(I+1,J)-LNH(I,J))/DELX  )
+C    4  + DIFUX * (U(I+2,J)-2.*U(I+1,J)+U(I,J))
+C    5  + DIFUY * (U(I,J+1)-2.*U(I,J)+U(I,J-1))
+C                   FV(I,J) =  -F*U(I,J)/2.
+C    1  + G8RREF*H(I,J)*
+C    2      (   ( RHOS(I,J+1) - RHOS(I,J) )/DELY
+C    3        - RHOD(I,J)*(LNH(I,J+1)-LNH(I,J))/DELY  )
+C    4  + DIFUX * (V(I+2,J)-2.*V(I+1,J)+V(I,J))
+C    5  + DIFUY * (V(I,J+1)-2.*V(I,J)+V(I,J-1))
+C2000 CONTINUE
+C      NOW EXTRAPOLATE:
+CD     PRINT *,'NOW CONDUCTING EXTRAPOLATION:'
+C      WITH CHANGE OF I=1 BC TO NO GRAD, THE EXTRAPOLATION IS FROM
+C        I = 2, NX-1 RATHER THANT I = 1, NX-1.  7-29-88
+       DO 3000 J = 2, NY-1
+         DO 3010 I = 2, NX-1
+           UB(I,J) = (UB(I,J) + DELT*FU(I,J) +
+     1                 (VB(I,J) + DELT*FV(I,J))*(F*DELT/2.) )
+     2               / (1.+(ABS(F)*DELT/2.)**2.)
+           VB(I,J) = (VB(I,J) + DELT*FV(I,J) -
+     1                 (UB(I,J) + DELT*FU(I,J))*(F*DELT/2.) )
+     2               / (1.+(ABS(F)*DELT/2.)**2.)
+ 3010   CONTINUE
+ 3000 CONTINUE
+C     NOW CONSIDER THE BOUNDARY CONDITIONS:
+C       AT J=1, V=0 DU/DY=0
+C          J=1, V=0, U = 0, AS OF 3-30-88
+C       AT J=NY, V=0 DU/DY=0
+C       AT I=NX, DV/DX=0 U=PERIODIC (3-29)
+C       AT I=1,  DV/DX=0 U=AS COMPUTED (3-29)
+C                U, V AS COMPUTED 5-26-88.
+C       AS OF 7-26-88, CHANGE U, V BOUNDARY CONDITIONS TO NO NORMAL
+C         GRADIENT (FREE SLIP) AT I= 1, NX
+C         AT I = 1   DV/DX = DU/DX = 0.0
+C                NX  DV/DX = DU/DX = 0.0
+C       7-29-88 NO NORMAL GRAD IN U, V AT J = JMAX
+C       1-26-89:
+C         AT I = 1  U = V = 0.0
+C         AT I = NX U = V = 0.0
+C         AT J = 1  U = V = 0.0
+C         AT J = NY NORMAL DERIV = 0.0
+      DO 4000 I = 1, NX
+C       BC ON V AT THE Y BOUNDARIES
+        VB(I,1)  = 0.0
+        VB(I,NY) = VB(I, NY-1)
+C       BC ON U AT THE Y BOUNDARIES
+        UB(I,1)  = 0.0
+        UB(I,NY) = UB(I, NY-1)
+ 4000 CONTINUE
+      DO 4010 J = 1, NY
+C       DV/DY = 0.0 IMPLEMENTED 7-26-88
+C       V = 0.0 IMPLEMENTED 1-26-89
+CD      VB(1,  J) = VB(2   , J)
+CD      VB(NX, J) = VB(NX-1, J)
+        VB(1,  J) = 0.0
+        VB(NX, J) = 0.0
+C       VB(NX,J) = VB(1,J)
+C       PERIODICITY ON U IN X, CHANGED TO NO NORMAL GRAD 3-9-88.
+C       RETURNED TO PERIODIC 3-29-88
+C       U(1,J)  = U(1,J)
+C       U(NX,J) = U(1,J)
+C       BACK TO NO NORMAL GRAD 7-26-88
+CD      UB(1 , J) = UB(2   , J)
+CD      UB(NX, J) = UB(NX-1, J)
+C       U = 0.0 IMPLEMENTED 1-26-89
+        UB(1,  J) = 0.0
+        UB(NX, J) = 0.0
+ 4010 CONTINUE
+      RETURN
+      END

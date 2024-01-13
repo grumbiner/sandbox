@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -xae
+# #### ######## #############################
+# SETUP AMSR2 ICE CONCENTRATION ANALYSIS PROCESSING CONTROL SHELL VARIABLES
+# ###########################################
+export PS4='$SECONDS + '
+date
+echo cyc is ${cyc:?}
+echo envir is ${envir:?}
+echo seaice_amsr2_ver is ${seaice_amsr2_ver:?} 
+export pid=$$
+
+export DATA=$DATAROOT/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+#For dumpjb
+export TMPDIR=$DATA
+
+####################################
+# Determine Job Output Name on System
+####################################
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z
+export NET=seaice
+
+#################################################
+# Specify job's execution areas (directory paths)
+#################################################
+export EXECseaice_amsr2=${EXECseaice_amsr2:-$HOMEseaice_amsr2/exec}
+export FIXseaice_amsr2=${FIXseaice_amsr2:-$HOMEseaice_amsr2/fix}
+export PARMseaice_amsr2=${PARMseaice_amsr2:-$HOMEseaice_amsr2/parm}
+export USHseaice_amsr2=${USHseaice_amsr2:-$HOMEseaice_amsr2/ush}
+
+#########################################
+# Run setpdy and initialize PDY variables
+#########################################
+setpdy.sh
+. ./PDY
+
+export RUN=${RUN:-amsr2}
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+
+export DCOM=${DCOM:-$DCOMROOT/prod/$PDY}
+
+export HOMEobsproc_dump=${HOMEobsproc_dump:-$NWROOT/obsproc_dump.${obsproc_dump_ver}}
+export USHobsproc_dump=${USHobsproc_dump:-${HOMEobsproc_dump}/ush}
+export HOMEobsproc_shared_bufr_dumplist=${HOMEobsproc_shared_bufr_dumplist:-$NWROOT/obsproc_shared/bufr_dumplist.${obsproc_shared_bufr_dumplist_ver}}
+
+mkdir -p $COMOUT $WMOOUT
+env
+
+#####################################
+# Execute the script
+$HOMEseaice_amsr2/scripts/exseaice_amsr2.sh >> $pgmout
+export err=$?
+err_chk
+#####################################
+
+cat $pgmout
+
+#if [ "$KEEPDATA" != "YES" ] ; then
+#  rm -rf $DATA
+#fi
+
+date

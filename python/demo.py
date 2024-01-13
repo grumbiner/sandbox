@@ -1,13 +1,13 @@
 from latpt import *
 from const import *
 
-#print const.rpdg
+#print(const.rpdg)
 
 x = latpt(39.0, -77.0)
 y = latpt(41.0, -89.0)
 x.show()
 y.show()
-print y.distance(x)
+print(y.distance(x))
 
 #   Trying to get a vector of latpts
 #z = x
@@ -29,4 +29,4 @@ for i in range (1,npoints,1):
 
 # Compute distance between successive points (demo of utility)
 for i in range (0,npoints-2,1):
-  print z[i].distance(z[i+1])
+  print(z[i].distance(z[i+1]))

@@ -7,10 +7,10 @@ import numpy.ma as ma
 from netCDF4 import Dataset
 
 def scan(x):
-  print (x.max(), x.min())
+  print(x.max(), x.min())
 
 #def scan(x, param):
-#  print (param, x.max(), x.min())
+#  print(param, x.max(), x.min())
 
 def scan(x, param, lats, lons, upper = float(+999.), lower = float(-900.) ):
   y = ma.masked_outside(x, lower, upper)
@@ -22,8 +22,8 @@ def scan(x, param, lats, lons, upper = float(+999.), lower = float(-900.) ):
         if (y.mask[j,i] and not x.mask[j,i]):
           print(i,j,lats[j,i], lons[j,i], x[j,i], param, 'out of range')
   #print('unmasked y, x, x-y ',y.count(), x.count(), x.count() - y.count() )
-  #print (param, y.max(), y.min(), 'ny = ',y.shape[0], 'nx = ',y.shape[1], upper, lower)
-  print (param, y.max(), y.min())
+  #print(param, y.max(), y.min(), 'ny = ',y.shape[0], 'nx = ',y.shape[1], upper, lower)
+  print(param, y.max(), y.min())
   
 
 

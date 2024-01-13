@@ -1,11 +1,21 @@
-BASE=../../mmablib
+BASE=$(HOME)/usrlocal/mmablib
 
 INC=$(BASE)/include
 LIB=$(BASE)/libombf_4.a
 
-mv2 : mv2.C
+%.o: %.C
+	g++ -c -Wall -I $(INC) $< -o $(@)
+
+mv2 : mv2.C shared.o
 	g++ -Wall -O2 -DLINUX $< -I $(INC) $(LIB) -o $@
-mv : mv.C
+mv : mv.C shared.o
 	g++ -Wall -O2 -DLINUX $< -I $(INC) $(LIB) -o $@
-reading : reading.C
+reading : reading.C shared.o
 	g++ -Wall -O2 -DLINUX $< -I $(INC) $(LIB) -o $@
+tmp : tmp.C shared.o
+	g++ -Wall -O2 -DLINUX $< -I $(INC) $(LIB) -o $@
+
+rotational : rotational.f90
+	gfortran -Wall $<  -L $(HOME)/usrlocal/lib -l lapack -l refblas -o $@
+
+all : mv2 mv reading tmp

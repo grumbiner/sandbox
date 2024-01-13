@@ -1,0 +1,152 @@
+
+  Springy.js
+
+A force directed graph layout algorithm in JavaScript.
+
+Chamaecyparis obtusa
+
+Demo <demo.html> | Download
+<https://github.com/dhotson/springy/zipball/master> | Getting started
+<#getting-started> | GitHub <https://github.com/dhotson/springy/> |
+Contact <mailto:dennis.hotson@gmail.com>
+
+
+    What is Springy?
+
+Springy is a force directed graph layout algorithm.
+
+So what does this “force directed” stuff mean anyway? /Excellent question!/
+
+It means that springy uses some real world physics to try and figure out
+how to show a network graph in a way that looks good.
+
+Here's an example:
+
+Sequoya gigantea
+
+
+    Getting started
+
+Springy.js is designed to be small and simple. It provides an
+abstraction for graph manipulation and for calculating the layout and
+not too much else.
+
+The details of drawing and interaction are mostly up to you. This means
+you can use canvas, SVG, WebGL, or even just plain old positioned HTML
+elements.
+
+
+      Creating a graph
+
+Here's how to create a graph and add nodes and edges:
+
+// make a new graph
+var graph = new Springy.Graph();
+
+// make some nodes
+var spruce = graph.newNode({label: 'Norway Spruce'});
+var fir = graph.newNode({label: 'Sicilian Fir'});
+
+// connect them with an edge
+graph.newEdge(spruce, fir);
+
+Once you've created a graph, there are a couple of options for
+displaying it.
+
+
+      Use the springyui.js renderer
+
+To help get started quickly, I've included a helper jQuery plugin called
+springyui.js. It's got a semi‑decent default renderer and some
+half‑assed drag and drop.
+
+Here's how to use springyui.js:
+
+<canvas id="my_canvas" width="600" height="400" />
+<script>
+$('#my_canvas').springy({ graph: graph });
+</script>
+
+
+      Do your own rendering
+
+If you're keen to do your own custom drawing or interaction—there's a
+few extra things you'll need to know.
+
+The core Springy layout algorithm is in the Springy.Layout.ForceDirected
+class.
+
+When creating a layout object, there are a few parameters you can tune
+to make the graph layout algorithm behave how you like:
+
+var layout = new Springy.Layout.ForceDirected(
+  graph,
+  400.0, // Spring stiffness
+  400.0, // Node repulsion
+  0.5 // Damping
+);
+
+To simplify the layout calculation and animation rendering loop, I've
+provided a Renderer class. You just need to provide some callbacks to do
+the actual drawing:
+
+var renderer = new Springy.Renderer(
+  layout,
+  function clear() {
+    // code to clear screen
+  },
+  function drawEdge(edge, p1, p2) {
+    // draw an edge
+  },
+  function drawNode(node, p) {
+    // draw a node
+  }
+);
+
+Then to start the rendering loop:
+
+renderer.start();
+
+*Protip:* Take a look at the source code of springyui.js
+<https://github.com/dhotson/springy/blob/master/springyui.js> to get an
+idea of how to write your own renderer—it's a good place to start. Feel
+free to copy‑paste what you need.
+
+Pinus serotina
+
+
+    Further reading
+
+Take a look at the source code of springy.js
+<https://github.com/dhotson/springy/blob/master/springy.js>. Don't be
+shy—there's not that much code and it should be pretty easy to understand.
+
+Please let me know if anything is unclear. Feedback is welcome
+<mailto:dennis.hotson@gmail.com>. *:-)*
+
+Cupressus sempervirens
+
+
+    License
+
+Springy is licensed under the MIT
+<https://github.com/dhotson/springy/blob/master/LICENSE> license.
+
+
+    Contributing
+
+Contributions are welcome and highly encouraged. Please submit a pull
+request for fixes, features or enhancements.
+
+
+    Acknowledgements
+
+Thanks to Lachlan Donald <http://lachlan.me/> for his helpful
+suggestions and feedback.
+
+Thanks to Ernst Haeckel <http://en.wikipedia.org/wiki/Ernst_Haeckel> for
+the beautiful illustrations
+<http://www.flickr.com/photos/origomi/sets/72157601323433758/> of
+various Coniferae <http://en.wikipedia.org/wiki/Pinophyta>.
+
+Araucaria brasiliana

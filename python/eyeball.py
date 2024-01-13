@@ -107,7 +107,6 @@ class eyeball_grid:
         for i in range (0, y.shape[1]):
           if (y.mask[j,i] and not self.ma.mask[j,i]):
             print(i,j,lats[j,i], lons[j,i], self.ma[j,i], self.name, 'out of bounds')
-    print (self.name, y.max(), y.min(),flush=True)
+    print(self.name, y.max(), y.min(),flush=True)
     return nout
     
-  def 

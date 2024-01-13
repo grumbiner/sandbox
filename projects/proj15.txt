@@ -1,0 +1,9 @@
+﻿Project: Correlation to yesterday as QC measure/flag?
+
+End Point: Decision and analysis of whether we can use grid-scale correlations between yesterday and today's analysi of ice, sst as quality control.
+n.b. Raw correlation will be exceedingly high, so some kind of anomaly correlation is needed.
+
+Requires:
+programming
+ice, sst data
+statistics

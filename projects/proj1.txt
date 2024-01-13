@@ -1,0 +1,9 @@
+﻿Project:  CRTM-based ice analysis
+
+End point: operationally-implementable code that will use CRTM on passive microwave data (from, e.g., SSMI, SSMI-S, AMSR-E, AMSR2, …) to derive sea ice concentration automatically.
+
+Requires:
+WCOSS access (?)
+CRTM access
+Passive microwave data access
+

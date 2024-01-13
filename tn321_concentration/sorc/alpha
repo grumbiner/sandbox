@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+#execute by . ./python_load.wcoss2
+
+module load intel
+module load geos
+module load proj 
+module load python/3.8.6
+export PYTHONPATH=$PYTHONPATH:$HOME/rgdev/mmablib/py
+
+module load imagemagick
+
+
+module load prod_envir/2.0.6
+
+DCOMDEV=$DCOMROOT/../../dev/dcom
+ls -l $DCOMDEV
+#echo zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+tag=20220401
+
+#while [ $tag -le `date +"%Y%m%d"` ]
+while [ $tag -le 20230412 ]
+do
+  mkdir -p $HOME/noscrub/satellites/viirs/$tag
+  if [ -d ${DCOMDEV}/${tag}/seaice/pda/ ] ; then
+    time cp -p ${DCOMDEV}/${tag}/seaice/pda/JRR* $HOME/noscrub/satellites/viirs/$tag
+  fi
+  tag=`expr $tag + 1`
+  tag=`$HOME/bin/dtgfix3 $tag`
+done

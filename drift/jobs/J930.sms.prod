@@ -1,0 +1,109 @@
+$SMSBIN/smsinit $LOADL_STEP_ID 
+ 
+set -xa
+# #### 02/24/00 ###############################
+# SETUP MRF POST PROCESSING VARIABLES
+# #############################################
+
+####################################
+# obtain unique process id (pid) and make temp directory
+####################################
+export pid=$$
+export DATA=/tmpnwprd/${job}${pid}
+mkdir $DATA
+cd $DATA
+
+export cycle=t${cyc}z
+
+####################################
+# Specify NET and RUN Name and model
+####################################
+export NET=mrf
+export RUN=drift
+export model=mrf
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=/com/logs/jlogfile
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+export pgmerr=errfile
+
+####################################
+# SENDSMS  - Flag Events on SMS
+# SENDCOM  - Copy Files From TMPDIR to $COMOUT
+# SENDDBN  - Issue DBNet Client Calls
+####################################
+export SENDCOM=YES
+export SENDSMS=YES
+export SENDDBN=YES
+
+
+####################################
+# Specify Execution Areas
+####################################
+export HOMEmrf=/nw${envir}/util
+export FIXmrf=$HOMEmrf/fix
+
+export HOMEutil=/nw${envir}/util
+export FIXutil=$HOMEutil/fix
+export EXECutil=$HOMEutil/exec
+export PARMutil=$HOMEutil/parm
+
+export HOMEsice=/nw${envir}
+export EXECsice=$HOMEsice/exec
+export PARMsice=$HOMEsice/parm
+export FIXsice=$HOMEsice/fix
+
+export utilities=/nwprod/util/ush
+export utilscript=/nwprod/util/ush
+export USHutil=/nwprod/util/ush
+
+##############################
+# Run setup to initialize working directory and utility scripts
+##############################
+sh $utilscript/setup.sh
+
+##############################
+# Run setpdy and initialize PDY variables
+##############################
+sh $utilscript/setpdy.sh
+. PDY
+
+##############################################
+# Define COM directories
+##############################################
+export COMIN=/com/${NET}/${envir}/${NET}.${PDY}
+export COMOUT=/com/${NET}/${envir}/${NET}.${PDY}
+mkdir -m 775 -p $COMOUT
+
+export pcom=/pcom/${NET}
+
+msg="HAS BEGUN on `hostname`"
+postmsg "$jlogfile" "$msg"
+
+env
+
+##############################################
+# Execute the script
+sh /nw${envir}/scripts/ex930.sh.sms
+##############################################
+
+cat $pgmout
+
+msg="ENDED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+##############################
+# Remove the Temporary working directory
+##############################
+cd /tmpnwprd
+rm -rf $DATA
+
+$SMSBIN/endt

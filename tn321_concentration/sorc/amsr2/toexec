@@ -1,0 +1,21 @@
+#!/bin/sh
+
+export cmd='cp -p'
+if [ $# -ne 0 ] ; then
+  export cmd=$*
+fi
+echo $cmd
+
+for ex in seaice_iceamsr2.Cd/seaice_iceamsr2 \
+seaice_amsrbufr.fd/seaice_amsrbufr \
+l1b_to_l2/ssmi_tol2 \
+l1b_to_l2/ssmisu_tol2 \
+l2_to_l3/ssmi_tol3 \
+l2_to_l3/ssmisu_tol3
+do
+  if [ -f $ex ] ; then
+    $cmd $ex ../exec
+  else
+    echo could not find $ex ERROR
+  fi
+done

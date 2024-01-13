@@ -4,10 +4,7 @@
 
 #define gridscale 0.20
 
-void random(grid2<float> &x) ;
-void show(llgrid<float> &eta) ;
-void average(llgrid<short int> &bathy, llgrid<float> &averaged) ;
-
+#include "shared.C"
 
 int main(void) {
   global_nth<short int> etopo2(30.);
@@ -82,62 +79,3 @@ int main(void) {
   return 0;
 }
 
-void show(llgrid<float> &eta) {
-  ijpt loc;
-  latpt ll;
-  for (loc.j = 0; loc.j < eta.ypoints(); loc.j++) {
-  for (loc.i = 0; loc.i < eta.xpoints(); loc.i++) {
-    //if (fabs(eta[loc]) > 1.e-26) {
-      ll = eta.locate(loc);
-      printf("%3d %3d %.3f %.3f  %12.5e\n",loc.i, loc.j, ll.lat, ll.lon, eta[loc]);
-    //}
-  }
-  }
-
-  return ;
-}
-void average(llgrid<short int> &bathy, llgrid<float> &averaged) {
-  grid2<int> count(averaged.xpoints(), averaged.ypoints() );
-  ijpt loc1, loc2;
-  int ratio, pts = 0;
-
-  ratio = bathy.xpoints() / averaged.xpoints() ;
-  printf("ratio = %d nx ny %d %d\n",ratio, averaged.xpoints(), averaged.ypoints() );
-
-  count.set(0);
-  averaged.set((float) 0.0);
-  for (loc1.j = 0; loc1.j < bathy.ypoints(); loc1.j++) {
-  loc2.j = loc1.j / ratio;
-  for (loc1.i = 0; loc1.i < bathy.xpoints(); loc1.i++) {
-    loc2.i = loc1.i / ratio;
-    if (bathy[loc1] < 0.) {
-      count[loc2] += 1;
-      averaged[loc2] += bathy[loc1];
-    }
-  }
-  }
-  for (loc2.j = 0; loc2.j < averaged.ypoints(); loc2.j++) {
-  for (loc2.i = 0; loc2.i < averaged.xpoints(); loc2.i++) {
-    if (count[loc2] != 0) { 
-      averaged[loc2] /= count[loc2]; 
-      pts += 1;
-    }
-  }
-  }
-  averaged *= -1.;
-
-  //printf("averaged: %f %f\n",averaged.gridmax(), averaged.gridmin() );
-  //printf("count: %d %d\n",count.gridmax(), count.gridmin() );
-  //printf("ocean points %d %d\n",pts, count.xpoints()*count.ypoints() );
-
-  return;
-}
-void random(grid2<float> &x) {
-  ijpt loc;
-  for (loc.j = 0; loc.j < x.ypoints() ; loc.j++) {
-  for (loc.i = 0; loc.i < x.xpoints() ; loc.i++) {
-    x[loc] = drand48();
-  }
-  }
-  return;
-}

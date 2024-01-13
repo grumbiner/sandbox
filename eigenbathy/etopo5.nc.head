@@ -1,0 +1,27 @@
+netcdf data {
+dimensions:
+	Y = 2160 ;
+	X = 4320 ;
+variables:
+	float Y(Y) ;
+		Y:pointwidth = 0.08333333f ;
+		Y:standard_name = "latitude" ;
+		Y:gridtype = 0 ;
+		Y:units = "degree_north" ;
+	float X(X) ;
+		X:pointwidth = 0.08333333f ;
+		X:standard_name = "longitude" ;
+		X:gridtype = 1 ;
+		X:units = "degree_east" ;
+	short elev(Y, X) ;
+		elev:long_name = "elevation/bathymetry" ;
+		elev:units = "m" ;
+		elev:ncolor = 253 ;
+		elev:scale_max = 7964.f ;
+		elev:maxncolor = 253 ;
+		elev:colorscalename = "topographycolorscale" ;
+		elev:colormap = "[0 1973790 4026644 [4026644 28] 9125192 [9125192 28] [15736992 15] [11829830 15] [16711680 15] [16760576 29] [16776960 14] 65280 3329434 2330219 [9234160 3] 65535 55295 755384 [755384 4] 9408444 [9408444 3] 6053069 [6053069 4] 1262987 [1262987 3] [2970272 8] [17919 15] 7504122 [7504122 14] 13353215 [13353215 14] 12903679 [12903679 14] 14480885 [14480885 14] 16777215 [16777215 13] 12632256]" ;
+		elev:CE = 7964.f ;
+		elev:scale_min = -9964.f ;
+		elev:CS = -9964.f ;
+}

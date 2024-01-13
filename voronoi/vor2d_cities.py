@@ -19,27 +19,27 @@ for line in fin:
   if (k == 1):
     continue
   l2 = line.replace("\",",";")
-  l3 =   l2.replace("\"" ,"")
+  l3 = l2.replace("\"" ,"")
   l4 = l3.strip()
 
-  words = l4.split(";")
-  #debug: print(len(words)) #should be 11
-  tlat = float(words[2].replace("\"",""))
-  #debug: print(k,tlat,flush=True)
-  tlon = float(words[3].replace("\"",""))
-  #debug: print(k,tlon,flush=True)
+  #debug: print("l4",l4, flush=True)
+
+  words = l4.split(",")
+  print(len(words), "words ",words,flush=True)
+
+  tlat = float(words[1].replace("\"",""))
+  #debug: 
+  print(k,tlat,flush=True)
+  tlon = float(words[2].replace("\"",""))
+  #debug: 
+  print(k,tlon,flush=True)
   try:
-    pop  = int(float(words[9]))
+    pop  = int(float(words[3]))
   except:
     errcount += 1
-    #print(k, line,end="")
-    #print(k, l2,end="")
-    #print(k, l3,end="")
-    #print(k, l4)
-    #print(k, words[9], words[10])
-    #print(k, words, len(words) )
     pop = 0
-  #debug: print(k, words[0], tlat, tlon, pop,flush=True)
+  #debug: 
+  print(k, words[0], tlat, tlon, pop,flush=True)
   
   #if (tlat > -90. and tlon > -180 and tlon < 180): #whole globe
   #if (tlat > 20. and tlat < 60 and tlon > -125 and tlon < -60.): #~lower 48 + most Canada, some Mexico
@@ -48,6 +48,7 @@ for line in fin:
   #if (tlat > 39.-1. and tlat < 39+1. and tlon > -77.-1 and tlon < -77.+1): #DC area +- 1 degree
   #if (tlat > -90. and tlon > -180 and tlon < 180 and pop > int(sys.argv[1]) ): #whole globe
   #if (tlat > 20. and tlat < 60 and tlon > -125 and tlon < -60. and pop > int(sys.argv[1]) ): #~lower 48 + most Canada, some Mexico
+
   if (tlat > 25. and tlat < 49. and tlon > -125 and tlon < -70. and pop > int(sys.argv[1]) ): #~lower 48 + most Canada, some Mexico
     points.append([tlon, tlat])
     #print(words[0].replace(" ","_"),";", tlat,";", tlon,";", pop,flush=True)

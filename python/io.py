@@ -1,10 +1,10 @@
 import os
 cwd = os.getcwd()
-print cwd
+print(cwd)
 
 fin = open('testin')
 
 for line in fin:
   read x, y
-  print x, 'hello', y
+  print(x, 'hello', y)
 fin.close()

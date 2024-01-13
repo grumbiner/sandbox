@@ -1,0 +1,130 @@
+      PROGRAM CSHELF
+C     MODEL BOUYANCY (AND PERHAPS WIND) FORCED CONTINENTAL SHELF
+C       MOTIONS AND CONDITIONS FOR THE POLAR REGIONS.
+
+      INTEGER NX, NY
+      PARAMETER (NX = 20, NY = 20)
+
+C     DATA ARRAYS
+      REAL UB(NX, NY), VB(NX, NY), UT(NX, NY), VT(NX, NY)
+      REAL SS(NX, NY), SD(NX, NY), TS(NX, NY), TD(NX, NY)
+      REAL CS(NX, NY), CD(NX, NY)
+      REAL QSS(NX, NY), QSD(NX, NY)
+      REAL QTS(NX, NY), QTD(NX, NY)
+      REAL QCS(NX, NY), QCD(NX, NY)
+      REAL UWIND(NX, NY), VWIND(NX, NY), WE(NX, NY)
+      REAL H(NX, NY), LNH(NX, NY)
+
+C     PHYSICAL PARAMETERS
+      REAL AHM, AVM, AHT, AHS, AVT, AVS
+      REAL SDREF, SSREF, SREF, TDREF, TSREF, TREF, RHOREF
+      REAL G, F, BETA
+      INTEGER XMIN, XMAX, YMIN, YMAX, STRSPR, STRSUM, STRFLL, STRWIN
+      REAL QSFMAX, QSFREF, QSM
+      REAL DCADT, CSREF, CDREF, LAMBDA
+
+C     NUMERICAL PARAMETERS
+      REAL DELX, DELY, DELT, GAMMA
+      REAL CONTOL
+      INTEGER ITMAX, LNORM
+      INTEGER NOUT, NFLOUT, NTOT, LOY
+
+C     LOCAL VARIABLES
+      INTEGER I
+      CHARACTER*6 FNAME
+CT    FOR TIMING:
+CT    INTEGER BEFORE, AFTER, CLOCK
+CT    INTEGER UVTIME, STTIME, QTIME
+
+C     BEGIN EXECUTION
+
+CT    INITIALIZE THE TIMING VARIABLES:
+CT    UVTIME = 0
+CT    STTIME = 0
+CT    QTIME  = 0
+
+      I = 0
+C     INITIALIZE THE VARIABLES
+      CALL INIT (UB, VB, UT, VT, SS, SD, TS, TD, CS, CD,
+     1           UWIND, VWIND, WE, H, LNH, NX, NY,
+     2           AHM, AVM, AHT, AVT, AHS, AVS,
+     3           SREF, SDREF, SSREF, TREF, TDREF, TSREF, RHOREF,
+     4           G, F,
+     5           DELX, DELY, DELT, GAMMA, NOUT, NFLOUT, NTOT,
+     6           XMIN, XMAX, YMIN, YMAX, QSFMAX, QSFREF, QSM,
+     7           STRSPR, STRSUM, STRFLL, STRWIN, LOY,
+     8           BETA, CONTOL, ITMAX, LNORM,
+     9           CSREF, CDREF, LAMBDA, DCADT                      )
+
+C     OPEN THE OUTPUT FILES
+      CALL OUTSTR(UB, VB, UT, VT, SS, SD, TS, TD, CS, CD, NX, NY,
+     1                      RHOREF, SREF, TREF, I)
+CD    CALL OUTDAT(UB, VB, UT, VT, SS, SD, TS, TD, CS, CD, NX, NY,
+CD   1                      RHOREF, SREF, TREF, I)
+
+C     EXTRAPOLATION LOOP
+      DO 1000 I = 1, NTOT
+CD      PRINT *,'STEP ',I
+CT      BEFORE = CLOCK(0)
+        CALL UVEXT (UB, VB, SS, SD, TS, TD,
+     1              UWIND, VWIND, H, LNH, NX, NY,
+     2              SREF, TREF, RHOREF, G, F,
+     3              AHM, AVM, DELX, DELY, DELT          )
+CT      AFTER = CLOCK(0)
+CT      UVTIME = UVTIME + AFTER - BEFORE
+
+CT      BEFORE = CLOCK(0)
+        CALL QSEXT (QSS, QSD, H, NX, NY, I, LOY,
+     1              XMIN, XMAX, YMIN, YMAX, QSFMAX, QSFREF, QSM,
+     2              STRSPR, STRSUM, STRFLL, STRWIN              )
+        CALL QTEXT
+CT      AFTER = CLOCK(0)
+CT      QTIME = QTIME + AFTER - BEFORE
+
+CD      PRINT *,'CALLING STEXT'
+CT      BEFORE = CLOCK(0)
+        CALL STEXT(UB, VB, UT, VT, WE, SS, SD, QSS, QSD, H, LNH,
+     1             NX, NY, DELX, DELY, DELT, SDREF, SSREF, SREF,
+     2             GAMMA, AHS, AVS, I)
+CD      PRINT *,'FINISHED SEXT'
+C       NOTE THAT THE EXTRAPOLATION FOR T IS NOT ACTUALLY CARRIED OUT,
+C         IT IS CURRENTLY UNFORCED (3-29-88)
+C       CALL STEXT(UB, VB, TS, TD, QTS, QTD, H, LNH, NX, NY,
+C    1             DELX, DELY, DELT, TDREF, TSREF, TREF, GAMMA,
+C    2             AHT, AVT, I)
+CD      PRINT *,'FINISHED TEXT'
+CT      AFTER = CLOCK(0)
+CT      STTIME = STTIME + AFTER - BEFORE
+
+        CALL QCEXT (QCS, QCD, H, NX, NY, I, LOY,
+     1              XMIN, XMAX, YMIN, YMAX, QSFMAX, QSFREF, QSM,
+     2              STRSPR, STRSUM, STRFLL, STRWIN, DCADT, DELT  )
+        CALL CHEXT(UB, VB, UT, VT, WE, CS, CD, QCS, QCD, H, LNH,
+     1             NX, NY, DELX, DELY, DELT, CDREF, CSREF, LAMBDA,
+     2             GAMMA, AHS, AVS, I)
+
+        CALL UWEXT
+        CALL VWEXT
+        CALL UTROP (DELX, DELY, AHM, F, BETA, G, RHOREF,
+     1              H, WE, UT, VT, UB, VB, SS, SD, TS, TD,
+     2              NX, NY, CONTOL, ITMAX, LNORM     )
+
+CD      PRINT *,'CALLING CONVEC'
+        CALL CONVEC(SS, SD, TS, TD, CD, NX, NY, SREF, TREF, I)
+CD      PRINT *,'CHECKING FOR OUTPUT'
+        IF (MOD(I,NOUT) .EQ. 0) THEN
+           CALL OUTDAT (UB, VB, UT, VT, SS, SD, TS, TD, CS, CD,
+     1                  NX, NY, RHOREF, SREF, TREF, I)
+C          PRINT *,'TSTEP=',I
+CT         PRINT *,'TSTEP=',I,' TIMING =',UVTIME/1E6, STTIME/1E6
+        ENDIF
+        IF (MOD(I,NFLOUT) .EQ. 0) CALL OUTFL (UB, VB, UT, VT,
+     1            SS, SD, TS, TD, CS, CD, NX, NY,
+     2            RHOREF, SREF, TREF, I )
+ 1000 CONTINUE
+
+CT    PRINT *,' UV TIME=  ',UVTIME/1E6,' ST TIME= ', STTIME/1E6
+      CALL OUTEND (UB, VB, UT, VT, SS, SD, TS, TD, CS, CD,
+     1             NX, NY, RHOREF, SREF, TREF, I)
+
+      END

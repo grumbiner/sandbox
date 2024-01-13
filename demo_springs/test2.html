@@ -1,0 +1,66 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"></head><body>
+<script src="demo_files/jquery.js"></script>
+<script src="demo_files/springy.js"></script>
+<script src="demo_files/springyui.js"></script>
+<script>
+var graph = new Springy.Graph();
+
+var dennis = graph.newNode({
+  label: 'Bob clusters',
+  ondoubleclick: function() { console.log("Noodling with implementation structure!"); }
+});
+
+var bob         = graph.newNode({label: 'bob'});
+bob.data.color = "#FF0000";
+var kiss        = graph.newNode({label: 'kiss'});
+var ice_analy   = graph.newNode({label: 'ice_analy'});
+var ice_drift   = graph.newNode({label: 'ice_drift'});
+var rtg_low  = graph.newNode({label: 'rtg_low'});
+var rtg_high = graph.newNode({label: 'rtg_high'});
+var ves_icing         = graph.newNode({label: 'ves_icing'});
+var global_vis    = graph.newNode({label: 'global_vis'});
+var rtofs_gsf   = graph.newNode({label: 'rtofs_gsf'});
+var mmablib   = graph.newNode({label: 'mmablib'});
+var lands     = graph.newNode({label: 'lands'});
+
+graph.newEdge(kiss,       bob, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(ice_analy,  bob, {color: '#CC333F'}, {weight: '1'} );
+graph.newEdge(ice_drift,  bob, {color: '#EB6841'},{ weight: '1' });
+graph.newEdge(mmablib,    bob, {color: '#6A4A3C'}, {weight: '1'} );
+//graph.newEdge(lands,      bob, {color: '#EB6841'}, {weight: '1'} );
+graph.newEdge(rtg_low,    bob, {color: '#EDC951'}, {weight: '1'} );
+graph.newEdge(rtg_high,   bob, {color: '#7DBE3C'}, {weight: '1'} );
+graph.newEdge(ves_icing,  bob, {color: '#000000'}, {weight: '1'} );
+graph.newEdge(global_vis, bob, {color: '#00A0B0'}, {weight: '1'} );
+graph.newEdge(rtofs_gsf,  bob, {color: '#CC333F'}, {weight: '1'} );
+
+graph.newEdge(ice_analy, kiss, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(rtg_high,  ice_analy, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(ice_analy, rtg_high, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(ice_analy, rtg_low, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(rtg_low,    rtg_high, {color: '#EDC951'}, {weight: '1'} );
+
+graph.newEdge(mmablib, ice_analy, {color: '#00A0B0'}, {weight: '1'} );
+graph.newEdge(mmablib, rtofs_gsf, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(mmablib, ice_drift, {color: '#6A4A3C'}, {weight: '1'} );
+
+graph.newEdge(lands, ice_analy, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(lands, rtg_low, {color: '#6A4A3C'}, {weight: '1'} );
+graph.newEdge(lands, rtg_high, {color: '#6A4A3C'}, {weight: '1'} );
+
+
+jQuery(function(){
+  var springy = window.springy = jQuery('#springydemo').springy({
+    graph: graph,
+    nodeSelected: function(node){
+      console.log('Node selected: ' + JSON.stringify(node.data));
+    }
+  });
+});
+</script>
+
+<canvas id="springydemo" width="640" height="480">
+
+
+</canvas></body></html>

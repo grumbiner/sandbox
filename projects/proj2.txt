@@ -1,0 +1,12 @@
+﻿Project: Landmask intercomparison
+
+End Point: 
+a) documented differences between NCEP ice land mask and NSIDC/GSFC, JAXA land masks
+b) decide whether differences are acceptable, and, if not, how to resolve discrepancies
+
+Requires:
+Land mask files for each
+Understanding of how each are constructed
+programming
+
+

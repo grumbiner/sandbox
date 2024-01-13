@@ -1,0 +1,233 @@
+#!/bin/ksh 
+########################################################### 
+echo "-----------------------------------------------------"
+echo "J930 - Execute a simple sea ice drift model for the  " 
+echo "  Arctic and Antarctic, and produce bulletins for OSO" 
+echo "History: Sep 1997 - First implementation of new      "
+echo "  operational script                                 " 
+echo " June 1998 - Modified to collaborate with T-170 MRF  "
+echo " Sept 1999 - Modified for IBM-SP
+########################################################### 
+
+#----------------------------------------------------------
+#Sea ice drift forecast model control script.
+#Robert Grumbine, author.  30 June 1997.
+#Modified 09 September 1997 by L. D. Burroughs
+#----------------------------------------------------------
+
+#----------------------------------------------------------
+# Nothing below this point should need changing 
+#----------------------------------------------------------
+
+cd $DATA
+
+###################
+#
+# Start of Flow control
+# 1) Get the date from /com/date
+#    -- Now done in J-job, not here.
+# 2) Execute the model
+# 3) Distribute the output
+#
+####################
+
+msg="HAS BEGUN!"
+postmsg "$jlogfile" "$msg"
+###########################
+
+FILENV=$DATA/.assign.FORTRAN
+pgmout=OUTPUT.$pid
+export FILENV pgmout
+
+#set MP_HOLDTIME to a larger number to speed up processing by 
+# preventing CPUs from being rescheduled as frequently
+MP_HOLDTIME=2666666
+export MP_HOLDTIME
+
+echo " "
+echo PDY="$PDY"
+echo PDYm1="$PDYm1"
+echo " "
+
+#Establish location of com files:
+COM=$com/${NET}.${PDY}
+if [ ! -d $COM ] ; then
+  msg="ERROR Com directory $COM does not exist!! MRF has not run.  Please run MRF, then this job"
+  postmsg "$jlogfile" "$msg"
+  exit 1
+fi 
+
+set +xS
+
+echo "###############################################################"
+echo "  FTP FILES TO CRAY4 "
+echo "###############################################################"
+
+set -xS
+
+if test "$SENDCOM" = 'YES'
+then
+
+   # This is step #1 in algorithm.
+
+   cp $COM/where_${NET}_ran.$CYCLE ftptofile
+   err=$?
+
+   read ftpto < $DATA/ftptofile
+   export ftpto
+
+   if test "$err" -eq '0'
+   then
+     echo "ftpto=$ftpto"
+   else
+     echo "failed to read ftpto=$ftpto"
+     err_exit
+   fi
+
+   # This is step #2 in algorithm.
+   # FTP the files from where the model ran.
+
+   set -xS
+
+   # We do not want to ftp if the model ran and the pp
+   # is running on Cray5.
+
+   if test $ftpto = $CRAY5 -a `hostname` = $CRAY5
+   then
+     echo "Model ran on Cray5, no need to ftp."
+   else
+     # Ftp files to Cray3 or Cray5.
+     remote_dir=$COM
+     local_dir=$COM
+     mkdir $local_dir
+     ftplist=$FIXmrf/ftp_mrf_j930
+     export local_dir remote_dir ftplist
+
+     /nwprod/util/scripts/ftpget_filelist.sh $local_dir $remote_dir $ftpto \
+      $ftplist
+   fi
+
+   if test "$SENDSMS" = 'YES'
+   then
+      $SMSBIN/setev ftp930_complete
+   fi
+fi
+
+#-----------------------------------------------------
+# copy over the executable
+#-----------------------------------------------------
+cp $EXECsice/sicedrft.$xc     .
+
+#-----------------------------------------------------
+# copy over the fix files
+#-----------------------------------------------------
+cp $FIXsice/quote           .
+cp $FIXsice/forecast.points .
+
+pgm=`basename sicedrft.$xc .$xc`
+export pgm; prep_step
+
+#-----------------------------------------------------
+##make unit assignments
+#-----------------------------------------------------
+ln forecast.points          fort.47
+echo $PDY > dtg.ft90
+ln dtg.ft90                 fort.90
+ln quote                    fort.91
+
+#-----------------------------------------------------
+#get the ice line points
+#-----------------------------------------------------
+cp $FIXsice/COM.IPASAIJI.NPOC.ARCTIC niceline
+cp $FIXsice/COM.IPASAIJI.NPOC.ANTARC siceline
+ln niceline          fort.48
+ln siceline          fort.49
+
+#-----------------------------------------------------
+#units for the mrf data
+#-----------------------------------------------------
+BASE=/com/mrf/PROD/mrf.$PDY/drfmr.T00Z.SF
+i=10
+for hh in 00 12 24 36 48 60 72 84 96 108 120 132 144
+do
+  i=`expr $i + 1 `
+  cp ${BASE}$hh fort.$i
+done
+
+#-----------------------------------------------------
+#execute the model
+#-----------------------------------------------------
+msg="pgm sicedrft has BEGUN!"
+postmsg "$jlogfile" "$msg"
+echo 12 | $EXECsice/sicedrft.$xc >> $pgmout
+err=$?; export err; err_chk
+
+#Rename output files for rest of script RG: 2 September 1999
+ln fort.60 fl.out
+ln fort.61 ops.out
+ln fort.62 ak.out
+ln fort.63 global.tran
+ln fort.64 alaska.tran
+
+#-----------------------------------------------------
+#Construct model output Graphics using GMT
+#-----------------------------------------------------
+#Generate the graphics using the scripting from Dave Michaud for path names
+#Robert Grumbine 20 October 2003
+export IMPATH=/usrx/local/imajik
+export LIBPATH=$LIBPATH:$IMPATH/lib
+export DELEGATE_PATH=$IMPATH/share/ImageMagick
+#########################################
+# Ghostscript
+#########################################
+export GSPATH=/usrx/local/ghostscript/gs7.05
+export GS_LIB=$GSPATH
+export GS_FONTPATH=$GSPATH/fonts
+export GS_INIT=$GSPATH/gs_init.ps
+export GS_LIB_DEFAULT=$GSPATH:$GS_FONTPATH
+
+export PATH=$IMPATH/bin:$GSPATH:$PATH
+
+cp $FIXsice/seaice_points.dat        .
+cp $EXECsice/seaice_driftfig	.
+for hr in 24 48 72 96 120 144 168 192 216 240 264 288 312 336 360 384
+do
+  ./seaice_driftfig ak.out $hr
+done
+
+
+#-----------------------------------------------------
+#Distribute the output
+#-----------------------------------------------------
+if [ $SENDCOM = "YES" ] ; then
+  cp ops.out $COM/global.$PDY
+  cp ak.out $COM/alaska.$PDY
+  cp global.tran $COM/global.tran.$PDY
+  cp alaska.tran $COM/alaska.tran.$PDY
+  cp global.tran $pcom/global.tran.$PDY
+  cp alaska.tran $pcom/alaska.tran.$PDY
+fi
+
+if [ "$SENDDBN" = 'YES' ] ; then
+  /com/status/dbn_alert TRAN $JOB global.tran
+  /com/status/dbn_alert TRAN $JOB alaska.tran
+fi
+
+APPEND THE TRANSFER TO RZDM OF FILES AK-024.GIF .. AK-384.GIF HERE
+
+/nwprod/util/scripts/comrun_link.sh
+
+  msg="HAS COMPLETED NORMALLY!"
+  echo $msg
+  postmsg "$jlogfile" "$msg"
+
+#####################
+set +xS
+echo "**********JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+echo "**********JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+echo "**********JOB $JOB COMPLETED NORMALLY ON THE CRAY"
+set -xS
+
+#------------------------------------------------------------------
+# End of script
+#------------------------------------------------------------------
