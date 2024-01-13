@@ -1,0 +1,16 @@
+shapely
+
+numpy 
+matplotlib
+netCDF4 
+Cartopy
+
+astropy
+pandas
+scipy
+pygrib
+argparse
+
+
+#glob
+#os

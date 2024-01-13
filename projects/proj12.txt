@@ -1,0 +1,8 @@
+﻿Project: Longest period for evaluating climate
+
+End Point: Discussion + illustration of why 'climate' should be analyzed over not _longer_ than period X.  May start with global mean air temperatures as a variable.
+
+Requires:
+data (gmat)
+programming
+analysis skills ...

@@ -1,0 +1,8 @@
+﻿Project: Land Mask Intercomparisons for high res. sst
+
+End Point: analysis of differences between NCEP sst grid, NAVO 1k, nesdis 1k, umd 30 second grids + recommendations for reconciliation/updates
+
+Requires:
+access to all 4 grids
+programming
+understanding of how they're created

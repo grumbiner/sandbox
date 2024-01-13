@@ -122,6 +122,7 @@ C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM
 /* Recompute the brightness temperatures, if needed, via the Abdalati, 
    1995 calibration of F-8 versus F-11, or Grumbine verification of
    F-11 to F-8 being ok for F13,14,15 as well*/
+/* Regressions for F-18, F-16 to F-17 now, too 9 July 2014 */
          sat_regress(t19v, t19h, t22v, t37v, t37h, t92v, t92h, t150h,
                   &nt19v, &nt19h, &nt22v, &nt37v, &nt37h, &nt92v, &nt92h, &nt150h,
                   satno); 
@@ -147,7 +148,7 @@ C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM
        gr37  =  (nt37v - nt19v) / (nt37v + nt19v);
 
        total = (float) NO_DATA;
-       if ( (gr37 <= (float) GR37LIM) && (gr22 <= (float) GR22LIM) ) {
+       if ( (gr37 <= (float) SSMIS_GR37LIM) && (gr22 <= (float) SSMIS_GR22LIM) ) {
            nf19=a1+b1*polar+c1*gr37+d1*polar*gr37;
            nm19=i1+j1*polar+k1*gr37+l1*polar*gr37;
            dd19=e1+f1*polar+g1*gr37+h1*polar*gr37;
@@ -172,8 +173,8 @@ C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM
        else {
 /* Set weather filtered points to weather flag 
    Tracking of which filter was triggered added 16 March 2004 */
-        if (gr37 > GR37LIM) filt37 += 1;
-        if (gr22 > GR22LIM) filt22 += 1;
+        if (gr37 > SSMIS_GR37LIM) filt37 += 1;
+        if (gr22 > SSMIS_GR22LIM) filt22 += 1;
         total = (float) WEATHER; 
        }
       
@@ -232,16 +233,39 @@ void sat_regress(float t19v, float t19h, float t22v, float t37v, float t37h,
 /* Recompute the brightness temperatures if needed for, say, new instruments */
 // At this point (7 February 2012) no need to do so as F17 is the reference
 //    instrument
-   if (satno > 0) {
-       *nt19h = t19h;
-       *nt19v = t19v;
-       *nt22v = t22v;
-       *nt37h = t37h;
-       *nt37v = t37v;
-       *nt92v = t92v;
-       *nt92h = t92h;
-       *nt150h = t150h;
+// 9 July 2014: Add in F18 (satno = 286), F16 (satno = 249) regressions
+// F17 = 285
+   if (satno == 249) {
+     *nt150h = -1.803e+00 + 1.0233898*t150h;
+     *nt19h  =  3.719e-01 + 1.0031472*t19h;
+     *nt19v  = -2.501e-01 + 1.0042363*t19v;
+     *nt22v  = -8.727e-02 + 1.0050771*t22v;
+     *nt37h  = -4.698e-01 + 0.9978330*t37h;
+     *nt37v  = -1.469e-01 + 0.9991854*t37v;
+     *nt92h  = -3.138e+00 + 1.0050135*t92h;
+     *nt92v  = -2.920e+00 + 0.9991504*t92v;
+     return;
    }
+   if (satno == 286) {
+     *nt150h =  0 + 0*t150h; // F18 150 GHz is garbage
+     *nt19h  =  1.216e+00 + 0.9970090*t19h;
+     *nt19v  =  1.879e-01 + 1.0002307*t19v;
+     *nt22v  =  4.054e-01 + 0.9988976*t22v;
+     *nt37h  =  1.039e+00 + 0.9893275*t37h;
+     *nt37v  =  8.352e-01 + 0.9952053*t37v;
+     *nt92h  = -1.167e+00 + 1.0120497*t92h;
+     *nt92v  =  7.059e-01 + 0.9996586*t92v;
+     return;
+   }
+
+   *nt19h = t19h;
+   *nt19v = t19v;
+   *nt22v = t22v;
+   *nt37h = t37h;
+   *nt37v = t37v;
+   *nt92v = t92v;
+   *nt92h = t92h;
+   *nt150h = t150h;
 
    return;
 }

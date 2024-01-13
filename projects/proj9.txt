@@ -1,0 +1,9 @@
+﻿Project: SST, Ice – analysis variance w.r.t. Hires analysis of down-averaged grids (e.g. 2 degree box vs. 5' analysis)
+
+End Point: Analysis with conclusions about how the un-analyzed variance is a function of degree of averaging.  Should lead to decisions about how to consistently reduce resolution from the full system.
+
+Requires: 
+programming
+sst data and/or sea ice data
+statistics
+

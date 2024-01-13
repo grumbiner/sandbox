@@ -1,0 +1,28 @@
+Nodes for project New_Drift
+edges = connectivity
+weight1 = time
+weight2 = person
+weight3 = computer
+weight4 = cpu-hrs/hour
+(weights <--> resources)
+weight5 = Tb disk
+
+0  Start (depends on nothing, has no resources
+(node)                                               (edge)            (weight1): (weight2) : (weight3) : (weight4)
+1 Coding Lagrangian Drifter for Ice Velocity inputs : depends on Start : 10 hours : RG : desk : 0.1 
+2 Coding Retail drift verification : depends on Start : 4 hours : RG : desk : 0.1 
+3 Apply to RTOFS : depends on 1, 2 : 8 hours : RG : desk : 0.1
+4 Apply to CAFS  : depends on 1, 2 : 8 hours : RG : desk : 0.1
+5 Apply to GOFS  : depends on 1, 2 : 8 hours : RG : desk : 0.1
+6 Apply to RIOPS : depends on 1, 2 : 8 hours : RG : desk : 0.1
+7 Apply to GIOPS : depends on 1, 2 : 8 hours : RG : desk : 0.1
+
+8 Write Paper : depends on 0, 1, 2, 3, 4, 5, 6, 7 : 32 hours : RG : desk : 0.0
+9 Acquire buoy information : depends on 0 : 2 hours : desk : 0.0 
+
+10 END : depends on 8
+
+
+n.b.: each node may itself be a directed graph
+
+n.b.: Given time and schedule, check for resources required, e.g. > 24 hours of cpu in 24 hours, same person doing 32 hours of work in a day

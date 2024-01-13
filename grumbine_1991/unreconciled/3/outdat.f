@@ -1,0 +1,135 @@
+      SUBROUTINE OUTDAT (UC, VC, UT, VT, SS, SD, TS, TD, CS, CD,
+     1                   NX, NY, RHOREF, SREF, TREF, TIME        )
+
+C     WRITE OUT THE VELOCITY, SALINITY, AND TEMPERATURE.
+      INTEGER NFIELD
+      PARAMETER (NFIELD = 10)
+
+      INTEGER TIME, NX, NY
+      REAL UC(NX, NY), VC(NX, NY), UT(NX, NY), VT(NX, NY)
+      REAL SS(NX, NY), SD(NX, NY), TS(NX, NY), TD(NX, NY)
+      REAL CS(NX, NY), CD(NX, NY)
+      REAL SREF, TREF, RHOREF
+
+      INTEGER I, J
+      REAL UCTEMP, VCTEMP
+      REAL UTTEMP, VTTEMP
+      REAL MSUM, SALSUM, HETSUM, AABWFL
+      INTEGER NFL
+      PARAMETER (NFL = 20)
+      REAL FLM(NFL), FLS(NFL), FLC(NFL)
+
+      CHARACTER*6 FNAME(NFIELD)
+
+      UCTEMP  = UC(1,1)
+      VCTEMP  = VC(1,1)
+      UTTEMP  = UT(1,1)
+      VTTEMP  = VT(1,1)
+      UC(1,1) = 0.025
+      VC(1,1) = 0.025
+CU    UT(1,1) = 0.025
+CU    VT(1,1) = 0.025
+
+      WRITE (29+1) UC
+      WRITE (29+2) VC
+      WRITE (29+3) UT
+      WRITE (29+4) VT
+      WRITE (29+5) SS
+      WRITE (29+6) SD
+      WRITE (29+7) TS
+      WRITE (29+8) TD
+      WRITE (38)   CS
+      WRITE (39)   CD
+
+      UC(1,1) = UCTEMP
+      VC(1,1) = VCTEMP
+CU    UT(1,1) = UTTEMP
+CU    VT(1,1) = VTTEMP
+
+      RETURN
+
+      ENTRY OUTFL(UC, VC, UT, VT, SS, SD, TS, TD, CS, CD, NX, NY,
+     1            RHOREF, SREF, TREF, TIME)
+C     COMPUTE OUTPUT FLUXES AT THE I=3 BNDY, FOR THE LOWER LAYER.
+      MSUM   = 0.0
+      SALSUM = 0.0
+      HETSUM = 0.0
+      AABWFL = 0.0
+
+C     I = 3
+C     DO 1000 J = 1, NY
+C       THE MINUS SIGN IS DUE TO THE FACT THAT THIS IS COMPUTED FOR THE
+C          LAYER.
+C       MSUM   = MSUM   - U(I,J)
+C       SALSUM = SALSUM - U(I,J)*.5*(SS(I,J)-SD(I,J))
+C       HETSUM = HETSUM - U(I,J)*.5*(TS(I,J)-TD(I,J))
+C       IF ( SS(I,J)-SD(I,J) .GT. 0.2)
+C    1      AABWFL = AABWFL - U(I,J)
+C1000 CONTINUE
+
+      DO 1000 I = 1, NX
+        FLM(I) = 0.0
+        FLS(I) = 0.0
+        FLC(I) = 0.0
+        DO 1010 J = 1, NY
+          FLM(I) = FLM(I) - (VT(I,J) - VC(I,J))
+          FLS(I) = FLS(I) - (VT(I,J) - VC(I,J))*(SS(I,J)-SD(I,J))
+          FLC(I) = FLC(I) - (VT(I,J) - VC(I,J))*(CS(I,J)-CD(I,J))
+ 1010   CONTINUE
+ 1000 CONTINUE
+
+C     WRITE (40) TIME, MSUM, SALSUM, HETSUM, AABWFL
+      WRITE (40) FLM
+      WRITE (41) FLS
+      WRITE (42) FLC
+
+      RETURN
+
+      ENTRY OUTSTR(UC, VC, UT, VT, SS, SD, TS, TD, CS, CD, NX, NY,
+     1            RHOREF, SREF, TREF, TIME)
+
+C     OPEN THE NECESSARY OUTPUT FILES
+      DO 2000 I = 1, NFIELD
+        PRINT *,'WHAT IS THE NAME OF OUTPUT FILE # ',I
+        READ  (*,9002) FNAME(I)
+        WRITE (*,9002) FNAME(I)
+CD      PRINT *,FNAME
+        OPEN (29+I, FILE=FNAME(I), FORM='UNFORMATTED', STATUS='NEW')
+ 2000 CONTINUE
+      PRINT *,'NAME FOR THE MASS FLUX FILE '
+      READ  (*, 9002) FNAME(1)
+      WRITE (*, 9002) FNAME(1)
+      OPEN (40, FILE=FNAME(1), FORM='UNFORMATTED', STATUS='NEW')
+      PRINT *,'NAME FOR THE SALT FLUX FILE '
+      READ  (*, 9002) FNAME(1)
+      WRITE (*, 9002) FNAME(1)
+      OPEN (41, FILE=FNAME(1), FORM='UNFORMATTED', STATUS='NEW')
+      PRINT *,'NAME FOR THE CHEMICAL FLUX FILE '
+      READ  (*, 9002) FNAME(1)
+      WRITE (*, 9002) FNAME(1)
+      OPEN (42, FILE=FNAME(1), FORM='UNFORMATTED', STATUS='NEW')
+
+ 9002 FORMAT (A6)
+
+      RETURN
+
+      ENTRY OUTEND(UC, VC, UT, VT, SS, SD, TS, TD, CS, CD, NX, NY,
+     1                                 RHOREF, SREF, TREF, TIME)
+
+C     CLOSE THE DATA FILES:
+      CLOSE (30, STATUS='KEEP')
+      CLOSE (31, STATUS='KEEP')
+      CLOSE (32, STATUS='KEEP')
+      CLOSE (33, STATUS='KEEP')
+      CLOSE (34, STATUS='KEEP')
+      CLOSE (35, STATUS='KEEP')
+      CLOSE (36, STATUS='KEEP')
+      CLOSE (37, STATUS='KEEP')
+      CLOSE (38, STATUS='KEEP')
+      CLOSE (39, STATUS='KEEP')
+      CLOSE (40, STATUS='KEEP')
+      CLOSE (41, STATUS='KEEP')
+      CLOSE (42, STATUS='KEEP')
+
+      RETURN
+      END

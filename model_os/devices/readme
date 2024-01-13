@@ -1,0 +1,5 @@
+creates named pipe 'myfifo' in /tmp
+start the writer (which creates pipe) before the reader
+demo sends only one message
+
+

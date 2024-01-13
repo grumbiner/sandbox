@@ -1,0 +1,88 @@
+From William.Oconnor@noaa.gov  Thu Sep 30 17:16:01 2004
+Return-Path: <William.Oconnor@noaa.gov>
+Received: from mx1.ncep.noaa.gov (mx1.ncep.noaa.gov [140.90.193.27])
+	by polar.ncep.noaa.gov (8.12.11/8.12.10) with ESMTP id i8ULG1RP026074
+	for <wd21rg@polar.ncep.noaa.gov>; Thu, 30 Sep 2004 17:16:01 -0400
+Received: from loft.ncep.noaa.gov (loft.ncep.noaa.gov [140.90.193.45])
+	by mx1.ncep.noaa.gov (8.12.8/8.12.8) with ESMTP id i8ULFwNa007546
+	for <grumbine@ncep.noaa.gov>; Thu, 30 Sep 2004 17:15:58 -0400
+Received: from [140.90.192.75] ([140.90.192.75]) by
+          loft.ncep.noaa.gov (Netscape Messaging Server 4.15) with ESMTP
+          id I4VHQP00.IDZ for <robert.grumbine@noaa.gov>; Thu, 30 Sep 2004
+          17:16:01 -0400 
+Message-ID: <415C7790.20000@noaa.gov>
+Date: Thu, 30 Sep 2004 17:16:00 -0400
+From: "William Oconnor" <William.Oconnor@noaa.gov>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.3) Gecko/20040922
+X-Accept-Language: en-us, en
+MIME-Version: 1.0
+To: robert.grumbine@noaa.gov
+Subject: secure copy
+Content-Type: multipart/mixed;
+ boundary="------------090507040306000107090601"
+Status: RO
+
+This is a multi-part message in MIME format.
+--------------090507040306000107090601
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+
+--------------090507040306000107090601
+Content-Type: text/plain;
+ name="secure_copy_stommel.txt2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="secure_copy_stommel.txt2"
+
+                                          Sep. 30, 2004 
+Memo
+To:     Bob Grumbine
+From:   Bill O'Connor 
+Subj:   secure copy
+
+To set up to copy from the IBM to stommel: 
+1. on IBM client set up keys with 
+ssh-keygen -t rsa 
+which creates the file
+./ssh/identity.pub
+(Just keep hitting return when prompted for a reply, 
+until the it says that identity.pub is created.)  
+
+2. append identity.pub to 
+./.ssh/authorized_keys 
+on stommel.  You can use ftp to transfer the files. 
+
+To set up to copy from stommel to the IBM: 
+1. On stommel set up keys with 
+ssh-keygen -t rsa
+which creates the file 
+./ssh/identity.pub
+(Just keep hitting return when prompted for a reply, 
+until the it says that identity.pub is created.)  
+
+2. append identity.pub to 
+./.ssh/authorized_keys 
+on the IBM.  You can use ftp to transfer the files. 
+
+This goes easily because both the IBM and stommel have
+the same version of ssh-keygen.  Otherwise, things go
+a bit differently. 
+
+Bill 
+*********************************************************************
+     WILLIAM P OCONNOR
+     NOAA/NWS/NCEP/EMC/
+     MARINE MODELING AND ANALYSIS BRANCH 
+     MAIL CODE W/NP21 
+     5200 AUTH ROAD  RM 209   
+     CAMP SPRINGS MD 20746 
+
+     Phone   301-763-8000 Ext 7245 
+     fax     301-763-8545  
+     e-mail  william.oconnor@noaa.gov    
+*********************************************************************
+
+--------------090507040306000107090601--
+

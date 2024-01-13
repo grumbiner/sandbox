@@ -1,0 +1,9 @@
+﻿Project: xml files on product construction status
+
+End Point: rss feeds updating the status of mmab operational products' construction – e.g. 'ready', 'delayed', 'will be months before ready again', … plus quality notes (e.g. 'little data available for this analysis')
+
+Requires:
+xml / rss
+access to polar
+scripting
+understanding mmab operations

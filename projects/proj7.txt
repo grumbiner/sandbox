@@ -1,0 +1,8 @@
+﻿Project: Satellite Web Page
+
+End Point: Up to date web page with information on character (passive, active, vis/ir/microwave), usage (ice, sst, sss, …), launch dates (present and future), end of life (actual, design) information on satellites.
+
+Requires:
+web browsing
+web page creation
+

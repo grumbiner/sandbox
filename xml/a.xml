@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<index><title>Plan View Product Index</title><topic>salinity, temperature, velocity, height, elevation, sea, sea surface</topic><status>Developmental</status><contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact><date><constructed>25 May 2004</constructed><valid>11 April 2003</valid></date><parmline><parm>Sea Surface Salinity</parm><valid>11 April 2003</valid><depth>0</depth><full>salinity_0.html</full><graphic>salinity_0.jpg</graphic></parmline>
+<parmline><parm>Ocean Salinity</parm><valid>11 April 2003</valid><depth>1000</depth><full>salinity_1000.html</full><graphic>salinity_1000.jpg</graphic></parmline>
+<parmline><parm>Sea Salinity</parm><valid>11 April 2003</valid><depth>100</depth><full>salinity_100.html</full><graphic>salinity_100.jpg</graphic></parmline>
+<parmline><parm>Sea Salinity</parm><valid>11 April 2003</valid><depth>30</depth><full>salinity_30.html</full><graphic>salinity_30.jpg</graphic></parmline>
+<parmline><parm>Sea Surface Height</parm><valid>11 April 2003</valid><depth>0</depth><full>ssh.html</full><graphic>ssh.jpg</graphic></parmline>
+<parmline><parm>Sea Surface Temperature</parm><valid>11 April 2003</valid><depth>0</depth><full>temp_0.html</full><graphic>temp_0.jpg</graphic></parmline>
+<parmline><parm>Ocean Temperature</parm><valid>11 April 2003</valid><depth>1000</depth><full>temp_1000.html</full><graphic>temp_1000.jpg</graphic></parmline>
+<parmline><parm>Ocean Temperature</parm><valid>11 April 2003</valid><depth>100</depth><full>temp_100.html</full><graphic>temp_100.jpg</graphic></parmline>
+<parmline><parm>Sea Temperature</parm><valid>11 April 2003</valid><depth/><full>temp_30.html</full><graphic>temp_30.jpg</graphic></parmline>
+<parmline><parm>Sea Surface Velocity</parm><valid>11 April 2003</valid><depth/><full>velocity_0.html</full><graphic>velocity_0.jpg</graphic></parmline>
+<parmline><parm>Ocean Velocity</parm><valid>11 April 2003</valid><depth>1000</depth><full>velocity_1000.html</full><graphic>velocity_1000.jpg</graphic></parmline>
+<parmline><parm>Ocean Velocity</parm><valid>11 April 2003</valid><depth>100</depth><full>velocity_100.html</full><graphic>velocity_100.jpg</graphic></parmline>
+<parmline><parm>Ocean Velocity</parm><valid>11 April 2003</valid><depth>30</depth><full>velocity_30.html</full><graphic>velocity_30.jpg</graphic></parmline>
+
+    Definition of Global Display Grids
+    Display, domains, grids
+    10 March 2004
+    Robert.Grumbine@noaa.gov
+  
+    North Atlantic
+    90e6 km^2
+    
+      
+      
+      
+      
+    
+    Miller Cylindrical
+  
+  hello
+
+</index>

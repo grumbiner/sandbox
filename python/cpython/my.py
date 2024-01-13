@@ -18,11 +18,11 @@ def distance(lat1, lon1, lat2, lon2):
   return earth_radius * acos(arg)
 
 
-print "hello:", hello()
+print("hello:", hello())
 for i in range (0,1000*1000):
  x = myarcdis(4.0, 0.0, 6., 0.)
 
-print "myarcdis(4.0, 0.0, 6., 0.):", myarcdis(4.0, 0.0, 6., 0.)
+print("myarcdis(4.0, 0.0, 6., 0.):", myarcdis(4.0, 0.0, 6., 0.))
 
 for i in range (0,1000*1000):
  x = distance(4.0, 0.0, 6., 0.)

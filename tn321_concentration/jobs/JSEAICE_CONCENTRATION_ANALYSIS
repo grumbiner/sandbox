@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -xa
+set -xae
 # #### 05/18/99 #############################
 # SETUP SEAICE CONCENTRATION ANALYSIS PROCESSING CONTROL SHELL VARIABLES
 # ###########################################
@@ -8,165 +8,57 @@ export PS4='$SECONDS + '
 date
 echo cyc is ${cyc:?}
 echo envir is ${envir:?}
-echo seaice_concentration_analysis_ver is ${seaice_concentration_analysis_ver:?} #ensure seaice_concentration_analysis_ver is defined
+echo seaice_concentration_analysis_ver is ${seaice_concentration_analysis_ver:?} 
 export pid=$$
 
-
-########################################################
-# obtain unique process id (pid) and make temp directory
-########################################################
-#if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] || [ "$envir" = 'dev' ] ; then
-#  #NCO
-#  export BASEDIR=/tmpnwprd1
-#else
-#  #developer
-#  export BASEDIR=/ptmpd2/wx21rg/
-#fi
-
-#export DATA=$BASEDIR/${job}.${pid}
-#mkdir $DATA
+export DATA=$DATAROOT/${job}.${pid}
+mkdir -p $DATA
 cd $DATA
-
-####################################
-# File To Log Msgs
-####################################
-#if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] || [ "$envir" = 'dev' ] ; then
-#  #NCO
-#  if [ "$envir" = 'prod' ] ; then
-#    export jlogfile=/com/logs/jlogfiles/jlogfile.${job}.${pid}
-#  else
-#    export jlogfile=/com/logs/${envir}/jlogfile
-#  fi
-#else
-#  #developer
-#  export jlogfile=~/jlogfile
-#fi
 
 ####################################
 # Determine Job Output Name on System
 ####################################
-export outid="LL$job"
-export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
 export cycle=t${cyc}z
-
-####################################
-# variables that control processing
-# Determine variable settings before testing and set them accordingly
-#    SENDDBN=YES        file will be sent to OSO
-#    SENDCOM=YES        copy files from DATA to $COMOUT
-#    SENDECF=YES        Flag Events on ECF
-####################################
-export SENDCOM=YES  
-#export SENDECF=YES
-
-#if [ "$envir" = "prod" ] ; then
-#  export SENDDBN=YES 
-#  export SENDDBN_NTC=YES
-#else
-#  if [ $envir = "para" ] ; then
-#    export SENDDBN=YES
-#    export SENDDBN_NTC=NO
-#    export DBN_ALERT_TYPE=TBD_PARA
-#    export DBNROOT=/nwprod/spa_util/fakedbn
-#  else
-#    export SENDDBN=NO
-#    export SENDDBN_NTC=NO
-#  fi
-#fi
-
-####################################
-# Specify NET and RUN Name and model
-####################################
-#export NET=omb
-#export RUN=sice
+export NET=omb
 
 #################################################
 # Specify job's execution areas (directory paths)
 #################################################
-
-#Path to home directory:
-#if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] || [ "$envir" = 'dev' ]; then
-#  #NCO
-#  export HOMEbase=/nw${envir}
-#else
-#  #developer
-#  export HOMEbase=/u/Robert.Grumbine/rgdev
-#fi
-#export HOMEseaice_concentration_analysis=$HOMEbase/seaice_concentration_analysis.${seaice_concentration_analysis_ver}
-
-#Paths to useful directories:
 export EXECseaice_concentration_analysis=$HOMEseaice_concentration_analysis/exec
 export FIXseaice_concentration_analysis=$HOMEseaice_concentration_analysis/fix
 export PARMseaice_concentration_analysis=$HOMEseaice_concentration_analysis/parm
 export USHseaice_concentration_analysis=$HOMEseaice_concentration_analysis/ush
 
-######################
-# Set up the UTILITIES
-######################
-# ASSUME that these are all set in the prod_util module
-#export HOMEutil=/nwprod/util
-#export EXECutil=$HOMEutil/exec
-#export FIXutil=$HOMEutil/fix
-#export PARMutil=$HOMEutil/parm
-#export USHutil=$HOMEutil/ush
-
-#export PATH=$PATH:/usrx/local/imajik/bin:.
-#export LIBPATH="$LIBPATH":/usrx/local/imajik/lib
-
-###############################################################
-# Run setup to initialize working directory and utility scripts
-###############################################################
-#Replaced in operations by module load prod_util
-#sh $USHutil/setup.sh
-
 #########################################
 # Run setpdy and initialize PDY variables
 #########################################
-sh setpdy.sh
+setpdy.sh
 . ./PDY
 
-###################################################
-# Set directories where this job's input is located
-# using the COMIN variable
-###################################################
-#if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ] || [ "$envir" = 'dev' ]; then
-#  export COMROOT=/com/${NET}/${envir}
-#  export COMINsst_base=/com/gfs/prod
-#  export PCOMROOT=/pcom/${envir}/mrf
-#else
-#  export DCOMROOT=/dcom
-#  export COMROOT=/u/Robert.Grumbine/noscrub/com/${NET}/${envir}
-#  export PCOMROOT=/u/Robert.Grumbine/noscrub/pcom/$RUN
-#  #export COMINsst_base=/u/Robert.Grumbine/noscrub/com/gfs/prod
-#  export COMINsst_base=/com/gfs/prod
-#fi
+export RUN=sice
+export COMIN=${COMROOT}/${NET}/${envir}/${RUN}.${PDY}
+export COMINm1=${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}
+export COMOUT=${COMROOT}/${NET}/${envir}/${RUN}.${PDY}
 
-export COMIN=$COMROOT/${RUN}.${PDY}
-export COMINm1=$COMROOT/${RUN}.${PDYm1}
-export COMOUT=$COMROOT/${RUN}.${PDY}
-export COMINsst=$COMINsst_base/sst.${PDY}
-export COMINsstm1=$COMINsst_base/sst.${PDYm1}
+export COMINsst=${COMINsst_base}/sst.${PDY}
+export COMINsstm1=${COMINsst_base}/sst.${PDYm1}
 
 export DCOM=$DCOMROOT/us007003/$PDY
 export DCOMm1=$DCOMROOT/us007003/$PDYm1
 
 #NCO request for this var to be defined in J
-export USHobsproc_dump=/nwprod/obsproc_dump.${obsproc_dump_ver}/ush
+export USHobsproc_dump=${NWROOTp1}/obsproc_dump.${obsproc_dump_ver}/ush
 
 mkdir -p $COMOUT
-mkdir -p $PCOMROOT
-
 env
-
 
 #####################################
 # Execute the script
-sh $HOMEseaice_concentration_analysis/scripts/exseaice_concentration_analysis.sh.ecf
+$HOMEseaice_concentration_analysis/scripts/exseaice_concentration_analysis.sh.ecf >> $pgmout
 export err=$?
 err_chk
-
 #####################################
 
 cat $pgmout

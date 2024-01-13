@@ -13,7 +13,7 @@
 int ice_avg_data(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
                  ssmis *north, ssmis *south, 
                  const int north_pts, const int south_pts, 
-                 team2_tables &arctic, team2_tables &antarctic) { 
+                 ssmis_team2_tables &arctic, ssmis_team2_tables &antarctic) { 
   int i, nlim, slim;
 
   nlim = north_pts;
@@ -82,7 +82,7 @@ int ice_avg_data(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
           (float)north[i].t92v / 100.,
           (float)north[i].t92h / 100., 
           (float)north[i].t150h / 100., 
-          'n', ANTENNA, REF_SAT
+          'n', SSMIS_ANTENNA, REF_SAT
         ) ); 
 
       #else
@@ -107,7 +107,7 @@ int ice_avg_data(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
           (float)north[i].t92v / 100.,
           (float)north[i].t92h / 100., 
           (float)north[i].t150h / 100., 
-          'n', ANTENNA, REF_SAT
+          'n', SSMIS_ANTENNA, REF_SAT
         ) ); 
 
       #endif
@@ -183,7 +183,7 @@ int ice_avg_data(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
         (float)south[i].t92v  / 100.,
         (float)south[i].t92h  / 100., 
         (float)south[i].t150h  / 100., 
-        's', ANTENNA, REF_SAT
+        's', SSMIS_ANTENNA, REF_SAT
        )  ) ; 
 
       #else
@@ -208,7 +208,7 @@ int ice_avg_data(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
         (float)south[i].t92v  / 100.,
         (float)south[i].t92h  / 100., 
         (float)south[i].t150h  / 100., 
-        's', ANTENNA, REF_SAT
+        's', SSMIS_ANTENNA, REF_SAT
        )  ) ; 
 
        #endif
@@ -337,6 +337,7 @@ int ice_zero(ssmis_tmp *north_tmp, ssmis_tmp *south_tmp,
   blank.t150h = 0;
   blank.conc_bar = NO_DATA;
   blank.hires_bar = NO_DATA;
+  blank.old_conc_bar = NO_DATA;
   blank.count    = 0;
   blank.weather_count    = 0;
 

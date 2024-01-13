@@ -36,4 +36,4 @@ for val2 in x:
   count += 1
 
 fin.close()
-print "reading time ",time.time() - start
+print("reading time ",time.time() - start)

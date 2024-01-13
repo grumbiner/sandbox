@@ -1,0 +1,7 @@
+// the configured options and settings for Tutorial
+// TODO 10: Define Tutorial_VERSION_MAJOR and Tutorial_VERSION_MINOR
+
+// Values between @ and @ come from the CMakeLists.txt
+//   get replaced in running cmake
+#define Tutorial_VERSION_MAJOR @Tutorial_VERSION_MAJOR@
+#define Tutorial_VERSION_MINOR @Tutorial_VERSION_MINOR@

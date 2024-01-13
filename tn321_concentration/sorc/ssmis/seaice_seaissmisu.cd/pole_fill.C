@@ -8,7 +8,7 @@
    there is the smoothest (gradient sense) possible */
 /* Robert Grumbine 4 June 1997 */
 
-int pole_fill(unsigned char *map, const int pole) {
+int ssmis_pole_fill(unsigned char *map, const int pole) {
     int i, j;
     float *a0, *a1, *a2, *delta;
     int nx, polei, polej;

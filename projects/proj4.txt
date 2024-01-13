@@ -1,0 +1,8 @@
+﻿Project: mpeg animations of annual sea ice (sst?) figures
+
+End point: per title
+
+Requires:
+figures 
+mpeg-maker
+

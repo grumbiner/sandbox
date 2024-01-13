@@ -1,0 +1,145 @@
+#!/bin/ksh
+#####################################################################
+echo "------------------------------------------------"
+echo "This job takes SSMI-S observations and constructs sea ice concentration"
+echo "fields for the Arctic Ocean and Antarctic Continent and adjoining water bodies."
+echo "------------------------------------------------"
+echo "History:  28 October 2011 -- First version "
+echo " Robert Grumbine"
+#####################################################################
+
+set -x
+
+export utilexec=/nwprod/util/exec
+
+### Definition of the Fix fields:
+export FNLAND=${FNLAND:-${FIXsice}/seaice_nland.map}
+export FNLAND127=${FNLAND127:-${FIXsice}/seaice_nland127.map}
+export FSLAND=${FSLAND:-${FIXsice}/seaice_sland.map}
+export FSLAND127=${FSLAND127:-${FIXsice}/seaice_sland127.map}
+export FGLAND5MIN=${FGLAND5MIN:-${FIXsice}/seaice_gland5min}
+export FNEWLAND=${FNEWLAND:-${FIXsice}/seaice_newland}
+export FNEWLANDPCT=${FNEWLANDPCT:-${FIXsice}/seaice_newland.pct}
+
+cd $DATA
+
+##############################
+#
+# START FLOW OF CONTROL
+#
+# 1) Get the Date from /com/date
+#    -- Now done in J-job, not here.
+# 2) Run the dumpscript to retrieve a day's data
+# 3) Process the bufr output into something readable
+# 4) Run the analysis on the files
+#
+# -- The output from this will be assembled by a later job
+##############################
+
+
+########################################
+msg="HAS BEGUN!"
+postmsg "$jlogfile" "$msg"
+########################################
+
+#----------------------------------------------------------
+#Begin ordinary processing.
+#---------------------------------------------------------
+#Dummy variables at this point, formerly used and may be useful
+# again in the future.  Robert Grumbine 6 August 1997.
+jday=1
+refyear=2011
+
+#BUFR------------------------------------------------------
+#Run the dumpscript to retrieve a day's data
+#----------------------------------------------------------
+
+$USHsice/dumpjb ${PDY}00 12 ssmisu
+
+touch ssmisu.ibm # ensures that file exists in rare event that dump is empty
+
+#----------------------------------------------------------
+#Process the bufr output into something readable
+#----------------------------------------------------------
+
+#Process SSMI data
+export pgm=seaice_ssmisubufr
+. prep_step
+
+ln -s ssmisu.ibm fort.14
+ln -s bufrout fort.51
+
+startmsg
+$EXECsice/seaice_ssmisubufr >> $pgmout 2> errfile
+export err=$?;err_chk
+
+echo bufrout > delta
+
+
+#----------------------------------------------------------
+# Run the analysis on the files
+# Input files =  delta, $FIXsice/seaice_nland.map, $FIXsice/seaice_sland127.map
+# Output files = n3ssmi.$PDY, s3ssmi.$PDY, umasknorth.$PDY, umasksouth.$PDY
+# Arguments (currently not used) - $jday : Julian Day,
+#				   $refyear : 4 digit year
+#				   246      : satellite number
+#----------------------------------------------------------
+export pgm=seaice_seaissmi
+. prep_step
+
+cp $FIXsice/seaice_TBthark.tab.ssmisu .
+cp $FIXsice/seaice_TBowark.tab.ssmisu .
+cp $FIXsice/seaice_TBowant.tab.ssmisu .
+cp $FIXsice/seaice_TBfyark.tab.ssmisu .
+cp $FIXsice/seaice_TBfyant.tab.ssmisu .
+cp $FIXsice/seaice_TBccark.tab.ssmisu .
+cp $FIXsice/seaice_TBccant.tab.ssmisu .
+
+startmsg
+$EXECsice/seaice_seaissmisu delta $FNLAND127 $FSLAND127 \
+           n3ssmisu.$PDY s3ssmisu.$PDY umasknorth12ssmisu.$PDY umasksouth12ssmisu.$PDY \
+           $jday $refyear 246 >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#-----------------------------------------------------------
+#Copy the base analyst's grids to the running location
+#-----------------------------------------------------------
+
+if [ $SENDCOM = "YES" ]
+then
+  cp n3ssmisu.$PDY  ${COMOUT}/seaice.t${cyc}z.n3ssmisu
+  cp s3ssmisu.$PDY  ${COMOUT}/seaice.t${cyc}z.s3ssmisu
+
+  cp umasknorth12ssmisu.$PDY  ${COMOUT}/seaice.t${cyc}z.umasknorth12ssmisu
+  cp umasksouth12ssmisu.$PDY  ${COMOUT}/seaice.t${cyc}z.umasksouth12ssmisu
+
+fi
+
+
+#end of producing qc'd files
+
+if [ ! -f umasknorth12ssmisu.$PDY ] ; then 
+  msg="HAS COMPLETED NORMALLY!"
+  echo $msg
+  postmsg "$jlogfile" "$msg"
+
+   #####################################################################
+   # GOOD RUN
+   set +x
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   echo "**************JOB $job COMPLETED NORMALLY ON THE IBM SP"
+   set -x
+   #####################################################################
+else
+   #####################################################################
+   # FAILED
+   set +x
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   echo "**************ABNORMAL TERMIMATION JOB $job ON THE IBM SP"
+   set -x
+   #####################################################################
+fi
+
+############## END OF SCRIPT #######################

@@ -4,12 +4,12 @@
 extern FILE *tester;
 
 // Elements for the TEAM2 algorithm 
-void arctic_tables(team2_tables &x);
-void antarctic_tables(team2_tables &x);
-void lookuptable(team2_tables &x);
+void arctic_tables(ssmis_team2_tables &x);
+void antarctic_tables(ssmis_team2_tables &x);
+void lookuptable(ssmis_team2_tables &x);
 
 //////////////// Being TEAM2 code:
-void arctic_tables(team2_tables &arctic) {
+void arctic_tables(ssmis_team2_tables &arctic) {
   grid2<float> tbmfy(n_atm, n_tb), tbmow(n_atm, n_tb), tbmcc(n_atm, n_tb);
   grid2<float> tbmthin(n_atm, n_tb);
   FILE *fin;
@@ -64,7 +64,7 @@ void arctic_tables(team2_tables &arctic) {
 
   return;
 }
-void antarctic_tables(team2_tables &antarctic) {
+void antarctic_tables(ssmis_team2_tables &antarctic) {
   grid2<float> tbmfy(n_atm, n_tb), tbmow(n_atm, n_tb), tbmcc(n_atm, n_tb);
   FILE *fin;
   ijpt loc; 
@@ -110,12 +110,13 @@ void antarctic_tables(team2_tables &antarctic) {
   return;
 }
 
-void lookuptable(team2_tables &tab) {
+void lookuptable(ssmis_team2_tables &tab) {
   int ca, cb, k;
   float caf, cbf;
 
-  float tb19h, tb19v, tb37v, tb92h, tb92v, tb150h;
-  float tb19ht, tb19vt, tb37vt, tb92ht, tb92vt, tb150ht;
+  float tb19h, tb19v, tb37v, tb92h, tb92v;
+  float tb19ht, tb19vt, tb37vt, tb92ht, tb92vt;
+  //float tb150h, tb150ht;
 
   for (int i = 0; i < n_atm; i++) {
     tab.LUT19[i].resize(101, 101);
@@ -169,7 +170,7 @@ void lookuptable(team2_tables &tab) {
 }
 
 float nasa_team2(float v19, float h19, float v22, float v37, float h37, 
-                 float v92, float h92, float h150, team2_tables &tab, int satno) {
+                 float v92, float h92, float h150, ssmis_team2_tables &tab, int satno) {
   
     double sinphi19,sinphi92;
     double cosphi19,cosphi92;

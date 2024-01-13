@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<index><title>Plan View Product Index</title><topic>salinity, temperature, velocity, height, elevation, sea, sea surface</topic><status>Developmental</status><contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact><date><constructed>
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+
+20070311
+</constructed><valid>
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+
+20070312
+
+20070313
+
+20070311
+</valid></date><parmline><parm>
+200 m Salinity
+</parm><valid>
+20070312
+</valid><depth/><full>sal_200m_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-SALTY-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Salinity
+</parm><valid>
+20070313
+</valid><depth/><full>sal_200m_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-SALTY-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Salinity
+</parm><valid>
+20070311
+</valid><depth/><full>sal_200m_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-SALTY-200n.gif </graphic></parmline>
+<parmline><parm>
+sfc Salinity
+</parm><valid>
+20070312
+</valid><depth/><full>sal_sfc_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-SALTY-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Salinity
+</parm><valid>
+20070313
+</valid><depth/><full>sal_sfc_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-SALTY-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Salinity
+</parm><valid>
+20070311
+</valid><depth/><full>sal_sfc_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-SALTY-1n.gif </graphic></parmline>
+<parmline><parm>
+Sea Surface Sea Surface Height
+</parm><valid>
+20070312
+</valid><depth/><full>ssh_sfc_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-DSLM-1f.gif </graphic></parmline>
+<parmline><parm>
+Sea Surface Sea Surface Height
+</parm><valid>
+20070313
+</valid><depth/><full>ssh_sfc_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-DSLM-1f.gif </graphic></parmline>
+<parmline><parm>
+Sea Surface Sea Surface Height
+</parm><valid>
+20070311
+</valid><depth/><full>ssh_sfc_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-DSLM-1n.gif </graphic></parmline>
+<parmline><parm>
+200 m Temperature
+</parm><valid>
+20070312
+</valid><depth/><full>temp_200m_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-WTMP-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Temperature
+</parm><valid>
+20070313
+</valid><depth/><full>temp_200m_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-WTMP-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Temperature
+</parm><valid>
+20070311
+</valid><depth/><full>temp_200m_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-WTMP-200n.gif </graphic></parmline>
+<parmline><parm>
+bottom Temperature
+</parm><valid>
+20070312
+</valid><depth/><full>temp_bot_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-WTMP-18f.gif </graphic></parmline>
+<parmline><parm>
+bottom Temperature
+</parm><valid>
+20070313
+</valid><depth/><full>temp_bot_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-WTMP-18f.gif </graphic></parmline>
+<parmline><parm>
+bottom Temperature
+</parm><valid>
+20070311
+</valid><depth/><full>temp_bot_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-WTMP-18n.gif </graphic></parmline>
+<parmline><parm>
+sfc Temperature
+</parm><valid>
+20070312
+</valid><depth/><full>temp_sfc_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-WTMP-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Temperature
+</parm><valid>
+20070313
+</valid><depth/><full>temp_sfc_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-WTMP-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Temperature
+</parm><valid>
+20070311
+</valid><depth/><full>temp_sfc_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-WTMP-1n.gif </graphic></parmline>
+<parmline><parm>
+200 m Velocity
+</parm><valid>
+20070312
+</valid><depth/><full>vel_200m_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-UOGRD-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Velocity
+</parm><valid>
+20070313
+</valid><depth/><full>vel_200m_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-UOGRD-200f.gif </graphic></parmline>
+<parmline><parm>
+200 m Velocity
+</parm><valid>
+20070311
+</valid><depth/><full>vel_200m_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-UOGRD-200n.gif </graphic></parmline>
+<parmline><parm>
+sfc Velocity
+</parm><valid>
+20070312
+</valid><depth/><full>vel_sfc_f24.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031200-UOGRD-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Velocity
+</parm><valid>
+20070313
+</valid><depth/><full>vel_sfc_f48.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031300-UOGRD-1f.gif </graphic></parmline>
+<parmline><parm>
+sfc Velocity
+</parm><valid>
+20070311
+</valid><depth/><full>vel_sfc_n00.html</full><graphic> http://polar.ncep.noaa.gov/cofs/figures/20070311/2007031100-UOGRD-1n.gif </graphic></parmline>
+</index>

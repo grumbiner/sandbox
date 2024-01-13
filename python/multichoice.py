@@ -7,5 +7,5 @@ def main ():
   kim = "D"
   )
 
-  print (choices ["alex"])
+  print(choices ["alex"])
 main()

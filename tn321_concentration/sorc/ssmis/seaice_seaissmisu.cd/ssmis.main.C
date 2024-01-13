@@ -7,6 +7,7 @@
 
 #include "grid_math.h"
 #include "team2.C"
+#include "pole_fill.C"
 
 /*C$$$  MAIN PROGRAM DOCUMENTATION BLOCK                            */
 /*C                                                                 */
@@ -92,13 +93,14 @@ int efilt_22_s = 0;
 FILE *tester;
 
 /* ************************************************ */
-float fmax(float x, float y);
-float fmax(float x, float y) {
-  if (x > y) {
-    return x;
-  }
-  return y;
-}
+//float fmax(float x, float y);
+//float fmax(float x, float y) {
+//  if (x > y) {
+//    return x;
+//  }
+//  return y;
+//}
+
 extern float hires(ssmis *map, int nx, int ny, int polei, int polej, 
                       unsigned char *mask) ;
 
@@ -121,7 +123,7 @@ int main(int argc, char *argv[]) {
   int jday, satno, ref_year;
   int lines_used = 0, err_spots = 0;
 // For team2
-  team2_tables arctic, antarctic;
+  ssmis_team2_tables arctic, antarctic;
                                                                                 
 // Team2 initialization:
   arctic.tbmfy.resize(n_atm, n_tb);
@@ -262,18 +264,18 @@ int main(int argc, char *argv[]) {
                                      (int) (0.5+polej_NORTH), &fld_n[0][0]);
     hires(south, NX_SOUTH, NY_SOUTH, (int) (0.5+polei_SOUTH), 
                                      (int) (0.5+polej_SOUTH), &fld_s[0][0]);
-    getfld(north, north_pts, &fld_n[0][0], &rfld_n[0][0], HIRES_CONC);
-    getfld(south, south_pts, &fld_s[0][0], &rfld_s[0][0], HIRES_CONC);
+    ssmis_getfld(north, north_pts, &fld_n[0][0], &rfld_n[0][0], SSMIS_HIRES_CONC);
+    ssmis_getfld(south, south_pts, &fld_s[0][0], &rfld_s[0][0], SSMIS_HIRES_CONC);
   #else
-    getfld(north, north_pts, &fld_n[0][0], &rfld_n[0][0], BAR_CONC);
-    getfld(south, south_pts, &fld_s[0][0], &rfld_s[0][0], BAR_CONC);
+    ssmis_getfld(north, north_pts, &fld_n[0][0], &rfld_n[0][0], SSMIS_BAR_CONC);
+    ssmis_getfld(south, south_pts, &fld_s[0][0], &rfld_s[0][0], SSMIS_BAR_CONC);
   #endif
 
   printf("past getting concentration fields in to fld grids \n"); fflush(stdout);
 
 /* Fill in pole for output purposes */
-  pole_fill(&fld_n[0][0], 1);
-  pole_fill(&fld_s[0][0], 2);
+  ssmis_pole_fill(&fld_n[0][0], 1);
+  ssmis_pole_fill(&fld_s[0][0], 2);
   fwrite(fld_n, sizeof(unsigned char), north_pts, nraw);
   fwrite(fld_s, sizeof(unsigned char), south_pts, sraw);
 
@@ -330,4 +332,3 @@ int main(int argc, char *argv[]) {
 #include "icetools.C"
 #include "process_bufr.C"
 #include "filt.C"
-#include "pole_fill.C"

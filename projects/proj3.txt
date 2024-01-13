@@ -1,0 +1,8 @@
+﻿Project: getcell program for web
+
+End point: secured program that will read lat-long from a form and return ice concentration and/or SST from that location
+
+Requires:
+web access
+(mmablib)
+

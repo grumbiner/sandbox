@@ -1,0 +1,7 @@
+What are the lat/long boundaries of the plan view figures?
+
+.profile for bash/ksh/sh:
+export LD_LIBRARY_PATH=/usr/local/lib/
+
+.profile for csh:
+setenv LD_LIBRARY_PATH /usr/local/lib/

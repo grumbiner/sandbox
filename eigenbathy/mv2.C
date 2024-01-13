@@ -5,14 +5,7 @@
 #define NX 2300
 #define NMODES (NX)
 
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) ;
-double dot(mvector<double> &x, mvector<double> &y) ;
-
-void random(mvector<double> &x) ;
-void show(mvector<double> &eta) ;
-
-void d2dx2(mvector<double> &eta, mvector<double> &out);
-void d2dx2(mvector<double> &c2, mvector<double> &eta, mvector<double> &out);
+#include "shared.C"
 
 int main(void) {
   mvector<double> c2(NX), ddx(NX);
@@ -20,6 +13,7 @@ int main(void) {
   mvector<mvector<double> > eigenmodes(NMODES);
   mvector<double> values(NMODES);
   int i, iter, modes;
+  double deltax = DX;
 
   c2       = 408.0;
   c2[0]    = 0.;
@@ -49,7 +43,7 @@ int main(void) {
       ddx = etain; 
       ddx *= c2;
       //d2dx2(ddx, etaout);
-      d2dx2(c2, etain, etaout);
+      d2dx2(c2, etain, etaout, deltax);
       values[modes] = sqrt(  dot(etain,etain)/dot(etaout,etaout)  );
       etaout *= values[modes];
   
@@ -77,62 +71,4 @@ int main(void) {
   }
 
   return 0;
-}
-// orthogonalize x w.r.t. each of the first modemax members of y
-void orthog(mvector<double> &x, mvector<mvector<double> > &y, int modemax) {
-  int i, n;
-  double rx, ry, tmp;
-  mvector<double> tvec(x.xpoints());
-
-  for (n = 0; n < modemax; n++) {
-    tmp = dot(x,y[n]);
-    rx  = dot(x,x);
-    ry  = dot(y[n],y[n]);
-    //printf("%d %d  %e %e %e %d\n",n, modemax, tmp, rx, ry, y[n].xpoints() );
-    tvec = y[n];
-    tvec *= tmp/ry;
-    x -= tvec;
-  }
-  x /= sqrt(dot(x,x));
-
-  return;
-}
-double dot(mvector<double> &x, mvector<double> &y) {
-  double sum = 0.0;
-  for (int i = 0; i < x.xpoints(); i++) {
-    sum += x[i]*y[i];
-  }
-  return (double) sum;
-}
-
-void show(mvector<double> &eta) {
-  int loc;
-  for (loc = 0; loc < eta.xpoints(); loc++) {
-      printf("%3d  %12.5e\n",loc, eta[loc]);
-  }
-  return ;
-}
-void random(mvector<double> &x) {
-  for (int loc = 0; loc < x.xpoints() ; loc++) {
-    x[loc] = drand48();
-  }
-  return;
-}
-
-void d2dx2(mvector<double> &eta, mvector<double> &out) {
-  int i;
-  out = 0.;
-  for (i = 1; i < eta.xpoints() - 1; i++) {
-    out[i] = (eta[i+1]-2.*eta[i]+eta[i-1])/DX/DX;
-  }
-  return;
-}
-void d2dx2(mvector<double> &c2, mvector<double> &eta, mvector<double> &out) {
-  int i;
-  out = 0.;
-  for (i = 1; i < eta.xpoints() - 1; i++) {
-    out[i] = c2[i]*(eta[i+1]-2.*eta[i]+eta[i-1])/DX/DX;
-    out[i] += (eta[i+1]-eta[i-1])*(c2[i+1]-c2[i-1])/4./DX/DX;
-  }
-  return;
 }

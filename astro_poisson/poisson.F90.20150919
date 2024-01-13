@@ -1,0 +1,230 @@
+PROGRAM a
+
+IMPLICIT none
+
+INTEGER nx, ny, nz
+PARAMETER (nx = 32*2)
+PARAMETER (ny = 32*2)
+PARAMETER (nz = 32*2)
+DOUBLE PRECISION rho(nx, ny, nz), u(nx, ny, nz), v(nx, ny, nz), w(nx, ny, nz)
+DOUBLE PRECISION fx(nx, ny, nz), fy(nx, ny, nz), fz(nx, ny, nz), pot(nx, ny, nz)
+DOUBLE PRECISION div(nx, ny, nz), nl(nx, ny, nz)
+DOUBLE PRECISION G
+PARAMETER (G = 6.673e-11)
+REAL dx, dy, dz, dt
+PARAMETER (dx = 100.*150e9 / FLOAT(nx) ) ! meters, 100 au box
+PARAMETER (dy = dx)
+PARAMETER (dz = dx)
+REAL sun
+PARAMETER (sun = 2.E30)
+
+INTEGER count, step, i, j, k, i2, j2, k2
+REAL r, umax
+DOUBLE PRECISION sum, tmp, time
+
+OPEN(10,FILE="rho", FORM="FORMATTED")
+
+rho = sun / FLOAT(nx*ny*nz) / dx**3
+rho(1,:,:) = 0
+rho(nx,:,:) = 0
+rho(:,1,:) = 0
+rho(:,ny,:) = 0
+rho(:,:,nz) = 0
+rho(:,:,1) = 0
+
+u = 0
+v = 0
+w = 0
+fx = 0
+fy = 0
+fz = 0
+pot = 6e6 !do this to avoid division by 0 later
+dt = (86400.0*365.25)/4. !seconds, ~1 year
+time = 0
+
+!lapl(pot) = 4*pi*G*rho
+CALL poisson(rho, pot, nx, ny, nz, dx)
+
+
+DO step = 1, 384
+  time = time + dt
+
+  DO k = 2, nz-1
+  DO j = 2, ny-1
+  DO i = 2, nx-1
+    fx(i,j,k) = (pot(i+1,j,k)-pot(i-1,j,k) )
+    fy(i,j,k) = (pot(i,j+1,k)-pot(i,j-1,k) )
+    fz(i,j,k) = (pot(i,j,k+1)-pot(i,j,k-1) )
+  ENDDO
+  ENDDO
+  ENDDO
+  fx = fx / dx/2.
+  fy = fy / dx/2.
+  fz = fz / dx/2.
+  
+!dt -> dx / |u|
+!dt -> u / |F|
+!u = u + F*dt
+!rho -> drho/dt = - div(rho*u_vec)
+
+  umax = MAXVAL(ABS(u))
+  IF (umax .GT. 3.e7) THEN
+    PRINT *,'umax is too close to speed of light! ',umax
+    STOP
+  ENDIF
+
+  IF (dx < 0.25*dt*umax) THEN
+    tmp = dt / (4.*dx/umax)
+    dt  = dt / CEILING(tmp) 
+    PRINT *,'had to downscale dt ',dt, dx, dx/umax
+  !  STOP
+  ELSE
+  !  PRINT *,'max dt = ',0.25*dx/MAX(0.1,MAXVAL(ABS(u)))
+  ENDIF
+
+  CALL divergence(u, v, w, rho, div, nx, ny, nz)
+  rho = rho - dt*div/2./dx
+  IF (MINVAL(rho) .LT. 0) THEN
+    sum = 0
+    count = 0
+    DO k = 1,nz
+    DO j = 1,ny
+    DO i = 1,nx
+      IF (rho(i,j,k) .LT. 0) THEN
+        count = count + 1
+        sum = sum + rho(i,j,k)
+      ENDIF
+    ENDDO
+    ENDDO
+    ENDDO
+    PRINT *,'mass ',step, count, -sum*dx*dy*dz/sun
+    WHERE (rho .LT. 0) rho = 0
+    WHERE (rho .GT. 0) rho = rho + sum/DBLE(nx*ny*nz-count) 
+    IF (count .GE. nx*ny*nz/2) STOP
+  ENDIF
+
+  CALL advect(u,v,w,u,nx, ny, nz, dx, dy, dz, nl)
+  fx = fx - nl
+  CALL advect(u,v,w,v,nx, ny, nz, dx, dy, dz, nl)
+  fy = fy - nl
+  CALL advect(u,v,w,w,nx, ny, nz, dx, dy, dz, nl)
+  fz = fz - nl
+
+  u = u + fx*dt
+  v = v + fy*dt
+  w = w + fz*dt
+
+  !lapl(pot) = 4*pi*G*rho
+  !CALL poisson(rho, pot, nx, ny, nz, dx)
+
+  WRITE (*,9001) time/(8.64e4*365.25), MAXVAL(u), MAXVAL(v), MAXVAL(w), MINVAL(u), MINVAL(v), MINVAL(w)
+9001 FORMAT (F13.8, ' uvw ',3E13.6, '  ',3E14.6)
+  WRITE (*,9002) time/(8.64e4*365.25), MAXVAL(rho), MINVAL(rho), rho(nx/2, ny/2, nz/2)
+9002 FORMAT (F13.8, ' rho ',3E14.5)
+  DO i = 1, nx
+    WRITE (10,*) time/(8.64e4*365.25), rho(i,ny/2, nz/2), u(i,ny/2, nz/2), pot(i,ny/2, nz/2)
+  ENDDO
+
+ENDDO
+
+END
+!================================================================================
+SUBROUTINE poisson(rho, pot, nx, ny, nz, dx)
+IMPLICIT none
+INTEGER nx, ny, nz
+REAL dx
+DOUBLE PRECISION rho(nx, ny, nz), pot(nx, ny, nz)
+DOUBLE PRECISION G
+PARAMETER (G = 6.673e-11)
+DOUBLE PRECISION pi
+DOUBLE PRECISION rhs(nx, ny, nz)
+DOUBLE PRECISION tmp(nx, ny, nz), delta(nx, ny, nz)
+DOUBLE PRECISION toler 
+INTEGER iter, itmax
+INTEGER i, j, k
+DOUBLE PRECISION dpot(nx, ny, nz)
+
+pi = ACOS(-1.)
+toler = 1.e-6
+itmax = nx*nx*nx
+dpot = pot
+
+rhs = -(4.*pi*G*rho )*dx*dx
+iter = 1
+
+DO WHILE (iter .LT. itmax) 
+  tmp = 0
+  delta = 0
+  DO k = 2, nz-1
+  DO j = 2, ny-1
+  DO i = 2, nx-1
+    tmp(i,j,k) = (dpot(i+1,j,k)+dpot(i-1,j,k) ) + &
+                 (dpot(i,j+1,k)+dpot(i,j-1,k) ) + &
+                 (dpot(i,j,k+1)+dpot(i,j,k-1) ) - rhs(i,j,k)
+    delta(i,j,k) = tmp(i,j,k) - 6.*dpot(i,j,k)
+  ENDDO
+  ENDDO
+  ENDDO
+
+  IF (MOD(iter, 10000) .EQ. 0) THEN
+    PRINT *,'delta, pot ',iter, MAXVAL(delta), MINVAL(delta), MAXVAL(dpot)
+  ENDIF
+  IF (ABS(MAXVAL(ABS(delta))/MAXVAL(ABS(dpot))) < toler ) THEN
+    WRITE (*,9002) iter, MAXVAL(delta), MINVAL(delta), MAXVAL(dpot)
+    WHERE (dpot .NE. 0) delta = delta / dpot
+    PRINT *,"relative ",MAXVAL(delta), MINVAL(delta)
+    pot = dpot
+    RETURN
+  ELSE
+    iter = iter + 1
+    dpot  = tmp/6.
+  ENDIF
+9002 FORMAT ("final pot ",I6,3E15.6) 
+
+END DO 
+PRINT *,'no convergence ',iter, MAXVAL(delta), MINVAL(delta), MAXVAL(pot)
+
+RETURN
+
+END SUBROUTINE
+!================================================================================
+SUBROUTINE divergence(u, v, w, rho, div, nx, ny, nz)
+IMPLICIT none
+INTEGER nx, ny, nz
+DOUBLE PRECISION u(nx, ny, nz), v(nx, ny, nz), w(nx, ny, nz)
+DOUBLE PRECISION rho(nx, ny, nz)
+DOUBLE PRECISION div(nx, ny, nz)
+
+INTEGER i, j, k
+div = 0
+DO k = 2, nz-1
+DO j = 2, ny-1
+DO i = 2, nx-1
+  div(i,j,k) = (u(i+1,j,k)*rho(i+1,j,k) - u(i-1,j,k)*rho(i-1,j,k)) + &
+               (v(i,j+1,k)*rho(i,j+1,k) - v(i,j-1,k)*rho(i,j-1,k)) + &
+               (w(i,j,k+1)*rho(i,j,k+1) - w(i,j,k-1)*rho(i,j,k-1))
+ENDDO
+ENDDO
+ENDDO
+
+RETURN
+END SUBROUTINE
+
+!================================================================================
+SUBROUTINE advect(u,v,w,x,nx, ny, nz, dx, dy, dz, nl)
+IMPLICIT none
+INTEGER nx, ny, nz
+REAL dx, dy, dz
+DOUBLE PRECISION u(nx, ny, nz), v(nx, ny, nz), w(nx, ny, nz), x(nx, ny, nz), nl(nx, ny, nz)
+INTEGER i, j, k
+DO k = 2, nz-1
+DO j = 2, ny-1
+DO i = 2, nx-1
+  nl(i,j,k) = u(i,j,k)*(x(i+1,j,k)-x(i-1,j,k) )/2./dx +&
+              v(i,j,k)*(x(i,j+1,k)-x(i,j-1,k) )/2./dy +&
+              w(i,j,k)*(x(i,j,k+1)-x(i,j,k-1) )/2./dz
+ENDDO
+ENDDO
+ENDDO
+RETURN
+END

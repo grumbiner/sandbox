@@ -1,0 +1,10 @@
+#!/bin/bash --login
+
+iceconc
+  module loads
+  jobcards
+    module loads
+  obsproc settings
+  sms.filter.fake   -- needs avhrr input
+  sms.fake
+  #JICE_GEMPAK

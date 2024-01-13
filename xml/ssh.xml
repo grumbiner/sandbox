@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="figure2d.xsl" type="text/xsl" ?>
+
+<figure2d>
+  <title>OFS Surface Height</title>
+  <topic>ocean, surface, height, elevation, analysis, forecast</topic>
+  <status>developmental</status>
+  <contact>NCEP.EMC.Coastal.Ocean@noaa.gov</contact>
+  <date>
+    <constructed cycle="00">25 May 2004</constructed>
+    <valid time="00">11 April 2003</valid>
+  </date>
+  <parameters>
+    <parm>Sea Surface Height</parm>
+  </parameters>
+  <depth>0</depth>
+  <graphic source="ssh.jpg"/>
+  <full>ssh.html</full>
+
+
+  <domain2d>
+    <title>Definition of Global Display Grids</title>
+    <topic>Display, domains, grids</topic>
+    <date>10 March 2004</date>
+    <contact>Robert.Grumbine@noaa.gov</contact>
+  
+    <name>North Atlantic</name>
+    <area >90e6 km^2</area>
+    <bounds>
+      <loc lat="-25" lon="-90"/>
+      <loc lat="-25" lon="30"/>
+      <loc lat="+65" lon="-90"/>
+      <loc lat="+65" lon="30"/>
+    </bounds>
+    <projection>Miller Cylindrical</projection>
+  </domain2d>
+
+</figure2d>

@@ -1,0 +1,10 @@
+﻿Project: Compare my distance to land grid with Yuri's
+
+Endpoint: analysis of differences, recommendations for improvements
+
+Requires: 
+programming
+netcdf reader
+Yuri's land mask
+can read binary of my file
+

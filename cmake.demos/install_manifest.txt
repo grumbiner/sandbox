@@ -1,0 +1,4 @@
+/Users/rmg3/sandbox/cmake.demos/lib/libombf_4.a
+/Users/rmg3/sandbox/cmake.demos/lib/libombc_4.a
+/Users/rmg3/sandbox/cmake.demos/exec/ssmi
+/Users/rmg3/sandbox/cmake.demos/exec/Tutorial
