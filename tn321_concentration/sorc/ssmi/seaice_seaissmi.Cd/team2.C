@@ -1,4 +1,3 @@
-#include "icessmi.h"
 
 #define CASTART 49
 #define CCSTART 49
@@ -6,12 +5,12 @@
 extern FILE *tester;
 
 // Elements for the TEAM2 algorithm 
-void arctic_tables(team2_tables &x);
-void antarctic_tables(team2_tables &x);
-void lookuptable(team2_tables &x);
+void arctic_tables(ssmi_team2_tables &x);
+void antarctic_tables(ssmi_team2_tables &x);
+void lookuptable(ssmi_team2_tables &x);
 
 //////////////// Being TEAM2 code:
-void arctic_tables(team2_tables &arctic) {
+void arctic_tables(ssmi_team2_tables &arctic) {
   grid2<float> tbmfy(n_atm, n_tb), tbmow(n_atm, n_tb), tbmcc(n_atm, n_tb);
   grid2<float> tbmthin(n_atm, n_tb);
   FILE *fin;
@@ -66,7 +65,7 @@ void arctic_tables(team2_tables &arctic) {
 
   return;
 }
-void antarctic_tables(team2_tables &antarctic) {
+void antarctic_tables(ssmi_team2_tables &antarctic) {
   grid2<float> tbmfy(n_atm, n_tb), tbmow(n_atm, n_tb), tbmcc(n_atm, n_tb);
   FILE *fin;
   ijpt loc; 
@@ -112,7 +111,7 @@ void antarctic_tables(team2_tables &antarctic) {
   return;
 }
 
-void lookuptable(team2_tables &tab) {
+void lookuptable(ssmi_team2_tables &tab) {
   int ca, cb, k;
   float caf, cbf;
 
@@ -171,7 +170,7 @@ void lookuptable(team2_tables &tab) {
 }
 
 float nasa_team2(float v19, float h19, float v22, float v37, float h37, 
-                 float v85, float h85, team2_tables &tab, int satno) {
+                 float v85, float h85, ssmi_team2_tables &tab, int satno) {
   
     double sinphi19,sinphi85;
     double cosphi19,cosphi85;

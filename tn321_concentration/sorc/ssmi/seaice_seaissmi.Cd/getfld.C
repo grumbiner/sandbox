@@ -1,4 +1,3 @@
-#include "icessmi.h"
 
 int getfld(ssmi *ice, int npts, unsigned char *cfld, float *ffld, int sel) {
 /* Extract a desired field (specified by sel) from a full ssmi map
@@ -17,73 +16,73 @@ int getfld(ssmi *ice, int npts, unsigned char *cfld, float *ffld, int sel) {
   limit = npts;
 
   switch (sel) {
-  case T19V :
+  case SSMI_T19V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t19v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T19H :
+  case SSMI_T19H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t19h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T22V :
+  case SSMI_T22V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t22v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T37V :
+  case SSMI_T37V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t37v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T37H :
+  case SSMI_T37H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t37h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T85V :
+  case SSMI_T85V :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t85v/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case T85H :
+  case SSMI_T85H :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].t85h/100.;
       cfld[i] = (unsigned char) (0.5 + (ffld[i] - 50.) / 2. );
     }
     break;
-  case CONC_BAR :
+  case SSMI_CONC_BAR :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].conc_bar/100.;
       cfld[i] = (unsigned char) (0.5 + ice[i].conc_bar) ;
     }
     break;
-  case BAR_CONC :
+  case SSMI_BAR_CONC :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].bar_conc/100.;
       cfld[i] = (unsigned char) ice[i].bar_conc ;
     }
     break;
-  case COUNT :
+  case SSMI_COUNT :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].count;
       cfld[i] = (unsigned char) ice[i].count;
     }
     break;
-  case WEATHER_COUNT :
+  case SSMI_WEATHER_COUNT :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].count;
       cfld[i] = (unsigned char) ice[i].count;
     }
     break;
-  case HIRES_CONC :
+  case SSMI_HIRES_CONC :
     for (i = 0; i < limit; i++) {
       ffld[i] = (float) ice[i].hires_conc/100.;
       cfld[i] = (unsigned char) ice[i].hires_conc ;

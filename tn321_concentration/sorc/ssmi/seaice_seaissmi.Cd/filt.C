@@ -1,6 +1,5 @@
 #include <cstdio>
 
-#include "icessmi.h"
 #include "icegrids.h"
 
 /* Perform extended weather filtering (per OMB Tech Note 120) on
@@ -37,8 +36,8 @@ int newfilt(ssmi *nmap, ssmi *smap)
     range = 0;
   #endif
 
-  getfld(nmap, NX_NORTH*NY_NORTH, &nconc[0][0], &g37[0][0], BAR_CONC);
-  getfld(smap, NX_SOUTH*NY_SOUTH, &sconc[0][0], &g37[0][0], BAR_CONC);
+  getfld(nmap, NX_NORTH*NY_NORTH, &nconc[0][0], &g37[0][0], SSMI_BAR_CONC);
+  getfld(smap, NX_SOUTH*NY_SOUTH, &sconc[0][0], &g37[0][0], SSMI_BAR_CONC);
 
 /* Find the northern hemisphere gradient ratio */
   for (j = 0; j < NY_NORTH  ; j++) {
@@ -57,17 +56,17 @@ int newfilt(ssmi *nmap, ssmi *smap)
         /* Include this as either second check (low resolution) or
            an appropriately-ranged check (high resolution 
            Robert Grumbine 16 March 2004 */
-        if (g37[j][i] > GR37LIM) {
+        if (g37[j][i] > SSMI_GR37LIM) {
            efilt_37_n += 1;
            nconc[j][i] = WEATHER;
         }
-        if (g22[j][i] > GR22LIM) {
+        if (g22[j][i] > SSMI_GR22LIM) {
            efilt_22_n += 1;
            nconc[j][i] = WEATHER;
         }
 
         if (nconc[j+1][i] != BAD_DATA) {
-          if (g37[j+1][i] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j+1][i] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_n += 1;
             nconc[j][i] = WEATHER;
             if (debug) printf("1 resetting %3d %3d \n",i,j);
@@ -75,7 +74,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (nconc[j-1][i] != BAD_DATA) {
-          if (g37[j-1][i] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j-1][i] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_n += 1;
             nconc[j][i] = WEATHER;
             if (debug) printf("2 resetting %3d %3d \n",i,j);
@@ -83,7 +82,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (nconc[j][i-1] != BAD_DATA) {
-          if (g37[j][i-1] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j][i-1] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_n += 1;
             nconc[j][i] = WEATHER;
             if (debug) printf("3 resetting %3d %3d \n",i,j);
@@ -91,7 +90,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (nconc[j][i+1] != BAD_DATA) {
-          if (g37[j][i+1] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j][i+1] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_n += 1;
             nconc[j][i] = WEATHER;
             if (debug) printf("4 resetting %3d %3d \n",i,j);
@@ -125,17 +124,17 @@ int newfilt(ssmi *nmap, ssmi *smap)
         /* Include this as either second check (low resolution) or
            an appropriately-ranged check (high resolution 
            Robert Grumbine 16 March 2004 */
-        if (g37[j][i] > GR37LIM) {
+        if (g37[j][i] > SSMI_GR37LIM) {
            efilt_37_s += 1;
            sconc[j][i] = WEATHER;
         }
-        if (g22[j][i] > GR22LIM) {
+        if (g22[j][i] > SSMI_GR22LIM) {
            efilt_22_s += 1;
            sconc[j][i] = WEATHER;
         }
 
         if (sconc[j+1][i] != BAD_DATA) {
-          if (g37[j+1][i] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j+1][i] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_s += 1;
             sconc[j][i] = WEATHER;
             if (debug) printf("1 resetting %3d %3d \n",i,j);
@@ -143,7 +142,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (sconc[j-1][i] != BAD_DATA) {
-          if (g37[j-1][i] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j-1][i] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_s += 1;
             sconc[j][i] = WEATHER;
             if (debug) printf("2 resetting %3d %3d \n",i,j);
@@ -151,7 +150,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (sconc[j][i-1] != BAD_DATA) {
-          if (g37[j][i-1] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j][i-1] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_s += 1;
             sconc[j][i] = WEATHER;
             if (debug) printf("3 resetting %3d %3d \n",i,j);
@@ -159,7 +158,7 @@ int newfilt(ssmi *nmap, ssmi *smap)
           }
         }
         if (sconc[j][i+1] != BAD_DATA) {
-          if (g37[j][i+1] + g37[j][i] > 2*GR37LIM ) {
+          if (g37[j][i+1] + g37[j][i] > 2*SSMI_GR37LIM ) {
             efilt_37_s += 1;
             sconc[j][i] = WEATHER;
             if (debug) printf("4 resetting %3d %3d \n",i,j);

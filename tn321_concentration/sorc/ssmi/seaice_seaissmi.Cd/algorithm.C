@@ -1,5 +1,4 @@
 #include <cstdio>
-#include "icessmi.h"
 
 /* For error/filtration statistics */
 extern int bad_low;
@@ -144,7 +143,7 @@ C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM
      of ice, vs. letting bad data through */
 /* Note that this type of filter is probably a good idea for all SSMI, and
      for reruns */
-      if (satno == 15) {
+      if (satno == 15 || satno == 248 ) {
         grYY = (t37v-t85v)/(t37v+t85v);
         if (t85h > 266.875610 || grYY < -0.085 ) {
           total = 0;
@@ -195,8 +194,8 @@ C   CALCULATE PARAMETERS FOR ICE CONCENTRATION ALGORITHM
        else {
 /* Set weather filtered points to weather flag 
    Tracking of which filter was triggered added 16 March 2004 */
-        if (gr37 > GR37LIM) filt37 += 1;
-        if (gr22 > GR22LIM) filt22 += 1;
+        if (gr37 > SSMI_GR37LIM) filt37 += 1;
+        if (gr22 > SSMI_GR22LIM) filt22 += 1;
         total = (float) WEATHER; 
        }
       

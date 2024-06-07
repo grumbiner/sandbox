@@ -34,9 +34,9 @@ float old_weather(float &t19v, float &t19h, float &t22v, float &t37v, float &t37
     float gr37, gr22;
     gr37 = (t37v - t19v) / (t37v + t19v);
     gr22 = (t22v - t19v) / (t22v + t19v);
-    if (gr22 > GR22LIM || gr37 > GR37LIM) {
-      if (gr37 > GR37LIM) filt37 += 1;
-      if (gr22 > GR22LIM) filt22 += 1;
+    if (gr22 > SSMI_GR22LIM || gr37 > SSMI_GR37LIM) {
+      if (gr37 > SSMI_GR37LIM) filt37 += 1;
+      if (gr22 > SSMI_GR22LIM) filt22 += 1;
       return WEATHER;
     }
     return 1.0;
