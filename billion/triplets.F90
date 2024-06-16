@@ -62,6 +62,7 @@ CONTAINS
     zzz%z = 0.0
     RETURN
   END SUBROUTINE initialize
+
   REAL(crystal_kind) FUNCTION dist(p1, p2) result (r)
     TYPE(triplet), intent(in) :: p1, p2
     REAL(crystal_kind) :: dx, dy, dz

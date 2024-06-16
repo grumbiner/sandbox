@@ -54,6 +54,9 @@ def plot_world_map(lons, lats, data):
     ax.add_feature(cfeature.GSHHSFeature(levels=[1,2,3,4], scale="l") )
     print("add_feature -- gshhs",flush=True)
 
+# can't convert gif, jpeg, jpg, pdf, png, ps, 
+# doesn't write: pgf, 
+# preview doesn't read: raw, 
     plt.savefig("hello1b.png")
 
     cbarlabel = '%s' % ("hello1")
@@ -64,8 +67,8 @@ def plot_world_map(lons, lats, data):
 
     #Establish the color bar
     #colors=matplotlib.cm.get_cmap('jet')
-    colors=matplotlib.cm.get_cmap('gray')
-    colors=matplotlib.cm.get_cmap('terrain')
+    colors=matplotlib.pyplot.get_cmap('gray')
+    colors=matplotlib.pyplot.get_cmap('terrain')
     #print("colors = ",colors)
 
     #cs = ax.pcolormesh(lons, lats, data,vmin=vmin,vmax=vmax,cmap=colors, transform=ccrs.PlateCarree() )
