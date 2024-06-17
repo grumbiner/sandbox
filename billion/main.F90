@@ -14,10 +14,9 @@ PROGRAM alpha
   TYPE(thing) bodies(npts)
   REAL(crystal_kind) :: dx, dy, dz, dt, m
   INTEGER ref, nsteps, outfreq
-  TYPE(triplet) initial_loc
 
 ! arguments for scan
-  REAL(crystal_kind) :: dt_suggest, fraction, minpot
+  REAL(crystal_kind) :: dt_suggest, fraction, minpot, dttmp
   INTEGER active(npts), del_index
 
 ! working
@@ -51,21 +50,22 @@ PROGRAM alpha
 
   m        = 1.66e-27*12.   ! in kg, 1 amu, ~1GeV
   fraction = 3.16e-4
-  DO ref = 1, npts
-    CALL scan(bodies, npts, ref, fraction, minpot, active, count, &
+  dttmp = 1.e5
+
+  DO i = 1, npts
+    !RG:  should be saving min(dt_suggest)
+    CALL scan(bodies, npts, i, fraction, minpot, active, count, &
         dx, m, dt_suggest)
-    PRINT *,'ref, dt_suggest, count ',ref, dt_suggest, count
+    dttmp = MIN(dttmp, dt_suggest)
   ENDDO
+  !D PRINT *,'dttmp, dt_suggest ',dttmp, dt_suggest
+  dt_suggest = dttmp
 
-  STOP
+  dt  = DMIN1(DBLE(2.0e-14), DBLE(dt_suggest))
+  outfreq = MAX(1, INT(0.5 + 2.0e-13 / dt))
 
-  dt  = 1.e-14
-  outfreq = MAX(1, INT(0.5 + 1.0e-13 / dt))
-  nsteps  = 1.5e-09 / dt
-  PRINT *,'dt, outfreq, nsteps, millions steps = ',dt, outfreq, nsteps, &
-     nsteps/1e6
+  nsteps  = 1.5e-08 / dt
 
-  initial_loc = bodies(ref)%x
   CALL iterate(outfreq, nsteps, m, dt, dx, dy, dz, ref, bodies, npts) 
 
 END PROGRAM alpha 

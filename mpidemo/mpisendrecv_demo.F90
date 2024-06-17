@@ -2,7 +2,8 @@ PROGRAM demo
   IMPLICIT none
   INCLUDE "mpif.h"
   INTEGER i,j, procno, itag, istatus(MPI_STATUS_SIZE), ierr, nproc, myproc, bufsize
-  PARAMETER (bufsize = 1024)
+! on my desk, max bufsize ~16031 (then **2)
+  PARAMETER (bufsize = 16031 )
   REAL  :: sendbuf(bufsize,bufsize) , recvbuf(bufsize,bufsize)
 
   CALL MPI_INIT(ierr)

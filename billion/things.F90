@@ -39,8 +39,8 @@ CONTAINS
 
   SUBROUTINE accelerate_euler(zzz, dt, force, m)
     IMPLICIT none
-    REAL(crystal_kind) :: dt, m
-    TYPE(triplet) force
+    REAL(crystal_kind), intent(in) :: dt, m
+    TYPE(triplet), intent(in) :: force
     TYPE(thing) zzz
 
     zzz%u%x = zzz%u%x + dt*(force%x/m)
@@ -50,9 +50,16 @@ CONTAINS
 
   SUBROUTINE time_step_euler(zzz, dt)
     IMPLICIT none
-    REAL(crystal_kind) :: dt
+    REAL(crystal_kind), intent(in) :: dt
     TYPE(thing) zzz
-    zzz%x = zzz%x + zzz%u*dt
+
+    !use triplet notation
+    zzz%x = zzz%x + dt*zzz%u
+
+    !zzz%x%x = zzz%x%x + zzz%u%u*dt
+    !zzz%x%y = zzz%x%y + zzz%u%v*dt
+    !zzz%x%z = zzz%x%z + zzz%u%w*dt
+
   END SUBROUTINE time_step_euler 
 
   SUBROUTINE time_step_euler_force(zzz, dt, force, m)
@@ -60,7 +67,12 @@ CONTAINS
     REAL(crystal_kind) :: dt, m
     TYPE(thing) zzz
     TYPE(triplet) force
-    zzz%x = zzz%x + zzz%u*dt + force*(dt*dt/m/2.)
+
+    zzz%x = zzz%x + dt*zzz%u + force*(dt*dt/m/2.)
+
+    !zzz%x%x = zzz%x%x + zzz%u%u*dt + force%x*(dt*dt/m/2.)
+    !zzz%x%y = zzz%x%y + zzz%u%v*dt + force%y*(dt*dt/m/2.)
+    !zzz%x%z = zzz%x%z + zzz%u%w*dt + force%z*(dt*dt/m/2.)
   END SUBROUTINE time_step_euler_force 
 
 END MODULE things
