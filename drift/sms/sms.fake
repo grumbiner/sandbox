@@ -2,16 +2,14 @@
 set -xe
 
 #Set up something like sms environment for calling J job
-#module load prod_envir
-#module load prod_util
-#module load grib_util
 
 export cyc=00
 export envir=developer
-export code_ver=v4.0.2
+export code_ver=v4.0.3
 export job=seaice_drift
-export SMSBIN=/u/Robert.Grumbine/para/${job}.${code_ver}/sms/
+export HOMEbase=/lfs/h2/emc/couple/noscrub/Robert.Grumbine
+export SMSBIN=$HOMEbase/${job}.${code_ver}/sms/
 
 #Now call J job, which will call the ex
-/u/Robert.Grumbine/para/${job}.${code_ver}/jobs/JSEAICE_DRIFT
+$HOMEbase/${job}.${code_ver}/jobs/JSEAICE_DRIFT
 

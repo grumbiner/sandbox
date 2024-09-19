@@ -1,0 +1,7 @@
+#!/bin/bash
+set -x
+while [ `iload` -ge 1 ] 
+do
+  sleep 300
+done
+nohup time ./longjan.jcl > alpha 2> beta &

@@ -3,7 +3,6 @@ import numpy.ma as ma
 
 from filtering import *
 
-# noodle satobs class and descendents
 tb_lr = np.zeros((amsr2_lr.ntb))
 tb_hr = np.zeros((amsr2_hr.ntb))
 sat_lr = amsr2_lr()
@@ -37,7 +36,6 @@ fin.close()
 npts = len(allmatch)
 
 #----------------------------------------------------------
-#def makemasks(allmatch):
 # Constructing the masks
 # RG: better to have a set of masks, rather than specified names in specified orders
 
@@ -47,7 +45,6 @@ stats = mask_stats(npts, landmask, icemask, watermask)
 print(stats,flush=True)
 
 #---------------------------------------------------------------------
-#def find_perfect(allmatch)
 fout = open("perfect1","w")
 
 tbfilters = []
@@ -117,8 +114,6 @@ del tbfilters
 
 #----------------------------------------------------------
 # Restart with result of last write:
-#def read_match(fname, allmatch)
-#  return
 fin = open(fname, "r")
 allmatch = []
 for line in fin:
@@ -145,7 +140,6 @@ print(stats,flush=True)
 #---------------------------------------------------------------------
 #while (find_perfect(allmatch) != 0):
 #  
-#def find_perfect(allmatch, perfect_name, imperfect_name)
 foutp = open("perfect2","w")
 foute = open("all2","w")
 
@@ -237,7 +231,6 @@ print(stats,flush=True)
 #---------------------------------------------------------------------
 #while (find_perfect(allmatch) != 0):
 #  
-#def find_perfect(allmatch, perfect_name, imperfect_name)
 foutp = open("perfect3","w")
 foute = open("all3","w")
 
