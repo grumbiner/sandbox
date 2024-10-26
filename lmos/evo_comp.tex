@@ -1,0 +1,63 @@
+
+
+
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+
+%SetFonts
+
+%SetFonts
+
+
+\title{Brief Article}
+\author{The Author}
+%\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\section{approaches}
+genetic algorithm\\
+genetic programming\\
+evolutionary strategy\\
+
+hierarchical algorithms\\
+hybrid algorithms\\
+island populations\\
+
+multi-objective optimization\\
+
+
+\section{First looks -- EvoMos}
+test a + \Sigma(a$_i$*p$_i$) correction, rmse as score
+104/178 improve (58\%), with several halving the initial rmse and one reducing it to 17\% of original (2917, which started with 19.65)
+
+in looking at parameters that provided improvement\\ 
+
+should produce parameter (T-Td) for the regression to work on\\
+n.b.: could also do as a binary tree genetic program\\
+n.b.: not subject to singularity in mutually-correlated variables\\
+0.25 sec, 1 processor for each full series\\
+perfectly parallel\\
+
+Retry with lognorm arg scaled by 0.5, 0.25, 0.125 --> best w. ~ 0.25\\
+
+Seeding sd_best with 0.5 for the ones other than mean makes big improvement to number improved (only 7 are not)
+
+Elitist 1+N gives improvement to all.
+
+
+
+%\subsection{}
+
+
+
+\end{document}  
