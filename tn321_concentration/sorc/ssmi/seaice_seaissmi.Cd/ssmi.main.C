@@ -106,13 +106,13 @@ FILE *tester;
 //  }
 //  return y;
 //}
-float fmax(float x, float y);
-float fmax(float x, float y) {
-  if (x > y) {
-    return x;
-  }
-  return y;
-}
+//float fmax(float x, float y);
+//float fmax(float x, float y) {
+//  if (x > y) {
+//    return x;
+//  }
+//  return y;
+//}
 extern float hires(ssmi *map, int nx, int ny, int polei, int polej, 
                       unsigned char *mask) ;
 

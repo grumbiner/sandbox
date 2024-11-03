@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "icessmi.h"
 
 #include "icegrids.h"
 
@@ -11,7 +10,7 @@
    there is the smoothest (gradient sense) possible */
 /* Robert Grumbine 4 June 1997 */
 
-int pole_fill(unsigned char *map, const int pole) {
+int ssmi_pole_fill(unsigned char *map, const int pole) {
     int i, j;
     float *a0, *a1, *a2, *delta;
     int nx, polei, polej;
@@ -36,17 +35,13 @@ int pole_fill(unsigned char *map, const int pole) {
       polej = (int) (0.5 + polej_SOUTH);
     }
 
-    holex = (int) (0.5 + 2.*( 0.5 + (90. - MAX_LATITUDE) * 111.2e3 / dx ) + 7.);
+    holex = (int) (0.5 + 2.*( 0.5 + (90. - SSMI_MAX_LATITUDE) * 111.2e3 / dx ) + 7.);
     holey = holex;
 
     #ifdef VERBOSE
       printf("holex, holey = %d %d \n",holex, holey);
     #endif
 
-    //olda0 = (float *) malloc(sizeof(float)*holex*holey);
-    //olda1 = (float *) malloc(sizeof(float)*holex*holey);
-    //olda2 = (float *) malloc(sizeof(float)*holex*holey);
-    //olddelta = (float *) malloc(sizeof(float)*holex*holey);
     a0 = new float[holex*holey]; 
     a1 = new float[holex*holey]; 
     a2 = new float[holex*holey]; 

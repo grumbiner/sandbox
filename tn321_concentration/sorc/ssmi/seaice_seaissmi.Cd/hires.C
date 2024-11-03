@@ -2,12 +2,6 @@
 #include <cmath>
 #include <cstdio>
 
-#include "icessmi.h"
-
-//old#ifndef IBM
-//old  #define FALSE (1==0)
-//old  #define TRUE  (1==1)
-//old#endif
 
 /* Elements specific to the high resolution SSMI algorithm and processing */
 /* Note that almost the entire program is identical to the low-res version */
@@ -48,9 +42,6 @@ float hires(ssmi *map, int nx, int ny, int polei, int polej,
     printf("entered hires, nx, ny = %d %d\n",nx, ny); fflush(stdout);
   #endif
 /* find the points which are usable -- good tb's, not too close to land */
-  //old use  = (bool *)   malloc(nx*ny*sizeof(int));
-  //old conc = (float *) malloc(nx*ny*sizeof(float));
-  //old test = (float *) malloc(nx*ny*sizeof(float));
   use  = new bool[nx*ny];
   conc = new float[nx*ny];
   test = new float[nx*ny];
@@ -228,9 +219,4 @@ void regress(float *test, float *conc, int count, float *a, float *b,
    }
 
    return;
-}
-
-int min(int x, int y) {
-  if (x < y) { return x; }
-  else { return y;}
 }

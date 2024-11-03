@@ -16,7 +16,7 @@ C
 C
       SAVE
 C
-      data  tick  /0.001/
+      data  tick  /1.0/
 C
       s1 = second()     
       e = 2.5D-4

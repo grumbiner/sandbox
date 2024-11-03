@@ -1,54 +1,56 @@
       PROGRAM bufrout
-C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
-C 
-C MAIN PROGRAM: SSMIBUFR    SELECTIVE BUFR -> BINARY TRANSLATION
-C   PRGMMR: GRUMBINE         ORG: NP21        DATE: 97-09-05  
-C
-C ABSTRACT: READ IN BUFR MESSAGES, SELECT THOSE MESSAGES WHICH
-C    CORRESPOND TO A SATELLITE OF INTEREST, AND WRITE THEM OUT
-C    AS UNFORMATTED BINARY FOR LATER USE.
-C
-C PROGRAM HISTORY LOG:
-C   97-08-15  Robert Grumbine     ORIGINAL AUTHOR
-C   98-07-21  Robert Grumbine  Y2K and F90 fixes
-C   99-12-28  Robert Grumbine  Transfer to IBM-SP, requires changes to type
-C                                sizes imposed by BUFRLIB
-C 2000-08-15  Robert Grumbine  High resolution ssmi channels added
-C 2001-05-24  Robert Grumbine  Changes for running on LINUX as well
-C 2014-10-10  Robert Grumbine  F90-friendliness: removing goto,
-C un-numbered do loops
-C
-C USAGE:
-C   INPUT FILES:
-C     FTNF14 - BUFR SOURCE DATA TANK
-C   OUTPUT FILES:
-C     FTNF51 - UNFORMATTED DATA FROM DESIRED SATELLITE(S)
-C
-C SUBPROGRAMS CALLED:
-C    UNIQUE: NONE
-C    BUFRLIB: OPENBF, UFBINT, UFBREP AND THEIR DESCENDANTS
-C
-C EXIT STATES:
-C    COND = 0 - SUCCESSFUL RUN
-C
-C ATTRIBUTES:
-C   LANGUAGE: F-77, F-90
-C   MACHINE: Any (?)
-C
-C$$$ 
-C     Program core from Vera Gerald 3/25/97.  
-C     Read in bufr files and write out unformatted binary for
-C       use by other programs
-C     Robert Grumbine 4 June 1997.
+!$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+! 
+! MAIN PROGRAM: SSMIBUFR    SELECTIVE BUFR -> BINARY TRANSLATION
+!   PRGMMR: GRUMBINE         ORG: NP21        DATE: 97-09-05  
+!
+! ABSTRACT: READ IN BUFR MESSAGES, SELECT THOSE MESSAGES WHICH
+!    CORRESPOND TO A SATELLITE OF INTEREST, AND WRITE THEM OUT
+!    AS UNFORMATTED BINARY FOR LATER USE.
+!
+! PROGRAM HISTORY LOG:
+!   97-08-15  Robert Grumbine     ORIGINAL AUTHOR
+!   98-07-21  Robert Grumbine  Y2K and F90 fixes
+!   99-12-28  Robert Grumbine  Transfer to IBM-SP, requires changes to type
+!                                sizes imposed by BUFRLIB
+! 2000-08-15  Robert Grumbine  High resolution ssmi channels added
+! 2001-05-24  Robert Grumbine  Changes for running on LINUX as well
+! 2014-10-10  Robert Grumbine  F90-friendliness: removing goto,
+! un-numbered do loops
+!
+! USAGE:
+!   INPUT FILES:
+!     FTNF14 - BUFR SOURCE DATA TANK
+!   OUTPUT FILES:
+!     FTNF51 - UNFORMATTED DATA FROM DESIRED SATELLITE(S)
+!
+! SUBPROGRAMS CALLED:
+!    UNIQUE: NONE
+!    BUFRLIB: OPENBF, UFBINT, UFBREP AND THEIR DESCENDANTS
+!
+! EXIT STATES:
+!    COND = 0 - SUCCESSFUL RUN
+!
+! ATTRIBUTES:
+!   LANGUAGE: F-77, F-90
+!   MACHINE: Any (?)
+!
+!$$$ 
+!     Program core from Vera Gerald 3/25/97.  
+!     Read in bufr files and write out unformatted binary for
+!       use by other programs
+!     Robert Grumbine 4 June 1997.
 
       IMPLICIT none
 
-      CHARACTER*80  XIDST,XLCST,BRTST,XL85ST, BR85ST
-      CHARACTER*8 inout,subset
+      CHARACTER(80)  XIDST,XLCST,BRTST,XL85ST, BR85ST
+      CHARACTER(8) inout,subset
       REAL     XIDENT(9),xloc(4,64),BRT(2,7,64),temps(7)
-      REAL*8   XIDENT8(9), xloc8(4,64), BRT8(2,7,64), temps8(7)
+!      REAL(8)   XIDENT8(9), xloc8(4,64), BRT8(2,7,64), temps8(7)
+      REAL(8)   XIDENT8(9), xloc8(4,64), BRT8(2,7,64), temps8(7)
       REAL     xloc85(4, 192), brt85(2, 2, 192)
-      REAL*8   xloc858(4, 192), brt858(2, 2, 192)
+!      REAL(8)   xloc858(4, 192), brt858(2, 2, 192)
+      REAL(8)   xloc858(4, 192), brt858(2, 2, 192)
       INTEGER index, index2, index3
       INTEGER iy, id, im, imins, isad, iunt, jcnt, jret, iret
       INTEGER kret, k2ret, kwrit, k
@@ -58,42 +60,42 @@ C     Robert Grumbine 4 June 1997.
       INTEGER isec, iscan, ihr, idate, icnt
       INTEGER  ireadsb, ireadmg
       INTEGER creturns, openout, shortout, longout, hiresout
-C-----------------------------------------------------------------------
-C
-C  THE LIST OF SSMI DATA AS CONVERTED AND WRITTEN TO BUFR FOLLOWS:
-C
-C     ARRAY            MNEMONIC   DESCRIPTOR   DESCRIPTION
-C     -----            --------   ----------   -----------
-C
-C     XIDENT(1)        SAID       001007       SATELLITE ID
-C     XIDENT(2)        YEAR       004001       YEAR
-C     XIDENT(3)        MNTH       004002       MONTH
-C     XIDENT(4)        DAYS       004003       DAY
-C     XIDENT(5)        HOUR       004004       HOUR
-C     XIDENT(6)        MINU       004005       MINUTE
-C     XIDENT(7)        SECO       004006       SECOND
-C     XIDENT(8)        ORBN       005040       ORBIT NUMBER
-C     XIDENT(9)        SCNN       005201       SCAN NUMBER
-C
-C     xloc(1,1:64)     CLAT       005002       LATITUDE
-C     xloc(2,1:64)     CLON       006002       LONGITUDE
-C     xloc(3,1:64)     SFTG       020217       SURFACE TAG
-C     xloc(4,1:64)     POSN       005202       POSITION NUMBER
-C
-C     BRT(1,1:7,1:64)  CHNM       005042       CHANNEL NUMBER
-C     BRT(2,1:7,1:64)  TMBR       012063       RADIANCE TEMPERATURE
-C
-C     xloc85(1,1:192)  CLAT85     005255       Lat
-C     xloc85(2,1:192)  CLON85     005255       Lon
-C     xloc85(3,1:192)  SFTG85     005255       Surface Tag
-C     xloc85(4,1:192)  POSN85     005255       Position Number
-C
-C     brt85(1,1:2,1:192) CHNM85   005254       Channel number
-C     brt85(2,1:2,1:192) TMBR85   012255       Radiance Temperature
-C     
-C
-C-----------------------------------------------------------------------
-C
+!-----------------------------------------------------------------------
+!
+!  THE LIST OF SSMI DATA AS CONVERTED AND WRITTEN TO BUFR FOLLOWS:
+!
+!     ARRAY            MNEMONIC   DESCRIPTOR   DESCRIPTION
+!     -----            --------   ----------   -----------
+!
+!     XIDENT(1)        SAID       001007       SATELLITE ID
+!     XIDENT(2)        YEAR       004001       YEAR
+!     XIDENT(3)        MNTH       004002       MONTH
+!     XIDENT(4)        DAYS       004003       DAY
+!     XIDENT(5)        HOUR       004004       HOUR
+!     XIDENT(6)        MINU       004005       MINUTE
+!     XIDENT(7)        SECO       004006       SECOND
+!     XIDENT(8)        ORBN       005040       ORBIT NUMBER
+!     XIDENT(9)        SCNN       005201       SCAN NUMBER
+!
+!     xloc(1,1:64)     CLAT       005002       LATITUDE
+!     xloc(2,1:64)     CLON       006002       LONGITUDE
+!     xloc(3,1:64)     SFTG       020217       SURFACE TAG
+!     xloc(4,1:64)     POSN       005202       POSITION NUMBER
+!
+!     BRT(1,1:7,1:64)  CHNM       005042       CHANNEL NUMBER
+!     BRT(2,1:7,1:64)  TMBR       012063       RADIANCE TEMPERATURE
+!
+!     xloc85(1,1:192)  CLAT85     005255       Lat
+!     xloc85(2,1:192)  CLON85     005255       Lon
+!     xloc85(3,1:192)  SFTG85     005255       Surface Tag
+!     xloc85(4,1:192)  POSN85     005255       Position Number
+!
+!     brt85(1,1:2,1:192) CHNM85   005254       Channel number
+!     brt85(2,1:2,1:192) TMBR85   012255       Radiance Temperature
+!     
+!
+!-----------------------------------------------------------------------
+!
       REAL hiresobs(4,3)
       INTEGER i, j, ount, count
       INTEGER F11, F13, F14, F15, SATNO
@@ -107,8 +109,8 @@ C
      3 'CHNM TMBR                                                  ',
      4 'CLAT85 CLON85 SFTG85 POSN85                                ',
      5 'CHNM85 TMBR85                                              '/
-cc  where IUNT is the FORTRAN I/O UNIT NUMBER for the tank of
-cc  SSM/I brightness data.
+!c  where IUNT is the FORTRAN I/O UNIT NUMBER for the tank of
+!c  SSM/I brightness data.
 
       icnt = 0
       jcnt = 0
@@ -123,7 +125,7 @@ cc  SSM/I brightness data.
 
 
       count = 0
-CD      CALL W3TAGB('SSMIBUFR',1999,0248,0070,'NP21   ')
+!D      CALL W3TAGB('SSMIBUFR',1999,0248,0070,'NP21   ')
        OPEN (iunt, FORM="UNFORMATTED", STATUS="OLD")
        OPEN (ount, FORM="UNFORMATTED", STATUS="NEW")
        CALL openbf(iunt,inout,iunt)
@@ -183,9 +185,9 @@ CD      CALL W3TAGB('SSMIBUFR',1999,0248,0070,'NP21   ')
              iscan = XIDENT(9)
              isec = XIDENT(7)
              creturns = shortout(SATNO, iy,im,id,ihr,imins,isec,iscan)
-CD             IF (count .LT. 100) THEN
-CD               WRITE (*,*) SATNO, iy,im,id,ihr,imins,isec,iscan
-CD             ENDIF
+!D             IF (count .LT. 100) THEN
+!D               WRITE (*,*) SATNO, iy,im,id,ihr,imins,isec,iscan
+!D             ENDIF
 
             DO kscan = 1,iret
               xlat = xloc(1,kscan)
@@ -202,7 +204,7 @@ CD             ENDIF
               creturns = longout(kscan,xlat,xlon,sftg,posn,
      1               tmp1,tmp2,tmp3,tmp4,tmp5,tmp6,tmp7)
 
-C             Now write out the hires info:
+!             Now write out the hires info:
               DO k = 1, 3
                 kwrit = (kscan-1)*3 + k
                 xlat = xloc85(1, kwrit)
@@ -221,7 +223,7 @@ C             Now write out the hires info:
          ENDDO
        ENDDO
 
-CD      CALL W3TAGE('SSMIBUFR')
+!D      CALL W3TAGE('SSMIBUFR')
 
       STOP
       END

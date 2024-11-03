@@ -3,7 +3,6 @@ import numpy.ma as ma
 
 from filtering import *
 
-# noodle satobs class and descendents
 tb_lr = np.zeros((amsr2_lr.ntb))
 tb_hr = np.zeros((amsr2_hr.ntb))
 sat_lr = amsr2_lr()
@@ -36,55 +35,6 @@ fin.close()
 
 npts = len(lrmatch)
 
-
-#---------------------------------------------------------------------
-def filter_scan(allmatch, icemask, landmask, watermask, known, stats):
-
-  tbfilters = []
-  c1obs = np.zeros((npts))
-  c2obs = np.zeros((npts))
-  
-  for c1 in range(0,amsr2_lr.ntb):
-    c1_save = c1
-    tag = "ch"+"{:d}".format(c1)
-    for i in range(0,npts):
-      c1obs[i] = allmatch[i].obs.tb[c1]
-    #debug: print("channel",c1,"stats","{:6.2f}".format(c1obs.max()), 
-    #debug:       "{:6.2f}".format(c1obs.min()), "{:6.2f}".format(c1obs.mean()), flush=True )
-    
-    # Scan a temperature range
-    for tc in range(50, 285, 1):
-      thot = float(tc)
-      tmp  = bayes(c1obs, thot, tag, npts, stats, landmask, icemask, 
-                   watermask, known, c1)
-      filter.add(tbfilters, tmp)
-  
-    # Check delta ratio (dr) w.r.t this channel:
-    for c2 in range (c1_save+1, amsr2_lr.ntb):
-      if (c1_save != c2):
-          #debug: print("c1_save, c2 ",c1_save, c2, flush=True)
-        for i in range(0,npts):
-          c2obs[i] = allmatch[i].obs.tb[c2]
-  
-        tag2 = "dr"+"{:d}".format(c1_save)+"{:d}".format(c2)
-        tmp = dr(c1obs, c2obs, c1_save, c2, tag2, npts, stats, 
-                 landmask, icemask, watermask, known, 
-                 granularity = int(100/1) )
-        filter.add(tbfilters, tmp)
-
-  return tbfilters
-#--- end of scan -----------------------------------------------------------
-def appfilter(allmatch, known, best):
-  tcount = 0
-  fcount = 0
-  for i in range (0, len(allmatch)):
-    if ( (not known[i]) and best.apply(allmatch[i]) ):
-      tcount += 1
-      known[i] = True
-    else:
-      fcount += 1
-  #debug: 
-  print("applied ",tcount,"times", flush = True)
 
 #----------------------------------------------------------
 # Constructing the masks

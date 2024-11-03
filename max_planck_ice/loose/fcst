@@ -1,0 +1,3 @@
+tag=`date +"%y%m%d"`
+cd ~rmg3/icemodel/running
+time ./short $tag &

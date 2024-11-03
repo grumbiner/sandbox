@@ -1,0 +1,9 @@
+for tag in type Ocean Ice fail
+do
+  grep -c $tag 200????? > $tag.count
+done
+
+#for tag in 1 2 3 
+#do
+#  grep -c "type=  $tag" 200????? > $tag.count
+#done

@@ -1,0 +1,48 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+
+%SetFonts
+
+%SetFonts
+
+
+\title{Brief Article}
+\author{The Author}
+%\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+\section{Data}
+The data are 579 days of GFS to station matchups at up to NNN stations, for the 24 hour output at 00 UTC
+
+For initial exploration, only stations with complete records are used. GFS variables are 2 meter air temperature, dew point, 850-1000 mb thickness, relative humidity, and wind speed. The station information includes the observed 2 meter air temperature, observed dew point, and the difference between raw GFS values and the observed.
+
+Because the GFS output is well correlated to the observations, rather than try to predict the temperature itself, the evolutionary MOS tries to predict the GFS temperature error, which can then be applied to the model output itself. See also discussion by Krasnopolsky \citet{vladimir_mos}
+
+\section{Initial MOS evolution}
+
+\subsection{Evolutionary Strategy}
+In an Evolutionary Strategy \citet{eiben+smith}, NNN one starts with a population, and varies the parameters continuously. One can, and I will, also apply evolution to the magnitude of the variation. That is, all parameters will have a corresponding standard deviation. In constructing offspring to test for quality, parameters are varied by gaussian random variation, with the standard deviation given. The standard deviation itself evolves via lognormal distribution.
+
+\subsection{Brute force multilinear regression}
+In order to develop intuition about how the evolutionary strategy behaves, the first application is as a brute force implementation of multilinear regression:
+\begin{equation}
+T_err = a_0 + \Sigma a_i*P_i
+\end{equation}
+where a$_0$ is a bias term, P$_i$ are the i parameters from the GFS, and a$_i$ are constant coefficients. The evolutionary strategy is then trying to minimize $\Sigma_j (T_err_j)^2$, summed over all j (days). 
+
+These coefficients can be computed by standard linear regression, with due care for the fact that many of the variables are mutually correlated. In the evolutionary process, this is not a problem, as there is no matrix inversion involved. On the other hand, there are many, many evaluations of the error sum. On still another hand, the process also arrives at estimates for how uncertain the different parameters are, in the evolved standard deviations.
+
+
+
+
+\end{document}  

@@ -1,5 +1,4 @@
 #include <cstdio>
-#include "icessmi.h"
 
 #define REF_SAT 13
 
@@ -13,7 +12,7 @@
 int ice_avg_data(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
                  ssmi *north, ssmi *south, 
                  const int north_pts, const int south_pts, 
-                 team2_tables &arctic, team2_tables &antarctic) { 
+                 ssmi_team2_tables &arctic, ssmi_team2_tables &antarctic) { 
   int i, nlim, slim;
 
   nlim = north_pts;
@@ -76,7 +75,7 @@ int ice_avg_data(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
           (float)north[i].t37v / 100.,
           (float)north[i].t37h / 100.,
           (float)north[i].t85v / 100.,
-          (float)north[i].t85h / 100., 'n', ANTENNA, REF_SAT
+          (float)north[i].t85h / 100., 'n', SSMI_ANTENNA, REF_SAT
         ) ); 
 
       #else
@@ -98,7 +97,7 @@ int ice_avg_data(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
           (float)north[i].t37v / 100.,
           (float)north[i].t37h / 100.,
           (float)north[i].t85v / 100.,
-          (float)north[i].t85h / 100., 'n', ANTENNA, REF_SAT
+          (float)north[i].t85h / 100., 'n', SSMI_ANTENNA, REF_SAT
         ) ); 
 
       #endif
@@ -168,7 +167,7 @@ int ice_avg_data(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
         (float)south[i].t37v  / 100.,
         (float)south[i].t37h  / 100.,
         (float)south[i].t85v  / 100.,
-        (float)south[i].t85h  / 100., 's', ANTENNA, REF_SAT
+        (float)south[i].t85h  / 100., 's', SSMI_ANTENNA, REF_SAT
        )  ) ; 
 
       #else
@@ -190,7 +189,7 @@ int ice_avg_data(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
         (float)south[i].t37v  / 100.,
         (float)south[i].t37h  / 100.,
         (float)south[i].t85v  / 100.,
-        (float)south[i].t85h  / 100., 's', ANTENNA, REF_SAT
+        (float)south[i].t85h  / 100., 's', SSMI_ANTENNA, REF_SAT
        )  ) ; 
 
        #endif
@@ -318,6 +317,7 @@ int ice_zero(ssmi_tmp *north_tmp, ssmi_tmp *south_tmp,
   blank.t85h = 0;
   blank.conc_bar = NO_DATA;
   blank.hires_bar = NO_DATA;
+  blank.old_conc_bar = NO_DATA;
   blank.count    = 0;
   blank.weather_count    = 0;
 
