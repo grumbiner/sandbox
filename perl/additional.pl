@@ -10,7 +10,7 @@ use File::Basename;
 $CGI::POST_MAX = 1024 * 1024 * 15;
 my $safe_filename_characters = "a-zA-Z0-9_.-";
 #Note that at this point, we're using absolute path.   RG
-my $upload_dir = "/data/WWW/tmp/";
+my $upload_dir = "/data/www/mmab/tmp/";
 
 my $query = new CGI;
 
@@ -78,16 +78,16 @@ END_HTML
 
 # Now make the xml file for use elsewhere:
 
-open(addcount , '<', "/data/WWW/cgi-bin/addcount") or die 
+open(addcount , '<', "/data/www/mmab/tmp/addcount") or die 
                   "Can't open addcount file";
-open(addcount2 , '>', "/data/WWW/cgi-bin/addcount2") or die 
+open(addcount2 , '>', "/data/www/mmab/tmp/addcount2") or die 
                   "Can't open addcount2 file";
 
 #addcount is the file with the pre-existing count
 my $tmp = <addcount>;
 $tmp += 1;
 print addcount2 $tmp;
-system "/bin/cp addcount2 addcount";
+system "/bin/cp /data/www/mmab/tmp/addcount2 /data/www/mmab/tmp/addcount";
 print "your document number ",$tmp,"\n";
 
 my $tname=$tmp.".xml";
@@ -124,9 +124,9 @@ print alpha <<END_XML;
 END_XML
 
 # Now that file has been uploaded and xml created, move to papers directory
-system "mkdir /data/WWW/mmab/additional_contributions/an$tmp";
-system "/bin/cp $upload_dir/$tname $upload_dir/$filename /data/WWW/mmab/additional_contributions/an$tmp";
-#print "/bin/cp $upload_dir/$tname $upload_dir/$filename /data/WWW/mmab/additional_contributions/an$tmp";
+system "mkdir /data/www/mmab/mmab/additional_contributions/an$tmp";
+system "/bin/cp $upload_dir/$tname $upload_dir/$filename /data/www/mmab/mmab/additional_contributions/an$tmp";
+#print "/bin/cp $upload_dir/$tname $upload_dir/$filename /data/www/mmab/mmab/additional_contributions/an$tmp";
 
 #Finally, run update of summary index:
 open beta, ">>$upload_dir/added.notes";

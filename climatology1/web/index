@@ -1,56 +1,33 @@
-The data are from Chapman, W. L. and J. E. Walsh, Long-Range Prediction 
-of Regional Sea Ice Anomalies in the Arctic, Weather and Forecasting, 
-6, pp 271-288, 1991.  The data are available from the 
-<a href="http://nsidc.org">The National Snow and Ice Data Center</a>.  
-The only changes at this point are that the fields have been 
-interpolated onto the NCEP sea ice grid.  The NCEP grid is more 
-extensive, so that there are zones which report no ice cover.<BR/>
- 
+NCEP Draft Sea Ice Climatology 1 -- 30 year climatology based on CFSR 
+(Saha et al., 2010) sea ice fields.  The original fields are 0.5 degree 
+latitude-longitude, which is continued here.<p/>
+
+Two concepts of climatology are shown.  In the 'traditional' climatology, 
+the 30 observations for January 1 (1981-2010) are simply averaged.  In 
+the 'conditional' climatology, the number of years with an ice cover is 
+tallied, and the average concentration <i>for those years where there 
+is an ice cover</i> is computed.<p/>
+
+<a href="/mmab/papers/tn322">Grumbine (2014)</a> provides the details on analysis methods and results.<p/>
 <HR>
-<A HREF="months.shtml">Examine the end of each month</A><BR/>
-Northern hemisphere covers 1901 to 1990<BR/>
-Southern hemisphere covers 1973 to 1990<BR/>
-Images are for the <B>end</B> of the named month!<BR/>
 
-<HR/>
-<A HREF="daily.shtml">NCEP Daily Averaged Sea Ice Climatology</A><BR/>
+<UL>
+<LI><a href="figs">Figures</a> -- global, nh, sh; traditional, conditional: average, var, </LI>
 
-<HR>
-Climatology of month-end ice cover:
-<TABLE BORDER=2 ALIGN=CENTER>
-<TR>
-  <TD>Average</TD><TD>Variance</TD>
-</TR>
-<TR>  <TD><A HREF="nh.00.gif">January</A></TD> <TD><A HREF="nhvar.00.gif">January</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.01.gif">February</A></TD> <TD><A HREF="nhvar.01.gif">February</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.02.gif">March</A></TD> <TD><A HREF="nhvar.02.gif">March</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.03.gif">April</A></TD> <TD><A HREF="nhvar.03.gif">April</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.04.gif">May</A></TD> <TD><A HREF="nhvar.04.gif">May</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.05.gif">June</A></TD> <TD><A HREF="nhvar.05.gif">June</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.06.gif">July</A></TD> <TD><A HREF="nhvar.06.gif">July</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.07.gif">August</A></TD> <TD><A HREF="nhvar.07.gif">August</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.08.gif">September</A></TD> <TD><A HREF="nhvar.08.gif">September</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.09.gif">October</A></TD> <TD><A HREF="nhvar.09.gif">October</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.10.gif">November</A></TD> <TD><A HREF="nhvar.10.gif">November</A></TD>
-</TR>
-<TR>  <TD><A HREF="nh.11.gif">December</A></TD> <TD><A HREF="nhvar.11.gif">December</A></TD>
-</TR>
-</TABLE>
+<LI><a href="support">Support</a> -- climo.areas  condclimo.areas  raw.areas  seaice_newland</LI>
 
-<HR/>
-<A HREF="/seaice/">Return to main sea ice page</A><BR/>
-<A HREF="/seaice/Historical.html">Return to sea ice history page</A><BR/>
-Last Modified 27 May 2005<BR/>
+<LI><a href="raw">Raw</a> -- rawice.tgz</LI> 
+
+<LI><a href="traditional">Traditional</a> -- cbarn.gs  figs.tgz  hires.tgz  lores.tgz  plot.sh  ref.ctl  ref.gs</LI>
+<LI><a href="conditional">Conditional</a> -- eng5min.all.gz  eng.all.gz  highres.tgz  lores.tgz</LI> 
+<LI><a href="statistics">Statistics</a> -- count.MM, count.MMDD</LI>
+<LI><a href="great_lakes">Great Lakes</a> -- </LI>
+</UL>
+
+
+<A HREF="/seaice/">Go to main sea ice page</A><BR/>
+<A HREF="/seaice/Historical.html">Go to sea ice history page</A><BR/>
+
 <A HREF="mailto:Robert.Grumbine@noaa.gov">Robert.Grumbine@noaa.gov</A><BR/>
 
 <HR>
@@ -59,3 +36,4 @@ Last Modified 27 May 2005<BR/>
           src="http://www.w3.org/Icons/valid-html401"
           alt="Valid HTML 4.01!" height="31" width="88"></a>
     </p>
+

@@ -1,16 +1,16 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 transitional//EN"
-            "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
   <title>NCEP Sea Ice Climatology</title>
-  <meta name="DC.title" content="NCEP Sea Ice Climatology">
-  <meta name="DC.description" content="NCEP Sea Ice Climatology page">
+  <meta name="DC.title" content="NCEP Sea Ice Climatology 1">
+  <meta name="DC.description" content="NCEP Sea Ice Climatology 1 page">
   <meta name="DC.creator" content="MMAB Sea Ice group">
-  <meta name="DC.date.created" scheme="ISO8601" content="2003-04-07">
-  <meta name="DC.date.reviewed" scheme="ISO8601" content="2009-08-06">
+  <meta name="DC.date.created" scheme="ISO8601" content="2014-04-07">
+  <meta name="DC.date.reviewed" scheme="ISO8601" content="2014-04-07">
   <meta name="DC.language" scheme="DCTERMS.RFC1766" content="EN-US">
   <meta http-equiv=Content-Type content="text/html; charset=utf-8">
-  <link href="/mmab/images/nwscwi/main.css" type="text/css" rel="STYLESHEET">
+  <link href="/seaice/fred.css" type="text/css" rel="STYLESHEET">
   <link rel="icon" type="image/ico" href="/mmab/images/nwscwi/favicon.ico">
   <link REL="SHORTCUT ICON" href="favicon.ico">
 </head>
@@ -24,7 +24,7 @@
   <tbody>
   <tr vAlign="top">
     <td width="130"><BR>
-      <!--#include virtual="/seaice/seaice_menu.html" -->   
+      <!--#include virtual="/seaice/fredmenu.html" -->   
       <!-- Use virtual include, because this should be in a common place within your DocumentRoot. -->
     </td>
     <td vAlign="top" width="540"><A name="contents"></A><BR>
