@@ -1,3 +1,3 @@
       INTEGER xmax, ymax
-      PARAMETER (xmax = 255)
-      PARAMETER (ymax = 255)
+      PARAMETER (xmax = 256+15)
+      PARAMETER (ymax = 256+15)
