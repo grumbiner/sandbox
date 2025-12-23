@@ -4,19 +4,18 @@ using namespace std;
 
 #define SCALE 6
 // Approx 1 min on 1 cpu on 2021 desk, scale = 6
+// scale = 6, nstep 4750, freq 95 on D5 --> 16 sec on 1 cpu
 #define NSTEP   4750
 #define freq      95
 
-
-
-// Something like lake michigan
+#define gee 9.8
 #define dx  (1000./(float) SCALE)
 #define dy  (1000./(float) SCALE)
 #define dt  (20./(float) SCALE)
 
+// Something like lake michigan
 #define NX (125.e3 / dx )
 #define NY (450.e3 / dy )
-#define gee 9.8
 
 // Approx 1 min on 1 cpu on 2021 desk, 3000*10800 grid (scale = 24)
 //#define NSTEP    30
