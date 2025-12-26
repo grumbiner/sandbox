@@ -1,0 +1,8 @@
+!  common/PARMETA/ contains constants from parmeta of eta model,
+!     but here, they are initialized from namelist input data, instead of
+!     using parameter statements.  (except for parameter lsm) 
+
+         parameter (lsm=39)
+         common/PARMETA/im,jm,lm,inpes,jnpes,igstl,igstr,jgstl,jgstr
+         common/parmeta/itail,jtail,idim1,idim2,jdim1,jdim2,imjm
+         common/parmeta/jmp1,jam,lb,lm1,lm2,lp1,imt,isiz1,isiz2,im1,jamd

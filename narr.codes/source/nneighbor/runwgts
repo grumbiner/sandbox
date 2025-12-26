@@ -1,0 +1,11 @@
+set -x
+
+# first input number is input e-grid
+# second input number is the output grid
+
+ln -s -f wgt_3245_221_nneighbor fort.51
+
+./wgtmkr.x <<EOF > wgts.out
+192
+221
+EOF

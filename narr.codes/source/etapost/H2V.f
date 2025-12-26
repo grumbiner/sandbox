@@ -1,0 +1,84 @@
+      SUBROUTINE H2V(UMASS,VMASS,UWIND,VWIND)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .     
+C SUBPROGRAM:    H2V         INTERPOLATE MASS TO WIND POINTS
+C   PRGRMMR: TREADON         ORG: W/NP2      DATE: 93-10-05
+C     
+C ABSTRACT:  
+C   THIS ROUTINE INTERPOLATES MASS POINT WINDS TO VELOCITY POINTS.
+C   .     
+C     
+C PROGRAM HISTORY LOG:
+C   93-10-05  RUSS TREADON
+C   98-06-11  T BLACK - CONVERSION FROM 1-D TO 2-D
+C   00-01-04  JIM TUCCILLO - MPI VERSION
+C     
+C USAGE:    CALL H2V(UMASS,VMASS,UWIND,VWIND)
+C   INPUT ARGUMENT LIST:
+C     UMASS    - U WIND AT MASS POINTS
+C     VMASS    - V WIND AT MASS POINTS
+C
+C   OUTPUT ARGUMENT LIST: 
+C     UWIND    - U WIND AT VELOCITY POINTS
+C     VWIND    - V WIND AT VELOCITY POINTS
+C     
+C   OUTPUT FILES:
+C     NONE
+C     
+C   SUBPROGRAMS CALLED:
+C     UTILITIES:
+C       NONE
+C     LIBRARY:
+C       COMMON - OPTIONS
+C     
+C   ATTRIBUTES:
+C     LANGUAGE: FORTRAN
+C     MACHINE : CRAY C-90
+C$$$  
+C     
+C     
+C     INCLUDE PARAMETERS.
+      INCLUDE "parmeta"
+      INCLUDE "params"
+C     
+C     DECLARE VARIABLES.
+      REAL UMASS(IM,JM),VMASS(IM,JM),UWIND(IM,JM),VWIND(IM,JM)
+C     
+C     INCLUDE COMMON BLOCK.
+      INCLUDE "OPTIONS.comm"
+      INCLUDE "INDX.comm"
+      INCLUDE "CTLBLK.comm"
+C     
+C     
+C***************************************************************************
+C     START H2V HERE.
+C     
+C     INITIALIZE V POINT ARRAYS TO THE SPECIAL VALUE.
+C     
+!$omp  parallel do
+      DO J=JSTA,JEND
+      DO I=1,IM
+        UWIND(I,J) = SPVAL
+        VWIND(I,J) = SPVAL
+      ENDDO
+      ENDDO
+C     
+C     FOUR POINT AVERAGE MASS POINT WINDS TO VELOCITY POINTS.
+C
+      CALL EXCH(UMASS)
+      CALL EXCH(VMASS)
+!$omp  parallel do
+      DO J=JSTA_M,JEND_M
+      DO I=2,IM-1
+        UWIND(I,J)=D25*(UMASS(I,J-1)+UMASS(I+IVW(J),J)+
+     1                  UMASS(I+IVE(J),J)+UMASS(I,J+1))
+        VWIND(I,J)=D25*(VMASS(I,J-1)+VMASS(I+IVW(J),J)+
+     1                  VMASS(I+IVE(J),J)+VMASS(I,J+1))
+      ENDDO
+      ENDDO
+C     
+C     END OF ROUTINE.
+C     
+      RETURN
+      END
+

@@ -1,0 +1,3 @@
+xlf -qfixed -o editbufr.x editbufr_dgex.f  gtgdef.f  raddate.f  w3fi71_dgex.f \
+      /nwprod/lib/libw3_4.a /nwprod/lib/libbufr_4_64.a
+/bin/rm *.o

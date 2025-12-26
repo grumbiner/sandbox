@@ -1,0 +1,182 @@
+#!/bin/sh
+
+#####################################################################
+echo "------------------------------------------------"
+echo " NGM Post-Processing for bulletins"
+echo "------------------------------------------------"
+echo "History: NOV 2004 - First implementation of this new script."
+echo "         OCT 2005 - Transfer products to TOC on NTC        ."
+echo " "
+#####################################################################
+
+cd $DATA
+
+#####################################################################
+# START FLOW OF CONTROL
+# 1) extrkr.sh - tropical cyclone objective track processing
+# 2) rglpcpnv  - create precip lists
+# 3) bullrafs60 - RAFS60TX processing.
+# 4) rfgrdcod - GRID code bulletins for Canada
+#####################################################################
+
+if [ $fcsthrs -ne 48 ]
+then
+   echo "hour not correct, NGM only processes bulletins at hr=48"
+   err_exit
+fi
+
+export comrun=$COMIN/${RUN}.${cycle}
+export COMm1=/com/${NET}/${envir}/${RUN}.${PDYm1}
+
+########################################
+set -x
+msg="Begin job for $job"
+postmsg "$jlogfile" "$msg"
+
+###########################################
+# Copy files from /com
+###########################################
+cp $comrun.pgrb.f00 pgrb.f00
+cp $comrun.pgrb.f06 pgrb.f06
+cp $comrun.pgrb.f12 pgrb.f12
+cp $comrun.pgrb.f18 pgrb.f18
+cp $comrun.pgrb.f24 pgrb.f24
+cp $comrun.pgrb.f30 pgrb.f30
+cp $comrun.pgrb.f36 pgrb.f36
+cp $comrun.pgrb.f42 pgrb.f42
+cp $comrun.pgrb.f48 pgrb.f48
+
+cp $comrun.pgrbif00 pgrbif00
+cp $comrun.pgrbif06 pgrbif06
+cp $comrun.pgrbif12 pgrbif12
+cp $comrun.pgrbif18 pgrbif18
+cp $comrun.pgrbif24 pgrbif24
+cp $comrun.pgrbif30 pgrbif30
+cp $comrun.pgrbif36 pgrbif36
+cp $comrun.pgrbif42 pgrbif42
+cp $comrun.pgrbif48 pgrbif48
+
+set +x
+echo " #####################################################"
+echo " 1) Execute tracker to generate objective track"
+echo "    of tropical cyclones within NGM GRIB output"
+echo " #####################################################"
+echo " "
+set -x
+
+export cmodel=ngm
+export trkrscript=/nwprod/util/ush
+
+sh $trkrscript/extrkr.sh
+
+set +x
+echo " "
+echo "############################################################"
+echo " 2) rglpcpnv - create precip lists"
+echo "############################################################"
+echo " "
+set -x
+
+export pgm=graph_rglpcpnv
+. prep_step
+
+export XLFUNIT_11="pgrb.f12"
+export XLFUNIT_12="pgrb.f24"
+export XLFUNIT_13="pgrb.f36"
+export XLFUNIT_14="pgrb.f48"
+export XLFUNIT_31="pgrbif12"
+export XLFUNIT_32="pgrbif24"
+export XLFUNIT_33="pgrbif36"
+export XLFUNIT_34="pgrbif48"
+export XLFUNIT_50="rglpcpnv"
+
+startmsg
+
+$EXECbulls/graph_rglpcpnv >>pgmout 2>errfile
+err=$?;export err;err_chk
+if test "$SENDCOM" = 'YES'
+then
+  cp rglpcpnv $COMOUT/${RUN}.${cycle}.rglpcpnv
+  err=$?
+fi
+
+set +x
+echo " "
+echo "#############################################################"
+echo " 3) Process RAFS60TX"
+echo "#############################################################"
+echo " "
+set -x
+
+export pgm=bulls_rafs60tx
+. prep_step
+
+export XLFUNIT_11="pgrb.f00"
+export XLFUNIT_12="pgrb.f06"
+export XLFUNIT_13="pgrb.f12"
+export XLFUNIT_14="pgrb.f18"
+export XLFUNIT_15="pgrb.f24"
+export XLFUNIT_16="pgrb.f30"
+export XLFUNIT_17="pgrb.f36"
+export XLFUNIT_18="pgrb.f42"
+export XLFUNIT_19="pgrb.f48"
+export XLFUNIT_31="pgrbif00"
+export XLFUNIT_32="pgrbif06"
+export XLFUNIT_33="pgrbif12"
+export XLFUNIT_34="pgrbif18"
+export XLFUNIT_35="pgrbif24"
+export XLFUNIT_36="pgrbif30"
+export XLFUNIT_37="pgrbif36"
+export XLFUNIT_38="pgrbif42"
+export XLFUNIT_39="pgrbif48"
+export XLFUNIT_51="tran.rafs60tx"
+
+$EXECbulls/bulls_rafs60tx >> $pgmout 2> errfile
+err=$?;export err;err_chk
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWNO NONE $DATA/tran.rafs60tx $pcom/tran.rafs60tx.$job 
+
+set +x
+echo " "
+echo "############################################################"
+echo " 4) rfgrdcod - GRID code bulletins for Canada"
+echo "############################################################"
+echo " "
+set -x
+
+pgm=bulls_rfgrdcod
+export pgm; prep_step
+
+export XLFUNIT_11="pgrb.f00"
+export XLFUNIT_12="pgrb.f12"
+export XLFUNIT_13="pgrb.f24"
+export XLFUNIT_14="pgrb.f36"
+export XLFUNIT_15="pgrb.f48"
+export XLFUNIT_20="$PARMbulls/bulls_rfgrdcod.nam"
+export XLFUNIT_31="pgrbif00"
+export XLFUNIT_32="pgrbif12"
+export XLFUNIT_33="pgrbif24"
+export XLFUNIT_34="pgrbif36"
+export XLFUNIT_35="pgrbif48"
+export XLFUNIT_88="tran.rfgrdcod"
+
+startmsg
+
+$EXECbulls/bulls_rfgrdcod >> $pgmout 2> errfile
+err=$?;export err;err_chk
+
+$USHutil/make_ntc_bull.pl  WMORF NONE KWBC NONE $DATA/tran.rfgrdcod $pcom/tran.rfgrdcod.$job
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+set -x
+#####################################################################
+
+msg="HAS COMPLETED NORMALLY!"
+postmsg "$jlogfile" "$msg"
+
+############## END OF SCRIPT #######################

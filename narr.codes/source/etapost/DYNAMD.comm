@@ -1,0 +1,10 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /DYNAM/
+     & DY,CPGFV,EN,ENT,RDYN,PTDYN,F4D,F4Q,EF4T
+     &,DETAD(LM),RDETA(LM),AETAD(LM),F4Q2(LM),ETAD(LP1),DFL(LP1)
+C
+     &,EM    (JAM),EMT   (JAM)
+C
+     &,DX   (IM,JM),WPDAR(IM,JM),CPGFU(IM,JM),CURV (IM,JM),FCP  (IM,JM)
+     &,FDIV (IM,JM),FAD  (IM,JM),F    (IM,JM),DDMPU(IM,JM),DDMPV(IM,JM)
+C-----------------------------------------------------------------------

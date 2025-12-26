@@ -1,0 +1,1088 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/DIAG.f 09/30/06 19:44:06
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE DIAG
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    DIAG        PRINTS DIAGNOSTICS AND PART OF EACH FIELD
+          5 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          6 |C
+          7 |C ABSTRACT: CALCULATES AND PRINTS SOME DIAGNOSTICS FOR THE NGM
+          8 |C   FIELDS AND PRINTS PART OF A REPRESENTATIVE ROW OF THE FIELD
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   85-03-27  JIM HOKE
+         12 |C   88-08-01  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         13 |C   89-02-03  KEN MITCHELL ADDED SOIL TEMPERATURE
+         14 |C
+         15 |C USAGE:    CALL DIAG
+         16 |C   INPUT ARGUMENT LIST:
+         17 |C     NONE
+         18 |C
+         19 |C   OUTPUT ARGUMENT LIST:
+         20 |C     NONE
+         21 |C
+         22 |C   OUTPUT FILES:
+         23 |C     FT06F001 - PRINTS MESSAGES PERTAINING TO ERRORS
+         24 |C
+         25 |C   SUBPROGRAMS CALLED:
+         26 |C     UNIQUE:    - ERRSTOP
+         27 |C                  GRDSET
+         28 |C                  STATS
+         29 |C     LIBRARY:
+         30 |C       COMMON   - CONSTN
+         31 |C                  DUMMY2
+         32 |C                  CONSTS
+         33 |C                  BLANK (CONTAINS VBL ARRAY)
+         34 |C
+         35 |C ATTRIBUTES:
+         36 |C   LANGUAGE: FORTRAN 200
+         37 |C   MACHINE:  CYBER 205
+         38 |C
+         39 |C$$$
+         40 |C
+         41 |C
+         42 |      IMPLICIT REAL (A-H, O-Z)
+         43 |C
+         44 |C
+         45 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         46 |C
+         47 |C
+         48 |      COMMON /CONSTS/ IH, IQ, IT, IU, IV, IZ,
+         49 |     1                NLAT, LEVH, LEVS, LONF, NSIGSTP,
+         50 |     2                SLAT( INLAT ), STRIPARA( INSIGSTP ,  INLAT )
+         51 |C
+         52 |C       *****   END OF INCLUDED COMMON BLK CONSTS   *****
+         53 |C
+         54 |C
+         55 |      LOGICAL  BITSEA, BITSNO, BITWVL
+         56 |C
+         57 |      COMMON /CONSTN/ IMG( INGRDUSE ), JMG( INGRDUSE ),
+         58 |     1                IAG( INGRDUS1 ), JAG( INGRDUS1 ),
+         59 |     2                IBG( INGRDUS1 ), JBG( INGRDUS1 ),
+         60 |     3                IADDRG( INIADDRS ,  INGRDUSE ),
+         61 |     4                INDEXHU,  INDEXHV,  INDEXHTH, INDEXHQ,
+         62 |     5                INDEXH,   INDEXST,  INDEXSQ,  INDEXALB,
+         63 |     6                INDEXSLP, INDEXPSI, INDEXCD,  INDEXCC,  INDEXGSP,
+         64 |     7                INDEXRAD, INDEXDLW, INDEXDSW, INDEXCPR, INDEXMA,
+         65 |     8                INDEXSEC, INDEXZ0, INDEXTSS,  INDEXCG,  INDEXDHQ,
+         66 |     9                INDEXTSD, KM, NH, NGRDUSE,
+         67 |     1                SPECS( INSPECS ), DELSIG( IKM ),
+         68 |     2                POVH( IKM ), PIOVHK( IKM ),
+         69 |     3                CMUU  ( INGRDUSE ),
+         70 |     4                XPOLEH( INGRDUSE ), YPOLEH( INGRDUSE ),
+         71 |     5                XPOLEU( INGRDUSE ), YPOLEU( INGRDUSE ),
+         72 |     6                XPOLEV( INGRDUSE ), YPOLEV( INGRDUSE ),
+         73 |     7                DLAMNGM,
+         74 |     8                BITSEA( IIJMAX ,  INGRDUSE ),
+         75 |     9                BITSNO( IIJMAX ,  INGRDUSE ),
+         76 |     1                BITWVL( IIJMAX ,  INGRDUSE )
+         77 |C
+         78 |C       ****   END OF INCLUDED COMMON BLOCK CONSTN   ***
+         79 |C
+         80 |C
+         81 |      COMMON          VBL ( INVBL )
+         82 |      COMMON /DUMMY2/ ANAL( ILONFP1 ,  INLAT ,  ILEVS )
+         83 |C
+         84 |      DIMENSION FIELD( IIJKMAX )
+         85 |C
+         86 |      CHARACTER*8  LABEL(2)
+         87 |      CHARACTER*8  LVAR(12)
+         88 |C     LGRID IS DIMENSIONED TO BE BIGGER THAN THE NUMBER OF
+         89 |C     GRIDS WILL EVER BE.
+         90 |      CHARACTER*8  LGRID(9)
+         91 |      CHARACTER*35 ERRMSG(4)
+         92 |C
+         93 |      EQUIVALENCE (ANAL(1,1,1), FIELD(1))
+         94 |C
+         95 |      DATA LVAR/'NGM U   ','NGM V   ','NGM THET','NGM Q   ','NGM P*  ',
+         96 |     1          'NGM Z*  ','NGM T*  ','NGM DRAG','NGM Q*  ','NGM ALB ',
+         97 |     2          'NGM PADJ','NGM TSSL'/
+         98 |      DATA LGRID /' -GRID 1', ' -GRID 2', ' -GRID 3', ' -GRID 4',
+         99 |     1            ' -GRID 5', ' -GRID 6', ' -GRID 7', ' -GRID 8',
+        100 |     2            ' -GRID 9'/
+        101 |C
+        102 |C     SPECIFY THE UNIT NUMBER OF THE PRINTER.
+        103 |      IOUTUPRT = 6
+        104 |C
+        105 |C     ENSURE THAT THE SIZE OF ARRAY FIELD IS LESS THAN THE SIZE OF
+        106 |C     ARRAY ANAL.
+        107 |      IJKMAX0 =  IIJKMAX
+        108 |      LONFP1  = LONF + 1
+        109 |      IF (LONFP1*NLAT*KM .LT. IJKMAX0) THEN
+        110 |         WRITE (IOUTUPRT, 10)
+        111 |   10    FORMAT ('0', 'THE SIZE OF ARRAY ANAL IN SUBROUTINE DIAG ',
+        112 |     1                'IS SMALLER THAN THAT OF ARRAY FIELD.'/
+        113 |     2           ' ', 'EXECUTION CONTINUING.'//)
+        114 |C    2           ' ', 'EXECUTION TERMINATING.'//)
+        115 |C
+        116 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+        117 |         ERRMSG(1) = 'IN SUBROUTINE DIAG     NEAR STATEME'
+        118 |         ERRMSG(2) = 'NT NUMBER 10:                      '
+        119 |         ERRMSG(3) = 'THE SIZE OF ARRAY ANAL IS SMALLER T'
+        120 |         ERRMSG(4) = 'HAN THAT OF ARRAY FIELD.           '
+        121 |C
+        122 |C        CALL ERRSTOP (IOUTUPRT, ERRMSG)
+        123 |C
+        124 |      END IF
+        125 |C
+        126 |C     ENSURE THAT THE VALUE OF NGRDUSE IS NOT TOO LARGE
+        127 |C     FOR THIS SUBROUTINE.
+        128 |      IF (NGRDUSE .LE. 9) GO TO 60
+        129 |      WRITE (IOUTUPRT, 30)
+        130 |   30 FORMAT('0', 'THE VALUE OF NGRDUSE IS TOO LARGE FOR ',
+        131 |     1            'SUBROUTINE DIAG.  EXECUTION TERMINATED.')
+        132 |C
+        133 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+        134 |      ERRMSG(1) = 'IN SUBROUTINE DIAG     NEAR STATEME'
+        135 |      ERRMSG(2) = 'NT NUMBER 30:                      '
+        136 |      ERRMSG(3) = 'THE VALUE OF NGRDUSE IS TOO LARGE F'
+        137 |      ERRMSG(4) = 'OR THE SUBROUTINE.                 '
+        138 |C
+        139 |      CALL ERRSTOP (IOUTUPRT, ERRMSG)
+        140 |C
+        141 |   60 CONTINUE
+        142 |C
+        143 |C     NOW THE U COMPONENT IS PROCESSED.
+        144 |C
+        145 |      DO 1200 NG=1,NGRDUSE
+        146 |      CALL GRDSET (NG, INDEXHU, DUM, IM, JM, DUM, DUM, DUM, DUM)
+        147 |C
+        148 |C     SPECIFY THE POINTERS FOR VARIOUS VARIABLES IN ARRAY VBL.
+        149 |      IJ     = IM * JM
+        150 |      MADDHU = IADDRG(INDEXHU, NG) -1 -IM -IJ
+        151 |      MADDH  = IADDRG(INDEXH , NG) -1 -IM
+        152 |C
+        153 |      DO 1100 J=1,JM
+        154 |C
+        155 |      DO 1000 K=1,KM
+        156 |C
+        157 |      DO 900 I=1,IM
+        158 |         IF (J .LT. JM) THEN
+        159 |            FIELD(I + (J-1)*IM + (K-1)*IJ)
+        160 |     1               = VBL(MADDHU + IM*J +IJ*K + I) * 2.0E0
+        161 |     2               / (VBL(MADDH+I+IM*J) + VBL(MADDH+I+IM+IM*J))
+        162 |         ELSE
+        163 |C
+        164 |C     IF THIS IS THE LAST ROW, WE ASSUME THAT
+        165 |C     THE SURFACE PRESSURE OF THE NONEXISTENT NEXT ROW IS THE
+        166 |C     SAME AS THE CURRENT ROW.
+        167 |            FIELD(I + (J-1)*IM + (K-1)*IJ)
+        168 |     1                   = VBL(MADDHU + IM*J +IJ*K + I)
+        169 |     2                   / VBL(MADDH+I+IM*J)
+        170 |         END IF
+        171 |  900 CONTINUE
+        172 |C
+        173 | 1000 CONTINUE
+        174 |C
+        175 | 1100 CONTINUE
+        176 |C
+        177 |      LABEL(1) = LVAR(1)
+        178 |      LABEL(2) = LGRID(NG)
+        179 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,KM,KM, LABEL)
+        180 |C
+        181 | 1200 CONTINUE
+        182 |C
+        183 |C
+        184 |C     PROCESS THE V COMPONENT.
+        185 |      DO 2200 NG=1,NGRDUSE
+        186 |C
+        187 |      CALL GRDSET(NG, INDEXHV, DUM, IM, JM, DUM, DUM, DUM, DUM)
+        188 |C
+        189 |C     SPECIFY THE POINTERS FOR VARIOUS VARIABLES IN ARRAY VBL.
+        190 |      IJ     = IM * JM
+        191 |      MADDHV = IADDRG(INDEXHV, NG) -1 -IM -IJ
+        192 |      MADDH  = IADDRG(INDEXH , NG) -1 -IM
+        193 |C
+        194 |      DO 2100 J=1,JM
+        195 |C
+        196 |      DO 2050 K=1,KM
+        197 |      DO 2000 I=1,IM-1
+        198 |      FIELD(I + (J-1)*IM +(K-1)*IJ)
+        199 |     1             = VBL(MADDHV + IM*J+IJ*K +I) * 2.0E0
+        200 |     2             /(VBL(MADDH + I + IM*J) + VBL(MADDH + I + 1 + IM*J))
+        201 | 2000 CONTINUE
+        202 |C
+        203 |      FIELD(IM +(J-1)*IM +(K-1)*IJ)
+        204 |     1              = VBL(MADDHV +IM*J +IJ*K+IM) / VBL(MADDH+IM+IM*J)
+        205 |C
+        206 | 2050 CONTINUE
+        207 |C
+        208 | 2100 CONTINUE
+        209 |C
+        210 |      LABEL(1) = LVAR(2)
+        211 |      LABEL(2) = LGRID(NG)
+        212 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,KM,KM, LABEL)
+        213 |C
+        214 | 2200 CONTINUE
+        215 |C
+        216 |C
+        217 |C     PROCESS THE POTENTIAL TEMPERATURE FIELD.
+        218 |      DO 3200 NG=1,NGRDUSE
+        219 |C
+        220 |      CALL GRDSET(NG, INDEXHTH, DUM, IM, JM, DUM, DUM, DUM, DUM)
+        221 |C
+        222 |C     SPECIFY THE POINTERS FOR VARIOUS VARIABLES IN ARRAY VBL.
+        223 |      IJ     = IM * JM
+        224 |      MADDHTH = IADDRG(INDEXHTH, NG) -1 -IM -IJ
+        225 |      MADDH   = IADDRG(INDEXH  , NG) -1 -IM
+        226 |C
+        227 |      DO 3100 J=1,JM
+        228 |C
+        229 |      DO 3000 K=1,KM
+        230 |      DO 3000 I=1,IM
+        231 |      FIELD(I + (J-1)*IM +(K-1)*IJ)
+        232 |     1             = VBL(MADDHTH +IM*J + IJ*K +I) / VBL(MADDH+IM*J + I)
+        233 | 3000 CONTINUE
+        234 |C
+        235 | 3100 CONTINUE
+        236 |C
+        237 |      LABEL(1) = LVAR(3)
+        238 |      LABEL(2) = LGRID(NG)
+        239 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,KM,KM, LABEL)
+        240 |C
+        241 | 3200 CONTINUE
+        242 |C
+        243 |C
+        244 |C     PROCESS THE SPECIFIC HUMIDITY FIELD.
+        245 |      DO 4200 NG=1,NGRDUSE
+        246 |C
+        247 |      CALL GRDSET(NG, INDEXHQ, DUM, IM, JM, DUM, DUM, DUM, DUM)
+        248 |C
+        249 |C     SPECIFY THE POINTERS FOR VARIOUS VARIABLES IN ARRAY VBL.
+        250 |      IJ     = IM * JM
+        251 |      MADDHQ = IADDRG(INDEXHQ, NG) -1 -IM -IJ
+        252 |      MADDH  = IADDRG(INDEXH , NG) -1 -IM
+        253 |C
+        254 |      DO 4100 J=1,JM
+        255 |C
+        256 |      DO 4000 K=1,KM
+        257 |      DO 4000 I=1,IM
+        258 |      FIELD(I + (J-1)*IM +(K-1)*IJ)
+        259 |     1             = VBL(MADDHQ +IM*J + IJ*K +I) / VBL(MADDH+IM*J + I)
+        260 | 4000 CONTINUE
+        261 |C
+        262 | 4100 CONTINUE
+        263 |C
+        264 |      LABEL(1) = LVAR(4)
+        265 |      LABEL(2) = LGRID(NG)
+        266 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,KM,KM, LABEL)
+        267 |C
+        268 | 4200 CONTINUE
+        269 |C
+        270 |C
+        271 |C     PROCESS THE SURFACE PRESSURE.
+        272 |      DO 5200 NG=1,NGRDUSE
+        273 |C
+        274 |      CALL GRDSET(NG, INDEXH, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        275 |C
+        276 |C     SPECIFY THE POINTER FOR SURFACE PRESSURE IN ARRAY VBL.
+        277 |      MADDH  = MADDRS -1 -IM
+        278 |C
+        279 |      DO 5100 J=1,JM
+        280 |C
+        281 |      DO 5000 I=1,IM
+        282 |      FIELD(I + (J-1)*IM) = VBL(MADDH + IM*J + I)
+        283 | 5000 CONTINUE
+        284 |C
+        285 | 5100 CONTINUE
+        286 |C
+        287 |      LABEL(1) = LVAR(5)
+        288 |      LABEL(2) = LGRID(NG)
+        289 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        290 |C
+        291 | 5200 CONTINUE
+        292 |C
+        293 |C
+        294 |C     PROCESS THE ADJUSTMENT TO THE MEAN-SEA-LEVEL PRESSURE
+        295 |C     FOR THE PRESSURE TENDENCY METHOD.
+        296 |C     DO 5900 NG=1,NGRDUSE
+        297 |C
+        298 |C     CALL GRDSET(NG, INDEXSLP, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        299 |C
+        300 |C     SPECIFY THE POINTER FOR ADJUSTMENT TO MSLP IN ARRAY VBL.
+        301 |C     MADDSLP = MADDRS -1 -IM
+        302 |C
+        303 |C     DO 5500 J=1,JM
+        304 |C
+        305 |C     DO 5300 I=1,IM
+        306 |C     FIELD(I + (J-1)*IM) = VBL(MADDSLP + IM*J + I)
+        307 |C5300 CONTINUE
+        308 |C
+        309 |C5500 CONTINUE
+        310 |C
+        311 |C     LABEL(1) = LVAR(11)
+        312 |C     LABEL(2) = LGRID(NG)
+        313 |C     CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        314 |C
+        315 |C5900 CONTINUE
+        316 |C
+        317 |C
+        318 |C     PROCESS THE GROUND HEIGHT.
+        319 |      FACTOR = 1005.E0 / 9.8E0
+        320 |      DO 6200 NG=1,NGRDUSE
+        321 |C
+        322 |      CALL GRDSET(NG, INDEXPSI, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        323 |C
+        324 |C     SPECIFY THE POINTER FOR PSI (RELATED TO GROUND HEIGHT)
+        325 |C     IN ARRAY VBL.
+        326 |      MADDPSI  = MADDRS -1 -IM
+        327 |C
+        328 |      DO 6100 J=1,JM
+        329 |C
+        330 |      DO 6000 I=1,IM
+        331 |      FIELD(I + (J-1)*IM) = VBL(MADDPSI + IM*J + I) * FACTOR
+        332 | 6000 CONTINUE
+        333 |C
+        334 | 6100 CONTINUE
+        335 |C
+        336 |      LABEL(1) = LVAR(6)
+        337 |      LABEL(2) = LGRID(NG)
+        338 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        339 |C
+        340 | 6200 CONTINUE
+        341 |C
+        342 |C
+        343 |C     PROCESS THE SURFACE TEMPERATURE.
+        344 |      DO 7200 NG=1,NGRDUSE
+        345 |C
+        346 |      CALL GRDSET(NG, INDEXST, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        347 |C
+        348 |C     SPECIFY THE POINTER FOR SURFACE TEMPERATURE IN ARRAY VBL.
+        349 |      MADDST   = MADDRS -1 -IM
+        350 |C
+        351 |      DO 7100 J=1,JM
+        352 |C
+        353 |      DO 7000 I=1,IM
+        354 |      FIELD(I + (J-1)*IM) = VBL(MADDST +IM*J + I)
+        355 | 7000 CONTINUE
+        356 |C
+        357 | 7100 CONTINUE
+        358 |C
+        359 |      LABEL(1) = LVAR(7)
+        360 |      LABEL(2) = LGRID(NG)
+        361 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        362 |C
+        363 | 7200 CONTINUE
+        364 |C
+        365 |C
+        366 |C     PROCESS THE SOIL TEMPERATURE.
+        367 |      DO 7700 NG=1,NGRDUSE
+        368 |C
+        369 |      CALL GRDSET(NG, INDEXTSS, MADDRS, IM ,JM ,DUM, DUM, DUM, DUM)
+        370 |C
+        371 |C     SPECIFY THE POINTER FOR SOIL TEMPERATURE IN ARRAY VBL.
+        372 |      MADDTSS  = MADDRS -1 -IM
+        373 |C
+        374 |      DO 7600 J=1,JM
+        375 |C
+        376 |      DO 7500 I=1,IM
+        377 |      FIELD(I + (J-1)*IM) = VBL(MADDTSS+IM*J + I)
+        378 | 7500 CONTINUE
+        379 |C
+        380 | 7600 CONTINUE
+        381 |C
+        382 |      LABEL(1) = LVAR(12)
+        383 |      LABEL(2) = LGRID(NG)
+        384 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        385 |C
+        386 | 7700 CONTINUE
+        387 |C
+        388 |C
+        389 |C     PROCESS THE DRAG COEFFICIENT.
+        390 |      DO 8200 NG=1,NGRDUSE
+        391 |C
+        392 |      CALL GRDSET(NG, INDEXCD, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        393 |C
+        394 |C     SPECIFY THE POINTER FOR THE DRAG COEFFICIENT IN ARRAY VBL.
+        395 |      MADDCD  = MADDRS -1 -IM
+        396 |C
+        397 |      DO 8100 J=1,JM
+        398 |C
+        399 |      DO 8000 I=1,IM
+        400 |      FIELD(I + (J-1)*IM) = VBL(MADDCD + IM*J + I)
+        401 | 8000 CONTINUE
+        402 |C
+        403 | 8100 CONTINUE
+        404 |C
+        405 |      LABEL(1) = LVAR(8)
+        406 |      LABEL(2) = LGRID(NG)
+        407 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        408 |C
+        409 | 8200 CONTINUE
+        410 |C
+        411 |C
+        412 |C     PROCESS THE SURFACE MOISTURE.
+        413 |      DO 9200 NG=1,NGRDUSE
+        414 |C
+        415 |      CALL GRDSET(NG, INDEXSQ, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        416 |C
+        417 |C     SPECIFY THE POINTER FOR SURFACE MOISTURE IN ARRAY VBL.
+        418 |      MADDSQ   = MADDRS -1 -IM
+        419 |C
+        420 |      DO 9100 J=1,JM
+        421 |C
+        422 |      DO 9000 I=1,IM
+        423 |      FIELD(I + (J-1)*IM) = VBL(MADDSQ + IM*J + I)
+        424 | 9000 CONTINUE
+        425 |C
+        426 | 9100 CONTINUE
+        427 |C
+        428 |      LABEL(1) = LVAR(9)
+        429 |      LABEL(2) = LGRID(NG)
+        430 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        431 |C
+        432 | 9200 CONTINUE
+        433 |C
+        434 |C
+        435 |C     PROCESS THE ALBEDO.
+        436 |      DO 10200 NG=1,NGRDUSE
+        437 |C
+        438 |      CALL GRDSET(NG, INDEXALB, MADDRS, IM, JM, DUM, DUM, DUM, DUM)
+        439 |C
+        440 |C     SPECIFY THE POINTER FOR THE ALBEDO IN ARRAY VBL.
+        441 |      MADDALB  = MADDRS -1 -IM
+        442 |C
+        443 |      DO 10100 J=1,JM
+        444 |C
+        445 |      DO 10000 I=1,IM
+        446 |      FIELD(I + (J-1)*IM) = VBL(MADDALB +IM*J + I)
+        447 |10000 CONTINUE
+        448 |C
+        449 |10100 CONTINUE
+        450 |C
+        451 |      LABEL(1) = LVAR(10)
+        452 |      LABEL(2) = LGRID(NG)
+        453 |      CALL STATS(FIELD, 1,IM,IM, 1,JM,JM, 1,1,KM, LABEL)
+        454 |C
+        455 |10200 CONTINUE
+        456 |C
+        457 |      RETURN
+        458 |C
+        459 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-81.6$
+ 
+anal                             Common member, Real(4) (1:361, 1:126, 1:16), Offset: 0, Alignment: quadruple word
+                                 0-82.23$  0-93.20
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 3544, Alignment: double word
+                                 0-55.16$  0-74.23$
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 192888, Alignment: double word
+                                 0-55.24$  0-75.23$
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 382232, Alignment: double word
+                                 0-55.32$  0-76.23$
+ 
+cmuu                             Common member, Real(4) (1:2), Offset: 3484, Alignment: full word
+                                 0-69.23$
+ 
+constn                           Common Block, Alignment: double word
+                                 0-57.15$
+ 
+consts                           Common Block, Alignment: double word
+                                 0-48.15$
+ 
+delsig                           Common member, Real(4) (1:16), Offset: 3292, Alignment: full word
+                                 0-67.41$
+ 
+diag                             Subroutine
+                                 0-1.18$
+ 
+dlamngm                          Common member, Real(4), Offset: 3540, Alignment: full word
+                                 0-73.23$
+ 
+dum                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-146.33  0-146.46  0-146.51  0-146.56  0-146.61  0-187.32  0-187.45  0-187.50  0-187.55  0-187.60
+                                 0-220.33  0-220.46  0-220.51  0-220.56  0-220.61  0-247.32  0-247.45  0-247.50  0-247.55  0-247.60
+                                 0-274.47  0-274.52  0-274.57  0-274.62  0-322.49  0-322.54  0-322.59  0-322.64  0-346.48  0-346.53
+                                 0-346.58  0-346.63  0-369.49  0-369.54  0-369.59  0-369.64  0-392.48  0-392.53  0-392.58  0-392.63
+                                 0-415.48  0-415.53  0-415.58  0-415.63  0-438.49  0-438.54  0-438.59  0-438.64
+ 
+dummy2                           Common Block, Alignment: double word
+                                 0-82.15$
+ 
+errmsg                           Automatic, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-91.20$  0-117.10@  0-118.10@  0-119.10@  0-120.10@  0-134.7@  0-135.7@  0-136.7@  0-137.7@
+                                 0-139.31
+ 
+errstop                          External Subroutine
+                                 0-139.12
+ 
+factor                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-319.7@  0-331.55
+ 
+field                            Common member, Real(4) (1:378688), Offset: 0, Alignment: quadruple word
+                                 0-84.17$  0-93.33  0-159.13@  0-167.13@  0-179.18  0-198.7@  0-203.7@  0-212.18  0-231.7@  0-239.18
+                                 0-258.7@  0-266.18  0-282.7@  0-289.18  0-331.7@  0-338.18  0-354.7@  0-361.18  0-377.7@  0-384.18
+                                 0-400.7@  0-407.18  0-423.7@  0-430.18  0-446.7@  0-453.18
+ 
+grdset                           External Subroutine
+                                 0-146.12  0-187.12  0-220.12  0-247.12  0-274.12  0-322.12  0-346.12  0-369.12  0-392.12  0-415.12
+                                 0-438.12
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-157.14@  0-159.19  0-160.50  0-161.35  0-161.55  0-167.19  0-168.54  0-169.38  0-197.15@
+                                 0-198.13  0-199.46  0-200.34  0-200.58  0-230.15@  0-231.13  0-232.48  0-232.70  0-257.15@
+                                 0-258.13  0-259.47  0-259.69  0-281.15@  0-282.13  0-282.48  0-330.15@  0-331.13  0-331.50
+                                 0-353.15@  0-354.13  0-354.48  0-376.15@  0-377.13  0-377.48  0-399.15@  0-400.13  0-400.49
+                                 0-422.15@  0-423.13  0-423.49  0-445.16@  0-446.13  0-446.49
+ 
+iaddrg                           Common member, Integer(4) (1:44, 1:2), Offset: 32, Alignment: quadruple word
+                                 0-60.23$  0-150.16  0-151.16  0-191.16  0-192.16  0-224.17  0-225.17  0-251.16  0-252.16
+ 
+iag                              Common member, Integer(4) (1:1), Offset: 16, Alignment: quadruple word
+                                 0-58.23$
+ 
+ibg                              Common member, Integer(4) (1:1), Offset: 24, Alignment: double word
+                                 0-59.23$
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ih                               Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-48.23$
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  0-84.24  0-107.18  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-74.31  0-75.31  0-76.31  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ij                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-149.7@  0-150.44  0-159.40  0-160.43  0-167.40  0-168.47  0-190.7@  0-191.44  0-198.33  0-199.40
+                                 0-203.33  0-204.41  0-223.7@  0-224.46  0-231.33  0-232.42  0-250.7@  0-251.44  0-258.33  0-259.41
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ijkmax0                          Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-107.7@  0-109.31
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-67.49  0-68.29  0-68.44  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  0-82.49  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$  0-82.29
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+im                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-146.38  0-149.16  0-150.40  0-151.40  0-157.18  0-159.29  0-160.37  0-161.37  0-161.57  0-161.60
+                                 0-167.29  0-168.41  0-169.40  0-179.27  0-179.30  0-187.37  0-190.16  0-191.40  0-192.40  0-197.19
+                                 0-198.23  0-199.35  0-200.38  0-200.66  0-203.13  0-203.23  0-204.35  0-204.46  0-204.62  0-204.65
+                                 0-212.27  0-212.30  0-220.38  0-223.16  0-224.42  0-225.42  0-230.19  0-231.23  0-232.35  0-232.63
+                                 0-239.27  0-239.30  0-247.37  0-250.16  0-251.40  0-252.40  0-257.19  0-258.23  0-259.34  0-259.62
+                                 0-266.27  0-266.30  0-274.39  0-277.27  0-281.19  0-282.23  0-282.41  0-289.27  0-289.30  0-322.41
+                                 0-326.29  0-330.19  0-331.23  0-331.43  0-338.27  0-338.30  0-346.40  0-349.29  0-353.19  0-354.23
+                                 0-354.41  0-361.27  0-361.30  0-369.41  0-372.29  0-376.19  0-377.23  0-377.41  0-384.27  0-384.30
+                                 0-392.40  0-395.28  0-399.19  0-400.23  0-400.42  0-407.27  0-407.30  0-415.40  0-418.29  0-422.19
+                                 0-423.23  0-423.42  0-430.27  0-430.30  0-438.41  0-441.29  0-445.20  0-446.23  0-446.42  0-453.27
+                                 0-453.30
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+img                              Common member, Integer(4) (1:2), Offset: 0, Alignment: quadruple word
+                                 0-57.23$
+ 
+indexalb                         Common member, Integer(4), Offset: 412, Alignment: full word
+                                 0-62.53$  0-438.23
+ 
+indexcc                          Common member, Integer(4), Offset: 428, Alignment: full word
+                                 0-63.53$
+ 
+indexcd                          Common member, Integer(4), Offset: 424, Alignment: double word
+                                 0-63.43$  0-392.23
+ 
+indexcg                          Common member, Integer(4), Offset: 468, Alignment: full word
+                                 0-65.53$
+ 
+indexcpr                         Common member, Integer(4), Offset: 448, Alignment: quadruple word
+                                 0-64.53$
+ 
+indexdhq                         Common member, Integer(4), Offset: 472, Alignment: double word
+                                 0-65.63$
+ 
+indexdlw                         Common member, Integer(4), Offset: 440, Alignment: double word
+                                 0-64.33$
+ 
+indexdsw                         Common member, Integer(4), Offset: 444, Alignment: full word
+                                 0-64.43$
+ 
+indexgsp                         Common member, Integer(4), Offset: 432, Alignment: quadruple word
+                                 0-63.63$
+ 
+indexh                           Common member, Integer(4), Offset: 400, Alignment: quadruple word
+                                 0-62.23$  0-151.23  0-192.23  0-225.24  0-252.23  0-274.23
+ 
+indexhq                          Common member, Integer(4), Offset: 396, Alignment: full word
+                                 0-61.53$  0-247.23  0-251.23
+ 
+indexhth                         Common member, Integer(4), Offset: 392, Alignment: double word
+                                 0-61.43$  0-220.23  0-224.24
+ 
+indexhu                          Common member, Integer(4), Offset: 384, Alignment: quadruple word
+                                 0-61.23$  0-146.24  0-150.23
+ 
+indexhv                          Common member, Integer(4), Offset: 388, Alignment: full word
+                                 0-61.33$  0-187.23  0-191.23
+ 
+indexma                          Common member, Integer(4), Offset: 452, Alignment: full word
+                                 0-64.63$
+ 
+indexpsi                         Common member, Integer(4), Offset: 420, Alignment: full word
+                                 0-63.33$  0-322.23
+ 
+indexrad                         Common member, Integer(4), Offset: 436, Alignment: full word
+                                 0-64.23$
+ 
+indexsec                         Common member, Integer(4), Offset: 456, Alignment: double word
+                                 0-65.23$
+ 
+indexslp                         Common member, Integer(4), Offset: 416, Alignment: quadruple word
+                                 0-63.23$
+ 
+indexsq                          Common member, Integer(4), Offset: 408, Alignment: double word
+                                 0-62.43$  0-415.23
+ 
+indexst                          Common member, Integer(4), Offset: 404, Alignment: full word
+                                 0-62.33$  0-346.23
+ 
+indextsd                         Common member, Integer(4), Offset: 476, Alignment: full word
+                                 0-66.23$
+ 
+indextss                         Common member, Integer(4), Offset: 464, Alignment: quadruple word
+                                 0-65.42$  0-369.23
+ 
+indexz0                          Common member, Integer(4), Offset: 460, Alignment: full word
+                                 0-65.33$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$  0-58.28  0-58.45  0-59.28  0-59.45
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-57.28  0-57.45  0-60.43  0-69.31  0-70.31  0-70.51  0-71.31  0-71.51  0-72.31  0-72.51
+                                 0-74.41  0-75.41  0-76.41
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$  0-60.31
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$  0-50.29  0-50.60  0-82.40
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$  0-50.48
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$  0-67.30
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$  0-81.29
+ 
+ioutuprt                         Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-103.7@  0-110.17  0-129.14  0-139.21
+ 
+iq                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-48.27$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+it                               Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-48.31$
+ 
+iu                               Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-48.35$
+ 
+iv                               Common member, Integer(4), Offset: 16, Alignment: quadruple word
+                                 0-48.39$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+iz                               Common member, Integer(4), Offset: 20, Alignment: full word
+                                 0-48.43$
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-153.15@  0-158.14  0-159.24  0-160.40  0-161.40  0-161.63  0-167.24  0-168.44  0-169.43
+                                 0-194.15@  0-198.18  0-199.38  0-200.41  0-200.69  0-203.18  0-204.38  0-204.68  0-227.15@
+                                 0-231.18  0-232.38  0-232.66  0-254.15@  0-258.18  0-259.37  0-259.65  0-279.15@  0-282.18
+                                 0-282.44  0-328.15@  0-331.18  0-331.46  0-351.15@  0-354.18  0-354.44  0-374.15@  0-377.18
+                                 0-377.44  0-397.15@  0-400.18  0-400.45  0-420.15@  0-423.18  0-423.45  0-443.16@  0-446.18
+                                 0-446.45
+ 
+jag                              Common member, Integer(4) (1:1), Offset: 20, Alignment: full word
+                                 0-58.40$
+ 
+jbg                              Common member, Integer(4) (1:1), Offset: 28, Alignment: full word
+                                 0-59.40$
+ 
+jm                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-146.42  0-149.21  0-153.19  0-158.21  0-179.36  0-179.39  0-187.41  0-190.21  0-194.19  0-212.36
+                                 0-212.39  0-220.42  0-223.21  0-227.19  0-239.36  0-239.39  0-247.41  0-250.21  0-254.19  0-266.36
+                                 0-266.39  0-274.43  0-279.19  0-289.36  0-289.39  0-322.45  0-328.19  0-338.36  0-338.39  0-346.44
+                                 0-351.19  0-361.36  0-361.39  0-369.45  0-374.19  0-384.36  0-384.39  0-392.44  0-397.19  0-407.36
+                                 0-407.39  0-415.44  0-420.19  0-430.36  0-430.39  0-438.45  0-443.20  0-453.36  0-453.39
+ 
+jmg                              Common member, Integer(4) (1:2), Offset: 8, Alignment: double word
+                                 0-57.40$
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-155.15@  0-159.35  0-160.46  0-167.35  0-168.50  0-196.15@  0-198.28  0-199.43  0-203.28
+                                 0-204.44  0-229.15@  0-231.28  0-232.45  0-256.15@  0-258.28  0-259.44
+ 
+km                               Common member, Integer(4), Offset: 480, Alignment: quadruple word
+                                 0-66.33$  0-109.23  0-155.19  0-179.45  0-179.48  0-196.19  0-212.45  0-212.48  0-229.19  0-239.45
+                                 0-239.48  0-256.19  0-266.45  0-266.48  0-289.47  0-338.47  0-361.47  0-384.47  0-407.47  0-430.47
+                                 0-453.47
+ 
+label                            Automatic, Character(8) (1:2), Offset: 0, Alignment: full word
+                                 0-86.20$  0-177.7@  0-178.7@  0-179.52  0-210.7@  0-211.7@  0-212.52  0-237.7@  0-238.7@  0-239.52
+                                 0-264.7@  0-265.7@  0-266.52  0-287.7@  0-288.7@  0-289.51  0-336.7@  0-337.7@  0-338.51  0-359.7@
+                                 0-360.7@  0-361.51  0-382.7@  0-383.7@  0-384.51  0-405.7@  0-406.7@  0-407.51  0-428.7@  0-429.7@
+                                 0-430.51  0-451.7@  0-452.7@  0-453.51
+ 
+levh                             Common member, Integer(4), Offset: 28, Alignment: full word
+                                 0-49.29$
+ 
+levs                             Common member, Integer(4), Offset: 32, Alignment: quadruple word
+                                 0-49.35$
+ 
+lgrid                            Static, Character(8) (1:9), Offset: 0, Alignment: full word
+                                 0-90.20$  0-98.12*  0-178.18  0-211.18  0-238.18  0-265.18  0-288.18  0-337.18  0-360.18  0-383.18
+                                 0-406.18  0-429.18  0-452.18
+ 
+lonf                             Common member, Integer(4), Offset: 36, Alignment: full word
+                                 0-49.41$  0-108.17
+ 
+lonfp1                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-108.7@  0-109.11
+ 
+lvar                             Static, Character(8) (1:12), Offset: 0, Alignment: full word
+                                 0-87.20$  0-95.12*  0-177.18  0-210.18  0-237.18  0-264.18  0-287.18  0-336.18  0-359.18  0-382.18
+                                 0-405.18  0-428.18  0-451.18
+ 
+maddalb                          Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-441.7@  0-446.33
+ 
+maddcd                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-395.7@  0-400.33
+ 
+maddh                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-151.7@  0-161.29  0-161.49  0-169.32  0-192.7@  0-200.26  0-200.50  0-204.56  0-225.7@  0-232.57
+                                 0-252.7@  0-259.56  0-277.7@  0-282.33
+ 
+maddhq                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-251.7@  0-259.26
+ 
+maddhth                          Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-224.7@  0-232.26
+ 
+maddhu                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-150.7@  0-160.28  0-168.32
+ 
+maddhv                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-191.7@  0-199.26  0-204.27
+ 
+maddpsi                          Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-326.7@  0-331.33
+ 
+maddrs                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-274.31  0-277.16  0-322.33  0-326.18  0-346.32  0-349.18  0-369.33  0-372.18  0-392.32  0-395.17
+                                 0-415.32  0-418.18  0-438.33  0-441.18
+ 
+maddsq                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-418.7@  0-423.33
+ 
+maddst                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-349.7@  0-354.33
+ 
+maddtss                          Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-372.7@  0-377.33
+ 
+ng                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-145.15@  0-146.20  0-150.32  0-151.32  0-178.24  0-185.15@  0-187.19  0-191.32  0-192.32
+                                 0-211.24  0-218.15@  0-220.19  0-224.34  0-225.34  0-238.24  0-245.15@  0-247.19  0-251.32
+                                 0-252.32  0-265.24  0-272.15@  0-274.19  0-288.24  0-320.15@  0-322.19  0-337.24  0-344.15@
+                                 0-346.19  0-360.24  0-367.15@  0-369.19  0-383.24  0-390.15@  0-392.19  0-406.24  0-413.15@
+                                 0-415.19  0-429.24  0-436.16@  0-438.19  0-452.24
+ 
+ngrduse                          Common member, Integer(4), Offset: 488, Alignment: double word
+                                 0-66.41$  0-128.11  0-145.20  0-185.20  0-218.20  0-245.20  0-272.20  0-320.20  0-344.20  0-367.20
+                                 0-390.20  0-413.20  0-436.21
+ 
+nh                               Common member, Integer(4), Offset: 484, Alignment: full word
+                                 0-66.37$
+ 
+nlat                             Common member, Integer(4), Offset: 24, Alignment: double word
+                                 0-49.23$  0-109.18
+ 
+nsigstp                          Common member, Integer(4), Offset: 40, Alignment: double word
+                                 0-49.47$
+ 
+piovhk                           Common member, Real(4) (1:16), Offset: 3420, Alignment: full word
+                                 0-68.36$
+ 
+povh                             Common member, Real(4) (1:16), Offset: 3356, Alignment: full word
+                                 0-68.23$
+ 
+slat                             Common member, Real(4) (1:126), Offset: 44, Alignment: full word
+                                 0-50.23$
+ 
+specs                            Common member, Real(4) (1:700), Offset: 492, Alignment: full word
+                                 0-67.23$
+ 
+stats                            External Subroutine
+                                 0-179.12  0-212.12  0-239.12  0-266.12  0-289.12  0-338.12  0-361.12  0-384.12  0-407.12  0-430.12
+                                 0-453.12
+ 
+stripara                         Common member, Real(4) (1:22320, 1:126), Offset: 548, Alignment: full word
+                                 0-50.38$
+ 
+vbl                              Common member, Real(4) (1:6282436), Offset: 0, Alignment: quadruple word
+                                 0-81.23$  0-160.24  0-161.25  0-161.45  0-168.28  0-169.28  0-199.22  0-200.22  0-200.46  0-204.23
+                                 0-204.52  0-232.22  0-232.53  0-259.22  0-259.52  0-282.29  0-331.29  0-354.29  0-377.29  0-400.29
+                                 0-423.29  0-446.29
+ 
+xpoleh                           Common member, Real(4) (1:2), Offset: 3492, Alignment: full word
+                                 0-70.23$
+ 
+xpoleu                           Common member, Real(4) (1:2), Offset: 3508, Alignment: full word
+                                 0-71.23$
+ 
+xpolev                           Common member, Real(4) (1:2), Offset: 3524, Alignment: full word
+                                 0-72.23$
+ 
+ypoleh                           Common member, Real(4) (1:2), Offset: 3500, Alignment: full word
+                                 0-70.43$
+ 
+ypoleu                           Common member, Real(4) (1:2), Offset: 3516, Alignment: full word
+                                 0-71.43$
+ 
+ypolev                           Common member, Real(4) (1:2), Offset: 3532, Alignment: full word
+                                 0-72.43$
+ 
+** diag   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    DIAG.f                      10/09/02   12:46:05
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/parmodel
+                                      02/09/00   18:03:04      0      45
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     521
+1501-510  Compilation successful for file DIAG.f.
+1501-543  Object file created.

@@ -1,0 +1,178 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/CONMC.f 09/30/06 19:44:04
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       FUNCTION CONMC(CNAME)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    CONMC       PROVIDE NMC*S VALUE FOR PHYSICAL CONST.
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-09
+          6 |C
+          7 |C ABSTRACT: RETURN NMC HANDBOOK VALUE FOR REQUESTED PHYSICAL CONST.
+          8 |C   NOTE THAT SOME VALUES HAVE BEEN MODIFIED BASED ON BILL COLLINS
+          9 |C   SUGGESTION.  (G, RD, CP)
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   88-09-09  PARRISH
+         13 |C
+         14 |C USAGE:    CONST=CONMC(CNAME)
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     CNAME    - CHARACTER ARRAY CONTAINING NAME OF CONSTANT AS
+         17 |C              - SUGGESTED IN NMC HANDBOOK, SEC. 3.4.2.
+         18 |C              - MUST END IN A "$" SIGN.
+         19 |C
+         20 |C ATTRIBUTES:
+         21 |C   LANGUAGE: FORTRAN77
+         22 |C   MACHINE:  CYBER
+         23 |C
+         24 |C$$$
+         25 |         CHARACTER*1 CNAME(1),DOLLAR
+         26 |         DATA DOLLAR/'$'/
+         27 |         CHARACTER*8  TABONE(15)
+         28 |         DATA  TABONE/
+         29 |     *    'RERTH   ','G       ','OMEGA   ','RD      ','CP      ',
+         30 |     *    'CV      ','RV      ','CVAP    ','CLIQ    ','HVAP    ',
+         31 |     *    'HFUS    ','PSAT    ','SBC     ','SOLR    ','PI      '/
+         32 |         CHARACTER*1 TABNAM(8,15)
+         33 |         INTEGER LNAM(15)
+         34 |         DATA LNAM/5,1,5,2,2,2,2,4,4,4,4,4,3,4,2/
+         35 |         EQUIVALENCE (TABONE,TABNAM)
+         36 |C******
+         37 |C****** VALUES FROM NMC HANDBOOK
+         38 |C******
+         39 |C        DOUBLE PRECISION CONSTS(15)
+         40 |C        DATA CONSTS/
+         41 |C    *     6.3712E6,    9.8062, 7.2921E-5,  2.8704E2,  1.0046E3,
+         42 |C    *     7.1760E2,  4.6150E2,  1.8460E3,  4.1855E3,  2.5000E6,
+         43 |C    *     3.3358E5,  6.1078E2, 5.6730E-8,  1.3533E3,    3.1416/
+         44 |C******
+         45 |C****** MODIFIED VALUES, BASED ON BILL COLLINS SUGGESTIONS.
+         46 |C******
+         47 |         DIMENSION CONSTS(15)
+         48 |         DATA CONSTS/
+         49 |     *     6.3712E6,    9.8000, 7.2921E-5,  2.8705E2,  1.0045E3,
+         50 |     *     7.1760E2,  4.6150E2,  1.8460E3,  4.1855E3,  2.5000E6,
+         51 |     *     3.3358E5,  6.1078E2, 5.6730E-8,  1.3533E3,    3.1416/
+         52 |C--------
+         53 |C-------- FIRST FIND NUMBER OF CHARACTERS IN CNAME
+         54 |C--------
+         55 |         II=0
+         56 |         DO 100 I=2,9
+         57 |           II=II+1
+         58 |           IF(CNAME(I).EQ.DOLLAR) GO TO 200
+         59 |100      CONTINUE
+         60 |         GO TO 500
+         61 |200      CONTINUE
+         62 |C--------
+         63 |C-------- NOW FIND A MATCH
+         64 |C--------
+         65 |         DO 400 K=1,15
+         66 |           JJ=LNAM(K)
+         67 |           IF(II.EQ.JJ) THEN
+         68 |             MATCH=0
+         69 |             DO 300 I=1,II
+         70 |               IF(CNAME(I).EQ.TABNAM(I,K)) MATCH=MATCH+1
+         71 |300          CONTINUE
+         72 |             IF(MATCH.EQ.II) THEN
+         73 |               CONMC=CONSTS(K)
+         74 |               RETURN
+         75 |             END IF
+         76 |           END IF
+         77 |400      CONTINUE
+         78 |500      CONTINUE
+         79 |C--------
+         80 |C-------- HERE FOR TROUBLE ONLY
+         81 |C--------
+         82 |         PRINT *,'TROUBLE IN CONMC'
+         83 |         STOP
+         84 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+cname                            Reference argument, Character(1) (1:1), Offset: 0, Alignment: byte
+                                 0-25.22$  0-1.23  0-58.15  0-70.19
+ 
+conmc                            Function Real(4)
+                                 0-1.17$  0-73.16@
+ 
+consts                           Static, Real(4) (1:15), Offset: 0, Alignment: full word
+                                 0-47.20$  0-48.15*  0-73.22
+ 
+dollar                           Static, Character(1), Offset: 0, Alignment: full word
+                                 0-25.31$  0-26.15*  0-58.27
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-56.17@  0-58.21  0-69.21@  0-70.25  0-70.38
+ 
+ii                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-55.10@  0-57.12@  0-57.15  0-67.15  0-69.25  0-72.26
+ 
+jj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.12@  0-67.21
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.17@  0-66.20  0-70.40  0-73.29
+ 
+lnam                             Static, Integer(4) (1:15), Offset: 0, Alignment: full word
+                                 0-33.18$  0-34.15*  0-66.15
+ 
+match                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.14@  0-70.44@  0-70.50  0-72.17
+ 
+tabnam                           Static, Character(1) (1:8, 1:15), Offset: 0, Alignment: quadruple word
+                                 0-32.22$  0-35.30  0-70.31
+ 
+tabone                           Static, Character(8) (1:15), Offset: 0, Alignment: quadruple word
+                                 0-27.23$  0-28.16*  0-35.23
+ 
+** conmc   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    CONMC.f                     10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      84
+1501-510  Compilation successful for file CONMC.f.
+1501-543  Object file created.

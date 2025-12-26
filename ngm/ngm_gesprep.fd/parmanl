@@ -1,0 +1,30 @@
+C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+C  DCL /*                                                           */
+C  DCL /* LMAX       LMAX IS THE NUMBER OF SIGMA LAYERS IN THE      */
+C  DCL /*            ANALYSIS GRID                                  */
+C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF SIGMA-LAYER            */
+C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF SIGMA-LAYER            */
+C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+       PARAMETER (IMGLO = 360 )
+       PARAMETER (JMGLO = 481 )
+       PARAMETER (IMAX = 360 )
+       PARAMETER (JMAX = 120  )
+       PARAMETER (LMAX = 16    )
+       PARAMETER (LMAXP1 = 17 )
+       PARAMETER (LMXDBL = 70 )
+       PARAMETER (LDMAX = 12 )
+       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+       LOGICAL    GLOBAL
+       PARAMETER (GLOBAL = .false. )
+       PARAMETER (YSOUTH = 0.375 )
+       PARAMETER (DLON = 1.0)

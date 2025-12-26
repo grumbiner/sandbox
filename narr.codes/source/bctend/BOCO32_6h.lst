@@ -1,0 +1,500 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/bctend/BOCO32_6h.f 08/24/05 14:19:04
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      PROGRAM BOCO32
+          2 |C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C MAIN PROGRAM: BCTEND       GENERATE BOUNDARY TENDENCIES FOR ETA
+          5 |C   PRGMMR: ROGERS           ORG: NP22        DATE: 97-12-30
+          6 |C
+          7 |C ABSTRACT: READS IN VALUES OF BASIC STATE VARIABLES FROM ETA OI
+          8 |C   ANALYSIS AND AVN FORECAST AT ETA MODEL BOUNDARY POINTS AND
+          9 |C   COMPUTES BOUNDARY TENDENCIES.  THIS VERISON IS SPECIAL FOR THE
+         10 |C   EDAS; IT ASSUMES YOU HAVE 3 H AVN FORECAST FILES.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   ??-??-??  T BLACK
+         14 |C   95-02-07  E ROGERS ADDED DOCBLOCK
+         15 |C   98-06-10  E ROGERS CONVERTED TO FORTRAN 90
+         16 |C
+         17 |C USAGE:
+         18 |C
+         19 |C   INPUT FILES:
+         20 |C     UNIT17     - BOUNDARY VALUES FROM AVN FORECAST
+         21 |C     UNIT18     - BOUNDARY VALUES FROM ETA ANALYSIS
+         22 |C
+         23 |C   OUTPUT FILES:
+         24 |C     UNIT51     - PRECOMPUTED BOUNDARY TENDENCIES
+         25 |C
+         26 |C
+         27 |C   SUBPROGRAMS CALLED:
+         28 |C     UNIQUE:    - BC6432
+         29 |C
+         30 |C   EXIT STATES:
+         31 |C     COND =   0 - SUCCESSFUL RUN
+         32 |C
+         33 |C   REMARKS:
+         34 |C
+         35 |C ATTRIBUTES:
+         36 |C   LANGUAGE: STANDARD FORTRAN 90
+         37 |C   MACHINE: CRAY YMP/C90
+         38 |C
+         39 |C$$$
+         40 |C     ******************************************************************
+         41 |       include "parmeta.res"
+  1       1 |      PARAMETER (IM=237,JM=387,LM=45,LSM=39)
+         42 |                             P A R A M E T E R
+         43 |     & (NBCR=15
+         44 |     &, IMT=IM*2-1,JMT=JM/2+1)
+         45 |                             P A R A M E T E R
+         46 |     & (LB=2*JMT+IMT-3
+         47 |     &, LP1=LM+1,LM1=LM-1
+         48 |     &, IMJM=IM*JM-JM/2)
+         49 |                             P A R A M E T E R
+         50 |     & (H1=1.E0)
+         51 |C--------------------------------------------------------
+         52 |      PARAMETER (EPSQ2=0.2)
+         53 |C-----------------------------------------------------------------------
+         54 |                             L O G I C A L
+         55 |     & RUN
+         56 |C-----------------------------------------------------------------------
+         57 |                             D I M E N S I O N
+         58 |     & IDAT(3)
+         59 |C-----------------------------------------------------------------------
+         60 |                             D I M E N S I O N
+         61 |     & HPD2  (IMJM)
+         62 |     &,HT2   (IMJM,LM),HQ2   (IMJM,LM)
+         63 |     &,HU2   (IMJM,LM),HV2   (IMJM,LM)
+         64 |     &,PDBA  (LB)
+         65 |     &,TBA   (LB,LM),QBA   (LB,LM),UBA   (LB,LM),VBA   (LB,LM)
+         66 |     &,PDBB  (LB)
+         67 |     &,TBB   (LB,LM),QBB   (LB,LM),UBB   (LB,LM),VBB   (LB,LM)
+         68 |     &,PDB   (LB,2)
+         69 |     &,TB    (LB,LM,2),QB    (LB,LM,2),UB    (LB,LM,2),VB    (LB,LM,2)
+         70 |     &,Q2B   (LB,LM,2),CWMB  (LB,LM,2)
+         71 |C-----------------------------------------------------------------------
+         72 |                             C O M M O N /IJHFLDS/
+         73 |     & HPD2
+         74 |     &,HT2   ,HQ2   ,HU2   ,HV2   ,RUN   ,IDAT  ,IHRST ,NTSD
+         75 |C-----------------------------------------------------------------------
+         76 |                             C O M M O N /BCHFLDS/
+         77 |     & PDBA  ,TBA   ,QBA   ,UBA   ,VBA
+         78 |C-----------------------------------------------------------------------
+         79 |       character*4 envar
+         80 |                             D A T A
+         81 |     & TBOCO /6.E0/,SHR   /3600.E0/
+         82 |C-----------------------------------------------------------------------
+         83 |C
+         84 |C-----------------------------------------------------------------------
+         85 |C
+         86 |      CALL W3TAGB('BCTEND  ',0097,0364,0070,'NP22   ')
+         87 |C
+         88 |C
+         89 |      RTBOCO=H1/(TBOCO*SHR)
+         90 |C-----------------------------------------------------------------------
+         91 |      DO L=1,LM
+         92 |      DO K=1,LB
+         93 |        Q2B(K,L,1)=EPSQ2
+         94 |        CWMB(K,L,1)=0.
+         95 |      ENDDO
+         96 |      ENDDO
+         97 |      DO L=1,LM
+         98 |      DO K=1,LB
+         99 |        Q2B(K,L,2)=0.
+        100 |        CWMB(K,L,2)=0.
+        101 |      ENDDO
+        102 |      ENDDO
+        103 |C-----------------------------------------------------------------------
+        104 |C***
+        105 |C***  PDB, TB, QB, UB, AND VB ARE BOUNDARY VALUES FROM THE ANALYSIS.
+        106 |C***
+        107 |cwas     READ(18) RUN,IDAT,IHRST,TBOCO
+        108 |      READ(18) RUN,IDAT,IHRST
+        109 |      READ(18) PDB,TB,QB,UB,VB
+        110 |      REWIND 18
+        111 |      WRITE(51) RUN,IDAT,IHRST,TBOCO
+        112 |c     do l=1,lm
+        113 |c     do n=1,lb
+        114 |c       print*,'n,l,tb(n,l,2)=',n,l,tb(n,l,2)
+        115 |c     enddo
+        116 |c     enddo
+        117 |C-----------------------------------------------------------------------
+        118 |                             C A L L   B C 6 4 3 2 (17)
+        119 |C-----------------------------------------------------------------------
+        120 |C-----------------------------------------------------------------------
+        121 |C***
+        122 |C***  IF BETWEEN 0 AND 3 HRS, THE TENDENCY SHOULD BE GIVEN BY
+        123 |C***  AVN(3HR)-ANALYSIS(0HR) NOT AVN(3HR)-AVN(0HR).
+        124 |C***
+        125 |C***  If running static off T-12 h AVN, set tmmark=tm00
+        126 |C***  If running static off T00 h AVN, set tmmark=t00s
+        127 |C***
+        128 |      nhupd=6
+        129 |      nhfcst=3
+        130 |      ntimes=2
+        131 |      call getenv("tmmark",envar)
+        132 |	if(envar.eq.'tm12') then
+        133 |	  rtboco = 1.0 / (6.0 * shr)
+        134 |        elseif(envar.eq.'tm09') then
+        135 |	  rtboco = 1.0 / (3.0 * shr)
+        136 |        elseif(envar.eq.'tm06') then
+        137 |	  rtboco = 1.0 / (6.0 * shr)
+        138 |	  call bc6432 (17)
+        139 |        elseif(envar.eq.'tm03') then
+        140 |	  rtboco = 1.0 / (3.0 * shr)
+        141 |	  call bc6432 (17)
+        142 |        elseif(envar.eq.'tm00') then
+        143 |	  rtboco = 1.0 / (6.0 * shr)
+        144 |	  ntimes = 15
+        145 |	  call bc6432 (17)
+        146 |	  call bc6432 (17)
+        147 |          nhupd=6
+        148 |          nhfcst=48
+        149 |          ntimes=nhfcst/nhupd+1
+        150 |        elseif(envar.eq.'t00s') then
+        151 |	  rtboco = 1.0 / (6.0 * shr)
+        152 |          nhupd=6
+        153 |          nhfcst=72
+        154 |          ntimes=nhfcst/nhupd+1
+        155 |        else
+        156 |	  print *,"tmmark not set to t00s,tm00,tm03,tm06,tm09 or tm12"
+        157 |	  call exit(13)
+        158 |        end if
+        159 |C
+        160 |        DBCHR=REAL(NHUPD)
+        161 |        BCHR=-DBCHR
+        162 |C
+        163 |	do k = 1,ntimes
+        164 |          BCHR=BCHR+DBCHR
+        165 |          if(k.eq.1)  then
+        166 |            DO N=1,LB
+        167 |              PDBB(N)=PDB(N,1)
+        168 |            ENDDO
+        169 |            DO L=1,LM
+        170 |            DO N=1,LB
+        171 |              TBB(N,L)=TB(N,L,1)
+        172 |              QBB(N,L)=QB(N,L,1)
+        173 |              UBB(N,L)=UB(N,L,1)
+        174 |              VBB(N,L)=VB(N,L,1)
+        175 |            ENDDO
+        176 |            ENDDO
+        177 |          ELSE
+        178 |            DO N=1,LB
+        179 |              PDBB(N)=PDBA(N)
+        180 |            ENDDO
+        181 |            DO L=1,LM
+        182 |            DO N=1,LB
+        183 |              TBB(N,L)=TBA(N,L)
+        184 |              QBB(N,L)=QBA(N,L)
+        185 |              UBB(N,L)=UBA(N,L)
+        186 |              VBB(N,L)=VBA(N,L)
+        187 |            ENDDO
+        188 |            ENDDO
+        189 |          ENDIF
+        190 |C-----------------------------------------------------------------------
+        191 |          CALL BC6432 (17)
+        192 |C-----------------------------------------------------------------------
+        193 |          DO N=1,LB
+        194 |            IF(K.EQ.1) THEN
+        195 |              PDB(N,2)=(PDBA(N)-PDBB(N))*RTBOCO
+        196 |            ELSE
+        197 |              PDB(N,1) = PDBB(N)
+        198 |              PDB(N,2)=(PDBA(N)-PDBB(N))*RTBOCO
+        199 |            ENDIF
+        200 |          ENDDO
+        201 |          DO L=1,LM
+        202 |          DO N=1,LB
+        203 |            IF(K.EQ.1) THEN
+        204 |              TB(N,L,2)=(TBA(N,L)-TBB(N,L))*RTBOCO
+        205 |              QB(N,L,2)=(QBA(N,L)-QBB(N,L))*RTBOCO
+        206 |              UB(N,L,2)=(UBA(N,L)-UBB(N,L))*RTBOCO
+        207 |              VB(N,L,2)=(VBA(N,L)-VBB(N,L))*RTBOCO
+        208 |            ELSE
+        209 |              TB(N,L,1) = TBB(N,L)
+        210 |              QB(N,L,1) = QBB(N,L)
+        211 |              UB(N,L,1) = UBB(N,L)
+        212 |              VB(N,L,1) = VBB(N,L)
+        213 |C
+        214 |              TB(N,L,2)=(TBA(N,L)-TBB(N,L))*RTBOCO
+        215 |              QB(N,L,2)=(QBA(N,L)-QBB(N,L))*RTBOCO
+        216 |              UB(N,L,2)=(UBA(N,L)-UBB(N,L))*RTBOCO
+        217 |              VB(N,L,2)=(VBA(N,L)-VBB(N,L))*RTBOCO
+        218 |            ENDIF
+        219 |          ENDDO
+        220 |          ENDDO
+        221 |C----------------------------------------------------------------------
+        222 |C-----------------------------------------------------------------------
+        223 |          WRITE(51) BCHR
+        224 |          WRITE(51) PDB
+        225 |          WRITE(51) TB
+        226 |          WRITE(51) QB
+        227 |          WRITE(51) UB
+        228 |          WRITE(51) VB
+        229 |          WRITE(51) Q2B
+        230 |          WRITE(51) CWMB
+        231 |C-----------------------------------------------------------------------
+        232 |      ENDDO
+        233 |C-----------------------------------------------------------------------
+        234 |      WRITE(51) BCHR
+        235 |      WRITE(51) PDB
+        236 |      WRITE(51) TB
+        237 |      WRITE(51) QB
+        238 |      WRITE(51) UB
+        239 |      WRITE(51) VB
+        240 |      WRITE(51) Q2B
+        241 |      WRITE(51) CWMB
+        242 |C-----------------------------------------------------------------------
+        243 |      CALL W3TAGE('BCTEND  ')
+        244 |C-----------------------------------------------------------------------
+        245 |                             STOP
+        246 |                             END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bc6432                           External Subroutine
+                                 0-118.40  0-138.9  0-141.9  0-145.9  0-146.9  0-191.16
+ 
+bchflds                          Common Block, Alignment: double word
+                                 0-76.43$
+ 
+bchr                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-161.9@  0-164.11@  0-164.16  0-223.21  0-234.17
+ 
+boco32                           Program
+                                 0-1.15$
+ 
+cwmb                             Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-70.24$  0-94.9@  0-100.9@  0-230.21  0-241.17
+ 
+dbchr                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-160.9@  0-161.15  0-164.21
+ 
+envar                            Automatic, Character(4), Offset: 0, Alignment: full word
+                                 0-79.20$  0-131.28  0-132.5  0-134.16  0-136.16  0-139.16  0-142.16  0-150.16
+ 
+epsq2                            Parameter, Real(4)
+                                 0-52.18$  0-93.20
+ 
+exit                             External Subroutine
+                                 0-157.9
+ 
+getenv                           Intrinsic
+                                 0-131.12
+ 
+h1                               Parameter, Real(4)
+                                 0-50.9$  0-89.14
+ 
+hpd2                             Common member, Real(4) (1:91526), Offset: 0, Alignment: quadruple word
+                                 0-61.8$  0-73.8$
+ 
+hq2                              Common member, Real(4) (1:91526, 1:45), Offset: 16840784, Alignment: quadruple word
+                                 0-62.24$  0-74.15$
+ 
+ht2                              Common member, Real(4) (1:91526, 1:45), Offset: 366104, Alignment: double word
+                                 0-62.8$  0-74.8$
+ 
+hu2                              Common member, Real(4) (1:91526, 1:45), Offset: 33315464, Alignment: double word
+                                 0-63.8$  0-74.22$
+ 
+hv2                              Common member, Real(4) (1:91526, 1:45), Offset: 49790144, Alignment: quadruple word
+                                 0-63.24$  0-74.29$
+ 
+idat                             Common member, Integer(4) (1:3), Offset: 66264828, Alignment: full word
+                                 0-58.8$  0-74.43$  0-108.20@  0-111.21
+ 
+ihrst                            Common member, Integer(4), Offset: 66264840, Alignment: double word
+                                 0-74.50$  0-108.25@  0-111.26
+ 
+ijhflds                          Common Block, Alignment: double word
+                                 0-72.43$
+ 
+im                               Parameter, Integer(4)
+                                 1-1.18$  0-44.13  0-48.14
+ 
+imjm                             Parameter, Integer(4)
+                                 0-48.9$  0-61.15  0-62.15  0-62.31  0-63.15  0-63.31
+ 
+imt                              Parameter, Integer(4)
+                                 0-44.9$  0-46.18
+ 
+jm                               Parameter, Integer(4)
+                                 1-1.25$  0-44.24  0-48.17  0-48.20
+ 
+jmt                              Parameter, Integer(4)
+                                 0-44.20$  0-46.14
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-92.10@  0-93.13  0-94.14  0-98.10@  0-99.13  0-100.14  0-163.5@  0-165.14  0-194.16  0-203.16
+ 
+l                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-91.10@  0-93.15  0-94.16  0-97.10@  0-99.15  0-100.16  0-169.16@  0-171.21  0-171.29  0-172.21
+                                 0-172.29  0-173.21  0-173.29  0-174.21  0-174.29  0-181.16@  0-183.21  0-183.30  0-184.21  0-184.30
+                                 0-185.21  0-185.30  0-186.21  0-186.30  0-201.14@  0-204.20  0-204.32  0-204.41  0-205.20  0-205.32
+                                 0-205.41  0-206.20  0-206.32  0-206.41  0-207.20  0-207.32  0-207.41  0-209.20  0-209.33  0-210.20
+                                 0-210.33  0-211.20  0-211.33  0-212.20  0-212.33  0-214.20  0-214.32  0-214.41  0-215.20  0-215.32
+                                 0-215.41  0-216.20  0-216.32  0-216.41  0-217.20  0-217.32  0-217.41
+ 
+lb                               Parameter, Integer(4)
+                                 0-46.9$  0-64.15  0-65.15  0-65.29  0-65.43  0-65.57  0-66.15  0-67.15  0-67.29  0-67.43  0-67.57
+                                 0-68.15  0-69.15  0-69.31  0-69.47  0-69.63  0-70.15  0-70.31  0-92.14  0-98.14  0-166.20  0-170.20
+                                 0-178.20  0-182.20  0-193.18  0-202.18
+ 
+lm                               Parameter, Integer(4)
+                                 1-1.32$  0-47.13  0-47.22  0-62.20  0-62.36  0-63.20  0-63.36  0-65.18  0-65.32  0-65.46  0-65.60
+                                 0-67.18  0-67.32  0-67.46  0-67.60  0-69.18  0-69.34  0-69.50  0-69.66  0-70.18  0-70.34  0-91.14
+                                 0-97.14  0-169.20  0-181.20  0-201.18
+ 
+lm1                              Parameter, Integer(4)
+                                 0-47.18$
+ 
+lp1                              Parameter, Integer(4)
+                                 0-47.9$
+ 
+lsm                              Parameter, Integer(4)
+                                 1-1.38$
+ 
+n                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-166.16@  0-167.20  0-167.27  0-170.16@  0-171.19  0-171.27  0-172.19  0-172.27  0-173.19
+                                 0-173.27  0-174.19  0-174.27  0-178.16@  0-179.20  0-179.28  0-182.16@  0-183.19  0-183.28
+                                 0-184.19  0-184.28  0-185.19  0-185.28  0-186.19  0-186.28  0-193.14@  0-195.19  0-195.30  0-195.38
+                                 0-197.19  0-197.31  0-198.19  0-198.30  0-198.38  0-202.14@  0-204.18  0-204.30  0-204.39  0-205.18
+                                 0-205.30  0-205.39  0-206.18  0-206.30  0-206.39  0-207.18  0-207.30  0-207.39  0-209.18  0-209.31
+                                 0-210.18  0-210.31  0-211.18  0-211.31  0-212.18  0-212.31  0-214.18  0-214.30  0-214.39  0-215.18
+                                 0-215.30  0-215.39  0-216.18  0-216.30  0-216.39  0-217.18  0-217.30  0-217.39
+ 
+nbcr                             Parameter, Integer(4)
+                                 0-43.9$
+ 
+nhfcst                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-129.7@  0-148.11@  0-149.18  0-153.11@  0-154.18
+ 
+nhupd                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-128.7@  0-147.11@  0-149.25  0-152.11@  0-154.25  0-160.20
+ 
+ntimes                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-130.7@  0-144.4@  0-149.11@  0-154.11@  0-163.11
+ 
+ntsd                             Common member, Integer(4), Offset: 66264844, Alignment: full word
+                                 0-74.57$
+ 
+pdb                              Automatic, Real(4) (1:858, 1:2), Offset: 0, Alignment: full word
+                                 0-68.8$  0-109.16@  0-167.23  0-195.15@  0-197.15@  0-198.15@  0-224.21  0-235.17
+ 
+pdba                             Common member, Real(4) (1:858), Offset: 0, Alignment: quadruple word
+                                 0-64.8$  0-77.8$  0-179.23  0-195.25  0-198.25
+ 
+pdbb                             Automatic, Real(4) (1:858), Offset: 0, Alignment: full word
+                                 0-66.8$  0-167.15@  0-179.15@  0-195.33  0-197.26  0-198.33
+ 
+q2b                              Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-70.8$  0-93.9@  0-99.9@  0-229.21  0-240.17
+ 
+qb                               Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-69.24$  0-109.23@  0-172.24  0-205.15@  0-210.15@  0-215.15@  0-226.21  0-237.17
+ 
+qba                              Common member, Real(4) (1:858, 1:45), Offset: 157872, Alignment: quadruple word
+                                 0-65.22$  0-77.22$  0-184.24  0-205.26  0-215.26
+ 
+qbb                              Automatic, Real(4) (1:858, 1:45), Offset: 0, Alignment: full word
+                                 0-67.22$  0-172.15@  0-184.15@  0-205.35  0-210.27  0-215.35
+ 
+real                             Pure Intrinsic
+                                 0-160.15
+ 
+rtboco                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-89.7@  0-133.4@  0-135.4@  0-137.4@  0-140.4@  0-143.4@  0-151.4@  0-195.42  0-198.42  0-204.45
+                                 0-205.45  0-206.45  0-207.45  0-214.45  0-215.45  0-216.45  0-217.45
+ 
+run                              Common member, Logical(4), Offset: 66264824, Alignment: double word
+                                 0-55.8$  0-74.36$  0-108.16@  0-111.17
+ 
+shr                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-81.21*  0-89.24  0-133.26  0-135.26  0-137.26  0-140.26  0-143.26  0-151.26
+ 
+tb                               Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-69.8$  0-109.20@  0-171.24  0-204.15@  0-209.15@  0-214.15@  0-225.21  0-236.17
+ 
+tba                              Common member, Real(4) (1:858, 1:45), Offset: 3432, Alignment: double word
+                                 0-65.8$  0-77.15$  0-183.24  0-204.26  0-214.26
+ 
+tbb                              Automatic, Real(4) (1:858, 1:45), Offset: 0, Alignment: full word
+                                 0-67.8$  0-171.15@  0-183.15@  0-204.35  0-209.27  0-214.35
+ 
+tboco                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-81.8*  0-89.18  0-111.32
+ 
+ub                               Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-69.40$  0-109.26@  0-173.24  0-206.15@  0-211.15@  0-216.15@  0-227.21  0-238.17
+ 
+uba                              Common member, Real(4) (1:858, 1:45), Offset: 312312, Alignment: double word
+                                 0-65.36$  0-77.29$  0-185.24  0-206.26  0-216.26
+ 
+ubb                              Automatic, Real(4) (1:858, 1:45), Offset: 0, Alignment: full word
+                                 0-67.36$  0-173.15@  0-185.15@  0-206.35  0-211.27  0-216.35
+ 
+vb                               Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-69.56$  0-109.29@  0-174.24  0-207.15@  0-212.15@  0-217.15@  0-228.21  0-239.17
+ 
+vba                              Common member, Real(4) (1:858, 1:45), Offset: 466752, Alignment: quadruple word
+                                 0-65.50$  0-77.36$  0-186.24  0-207.26  0-217.26
+ 
+vbb                              Automatic, Real(4) (1:858, 1:45), Offset: 0, Alignment: full word
+                                 0-67.50$  0-174.15@  0-186.15@  0-207.35  0-212.27  0-217.35
+ 
+w3tagb                           External Subroutine
+                                 0-86.12
+ 
+w3tage                           External Subroutine
+                                 0-243.12
+ 
+** boco32   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    BOCO32_6h.f                 03/26/03   17:31:56
+     1    /mp/emc2/wx20du/narr_source/sorc/bctend/parmeta.res
+                                      03/26/03   17:31:56      0      41
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     247
+1501-510  Compilation successful for file BOCO32_6h.f.
+1501-543  Object file created.

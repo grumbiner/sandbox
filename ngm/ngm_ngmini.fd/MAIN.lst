@@ -1,0 +1,2506 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/MAIN.f 09/30/06 19:43:54
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       PROGRAM MAIN
+          2 |C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C MAIN PROGRAM: NGM_NGMINI
+          5 |C   PRGMMR: ROGERS           ORG: NP22        DATE: 2000-02-09
+          6 |C
+          7 |C ABSTRACT:  USE IMPLICIT NORMAL MODE INITIALIZATION WITH THE NGM.
+          8 |C   THIS IS BASED ON TEMPERTON*S IDEAS, BUT USES SPHERICAL HARMONICS
+          9 |C   FOR THE PROJECTION OPERATIONS, INSTEAD OF SOLVING BOUNDARY VALUE
+         10 |C   PROBLEMS ON THE MODEL GRIDS.  BECAUSE THE NGM IS HEMISPHERIC,
+         11 |C   THIS SHOULD BE OK.  HOWEVER, FOR A LIMITED AREA MODEL, ONE SHOULD
+         12 |C   SOLVE THE BOUNDARY VALUE PROBLEMS ON THE MODEL GRID.
+         13 |C   THE PRIMARY INPUT ARE THE METEOROLOGICAL
+         14 |C   FIELDS USED IN AN NGM FORECAST AT THE NGM GRID POINTS.
+         15 |C   THE PRIMARY OUTPUT ARE THE SAME FIELDS AFTER INITIALIZATION, READY
+         16 |C   TO PASS TO THE FORECAST-POSTPROCESSING MODEL (RCNGMF).
+         17 |C   SUBROUTINE ONEGRID, WHICH IS THE HEART OF THE NGM FORECAST MODEL,
+         18 |C   IS USED EXTENSIVELY BY THIS INITIALIZATION.
+         19 |C   THIS CODE DECIDES AUTOMATICALLY, BASED ON NATURE AND AVAILABILITY
+         20 |C   OF INPUT FIELDS, WHETHER OR NOT TO DO INCREMENTAL INITIALIZATION.
+         21 |C   INCREMENTAL INITIALIZATION MEANS THAT ONLY THE ANALYSIS INCREMENT
+         22 |C   IS INITIALIZED, WHILE THE FORECAST FIRST GUESS (NECESSARILY IN
+         23 |C   NGM FORM) IS LEFT UNCHANGED.
+         24 |C
+         25 |C PROGRAM HISTORY LOG:
+         26 |C   88-08-08  PARRISH
+         27 |C   98-11-18  ERIC ROGERS MADE CODE Y2K COMPLIANT
+         28 |C
+         29 |C USAGE:
+         30 |C
+         31 |C   INPUT FILES:
+         32 |C     UNIT5      - DATA CARDS SPECIFYING THE INPUT AND OUTPUT
+         33 |C                  UNIT NUMBERS FOR THE DATASETS USED BY THIS PROGRAM.
+         34 |C                  THE FORMAT AND INFORMATION ON THE CARDS IS
+         35 |C                  DESCRIBED ON THE CARDS THEMSELVES.
+         36 |C     UNIT20     - OPTIONAL FILE, CONTAINING FIRST GUESS RESTART
+         37 |C                  FILE, FOR USE WITH INCREMENTAL DNI.
+         38 |C     UNIT21     - THE FORECAST VARIABLES OF THE NGM ON THE NGM
+         39 |C                  GRIDS, THE SPECIFICATIONS ARRAY FOR THIS JOB,
+         40 |C                  AND THE LOCATION OF ICE-FREE WATER SURFACE.
+         41 |C                  NOTE: THIS CAN ALSO CONTAIN ANALYSIS INCREMENTS,
+         42 |C                  TO BE ADDED TO FIRST GUESS, WHEN DOING INCREMENTAL
+         43 |C                  DNI.
+         44 |C     UNIT22     - THE RESTART FILE, WHICH HAS THE SAME FORMAT
+         45 |C                  AS UNIT21, USED HERE TO CONTAIN INITIALIZED FIELDS.
+         46 |C     UNIT32     - DATA CARDS SPECIFYING THE VARIOUS OPTIONS
+         47 |C                  USED WHEN MAKING THE FORECAST AND DOING THE
+         48 |C                  POSTPROCESSING.
+         49 |C                  THE FORMAT AND INFORMATION ON THE CARDS IS
+         50 |C                  DESCRIBED ON THE CARDS THEMSELVES.
+         51 |C
+         52 |C   OUTPUT FILES:
+         53 |C     UNIT6      - PRINTOUT FROM THE CONTROLLEE.
+         54 |C     UNIT22     - THE RESTART FILE, WHICH HAS THE SAME FORMAT
+         55 |C                  AS UNIT21.
+         56 |C
+         57 |C   SUBPROGRAMS CALLED:
+         58 |C     UNIQUE:    -
+         59 |C                  BITOUT
+         60 |C                  ERRSTOP
+         61 |C                  FILLHOLE
+         62 |C                  LATBND
+         63 |C                  ONEGRID
+         64 |C                  P2KAP
+         65 |C                  SHEM
+         66 |C                  SHEMPRE
+         67 |C
+         68 |C   EXIT STATES:
+         69 |C     COND =  0 -- SUCCESSFUL RUN.
+         70 |C
+         71 |C   REMARKS:  CARE SHOULD BE UTILIZED WITH UNSAFE AND VECTORIZE
+         72 |C     OPTIONS.  SOME OF THE CODE HERE IS NOT HAND VECTORIZED SO
+         73 |C     OPTIMIZATION IS NECESSARY FOR THE BEST PERFORMANCE.
+         74 |C     ***************************************************************
+         75 |C     ** FOR THIS CODE, OBSERVE THAT PLI VARIABLES NFILLER AND NPHYS*
+         76 |C     ** HAVE BEEN CHANGED.  DO NOT ATTEMPT TO PLI ANY OF FCST MODEL*
+         77 |C     ** IN SAME STEP WITH THIS CODE. *******************************
+         78 |C     ***************************************************************
+         79 |C
+         80 |C ATTRIBUTES:
+         81 |C   LANGUAGE:  CYBER FORTRAN WITH CDC EXTENSIONS.
+         82 |C   MACHINE:   CYBER205
+         83 |C
+         84 |C$$$
+         85 |C
+         86 |C
+         87 |C
+         88 |C
+         89 |         include "myparam"
+  1       1 |        INCLUDE 'parmodel'
+  2       1 |C     PARAMETER FILE
+  2       2 |C
+  2       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  2       4 |C     ON OUTPUT
+  2       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  2       6 |C
+  2       7 |      PARAMETER (
+  2       8 |     *      IBPW      =      4,
+  2       9 |     *      IBPOR     = 120000,
+  2      10 |     *      INUMREC   = IBPOR / IBPW,
+  2      11 |     *      INSPECS   =    700,
+  2      12 |     *      ILATG2    =    120,
+  2      13 |     *      ILEVH     =     12,
+  2      14 |     *      ILEVS     =     16,
+  2      15 |     *      ILONF     =    360,
+  2      16 |     *      INLATSH   =      5,
+  2      17 |     *      IIJMAX    =  23668,
+  2      18 |     *      IIJMAXB   =  25536,
+  2      19 |     *      IIJRAD    =    892,
+  2      20 |     *      IJCAP     =     80,
+  2      21 |     *      IWPCPL    =     80,
+  2      22 |     *      IKM       =     16 )
+  2      23 |      PARAMETER (
+  2      24 |     *      ILBCH     =   7*(147+111-7),
+  2      25 |     *      ILBHI     =    (147+111-26),
+  2      26 |     *      ILBUI     =    (2*147+111-39),
+  2      27 |     *      ILBUO     =   (8*147+7*111-56),
+  2      28 |     *      ILBVI     =    (147+2*111-39),
+  2      29 |     *      ILBVO     =   (7*147+8*111-56),
+  2      30 |     *      ILMOUT    =     20 )
+  2      31 |      PARAMETER (
+  2      32 |     *      IMAXOUTF  =     17,
+  2      33 |     *      IMAXOUTT  =      3,
+  2      34 |     *      IMAXOUTV  =    100,
+  2      35 |     *      IMAXPROF  =      6,
+  2      36 |     *      INFILLER  =  10000,
+  2      37 |     *      INH       =     65,
+  2      38 |     *      INGRDUSE  =      2,
+  2      39 |     *      INGRDUS1  =      1,
+  2      40 |     *      INIADDRS  =     44,
+  2      41 |     *      INSCR     =     23,
+  2      42 |     *      INSCRGEO  =     12,
+  2      43 |     *      INSCR3    =     10,
+  2      44 |     *      INSOIL    =      2,
+  2      45 |     *      INSUMG    =  42164,
+  2      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  2      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  2      48 |     *      INSHEM    = 13 * INH + 23,
+  2      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  2      50 |      PARAMETER (
+  2      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  2      52 |     *  IKMP1     = IKM + 1,
+  2      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  2      54 |     *  ILONFP1   = ILONF + 1,
+  2      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  2      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  2      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  2      58 |     *  IBLK1D    =  2 * IKM + 14,
+  2      59 |     *  IBLK2D    = 16 * IKM + 36,
+  2      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  2      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  2      62 |C
+  1       2 |C-------
+  1       3 |C------- FOLLOWING IS EXTRA STUFF FOR INITIALIZATION
+  1       4 |C-------
+  1       5 |         PARAMETER (INLATH=101,INUMCOEF=3*INLATH+35,
+  1       6 |     *        INUMGRID=4,IJCAPDP=80,INLON=300,INKLON=2,INKLAT=2,
+  1       7 |     *        IIORBPL=3,IIORDPL=3,IIORBLP=3,IIORDLP=3,IMCUBIC=1,
+  1       8 |     *        INUMVERT=2,INSIG=IKM,INMODES=18,INGMAX=3000,
+  1       9 |     *        INKSIG=2,INSIGP1=INSIG+1,INLONEX=INLON+INKLON,
+  1      10 |     *        INLATDP=2*INLATH,INLOLA=INLATDP*INLONEX,
+  1      11 |     *        IJCAP1DP=IJCAPDP+1,IJCAP12=2*IJCAP1DP,
+  1      12 |     *        INCOEFS=IJCAP1DP*(IJCAPDP+2),
+  1      13 |     *     IDPFILLR=(4*IKM+1)*INSUMG+       3*(IIJKMAX*4+IIJMAX) )
+  1      14 |C    *     IDPFILLR=(4*IKM+1)*INSUMG+INGRDUSE*(IIJKMAX*4+IIJMAX) )
+         90 |         dimension dpfillr(idpfillr)
+         91 |      CHARACTER*1  DAYMSG1(70)
+         92 |      CHARACTER*6  DATASET
+         93 |      CHARACTER*6  DATANAME
+         94 |      CHARACTER*35 ERRMSG(4)
+         95 |      CHARACTER*35 DAYMSG35(2)
+         96 |      REAL ONEMSIG
+         97 |      REAL CKAPPAP1
+         98 |      LOGICAL LFRSTGES
+         99 |C
+        100 |C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+        101 |C          AND A FEW OTHER COMMON CONSTANTS.
+        102 |      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+        103 |     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+        104 |     2                  NTIME, ITIME, NSTEPS,
+        105 |     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+        106 |     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+        107 |     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+        108 |     6                  IADDRG(INIADDRS, INGRDUSE),
+        109 |     7                  NPTSFH(2, INGRDUSE),
+        110 |     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+        111 |     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+        112 |     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+        113 |     2                  SIGINT(IKMP1),
+        114 |     3                  DTOVDX, ANGVEL,
+        115 |     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+        116 |     5                  SATDEL, RHFACTOR, QBOUND,
+        117 |     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+        118 |     7                  SCALEHT, SIGDOT, DLAMNGM
+        119 |C
+        120 |      COMMON            SCR     (IIJMAX,  INSCR),
+        121 |     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+        122 |     2                  SCR3    (IIJKMAX, INSCR3),
+        123 |     3                  FILLER  (INFILLER),
+        124 |     4                  VBL     (INVBL),
+        125 |     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+        126 |     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+        127 |     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+        128 |     8                  BITSEA  (IIJMAX, INGRDUSE),
+        129 |     9                  BITSNO  (IIJMAX, INGRDUSE),
+        130 |     1                  BITWVL  (IIJMAX, INGRDUSE)
+        131 |C
+        132 |      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+        133 |C
+        134 |C     COMMON BLOCK /COMDIAG/ CONTAINS QUANTITIES SAVED FOR
+        135 |C          DIAGNOSTIC PURPOSES.
+        136 |      COMMON /COMDIAG/  KADIAB( IKM, INGRDUSE ),
+        137 |     1                  NPTSDHQ (2, INGRDUSE),
+        138 |     2                  KKCLOUD2(2, INGRDUSE), NPTSBUOY(2, INGRDUSE),
+        139 |     3                  NPTSWATR(2, INGRDUSE), NPTSCC  (2, INGRDUSE),
+        140 |     4                  KKGSP2  (2, INGRDUSE),
+        141 |     5                  KKGSE2  (2, INGRDUSE),
+        142 |     6                  NPTSSAT (IKM, 2, INGRDUSE),
+        143 |     7                  NPTSEVAP(IKM, 2, INGRDUSE),
+        144 |     8                  NPTSGSP (2, INGRDUSE), NUMPROF,
+        145 |     9                  PPTCC   (2, INGRDUSE), PPTGSP  (2, INGRDUSE),
+        146 |     1                  ALATPR  (IMAXPROF),    ALONPR  (IMAXPROF),
+        147 |     2                  DESCRP  (IMAXPROF)
+        148 |C
+        149 |      CHARACTER*24 DESCRP
+        150 |C
+        151 |C     COMMON BLOCK /COMOUT/ CONTAINS OUTPUT CODE PARAMETERS
+        152 |C               AND ARRAYS.
+        153 |C
+        154 |      CHARACTER*20 DESCRIPT
+        155 |C          DESCRIPTORS USED IN SR  OUTHORIZ
+        156 |C
+        157 |      COMMON /COMOUT/
+        158 |C
+        159 |C          THE FOLLOWING ARE STORED BY OUT2FILE FROM DATA CARDS.
+        160 |C          (THE LAST 6 WILL BE OVERWRITTEN BY  OUTPUT  IF KGTYPE
+        161 |C          IS 5 OR 26 (I.E. AN LFM GRID DEFINED IN TABLE 7 OF
+        162 |C          OFFICE NOTE 84.))
+        163 |C
+        164 |     1     INUNIT, IOUTUNIT,
+        165 |     2     KGTYPE, IMOUT, JMOUT, DNPEQOUT, DLAMOUT, XIPOUT, YJPOUT,
+        166 |C
+        167 |C          THE FOLLOWING COME FROM  MAIN  READING THE DATA CARDS.
+        168 |     2   LQTYPE(IMAXOUTV),   LSTYPE(IMAXOUTV),
+        169 |     3   DESCRIPT(IMAXOUTV), LEVELS(ILMOUT,IMAXOUTV),  NOUTVBLS,
+        170 |C
+        171 |C          THE FOLLOWING ARE DERIVED BY   OUTPUT  .
+        172 |     4       IJOUT, LMOUT, NFILLER, NS2, NS3NGM, NS3OUT,
+        173 |     5       COSOUT,   SINOUT,    DXOUT,    ZSIGLYR(IKM),
+        174 |C
+        175 |C           ARRAYS  PLOUT  AND  HTFD  ARE SET BY DATA STATEMENTS IN
+        176 |C           THE SR  OUTPUT  .  'PADDER' FILLS OUT TO FULL WORD BNDRY.
+        177 |     6      PLOUT(ILMOUT),   HTFD( 6),  PADDER,
+        178 |C
+        179 |C          THE FOLLOWING ADDRESSES AND ADDRESS ARRAYS ARE SET UP
+        180 |C          BY   OUTPREP  WHEN IT IS CALLED BY   OUTPUT  .
+        181 |     7  J1(INGRDUSE),          J2(INGRDUSE),   JADDK2L(INGRDUSE,2),
+        182 |     8  JADDFNGM(INGRDUSE), JHREC(INGRDUSE),   JHKAP(INGRDUSE),
+        183 |     9  JSCR2(12),    JSCR3NGM(INGRDUSE,12),   JSCR3OUT(12),
+        184 |     A  LENGD(INGRDUSE), LTYPE(ILMOUT,INGRDUSE), MB1, MB2, MINT,
+        185 |     B   MSOUT1,  MSOUT2,  MZGNDOUT,  MNGM3,  MHOUT, MZFR, MZTRO,
+        186 |     C      MSZGND(INGRDUSE), NGRIDATA(INGRDUSE),
+        187 |C
+        188 |C            NUMGDREQ, THE NUMBER OF NGM GRIDS NEEDED TO COVER THE
+        189 |C            OUTPUT GRID, AND ZLOUT, ARE SET BY  OUTPREP  .
+        190 |     D                NUMGDREQ,    ZLOUT(ILMOUT),
+        191 |C
+        192 |C          OUTPREP ALSO ASSIGNS THE FOLLOWING DESCRIPTORS TO BE
+        193 |C          USED BY  OUTHORIZ  FOR HORIZONTAL INTERPOLATION.
+        194 |     E    AHORD,BHORD,CHORD,DHORD, ILLD,IULD,  SCRHORD,  OUTHORD,
+        195 |C
+        196 |C
+        197 |C          THE FOLLOWING ARRAY CONTAINS THE INTEGERS NEEDED TO
+        198 |C          FORM THE LABEL THAT GOES WITH EACH OUTPUT ARRAY.
+        199 |     F               LABEL84( 27 ),
+        200 |C
+        201 |C          THE FOLLOWING SYMBOLS REPRESENT TEMPORARY VALUES OF
+        202 |C          INTEGERS TO GO INTO  LABEL84 WHEN THE OUTPUT ARRAY
+        203 |C          HAS BEEN PREPARED FOR PACKING.
+        204 |C
+        205 |     G  LABQTYPE, LABSSUB1, LABTMARK,  S1VALUE,  S2VALUE,
+        206 |     H  LABMLDIF, LABSSUB2, LABFSUB2, LABKGRID, LABNUMPT
+        207 |C
+        208 |C
+        209 |      COMMON /COM1WAY/ ITIMSTEP, ITBOUND, INGLB
+        210 |C
+        211 |         INTEGER IADDRGDP(5,INGRDUSE)
+        212 |         INTEGER JADDRGDP(5,3)
+        213 |      DIMENSION COPYSEA(IIJMAX, INGRDUSE )
+        214 |      DIMENSION COPYSNO(IIJMAX, INGRDUSE )
+        215 |      DIMENSION COPYWVL(IIJMAX, INGRDUSE )
+        216 |C
+        217 |      DIMENSION SPECS(700)
+        218 |      DIMENSION SPECOPY(700)
+        219 |C
+        220 |      DIMENSION ISTROFIL(IMAXOUTT), INTOFIL(IMAXOUTT)
+        221 |      DIMENSION ISTPOFIL(IMAXOUTT)
+        222 |      DIMENSION IOUTUOUT(IMAXOUTF, IMAXOUTT)
+        223 |      DIMENSION DATASET (IMAXOUTF, IMAXOUTT)
+        224 |      DIMENSION IREFOFLD(IMAXOUTT), INTOFLD (IMAXOUTT)
+        225 |      DIMENSION ITIMOFLD(IMAXOUTT), ITIMCFIL(IMAXOUTT)
+        226 |      DIMENSION INUOUT  (IMAXOUTT)
+        227 |      DIMENSION IFILE(IMAXOUTT), NFILES  (IMAXOUTT)
+        228 |C
+        229 |      EQUIVALENCE (DAYMSG1(1), DAYMSG35(1))
+        230 |C
+        231 |      CALL W3TAGB('NGM_NGMINI',2000,0040,0098,'NP22')
+        232 |C
+        233 |C
+        234 |C              READ THE DATA CARDS SPECIFYING FULL FIELD OR
+        235 |C              INCREMENTAL INITIAIZATION AND
+        236 |C              THE DATA CARDS SPECIFYING THE UNIT NUMBER
+        237 |C              FOR THE PRINT PRODUCED BY THIS RUN AND INDICATING
+        238 |C              ON WHAT UNIT ARE THE DATA CARDS SPECIFYING
+        239 |C              FUNDAMENTAL MODEL OPTIONS.
+        240 |C     READ (5, 100, END=9998) IOUTUPRT, INUOPTS
+        241 |      READ (5,  50, END=9998) DATANAME
+        242 |      READ (5,  75, END=9998) INCRINIT
+        243 |      READ (5, 100, END=9998) NUMVERT0,NONLOOPB
+        244 |         IPRTDIAG=0
+        245 |         IF(NUMVERT0.LT.0) IPRTDIAG=1
+        246 |         NUMVERTX=INUMVERT
+        247 |         NUMVERT=MIN(IABS(NUMVERT0),NUMVERTX)
+        248 |   50 FORMAT (27X, A6 )
+        249 |   75 FORMAT (27X, I10 )
+        250 |  100 FORMAT (27X, I10 / 27X, I10 )
+        251 |         IOUTUPRT=6
+        252 |         INUOPTS=32
+        253 |         WRITE(6,149)NONLOOPB,NUMVERT,IPRTDIAG
+        254 |149      FORMAT(' EXECUTE NGMIINI,',
+        255 |     *           '  NONLOOPB=',I3,'  NUMVERT=',I3,'  IPRTDIAG=',I3,/,
+        256 |     *        '   IF IPRTDIAG=0, SUPPRESS MOST OF DIAGNOSTIC PRINT.',
+        257 |     *        '  TO GET DIAGNOSTIC PRINT, MAKE NUMVERT NEGATIVE ON ',
+        258 |     *         'INPUT CARD')
+        259 |C
+        260 |C              ECHO CHECK THE DATA CARDS JUST READ IN.
+        261 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 200) IOUTUPRT, INUOPTS
+        262 |  200 FORMAT ('0', 'THE UNIT NUMBER FOR THE PRINT PRODUCED BY ',
+        263 |     1             'THIS RUN IS', I3, '.' /
+        264 |     2        ' ', 'THE DATA CARDS SPECIFYING FUNDAMENTAL MODEL ',
+        265 |     3             'OPTIONS WILL BE READ FROM UNIT', I3, '.')
+        266 |C
+        267 |C              READ THE DATA CARDS SPECIFYING FUNDAMENTAL MODEL
+        268 |C              OPTIONS.
+        269 |      READ (INUOPTS, 300, END=9998)
+        270 |     1      IRUNMARK,
+        271 |     2      IVERFCST,
+        272 |     3      INUINPUT, IOUTURST,
+        273 |     4      IREFRST,  INTRST,
+        274 |     5      ISTOPTIM, ITIMSTEP,
+        275 |     6      IREFSMO,  INTSMO,
+        276 |     7      IREFBUCK, INTBUCK,
+        277 |     8      IREFPPTO, INTPPTO,
+        278 |     9      IREFSIGO, INTSIGO
+        279 |C
+        280 |  300 FORMAT (27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 / 27X, I10 /
+        281 |     1        27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 / 27X, I10 /
+        282 |     2        27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 / 27X, I10 /
+        283 |     3        27X, I10 )
+        284 |C
+        285 |         IREFDRY  =      0
+        286 |         INTDRY   =  43200
+        287 |
+        288 |         IREFDIAG =      0
+        289 |         INTDIAG  =  21600
+        290 |C
+        291 |C              OVERWRITE THE VERSION GIVEN ON THE DATA CARD
+        292 |C              WITH AN INTEGER GIVING THE YEAR OF THE CENTURY,
+        293 |C              MONTH, DAY OF THE MONTH, HOUR OF THE DAY, AND MINUTE
+        294 |C              THAT THE CONTROLLEE ASSOCIATED WITH THIS MAIN
+        295 |C              PROGRAM WAS CHANGED.
+        296 |      IVERFCST = 91021914
+        297 |C
+        298 |C              WRITE THE VERSION NUMBER OF THIS CONTROLLEE
+        299 |C              TO THE DAYFILE.
+        300 |C
+        301 |      DAYMSG35(1) = ' THE VERSION NUMBER OF THIS CONTROL'
+        302 |      DAYMSG35(2) = 'LEE IS XXXXXXXXXX.                 '
+        303 |C
+        304 |c     NUMBYTES = 10
+        305 |c     ENCODE (NUMBYTES, 380, DAYMSG1(43)) IVERFCST
+        306 |c 380 FORMAT (I10)
+        307 |C
+        308 |C     CALL Q5SNDMDF ('MSG=', DAYMSG1, 'LEN=', 70, 'BOTH')
+        309 |C
+        310 |C
+        311 |C              ECHO CHECK THE DATA CARDS.
+        312 |C              (OUTPUT SOME VALUES IN SECONDS AND IN HOURS.)
+        313 |      SEC2HOUR = 1. / 3600.
+        314 |      REFRST   = REAL(IREFRST)  * SEC2HOUR
+        315 |      RSTINT   = REAL(INTRST)   * SEC2HOUR
+        316 |      TIMESTOP = REAL(ISTOPTIM) * SEC2HOUR
+        317 |      STEPTIME = REAL(ITIMSTEP) * SEC2HOUR
+        318 |      REFSMO   = REAL(IREFSMO)  * SEC2HOUR
+        319 |      SMOINT   = REAL(INTSMO)   * SEC2HOUR
+        320 |      REFBUCK  = REAL(IREFBUCK) * SEC2HOUR
+        321 |      BUCKINT  = REAL(INTBUCK)  * SEC2HOUR
+        322 |      REFPPTO  = REAL(IREFPPTO) * SEC2HOUR
+        323 |      PPTOINT  = REAL(INTPPTO)  * SEC2HOUR
+        324 |      REFSIGO  = REAL(IREFSIGO) * SEC2HOUR
+        325 |      SIGOINT  = REAL(INTSIGO)  * SEC2HOUR
+        326 |C
+        327 |      WRITE (IOUTUPRT, 400)
+        328 |     1       INUOPTS,
+        329 |     2       IRUNMARK,
+        330 |     3       IVERFCST,
+        331 |     4       INUINPUT, IOUTURST,
+        332 |     5       IREFRST,  REFRST,   INTRST,   RSTINT,
+        333 |     6       ISTOPTIM, TIMESTOP,
+        334 |     7       ITIMSTEP, STEPTIME
+        335 |C
+        336 |  400 FORMAT ('0', 'THE FOLLOWING FUNDAMENTAL OPTIONS WERE ',
+        337 |     1             'READ IN FROM DATA CARDS ON UNIT', I3, ':'/
+        338 |     2        ' ', 5X, 'THE RUN MARKER FOR THIS RUN IS', I2,
+        339 |     3             ', WHERE 2 INDICATES AN OPERATIONAL RUN.'/
+        340 |     4 ' ', 5X, 'THE VERSION OF THE INITIALIZATION MODEL IS',I11, '.'/
+        341 |     5        '0', 5X, 'THE UNIT NUMBER FOR  INPUT OF MODEL ',
+        342 |     6             'FIELDS FOR STARTING/RESTARTING NOW IS', I3, '.'/
+        343 |     7        ' ', 5X, 'THE UNIT NUMBER FOR OUTPUT OF MODEL ',
+        344 |     8             'FIELDS FOR RESTARTING LATER IS', I3, '.'//
+        345 |     9        ' ', 5X, 'THE REFERENCE TIME FOR OUTPUT OF ',
+        346 |     1             'MODEL FIELDS FOR RESTARTING LATER IS',
+        347 |     2             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        348 |     3        ' ', 5X, 'THE TIME INTERVAL  FOR OUTPUT OF ',
+        349 |     4             'MODEL FIELDS FOR RESTARTING LATER IS',
+        350 |     5             I8, ' SECONDS = ', F8.4, ' HOURS.'//
+        351 |     6        ' ', 5X, 'THE PLANNED STOP TIME FOR THE FORECAST ',
+        352 |     7             'AFTER THE TIME OF THE INITIAL CONDITIONS IS',
+        353 |     8             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        354 |     9        ' ', 5X, 'THE TIME STEP FOR GRID A IS',
+        355 |     1             I8, ' SECONDS = ', F8.4, ' HOURS.'/)
+        356 |C
+        357 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 500)
+        358 |     1       IREFSMO,  REFSMO,   INTSMO,   SMOINT,
+        359 |     2       IREFBUCK, REFBUCK,  INTBUCK,  BUCKINT
+        360 |C
+        361 |  500 FORMAT (' ', 5X, 'THE REFERENCE TIME FOR SMOOTHING OF MODEL ',
+        362 |     1             'FIELDS IS', I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        363 |     2        ' ', 5X, 'THE TIME INTERVAL  FOR SMOOTHING OF MODEL ',
+        364 |     3             'FIELDS IS', I8, ' SECONDS = ', F8.4, ' HOURS.'//
+        365 |     4        ' ', 5X, 'THE REFERENCE TIME FOR EMPTYING THE ',
+        366 |     5             'PRECIPITATION BUCKETS IS',
+        367 |     6             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        368 |     7        ' ', 5X, 'THE TIME INTERVAL  FOR EMPTYING THE ',
+        369 |     8             'PRECIPITATION BUCKETS IS',
+        370 |     9             I8, ' SECONDS = ', F8.4, ' HOURS.'/ )
+        371 |C
+        372 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 550)
+        373 |     1       IREFPPTO, REFPPTO,  INTPPTO,  PPTOINT,
+        374 |     2       IREFSIGO, REFSIGO,  INTSIGO,  SIGOINT
+        375 |C
+        376 |C
+        377 |  550 FORMAT (' ', 5X, 'THE REFERENCE TIME FOR PRINTING THE ',
+        378 |     1             'PRECIPITATION DIAGNOSTICS IS',
+        379 |     2             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        380 |     3        ' ', 5X, 'THE TIME INTERVAL  FOR PRINTING THE ',
+        381 |     4             'PRECIPITATION DIAGNOSTICS IS',
+        382 |     5             I8, ' SECONDS = ', F8.4, ' HOURS.'//
+        383 |     6        ' ', 5X, 'THE REFERENCE TIME FOR PRINTING THE ',
+        384 |     7             'POINT SURFACE PRESSURE AND RMS SIGMA DOT IS',
+        385 |     8             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+        386 |     9        ' ', 5X, 'THE TIME INTERVAL  FOR PRINTING THE ',
+        387 |     1             'POINT SURFACE PRESSURE AND RMS SIGMA DOT IS',
+        388 |     2             I8, ' SECONDS = ', F8.4, ' HOURS.')
+        389 |C
+        390 |C              READ IN THE START/RESTART FIELDS FROM DISK.
+        391 |C     READ (INUINPUT) SPECS, VBL, IBITSEA, IBITSNO, IBITWVL
+        392 |C
+        393 |      CALL RESTARTR( INUINPUT, IOUTUPRT, SPECS, VBL, BITSEA, BITSNO,
+        394 |     *               BITWVL )
+        395 |C
+        396 |C              COPY ELEMENTS FROM THE SPECS ARRAY.
+        397 |      IVERINPT = NINT (SPECS(1))
+        398 |C
+        399 |      GMT0     = SPECS(2)
+        400 |      DAY0     = SPECS(3)
+        401 |      AMONTH0  = SPECS(4)
+        402 |      CENYEAR0 = SPECS(5)
+        403 |C
+        404 |      JMAXANAL = NINT(SPECS(401))
+        405 |      IMAXANAL = NINT(SPECS(402))
+        406 |C
+        407 |      LATG = NINT (SPECS(11))
+        408 |      LONF = NINT (SPECS(12))
+        409 |      LEVS = NINT (SPECS(13))
+        410 |      LEVH = NINT (SPECS(14))
+        411 |C
+        412 |      KM   = NINT (SPECS(13))
+        413 |C
+        414 |      DO 700 K=1, KM
+        415 |         DELSIG(K) = SPECS(21 + K)
+        416 |  700 CONTINUE
+        417 |C
+        418 |      NH      = NINT( SPECS(131))
+        419 |      NGRDUSE = NINT( SPECS(132))
+        420 |      DLAMNGM =       SPECS(133)
+        421 |C
+        422 |      DO 800 NG=1, NGRDUSE
+        423 |         IMG(NG)    = NINT (SPECS(140 + NG))
+        424 |         JMG(NG)    = NINT (SPECS(150 + NG))
+        425 |         XPOLEH(NG) =       SPECS(200 + NG)
+        426 |         YPOLEH(NG) =       SPECS(210 + NG)
+        427 |  800 CONTINUE
+        428 |C
+        429 |      NGRDUSM1 = NGRDUSE - 1
+        430 |      DO 900 NG = 1, NGRDUSM1
+        431 |         IAG(NG) = NINT (SPECS(160 + NG))
+        432 |         IBG(NG) = NINT (SPECS(170 + NG))
+        433 |         JAG(NG) = NINT (SPECS(180 + NG))
+        434 |         JBG(NG) = NINT (SPECS(190 + NG))
+        435 |  900 CONTINUE
+        436 |C
+        437 |      IBUCKET = NINT (SPECS(243))
+        438 |      BUCKETI = SPECS(243) * SEC2HOUR
+        439 |C
+        440 |      ITIME0  = NINT (SPECS(233))
+        441 |      ITIME   = ITIME0
+        442 |      TIMEHRS = REAL(ITIME) * SEC2HOUR
+        443 |      TIMEI0  = SPECS(233) * SEC2HOUR
+        444 |C
+        445 |      NSTEPS0 = NINT (SPECS(234))
+        446 |      NSTEPS  = NSTEPS0
+        447 |C
+        448 |C              PRINT THE VALUES OF PARAMETERS IN ARRAY SPECS READ IN
+        449 |C              FROM DISK.
+        450 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1000)
+        451 |     1       INUINPUT,
+        452 |     2       IVERINPT,
+        453 |     3       GMT0, DAY0, AMONTH0, CENYEAR0,
+        454 |     4       ITIME0, TIMEI0, NSTEPS0,
+        455 |     5       IBUCKET, BUCKETI
+        456 |C
+        457 | 1000 FORMAT ('0', 'THE FOLLOWING FUNDAMENTAL PARAMETERS WERE READ ',
+        458 |     1             'IN FROM ARRAY SPECS ON UNIT', I3, ':' /
+        459 |     2        ' ', 5X, 'THE VERSION OF THE INPUT MODEL IS', I11, '.' /
+        460 |     3        '0', 5X, 'THE TIME OF THE INITIAL CONDITIONS IS ',
+        461 |     4             F3.0, ' GMT ', F3.0, ' / ', F3.0, ' / ', F3.0 /
+        462 |     5        '0', 5X, 'THE TIME SINCE THE INITIAL CONDITIONS AT ',
+        463 |     6             'WHICH THE FORECAST IS BEING INITIALIZED IS',
+        464 |     7             I8, ' SECONDS =', F8.4, ' HOURS.'/
+        465 |     8        '0', 5X, 'THE NUMBER OF TIME STEPS INTO THE FORECAST AT',
+        466 |     9             ' WHICH THE FORECAST IS BEING INITIALIZED IS',
+        467 |     1             I5, '.'/
+        468 |     2        '0', 5X, 'THE TIME SINCE THE INITIAL CONDITIONS AT ',
+        469 |     3             'WHICH THE PRECIPITATION BUCKETS WERE LAST ',
+        470 |     4             'EMPTIED IS', I8, ' SECONDS =', F8.4, ' HOURS.')
+        471 |C
+        472 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1050)
+        473 |     1       JMAXANAL, IMAXANAL,
+        474 |     2       LATG, LONF, LEVS, LEVH
+        475 |C
+        476 | 1050 FORMAT ('0', 5X, 'THE RESOLUTION OF THE ANALYSIS ON THE ',
+        477 |     1             'LATITUDE/LONGITUDE GRID WAS:'/
+        478 |     2        ' ', 9X, 'NUMBER OF LATITUDES  =', I4 /
+        479 |     3        ' ', 9X, 'NUMBER OF LONGITUDES =', I4 /
+        480 |     4        '0', 5X, 'THE RESOLUTION OF THE INITIAL CONDITIONS ',
+        481 |     5             'ON THE LATITUDE/LONGITUDE GRID WAS:'/
+        482 |     6        ' ', 9X, 'LATG =', I4 /
+        483 |     7        ' ', 9X, 'LONF =', I4 /
+        484 |     8        ' ', 9X, 'LEVS =', I4 /
+        485 |     9        ' ', 9X, 'LEVH =', I4 , '.')
+        486 |C
+        487 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1100)
+        488 |     1       KM, (K, DELSIG(K), K=KM, 1, -1)
+        489 |C
+        490 | 1100 FORMAT ('0', 5X, 'THE NUMBER OF FORECAST LAYERS IS', I3, '.'/
+        491 |     1        '0', 5X, 'THE SIGMA THICKNESSES OF THESE LAYERS ARE:'/
+        492 |     2       (' ', 9X, 'DELSIG(', I3, ') =', 1PE14.6))
+        493 |C
+        494 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1200) NH, DLAMNGM, NGRDUSE
+        495 |C
+        496 | 1200 FORMAT ('0', 5X, 'THE NUMBER OF GRID POINTS (MINUS 0.5) ',
+        497 |     1             'ON GRID A BETWEEN THE POLE AND THE EQUATOR ',
+        498 |     2             'IS', I3, '.'/
+        499 |     3        ' ', 5X, 'THE ROTATION ANGLE OF THE POSITIVE X AXIS ',
+        500 |     4             'COUNTERCLOCKWISE FROM THE GREENWICH MERIDIAN ',
+        501 |     5             'IS', F8.3, '.'/
+        502 |     6        ' ', 5X, 'THE NUMBER OF FORECAST GRIDS IS', I2, '.'/
+        503 |     7        '0', 5X, 'INDIVIDUAL GRID PARAMETERS:'/
+        504 |     8        ' ', T10, 'GRID', T20, 'IMG', T30, 'JMG',
+        505 |     9             T40, 'XPOLEH', T50, 'YPOLEH', T60, 'IAG',
+        506 |     1             T70, 'IBG', T80, 'JAG', T90, 'JBG' /)
+        507 |C
+        508 |      DO 1400 NG = 1, NGRDUSE
+        509 |         IF (NG .EQ. NGRDUSE) THEN
+        510 |            IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1300)
+        511 |     1             NG, IMG(NG), JMG(NG), XPOLEH(NG), YPOLEH(NG)
+        512 |C
+        513 | 1300       FORMAT (' ', T10, I3, T20, I3, T30, I3, T38, F8.3,
+        514 |     1                   T48, F8.3, T60, I3, T70, I3,
+        515 |     2                   T80, I3, T90, I3)
+        516 |C
+        517 |         ELSE
+        518 |            IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1300)
+        519 |     1             NG, IMG(NG), JMG(NG), XPOLEH(NG), YPOLEH(NG),
+        520 |     2             IAG(NG), IBG(NG), JAG(NG), JBG(NG)
+        521 |         END IF
+        522 | 1400 CONTINUE
+        523 |C
+        524 |C             STORE INTO ARRAY SPECS THE FUNDAMENTAL MODEL OPTIONS
+        525 |C             INPUT FROM DATA CARDS IN THIS STEP.  PREVIOUSLY
+        526 |C             SPECIFIED VALUES OF THESE OPTIONS IN ARRAY SPECS
+        527 |C             WILL BE OVERWRITTEN.
+        528 |      SPECS(231) = REAL (IVERFCST)
+        529 |      SPECS(232) = REAL (ITIMSTEP)
+        530 |      SPECS(235) = REAL (IRUNMARK)
+        531 |C
+        532 |      SPECS(241) = REAL (IREFBUCK)
+        533 |      SPECS(242) = REAL (INTBUCK)
+        534 |C
+        535 |      SPECS(251) = REAL (IREFSMO)
+        536 |      SPECS(252) = REAL (INTSMO)
+        537 |C
+        538 |      SPECS(261) = ANEM
+        539 |      SPECS(262) = ANSIN
+        540 |      SPECS(263) = ANCOS
+        541 |      SPECS(264) = ALIM
+        542 |      SPECS(265) = SCALEHT
+        543 |C
+        544 |      SPECS(271) = REAL (IOUTUPRT)
+        545 |      SPECS(272) = REAL (INUOPTS)
+        546 |      SPECS(273) = REAL (INUINPUT)
+        547 |      SPECS(274) = REAL (IOUTURST)
+        548 |      SPECS(275) = REAL (IREFRST)
+        549 |      SPECS(276) = REAL (INTRST)
+        550 |C
+        551 |      SPECS(281) = REAL (IREFSIGO)
+        552 |      SPECS(282) = REAL (INTSIGO)
+        553 |      SPECS(283) = REAL (IBARO)
+        554 |      SPECS(284) = REAL (JBARO)
+        555 |C
+        556 |      SPECS(291) = REAL (IREFPPTO)
+        557 |      SPECS(292) = REAL (INTPPTO)
+        558 |C
+        559 |C              CALCULATE THE STARTING ADDRESSES FOR THE VARIOUS
+        560 |C              FIELDS OF ARRAY VBL.
+        561 |      LSTART = 1
+        562 |      LSTARTDP=1
+        563 |C
+        564 |      DO 1460 NG=1, NGRDUSE
+        565 |         IJ  = IMG(NG) * JMG(NG)
+        566 |         IJK = IJ * KM
+        567 |C
+        568 |         DO 1420 LVAR=1, 4
+        569 |            IADDRG (LVAR, NG) = LSTART
+        570 |            LSTART = LSTART + IJK
+        571 |              IADDRGDP(LVAR,NG)=LSTARTDP
+        572 |              LSTARTDP=LSTARTDP+IJK
+        573 | 1420    CONTINUE
+        574 |            IADDRGDP(5,NG)=LSTARTDP
+        575 |            LSTARTDP=LSTARTDP+IJ
+        576 |C
+        577 |         DO 1440 LVAR=5, 13
+        578 |            IADDRG (LVAR, NG) = LSTART
+        579 |            LSTART = LSTART + IJ
+        580 | 1440    CONTINUE
+        581 |C
+        582 |         LVAR = 14
+        583 |         IADDRG (LVAR, NG) = LSTART
+        584 |         LSTART = LSTART + IJK
+        585 |C
+        586 |         DO 1445 LVAR=15, 22
+        587 |            IADDRG (LVAR, NG) = LSTART
+        588 |            LSTART = LSTART + IJ
+        589 | 1445    CONTINUE
+        590 |C
+        591 |         LVAR = 23
+        592 |         IADDRG (LVAR, NG) = LSTART
+        593 |         LSTART = LSTART + IJK
+        594 |C
+        595 |         DO 1446 LVAR=24, 37
+        596 |            IADDRG (LVAR, NG) = LSTART
+        597 |            LSTART = LSTART + IJ
+        598 | 1446    CONTINUE
+        599 |C
+        600 |         LVAR = 38
+        601 |         IADDRG (LVAR, NG) = LSTART
+        602 |         LSTART = LSTART + IJK
+        603 |C
+        604 |         DO 1447 LVAR=39, 44
+        605 |            IADDRG (LVAR, NG) = LSTART
+        606 |            LSTART = LSTART + IJ
+        607 | 1447    CONTINUE
+        608 |C
+        609 | 1460 CONTINUE
+        610 |C
+        611 |      LSTOP = LSTART - 1
+        612 |      DO 1462 LEVELSTR=1,3
+        613 |        DO 1461 LVAR=1,4
+        614 |          JADDRGDP(LVAR,LEVELSTR)=LSTARTDP
+        615 |          LSTARTDP=LSTARTDP+IIJKMAX
+        616 |1461    CONTINUE
+        617 |        JADDRGDP(5,LEVELSTR)=LSTARTDP
+        618 |        LSTARTDP=LSTARTDP+IIJMAX
+        619 |1462  CONTINUE
+        620 |      LSTOPDP=LSTARTDP-1
+        621 |      Ndpfillr=Idpfillr
+        622 |      WRITE(6,1479)LSTOPDP,Ndpfillr
+        623 |1479   FORMAT(' LSTOPDP,Ndpfillr=',2I16,/,
+        624 |     *   ' IF LSTOPDP > Ndpfillr, UNPREDICTABLE RESULTS WILL FOLLOW')
+        625 |C     IF(LSTOPDP.GT.Ndpfillr) STOP 'dpfillr ARRAY TOO SMALL IN HNGMDNI'
+        626 |C
+        627 |C              PRINT THE STARTING ADDRESSES.
+        628 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1480)
+        629 |     1      ((LVAR, NG, IADDRG(LVAR, NG), LVAR=1,44), NG=1, NGRDUSE)
+        630 |C
+        631 | 1480 FORMAT ('0', 'THE STARTING ADDRESSES FOR THE VARIOUS FIELDS ',
+        632 |     1             'OF ARRAY VBL ARE LISTED NEXT, WHERE IADDRG IS ',
+        633 |     2             'IADDRG (VARIABLE NUMBER, GRID NUMBER) :' //
+        634 |     3       (' ', 5X, 'IADDRG(', I2, ',', I2, ') =', I10 ))
+        635 |C
+        636 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1490) LSTOP
+        637 | 1490 FORMAT ('0', 5X, 'LAST LOCATION =', I10 / )
+        638 |C
+        639 |C              THE PL/I PARAMETERS THAT ARE USED IN STATEMENTS
+        640 |C              BESIDE DIMENSION STATEMENTS ARE MATERIALIZED.
+        641 |      IJMAX    = IIJMAX
+        642 |      LMOUT    = ILMOUT
+        643 |      LVLTOT   = ILVLTOT
+        644 |      IJRAD    = IIJRAD
+        645 |      MAXOUTF  = IMAXOUTF
+        646 |      MAXOUTT  = IMAXOUTT
+        647 |      MAXOUTV  = IMAXOUTV
+        648 |      NSCR     = INSCR
+        649 |      NSCRGEO  = INSCRGEO
+        650 |      NSCR3    = INSCR3
+        651 |C
+        652 |C              THOSE PL/I PARAMETERS THAT ARE USED ONLY IN
+        653 |C              DIMENSION STATEMENTS ARE MATERIALIZED.
+        654 |      IJKMAX0  = IIJKMAX
+        655 |      IJMAXB0  = IIJMAXB
+        656 |      IWORDSB0 = IIWORDSB
+        657 |      KM0      = IKM
+        658 |      KMP10    = IKMP1
+        659 |      LBCH0    = ILBCH
+        660 |      LBHI0    = ILBHI
+        661 |      LBUI0    = ILBUI
+        662 |      LBUO0    = ILBUO
+        663 |      LBVI0    = ILBVI
+        664 |      LBVO0    = ILBVO
+        665 |      MAXPROF  = IMAXPROF
+        666 |      NGUSE0   = INGRDUSE
+        667 |      NGUSM10  = INGRDUS1
+        668 |      NH0      = INH
+        669 |      NIADRS0  = INIADDRS
+        670 |      NSHEM0   = INSHEM
+        671 |      NSUMG0   = INSUMG
+        672 |      NVBL0    = INVBL
+        673 |C
+        674 |C              PRINT THE PL/I PARAMETERS USED IN THIS COMPILATION.
+        675 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1500)
+        676 |     1       IJKMAX0, IJMAX, IJMAXB0, IWORDSB0, KM0,   IJRAD,
+        677 |     2       KMP10,   LBCH0, LBHI0,   LBUI0,    LBUO0, LBVI0, LBVO0
+        678 |C
+        679 | 1500 FORMAT(/'0', 'THE FOLLOWING PL/I PARAMETERS WERE SPECIFIED ',
+        680 |     1             'BEFORE COMPILATION OF THIS INITIALIZATION CODE:'/
+        681 |     2        ' ', 5X, 'IJKMAX0 =', I8, ',', 5X, 'IJMAX   =', I8, ',',
+        682 |     3             5X, 'IJMAXB0 =', I8, ',',
+        683 |     4             5X, 'IWORDSB0=', I8, ',', /
+        684 |     5        ' ', 5X, 'KM0     =', I8, ',', 5X, 'IJRAD   =', I8, ',',
+        685 |     6             5X, 'KMP10   =', I8, ',', /
+        686 |     7        ' ', 5X, 'LBCH0   =', I8, ',', 5X, 'LBHI0   =', I8, ',',
+        687 |     8             5X, 'LBUI0   =', I8, ',', 5X, 'LBUO0   =', I8, ','/
+        688 |     9        ' ', 5X, 'LBVI0   =', I8, ',', 5X, 'LBVO0   =', I8, ',')
+        689 |C
+        690 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 1600)
+        691 |     1       LMOUT,  LVLTOT,  MAXOUTF, MAXOUTT, MAXOUTV,  MAXPROF,
+        692 |     2       NFILLER,
+        693 |     3       NGUSE0, NGUSM10, NH0,     NIADRS0, NSCR,   NSCRGEO,
+        694 |     4       NSCR3,  NSHEM0,  NSUMG0,   NVBL0
+        695 |C
+        696 | 1600 FORMAT (' ', 5X, 'LMOUT   =', I8, ',', 5X, 'LVLTOT  =', I8, ',',
+        697 |     1             5X, 'MAXOUTF =', I8, ',', 5X, 'MAXOUTT =', I8, ','/
+        698 |     2        ' ', 5X, 'MAXOUTV =', I8, ',', 5X, 'MAXPROF =', I8, ','/
+        699 |     3        ' ', 5X, 'NFILLER =', I8, ',', 5X, 'NGUSE0  =', I8, ','/
+        700 |     4             5X, 'NGUSM10 =', I8, ',', 5X, 'NH0     =', I8, ','/
+        701 |     5        ' ', 5X, 'NIADRS0 =', I8, ',',
+        702 |     6             5X, 'NSCR    =', I8, ',',
+        703 |     7             5X, 'NSCRGEO =', I8, ',', 5X, 'NSCR3   =', I8, ','/
+        704 |     8        ' ', 5X, 'NSHEM0  =', I8, ',', 5X, 'NSUMG0  =', I8, ',',
+        705 |     9           5X, 'NVBL0   =', I8, '.' / )
+        706 |C
+        707 |C              TEST THE CONSISTENCY OF THE PL/I PARAMETERS WITH THE
+        708 |C              FUNDAMENTAL MODEL OPTIONS.
+        709 |C*************
+        710 |C************* THIS SECTION HAS NOT BEEN COMPLETED YET.
+        711 |C*************
+        712 |C
+        713 |C              SPECIFY FUNDAMENTAL PHYSICAL AND GEOGRAPHICAL CONSTANTS
+        714 |C              AND THEIR DERIVATIVES.
+        715 |      RADIUS = 6371.22E3
+        716 |      ANGVEL = 7.292116E-5
+        717 |C
+        718 |      RGASD    = 287.05
+        719 |      CSUBP    = 1005.
+        720 |C
+        721 |      CKAPPA   = RGASD / CSUBP
+        722 |      CKAPPAI  = CSUBP / RGASD
+        723 |      CKAPPAP1 = CKAPPA+1.
+        724 |C
+        725 |C              CALCULATE DERIVATIVE GRID AND TIME STEPPING INFORMATION.
+        726 |      DELTAXA = (2.0 * RADIUS) / (REAL(NH) + 0.5)
+        727 |      DELTATA = REAL (ITIMSTEP)
+        728 |      DTOVDX  = DELTATA / DELTAXA
+        729 |C
+        730 |C*****IJMAX = 0
+        731 |C*****DO 1700 NG=1, NGRDUSE
+        732 |C*****   IJMAX = MAX (IJMAX, IMG(NG) * JMG(NG))
+        733 |C1700 CONTINUE
+        734 |C*****
+        735 |C*****IJMAX = ((IJMAX + 1) / 2) * 2
+        736 |C
+        737 |C              CALCULATE THE INTERFACE VALUES OF SIGMA.
+        738 |      SIGINT(1) = 0.
+        739 |C
+        740 |      DO 1800 K=1, KM
+        741 |         SIGINT(K+1) = SIGINT(K) + DELSIG(K)
+        742 | 1800 CONTINUE
+        743 |C
+        744 |      SIGINT(KM+1) = 1.
+        745 |C
+        746 |C              COMPUTE PR(K), WHICH WHEN MULTIPLIED BY 2 TIMES
+        747 |C              H ** KAPPA YIELDS PI, THE EXNER FUNCTION.
+        748 |      PR(1) = 1.
+        749 |C
+        750 |      DO 1900 K=2, KM
+        751 |         ONEMSIG = 1.-SIGINT(K)
+        752 |         PR(K) = REAL( ONEMSIG ** CKAPPAP1)
+        753 | 1900 CONTINUE
+        754 |C
+        755 |      C1 = 1.0 / (2. * REAL (CKAPPAP1))
+        756 |C
+        757 |      DO 2000 K=1, KM-1
+        758 |         PR(K) = C1 * (PR(K) - PR(K+1) ) / DELSIG(K)
+        759 | 2000 CONTINUE
+        760 |C
+        761 |      PR(KM) = C1 * PR(KM) / DELSIG(KM)
+        762 |C
+        763 |C              CALCULATE PRESS(K), WHICH WHEN MULTIPLIED BY
+        764 |C              H (THE SURFACE PRESSURE) YIELDS THE LAYER PRESSURE.
+        765 |      DO 2100 K=1, KM
+        766 |         PRESS(K) = (2.*PR(K))**CKAPPAI
+        767 | 2100 CONTINUE
+        768 |C
+        769 |C              PRINT THE VERTICAL FUNCTIONS.
+        770 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 2500) SIGINT (KM + 1)
+        771 |C
+        772 | 2500 FORMAT ('0', 'THE VERTICAL FUNCTIONS FOR THE FORECAST MODEL ',
+        773 |     1             'ARE:'/
+        774 |     2        '0', T8, 'K', T17, 'DELSIG', T32, 'SIGINT',
+        775 |     3             T48, 'PRESS', T64, 'PR', T83, 'PR'/
+        776 |     4        ' ', T30, 0PF9.7)
+        777 |C
+        778 |      DO 2700 K= KM, 1, -1
+        779 |         IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 2600)
+        780 |     1          K, DELSIG(K), PRESS(K), PR(K), PR(K), SIGINT(K)
+        781 |C
+        782 | 2600    FORMAT (' ', T6, I3, T15, F9.7, T45, F9.7, T60, F9.7,
+        783 |     1                T77, 1PE13.6 /
+        784 |     2           ' ', T30, 0PF9.7 )
+        785 |C
+        786 | 2700 CONTINUE
+        787 |C
+        788 |C              PLACE THE BIT VECTOR INDICATING THE LOCATION OF
+        789 |C              THE SEA INTO ARRAY BITSEA.  THIS IS NECESSARY
+        790 |C              BECAUSE THIS BIT VECTOR COULD NOT BE WRITTEN
+        791 |C              TO DISK WITH AN UNFORMATED FORTRAN WRITE STSTEMENT.
+        792 |C     DO 2750 NG=1, NGRDUSE
+        793 |C        BITSEA(1, NG; IJMAX) = BITSEA0(1, NG; IJMAX)
+        794 |C        BITSNO(1, NG; IJMAX) = BITSNO0(1, NG; IJMAX)
+        795 |C        BITWVL(1, NG; IJMAX) = BITWVL0(1, NG; IJMAX)
+        796 |C****    BITSEA(1, NG; IJMAX) = Q8VMKZ(1,1; BITSEA(1, NG; IJMAX))
+        797 |C
+        798 |C****    IM = IMG(NG)
+        799 |C****    JM = JMG(NG)
+        800 |C****1                  'BITSEA                 ')
+        801 |C2750 CONTINUE
+        802 |C
+        803 |C              SET UP THE ARRAYS NEEDED FOR APPLYING THE EQUATORIAL
+        804 |C              SYMMETRY CONDITIONS.  ALSO, BIT VECTORS ARE SET TO
+        805 |C              INDICATE THE NONFORECAST POINTS NEAR THE EQUATOR.
+        806 |      CALL SHEMPRE (NH)
+        807 |C
+        808 |      IF(NGRDUSE .GT. 1 ) THEN
+        809 |C
+        810 |C              FOR EACH OF THE INTERIOR GRIDS, THE BIT VECTORS
+        811 |C              ARE SET TO INDICATE FORECAST POINTS.  THE
+        812 |C              EXISTENCE OF A HOLE OF NONFORECAST POINTS
+        813 |C              IS NOT CONSIDERED YET.
+        814 |C  **********  NOTE: HOLES NOT ALLOWED FOR INITIALIZATION!!!
+        815 |         DO 2800 NG=2,NGRDUSE
+        816 |            CALL BITOUT (BITGRDH (1, 1, NG),
+        817 |     1                   BITGRDU (1, 1, NG),
+        818 |     2                   BITGRDV (1, 1, NG),
+        819 |     3                   IMG(NG), JMG(NG), NG)
+        820 | 2800    CONTINUE
+        821 |C
+        822 |C
+        823 |      END IF
+        824 |C
+        825 |C              CALCULATE AND PRINT THE NUMBER OF H FORECAST POINTS
+        826 |C              FOR EACH GRID FOR EACH PAIR OF TIME STEPS.
+        827 |      IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 3150)
+        828 | 3150 FORMAT ('0', 'THE NUMBER OF FORECAST POINTS ON:' )
+        829 |C
+        830 |      DO 3400 NG=1, NGRDUSE
+        831 |         IJ = IMG(NG) * JMG(NG)
+        832 |C
+        833 |         DO 3300 NPAIR=1, 2
+        834 |            NPTSFH(NPAIR, NG)=0
+        835 |            DO 33002 I=1,IJ
+        836 |              IF(BITGRDH(I,NPAIR,NG))
+        837 |     *             NPTSFH(NPAIR,NG)=NPTSFH(NPAIR,NG)+1
+        838 |33002       CONTINUE
+        839 |            IF ((NG .EQ. 1) .AND. (NPAIR .EQ. 2)) GO TO 3300
+        840 |C
+        841 |            PERCENT = 100. * REAL(NPTSFH(NPAIR, NG)) / REAL(IJ)
+        842 |C
+        843 |            IF(IPRTDIAG.NE.0) WRITE (IOUTUPRT, 3200)
+        844 |     1             NG, NPAIR, NPTSFH(NPAIR, NG), IJ, PERCENT
+        845 | 3200       FORMAT (' ', 5X, 'GRID',
+        846 |     1                   I2, ' FOR NPAIR=', I2, ' IS', I6,
+        847 |     2                   ' OUT OF A TOTAL OF', I6, ' POINTS, WHICH IS',
+        848 |     3                   F5.1, ' PERCENT.')
+        849 | 3300    CONTINUE
+        850 |C
+        851 | 3400 CONTINUE
+        852 |         KHINTERP =  2 * KM + 1
+        853 |C        KHINTERP=LVLTOT-2*KM
+        854 |C
+        855 |C             READ IN PARAMETERS FOR PROFILER SITES
+        856 |C     READ(INUOPTS, 3633, END=9998 )  NUMPROF
+        857 |C3633 FORMAT (27X, I10)
+        858 |C     WRITE(IOUTUPRT, 3634) NUMPROF
+        859 |C3634 FORMAT('0', 'THERE ARE', I3, ' PROFILER SITES:'/)
+        860 |C
+        861 |C     IF( NUMPROF .GT. 0 ) THEN
+        862 |C
+        863 |C        DO 3637 N = 1, NUMPROF
+        864 |C           READ(INUOPTS, 3635, END=9998 ) PROFLAT(N), PROFLON(N)
+        865 |C3635       FORMAT(27X, F10.1, 3X, F10.1)
+        866 |C
+        867 |C           WRITE (IOUTUPRT, 3636) N, PROFLAT(N), PROFLON(N)
+        868 |C3636       FORMAT(' ', 5X, 'PROFILER SITE NUMBER', I3,
+        869 |C    1           ' HAS (LATITUDE, LONGITUDE) = (', F8.3,
+        870 |C    2           ',', F9.3, ').')
+        871 |C
+        872 |C3637    CONTINUE
+        873 |C
+        874 |C     END IF
+        875 |C--------
+        876 |C--------MAKE SURE BOUNDARIES ARE CORRECT FOR VBL. ALSO COPY VBL.
+        877 |C--------
+        878 |         LHINTERP=2*KM+7
+        879 |         DO 3655 NG=1,NGRDUSE
+        880 |           IF(NG.GT.1) THEN
+        881 |             NGM=NG-1
+        882 |             CALL LATBND(NGM,LHINTERP)
+        883 |           ELSE
+        884 |             CALL SHEM(LHINTERP)
+        885 |           END IF
+        886 |           MCOPY=IADDRGDP(1,NG)
+        887 |           CALL CFROMVBL(dpfillr,NG,IADDRGDP)
+        888 |3655     CONTINUE
+        889 |         IF(NONLOOPB.EQ.0) GO TO 3945
+        890 |C              AT THIS POINT WE SHOULD HAVE ENOUGH TO START
+        891 |C              INITIALIZATION ITERATIONS.
+        892 |C
+        893 |C-------
+        894 |C------- FIRST SEE IF FIRST GUESS FIELDS ARE AVAILABLE. IF SO, THEN READ
+        895 |C-------  FIRST GUESS INTO VBL AND ADJUST BOUNDARIES.
+        896 |C-------
+        897 |         LFRSTGES=.TRUE.
+        898 |         SPECOPY(141)=0.
+        899 |C
+        900 |C        CALL RESTARTR(20, IOUTUPRT, SPECOPY, VBL, COPYSEA, COPYSNO,
+        901 |C    *                 COPYWVL)
+        902 |C
+        903 |C        IF( IERR .EQ. 0) THEN
+        904 |C          IF( SPECOPY(141) .NE. SPECS(141)  .OR.
+        905 |C    *         SPECOPY(151) .NE. SPECS(151)  .OR.
+        906 |C    *         SPECOPY(201) .NE. SPECS(201)  .OR.
+        907 |C    *         SPECOPY(211) .NE. SPECS(211) ) LFRSTGES=.FALSE.
+        908 |C        ELSE
+        909 |C          LFRSTGES = .FALSE.
+        910 |C          IF( IERR .EQ. 1 ) THEN
+        911 |C            WRITE (6, 613)
+        912 |C613         FORMAT(' ERROR READING FROM FIRST GUESS FILE.  DO FULL',
+        913 |C    *              ' FIELD INITIALIZATION.')
+        914 |C          ELSE
+        915 |C            WRITE (6, 615)
+        916 |C615         FORMAT(' END FILE WHILE READING FROM FIRST GUESS FILE.',
+        917 |C    *              '  DO FULL FIELD INITIALIZATION.')
+        918 |C          END IF
+        919 |C        END IF
+        920 |C
+        921 |       IF( INCRINIT .EQ. 1 ) THEN
+        922 |         CALL RESTARTR(20, IOUTUPRT, SPECOPY, VBL, COPYSEA, COPYSNO,
+        923 |     *                 COPYWVL)
+        924 |C
+        925 |         IF( SPECOPY(141) .NE. SPECS(141)  .OR.
+        926 |     *       SPECOPY(151) .NE. SPECS(151)  .OR.
+        927 |     *       SPECOPY(201) .NE. SPECS(201)  .OR.
+        928 |     *       SPECOPY(211) .NE. SPECS(211) ) LFRSTGES=.FALSE.
+        929 |       ELSE
+        930 |         LFRSTGES = .FALSE.
+        931 |             WRITE (6, 613)
+        932 | 613         FORMAT(' ONLY ONE RESTART FILE.  DO FULL FIELD ',
+        933 |     *              'INITIALIZATION.')
+        934 |       END IF
+        935 |C
+        936 |C        READ(20,ERR=612,END=614)SPECOPY,VBL,ICOPYSEA,ICOPYSNO,ICOPYWVL
+        937 |C        IF(SPECOPY(141).NE.SPECS(141).OR.
+        938 |C    *      SPECOPY(151).NE.SPECS(151).OR.
+        939 |C    *      SPECOPY(201).NE.SPECS(201).OR.
+        940 |C    *      SPECOPY(211).NE.SPECS(211)) LFRSTGES=.FALSE.
+        941 |C        GO TO 616
+        942 |C612      CONTINUE
+        943 |C          LFRSTGES=.FALSE.
+        944 |C          WRITE(6,613)
+        945 |C613        FORMAT(' ERROR READING FROM FIRST GUESS FILE.  DO FULL',
+        946 |C    *              ' FIELD INITIALIZATION.')
+        947 |C          GO TO 616
+        948 |C614      CONTINUE
+        949 |C          LFRSTGES=.FALSE.
+        950 |C          WRITE(6,615)
+        951 |C15        FORMAT(' END FILE WHILE READING FROM FIRST GUESS FILE.  DO',
+        952 |C    *              ' FULL FIELD INITIALIZATION.')
+        953 |C16      CONTINUE
+        954 |         IF(LFRSTGES) THEN
+        955 |           WRITE(6,617)
+        956 |617        FORMAT(' WE HAVE FIRST GUESS FIELDS, SO DO INCREMENT ',
+        957 |     *            'INITIALIZATION.')
+        958 |C----------
+        959 |C----------MAKE SURE BOUNDARIES ARE CORRECT FOR FIRST GUESS FIELDS.
+        960 |C----------
+        961 |           DO 618 NG=1,NGRDUSE
+        962 |             IF(NG.GT.1) THEN
+        963 |               NGM=NG-1
+        964 |               CALL LATBND(NGM,LHINTERP)
+        965 |             ELSE
+        966 |               CALL SHEM(LHINTERP)
+        967 |             END IF
+        968 |618        CONTINUE
+        969 |         END IF
+        970 |C
+        971 |C-------- FIRST SET UP R00 FROM FIRST GUESS (SETUPR00 JUST
+        972 |C-------- ZEROES OUT R00 IF FIRST GUESS NOT AVAILABLE).
+        973 |C--------
+        974 |         M1U=JADDRGDP(1,1)
+        975 |         M1V=JADDRGDP(2,1)
+        976 |         M1T=JADDRGDP(3,1)
+        977 |         M1Q=JADDRGDP(4,1)
+        978 |         M1H=JADDRGDP(5,1)
+        979 |         M2U=JADDRGDP(1,2)
+        980 |         M2V=JADDRGDP(2,2)
+        981 |         M2T=JADDRGDP(3,2)
+        982 |         M2Q=JADDRGDP(4,2)
+        983 |         M2H=JADDRGDP(5,2)
+        984 |         M3U=JADDRGDP(1,3)
+        985 |         M3V=JADDRGDP(2,3)
+        986 |         M3T=JADDRGDP(3,3)
+        987 |         M3Q=JADDRGDP(4,3)
+        988 |         M3H=JADDRGDP(5,3)
+        989 |         CALL SETUPR00(dpfillr,LFRSTGES,
+        990 |     *dpfillr(M1U),dpfillr(M1V),dpfillr(M1T),dpfillr(M1Q),dpfillr(M1H),
+        991 |     *dpfillr(M2U),dpfillr(M2V),dpfillr(M2T),dpfillr(M2Q),dpfillr(M2H),
+        992 |     *dpfillr(M3U),dpfillr(M3V),dpfillr(M3T),dpfillr(M3Q),dpfillr(M3H),
+        993 |     *         IADDRGDP)
+        994 |C--------
+        995 |C-------- COMMUNICATE VERTICAL SIGMA STRUCTURE TO VERT-MODE PACKAGE
+        996 |C--------
+        997 |         CALL SETDSIG(DELSIG)
+        998 |         DO 3900 LOOPBIG=1,NONLOOPB
+        999 |           IF(IPRTDIAG.NE.0) WRITE(6,3740)LOOPBIG
+       1000 |3740       FORMAT(' BEGIN BIG LOOP FOR NGMIINI, LOOPBIG=',I3)
+       1001 |             CALL TIMESMOO(dpfillr,NUMVERT,
+       1002 |     *dpfillr(M1U),dpfillr(M1V),dpfillr(M1T),dpfillr(M1Q),dpfillr(M1H),
+       1003 |     *dpfillr(M2U),dpfillr(M2V),dpfillr(M2T),dpfillr(M2Q),dpfillr(M2H),
+       1004 |     *dpfillr(M3U),dpfillr(M3V),dpfillr(M3T),dpfillr(M3Q),dpfillr(M3H),
+       1005 |     *       IADDRGDP,LOOPBIG,NONLOOPB)
+       1006 |3900     CONTINUE
+       1007 |         CALL BALPRNT(NONLOOPB,NUMVERT)
+       1008 |C--------
+       1009 |C-------- RESTORE ALL BUT HU,HV,HTHETA,HQ, AND H FROM INPUT FILE.
+       1010 |C-------- THIS MAY BE REDUNDANT, BUT DO FOR NOW TO BE SAFE.
+       1011 |C--------
+       1012 |         DO 3920 NG=1,NGRDUSE
+       1013 |           MCOPY=IADDRGDP(1,NG)
+       1014 |           CALL CFROMVBL(dpfillr,NG,IADDRGDP)
+       1015 |3920     CONTINUE
+       1016 |         REWIND INUINPUT
+       1017 |C        READ (INUINPUT) SPECS, VBL, IBITSEA, IBITSNO, IBITWVL
+       1018 |C
+       1019 |         CALL RESTARTR( INUINPUT, IOUTUPRT, SPECS, VBL, BITSEA,
+       1020 |     *                  BITSNO, BITWVL )
+       1021 |C
+       1022 |C--------
+       1023 |C-------- CALL LATBND, SHEM ONCE AGAIN, SO TERRAIN IS CORRECT.
+       1024 |C--------
+       1025 |         LHINTERP=2*KM+7
+       1026 |         DO 3939 NG=1,NGRDUSE
+       1027 |           IF(NG.GT.1) THEN
+       1028 |             NGM=NG-1
+       1029 |             CALL LATBND(NGM,LHINTERP)
+       1030 |           ELSE
+       1031 |             CALL SHEM(LHINTERP)
+       1032 |           END IF
+       1033 |3939     CONTINUE
+       1034 |         DO 3940 NG=1,NGRDUSE
+       1035 |           MCOPY=IADDRGDP(1,NG)
+       1036 |           CALL DTOVBL(dpfillr,NG,IADDRGDP,IPRTDIAG)
+       1037 |3940     CONTINUE
+       1038 |3945     CONTINUE
+       1039 |            REWIND IOUTURST
+       1040 |C           WRITE (IOUTURST) SPECS, VBL, IBITSEA, IBITSNO, IBITWVL
+       1041 |C
+       1042 |            CALL RESTARTW( IOUTURST, IOUTUPRT, DATANAME, SPECS, VBL,
+       1043 |     *                     BITSEA, BITSNO, BITWVL )
+       1044 |C
+       1045 |            IF(NONLOOPB.NE.0) WRITE (IOUTUPRT, 4700)
+       1046 | 4700       FORMAT('0', 'INITIALIZATION COMPLETE, WITH RESTART FILE',
+       1047 |     1                  ' WRITTEN TO DISK.')
+       1048 |            IF(NONLOOPB.EQ.0) WRITE (IOUTUPRT, 4702)
+       1049 | 4702       FORMAT('0', 'INITIALIZATION SKIPPED, BUT RESTART FILE',
+       1050 |     1                  ' STILL WRITTEN TO DISK.')
+       1051 |C
+       1052 |C              THE STEP REACHED THE NORMAL TERMINATION POINT.
+       1053 |      WRITE (IOUTUPRT, 9000)
+       1054 | 9000 FORMAT ('0', 'NGMIINI TERMINATED AT THE NORMAL LOCATION IN ',
+       1055 |     1             'THE CODE.')
+       1056 |C
+       1057 |C              PRINT THE CURRENT WALL TIME.
+       1058 |C
+       1059 |      WRITE (IOUTUPRT, 9100)
+       1060 | 9100 FORMAT ('0'///)
+       1061 |C
+       1062 |C     CALL DIAGFCST
+       1063 |C*****************************************
+       1064 |C
+       1065 |      CALL W3TAGE('NGM_NGMINI')
+       1066 |C
+       1067 |C              TERMINATE THE JOB.  SUBROUTINE Q5TERM IS USED INSTEAD
+       1068 |C              OF THE STOP COMMAND TO SAVE ONE PAGE OF PAPER EACH
+       1069 |C              TIME THE CONTROLLEE IS EXECUTED.
+       1070 |C     CALL Q5TERM
+       1071 |C
+       1072 |C              THE NEXT LINE IS INCLUDED TO PREVENT A WARNING
+       1073 |C              MESSAGE FROM THE COMPILER.
+       1074 |      STOP
+       1075 |C
+       1076 |C
+       1077 |C
+       1078 | 9998 CONTINUE
+       1079 |C              WE HIT THE INPUT END-OF-FILE.  THIS SHOULD NOT HAVE
+       1080 |C              HAPPENED.
+       1081 |      WRITE (IOUTUPRT, 9999)
+       1082 | 9999 FORMAT ('0', 'INPUT END-OF-FILE ENCOUNTERED AT THE WRONG PLACE ',
+       1083 |     1             'WHEN READING DATA CARDS SPECIFYING ',
+       1084 |     2             'FUNDAMENTAL MODEL OPTIONS.'/
+       1085 |     3        '0', 11X, 'EXECUTION TERMINATING.' /////)
+       1086 |C
+       1087 |      CALL W3TAGE('NGM_NGMINI')
+       1088 |C
+       1089 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+       1090 |      ERRMSG(1) = 'IN THE MAIN CODE NEAR STATEMENT NUM'
+       1091 |      ERRMSG(2) = 'BER 9999:                          '
+       1092 |      ERRMSG(3) = 'INPUT EOF ENCOUNTERED AT WRONG PLAC'
+       1093 |      ERRMSG(4) = 'E WHEN READING DATA CARDS.         '
+       1094 |C
+       1095 |C     CALL ERRSTOP (IOUTUPRT, ERRMSG)
+       1096 |C
+       1097 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-120.6$
+ 
+ahord                            Common member, Real(4), Offset: 11604, Alignment: full word
+                                 0-194.11$
+ 
+alatpr                           Common member, Real(4) (1:6), Offset: 804, Alignment: full word
+                                 0-146.25$
+ 
+alim                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-541.20
+ 
+alonpr                           Common member, Real(4) (1:6), Offset: 828, Alignment: full word
+                                 0-146.48$
+ 
+amonth0                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-401.7@  0-453.26
+ 
+ancos                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-540.20
+ 
+anem                             Common member, Real(4), Offset: 812, Alignment: full word
+                                 0-117.25$  0-538.20
+ 
+angvel                           Common member, Real(4), Offset: 780, Alignment: full word
+                                 0-114.33$  0-716.7@
+ 
+ansin                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-539.20
+ 
+balprnt                          External Subroutine
+                                 0-1007.15
+ 
+bhord                            Common member, Real(4), Offset: 11608, Alignment: double word
+                                 0-194.17$
+ 
+bitgrdh                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 43630784, Alignment: quadruple word
+                                 0-125.25$  0-132.15$  0-816.26  0-836.18
+ 
+bitgrdu                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44009472, Alignment: quadruple word
+                                 0-126.25$  0-132.24$  0-817.26
+ 
+bitgrdv                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44388160, Alignment: quadruple word
+                                 0-127.25$  0-132.33$  0-818.26
+ 
+bitout                           External Subroutine
+                                 0-816.18
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 44766848, Alignment: quadruple word
+                                 0-128.25$  0-132.42$  0-393.54  0-1019.57  0-1043.28
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 44956192, Alignment: quadruple word
+                                 0-129.25$  0-132.50$  0-393.62  0-1020.25  0-1043.36
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 45145536, Alignment: quadruple word
+                                 0-130.25$  0-132.58$  0-394.22  0-1020.33  0-1043.44
+ 
+blkdr                            Common member, Real(4), Offset: 816, Alignment: quadruple word
+                                 0-117.31$
+ 
+bucketi                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-438.7@  0-455.23
+ 
+buckint                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-321.7@  0-359.44
+ 
+c1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-755.7@  0-758.18  0-761.16
+ 
+cenyear0                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-402.7@  0-453.35
+ 
+cfromvbl                         External Subroutine
+                                 0-887.17  0-1014.17
+ 
+charn                            Common member, Real(4), Offset: 820, Alignment: full word
+                                 0-117.38$
+ 
+chord                            Common member, Real(4), Offset: 11612, Alignment: full word
+                                 0-194.23$
+ 
+ckappa                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-721.7@  0-723.18
+ 
+ckappai                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-722.7@  0-766.33
+ 
+ckappap1                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-97.12$  0-723.7@  0-752.35  0-755.30
+ 
+com1way                          Common Block, Alignment: double word
+                                 0-209.15$
+ 
+comconst                         Common Block, Alignment: double word
+                                 0-102.15$
+ 
+comdiag                          Common Block, Alignment: double word
+                                 0-136.15$
+ 
+comout                           Common Block, Alignment: double word
+                                 0-157.15$
+ 
+conaust                          Common member, Real(4), Offset: 824, Alignment: double word
+                                 0-117.45$
+ 
+copysea                          Static, Real(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-213.17$  0-922.52
+ 
+copysno                          Static, Real(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-214.17$  0-922.61
+ 
+copywvl                          Static, Real(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-215.17$  0-923.24
+ 
+cosout                           Common member, Real(4), Offset: 10864, Alignment: quadruple word
+                                 0-173.14$
+ 
+critconv                         Common member, Real(4), Offset: 796, Alignment: full word
+                                 0-115.54$
+ 
+csubp                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-719.7@  0-721.26  0-722.18
+ 
+dataname                         Static, Character(6), Offset: 0, Alignment: full word
+                                 0-93.20$  0-241.31@  0-1042.48
+ 
+dataset                          Static, Character(6) (1:17, 1:3), Offset: 0, Alignment: full word
+                                 0-92.20$  0-223.17$
+ 
+day0                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-400.7@  0-453.20
+ 
+daymsg1                          Static, Character(1) (1:70), Offset: 0, Alignment: quadruple word
+                                 0-91.20$  0-229.20
+ 
+daymsg35                         Static, Character(35) (1:2), Offset: 0, Alignment: quadruple word
+                                 0-95.20$  0-229.32  0-301.7@  0-302.7@
+ 
+ddorf                            Common member, Real(4), Offset: 828, Alignment: full word
+                                 0-117.54$
+ 
+delsig                           Common member, Real(4) (1:16), Offset: 516, Alignment: full word
+                                 0-112.25$  0-415.10@  0-488.22  0-741.36  0-758.44  0-761.30  0-780.20  0-997.23
+ 
+deltata                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-727.7@  0-728.17
+ 
+deltaxa                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-726.7@  0-728.27
+ 
+descript                         Common member, Character(20) (1:100), Offset: 836, Alignment: full word
+                                 0-154.20$  0-169.10$
+ 
+descrp                           Common member, Character(24) (1:6), Offset: 852, Alignment: full word
+                                 0-147.25$  0-149.20$
+ 
+dhord                            Common member, Real(4), Offset: 11616, Alignment: quadruple word
+                                 0-194.29$
+ 
+dlamngm                          Common member, Real(4), Offset: 844, Alignment: full word
+                                 0-118.42$  0-420.7@  0-494.52
+ 
+dlamout                          Common member, Real(4), Offset: 24, Alignment: double word
+                                 0-165.44$
+ 
+dnpeqout                         Common member, Real(4), Offset: 20, Alignment: full word
+                                 0-165.34$
+ 
+dpfillr                          Static, Real(4) (1:7355920), Offset: 0, Alignment: full word
+                                 0-90.20$  0-887.26  0-989.24  0-990.7  0-990.20  0-990.33  0-990.46  0-990.59  0-991.7  0-991.20
+                                 0-991.33  0-991.46  0-991.59  0-992.7  0-992.20  0-992.33  0-992.46  0-992.59  0-1001.28  0-1002.7
+                                 0-1002.20  0-1002.33  0-1002.46  0-1002.59  0-1003.7  0-1003.20  0-1003.33  0-1003.46  0-1003.59
+                                 0-1004.7  0-1004.20  0-1004.33  0-1004.46  0-1004.59  0-1014.26  0-1036.24
+ 
+dtovbl                           External Subroutine
+                                 0-1036.17
+ 
+dtovdx                           Common member, Real(4), Offset: 776, Alignment: double word
+                                 0-114.25$  0-728.7@
+ 
+dxout                            Common member, Real(4), Offset: 10872, Alignment: double word
+                                 0-173.35$
+ 
+errmsg                           Static, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-94.20$  0-1090.7@  0-1091.7@  0-1092.7@  0-1093.7@
+ 
+filler                           Common member, Real(4) (1:10000), Offset: 18461040, Alignment: quadruple word
+                                 0-123.25$
+ 
+gmt0                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-399.7@  0-453.14
+ 
+htfd                             Common member, Real(4) (1:6), Offset: 11020, Alignment: full word
+                                 0-177.30$
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-835.22@  0-836.26
+ 
+iabs                             Pure Intrinsic
+                                 0-247.22
+ 
+iaddrg                           Common member, Integer(4) (1:44, 1:2), Offset: 108, Alignment: full word
+                                 0-108.25$  0-569.13@  0-578.13@  0-583.10@  0-587.13@  0-592.10@  0-596.13@  0-601.10@  0-605.13@
+                                 0-629.25
+ 
+iaddrgdp                         Static, Integer(4) (1:5, 1:2), Offset: 0, Alignment: full word
+                                 0-211.18$  0-571.15@  0-574.13@  0-886.18  0-887.37  0-993.16  0-1005.14  0-1013.18  0-1014.37
+                                 0-1035.18  0-1036.35
+ 
+iag                              Common member, Integer(4) (1:1), Offset: 92, Alignment: full word
+                                 0-106.25$  0-431.10@  0-520.20
+ 
+ibaro                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-553.26
+ 
+ibg                              Common member, Integer(4) (1:1), Offset: 100, Alignment: full word
+                                 0-107.25$  0-432.10@  0-520.29
+ 
+iblk1d                           Parameter, Integer(4)
+                                 2-58.9$  2-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 2-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 2-59.9$  2-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 2-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 2-9.13$  2-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 2-8.13$  2-10.33
+ 
+ibucket                          Common member, Integer(4), Offset: 492, Alignment: full word
+                                 0-110.60$  0-437.7@  0-455.14
+ 
+icallrad                         Common member, Integer(4), Offset: 48, Alignment: quadruple word
+                                 0-103.25$
+ 
+idpfillr                         Parameter, Integer(4)
+                                 1-13.12$  0-90.28  0-621.16
+ 
+ifile                            Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-227.17$
+ 
+iijkmax                          Parameter, Integer(4)
+                                 2-49.13$  0-122.34  0-615.29  0-654.18  1-13.48  2-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 2-17.13$  0-120.34  0-121.34  0-125.34  0-126.34  0-127.34  0-128.34  0-129.34  0-130.34  0-213.25
+                                 0-214.25  0-215.25  0-618.27  0-641.18  1-13.58  2-49.31  2-56.21  2-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 2-18.13$  0-655.18  2-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 2-19.13$  0-644.18  2-57.30  2-61.21
+ 
+iiorblp                          Parameter, Integer(4)
+                                 1-7.35$
+ 
+iiorbpl                          Parameter, Integer(4)
+                                 1-7.15$
+ 
+iiordlp                          Parameter, Integer(4)
+                                 1-7.45$
+ 
+iiordpl                          Parameter, Integer(4)
+                                 1-7.25$
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 2-51.9$  0-656.18
+ 
+ij                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-565.10@  0-566.16  0-575.31  0-579.31  0-588.31  0-597.31  0-606.31  0-831.10@  0-835.26
+                                 0-841.61  0-844.50
+ 
+ijcap                            Parameter, Integer(4)
+                                 2-20.13$
+ 
+ijcap12                          Parameter, Integer(4)
+                                 1-11.34$
+ 
+ijcap1dp                         Parameter, Integer(4)
+                                 1-11.15$  1-11.44  1-12.23
+ 
+ijcapdp                          Parameter, Integer(4)
+                                 1-6.26$  1-11.24  1-12.33
+ 
+ijk                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-566.10@  0-570.31  0-572.33  0-584.28  0-593.28  0-602.28
+ 
+ijkmax0                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-654.7@  0-676.14
+ 
+ijmax                            Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-102.25$  0-641.7@  0-676.23
+ 
+ijmaxb0                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-655.7@  0-676.30
+ 
+ijout                            Common member, Integer(4), Offset: 10840, Alignment: double word
+                                 0-172.14$
+ 
+ijrad                            Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-102.44$  0-644.7@  0-676.56
+ 
+ikm                              Parameter, Integer(4)
+                                 2-22.13$  0-112.32  0-112.41  0-112.53  0-136.33  0-142.34  0-143.34  0-173.53  0-657.18  1-8.32
+                                 1-13.24  2-49.25  2-52.21  2-53.25  2-57.39  2-58.26  2-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 2-52.9$  0-113.32  0-658.18
+ 
+ilatg2                           Parameter, Integer(4)
+                                 2-12.13$  2-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 2-24.13$  0-659.18
+ 
+ilbhi                            Parameter, Integer(4)
+                                 2-25.13$  0-660.18
+ 
+ilbui                            Parameter, Integer(4)
+                                 2-26.13$  0-661.18
+ 
+ilbuo                            Parameter, Integer(4)
+                                 2-27.13$  0-662.18
+ 
+ilbvi                            Parameter, Integer(4)
+                                 2-28.13$  0-663.18
+ 
+ilbvo                            Parameter, Integer(4)
+                                 2-29.13$  0-664.18
+ 
+ilevh                            Parameter, Integer(4)
+                                 2-13.13$  2-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 2-14.13$  2-46.38
+ 
+illd                             Common member, Integer(4), Offset: 11620, Alignment: full word
+                                 0-194.36$
+ 
+ilmout                           Parameter, Integer(4)
+                                 2-30.13$  0-169.37  0-177.19  0-184.32  0-190.42  0-642.18
+ 
+ilonf                            Parameter, Integer(4)
+                                 2-15.13$  2-46.25  2-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 2-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 2-53.9$  0-643.18  2-55.21
+ 
+imaxanal                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-405.7@  0-473.24
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 2-32.13$  0-222.26  0-223.26  0-645.18
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 2-33.13$  0-220.26  0-220.45  0-221.26  0-222.36  0-223.36  0-224.26  0-224.46  0-225.26  0-225.46
+                                 0-226.26  0-227.23  0-227.43  0-646.18
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 2-34.13$  0-168.17  0-168.37  0-169.19  0-169.44  0-647.18
+ 
+imaxprof                         Parameter, Integer(4)
+                                 2-35.13$  0-146.34  0-146.57  0-147.34  0-665.18
+ 
+imaxscr                          Parameter, Integer(4)
+                                 2-56.9$
+ 
+imcubic                          Parameter, Integer(4)
+                                 1-7.55$
+ 
+img                              Common member, Integer(4) (1:2), Offset: 76, Alignment: full word
+                                 0-105.25$  0-423.10@  0-511.24  0-519.24  0-565.16  0-819.26  0-831.15
+ 
+imout                            Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-165.20$
+ 
+incoefs                          Parameter, Integer(4)
+                                 1-12.15$
+ 
+incrinit                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-242.31@  0-921.12
+ 
+infiller                         Parameter, Integer(4)
+                                 2-36.13$  0-123.34  2-56.62
+ 
+inglb                            Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-209.43$
+ 
+ingmax                           Parameter, Integer(4)
+                                 1-8.47$
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 2-39.13$  0-106.29  0-106.44  0-107.29  0-107.44  0-667.18
+ 
+ingrduse                         Parameter, Integer(4)
+                                 2-38.13$  0-105.29  0-105.44  0-108.42  0-109.35  0-111.32  0-111.50  0-125.45  0-126.45  0-127.45
+                                 0-128.42  0-129.42  0-130.42  0-136.38  0-137.37  0-138.37  0-138.60  0-139.37  0-139.60  0-140.37
+                                 0-141.37  0-142.42  0-143.42  0-144.37  0-145.37  0-145.60  0-181.12  0-181.35  0-181.56  0-182.18
+                                 0-182.35  0-182.54  0-183.32  0-184.15  0-184.39  0-186.20  0-186.40  0-211.29  0-213.33  0-214.33
+                                 0-215.33  0-666.18
+ 
+inh                              Parameter, Integer(4)
+                                 2-37.13$  0-668.18  2-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 2-40.13$  0-108.32  0-669.18
+ 
+inklat                           Parameter, Integer(4)
+                                 1-6.56$
+ 
+inklon                           Parameter, Integer(4)
+                                 1-6.47$  1-9.54
+ 
+inksig                           Parameter, Integer(4)
+                                 1-9.15$
+ 
+inlat                            Parameter, Integer(4)
+                                 2-47.13$
+ 
+inlatdp                          Parameter, Integer(4)
+                                 1-10.15$  1-10.39
+ 
+inlath                           Parameter, Integer(4)
+                                 1-5.21$  1-5.43  1-10.25
+ 
+inlatsh                          Parameter, Integer(4)
+                                 2-16.13$  2-47.34
+ 
+inlola                           Parameter, Integer(4)
+                                 1-10.32$
+ 
+inlon                            Parameter, Integer(4)
+                                 1-6.37$  1-9.48
+ 
+inlonex                          Parameter, Integer(4)
+                                 1-9.40$  1-10.47
+ 
+inmodes                          Parameter, Integer(4)
+                                 1-8.36$
+ 
+inscr                            Parameter, Integer(4)
+                                 2-41.13$  0-120.43  0-648.18  2-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 2-43.13$  0-122.43  0-650.18  2-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 2-42.13$  0-121.43  0-649.18  2-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 2-48.13$  0-670.18
+ 
+insig                            Parameter, Integer(4)
+                                 1-8.26$  1-9.32
+ 
+insigp1                          Parameter, Integer(4)
+                                 1-9.24$
+ 
+insigstp                         Parameter, Integer(4)
+                                 2-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 2-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 2-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 2-45.13$  0-671.18  1-13.31  2-55.31
+ 
+intbuck                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-276.23@  0-321.23  0-359.34  0-533.26
+ 
+intdiag                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-289.10@
+ 
+intdry                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-286.10@
+ 
+intofil                          Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-220.37$
+ 
+intofld                          Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-224.37$
+ 
+intppto                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-277.23@  0-323.23  0-373.34  0-557.26
+ 
+intrst                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-273.23@  0-315.23  0-332.34  0-549.26
+ 
+intsigo                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-278.23@  0-325.23  0-374.34  0-552.26
+ 
+intsmo                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-275.23@  0-319.23  0-358.34  0-536.26
+ 
+inuinput                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-272.13@  0-331.14  0-393.22  0-451.14  0-546.26  0-1016.17  0-1019.25
+ 
+inumcoef                         Parameter, Integer(4)
+                                 1-5.32$
+ 
+inumgrid                         Parameter, Integer(4)
+                                 1-6.15$
+ 
+inumrec                          Parameter, Integer(4)
+                                 2-10.13$
+ 
+inumvert                         Parameter, Integer(4)
+                                 1-8.15$  0-246.19
+ 
+inunit                           Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-164.12$
+ 
+inuopts                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-252.10@  0-261.57  0-269.13  0-328.14  0-545.26
+ 
+inuout                           Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-226.17$
+ 
+invbl                            Parameter, Integer(4)
+                                 2-55.9$  0-124.34  0-672.18
+ 
+ioutunit                         Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-164.20$
+ 
+ioutuout                         Static, Integer(4) (1:17, 1:3), Offset: 0, Alignment: full word
+                                 0-222.17$
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-251.10@  0-261.32  0-261.47  0-327.14  0-357.32  0-372.32  0-393.32  0-450.32  0-472.32  0-487.32
+                                 0-494.32  0-510.38  0-518.38  0-544.26  0-628.32  0-636.32  0-675.32  0-690.32  0-770.32  0-779.35
+                                 0-827.32  0-843.38  0-922.28  0-1019.35  0-1042.38  0-1045.38  0-1048.38  0-1053.14  0-1059.14
+                                 0-1081.14
+ 
+iouturst                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-272.23@  0-331.24  0-547.26  0-1039.20  0-1042.28
+ 
+iphyspl                          Common member, Integer(4), Offset: 52, Alignment: full word
+                                 0-103.35$
+ 
+iprtdiag                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-244.10@  0-245.28@  0-253.39  0-261.10  0-357.10  0-372.10  0-450.10  0-472.10  0-487.10
+                                 0-494.10  0-510.16  0-518.16  0-628.10  0-636.10  0-675.10  0-690.10  0-770.10  0-779.13  0-827.10
+                                 0-843.16  0-999.15  0-1036.44
+ 
+iradwrk                          Parameter, Integer(4)
+                                 2-57.9$
+ 
+irefbuck                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-276.13@  0-320.23  0-359.14  0-532.26
+ 
+irefdiag                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-288.10@
+ 
+irefdry                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-285.10@
+ 
+irefofld                         Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-224.17$
+ 
+irefppto                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-277.13@  0-322.23  0-373.14  0-556.26
+ 
+irefrst                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-273.13@  0-314.23  0-332.14  0-548.26
+ 
+irefsigo                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-278.13@  0-324.23  0-374.14  0-551.26
+ 
+irefsmo                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-275.13@  0-318.23  0-358.14  0-535.26
+ 
+irunmark                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-270.13@  0-329.14  0-530.26
+ 
+istoptim                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-274.13@  0-316.23  0-333.14
+ 
+istpofil                         Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-221.17$
+ 
+istrofil                         Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-220.17$
+ 
+itbound                          Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-209.34$
+ 
+itimcfil                         Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-225.37$
+ 
+itime                            Common member, Integer(4), Offset: 68, Alignment: full word
+                                 0-104.32$  0-441.7@  0-442.22
+ 
+itime0                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-440.7@  0-441.17  0-454.14
+ 
+itimofld                         Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-225.17$
+ 
+itimstep                         Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-209.24$  0-274.23@  0-317.23  0-334.14  0-529.26  0-727.23
+ 
+iuld                             Common member, Integer(4), Offset: 11624, Alignment: double word
+                                 0-194.41$
+ 
+iverfcst                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-271.13@  0-296.7@  0-330.14  0-528.26
+ 
+iverinpt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-397.7@  0-452.14
+ 
+iwordsb0                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-656.7@  0-676.39
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 2-21.13$  2-57.21
+ 
+j1                               Common member, Integer(4) (1:2), Offset: 11048, Alignment: double word
+                                 0-181.9$
+ 
+j2                               Common member, Integer(4) (1:2), Offset: 11056, Alignment: quadruple word
+                                 0-181.32$
+ 
+jaddfngm                         Common member, Integer(4) (1:2), Offset: 11080, Alignment: double word
+                                 0-182.9$
+ 
+jaddk2l                          Common member, Integer(4) (1:2, 1:2), Offset: 11064, Alignment: double word
+                                 0-181.48$
+ 
+jaddrgdp                         Static, Integer(4) (1:5, 1:3), Offset: 0, Alignment: full word
+                                 0-212.18$  0-614.11@  0-617.9@  0-974.14  0-975.14  0-976.14  0-977.14  0-978.14  0-979.14
+                                 0-980.14  0-981.14  0-982.14  0-983.14  0-984.14  0-985.14  0-986.14  0-987.14  0-988.14
+ 
+jag                              Common member, Integer(4) (1:1), Offset: 96, Alignment: quadruple word
+                                 0-106.40$  0-433.10@  0-520.38
+ 
+jbaro                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-554.26
+ 
+jbg                              Common member, Integer(4) (1:1), Offset: 104, Alignment: double word
+                                 0-107.40$  0-434.10@  0-520.47
+ 
+jhkap                            Common member, Integer(4) (1:2), Offset: 11096, Alignment: double word
+                                 0-182.48$
+ 
+jhrec                            Common member, Integer(4) (1:2), Offset: 11088, Alignment: quadruple word
+                                 0-182.29$
+ 
+jmaxanal                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-404.7@  0-473.14
+ 
+jmg                              Common member, Integer(4) (1:2), Offset: 84, Alignment: full word
+                                 0-105.40$  0-424.10@  0-511.33  0-519.33  0-565.26  0-819.35  0-831.25
+ 
+jmout                            Common member, Integer(4), Offset: 16, Alignment: quadruple word
+                                 0-165.27$
+ 
+jscr2                            Common member, Integer(4) (1:12), Offset: 11104, Alignment: quadruple word
+                                 0-183.9$
+ 
+jscr3ngm                         Common member, Integer(4) (1:2, 1:12), Offset: 11152, Alignment: quadruple word
+                                 0-183.23$
+ 
+jscr3out                         Common member, Integer(4) (1:12), Offset: 11248, Alignment: quadruple word
+                                 0-183.48$
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-414.14@  0-415.17  0-415.33  0-488.19  0-488.29  0-488.33@  0-740.15@  0-741.17  0-741.31
+                                 0-741.43  0-750.15@  0-751.30  0-752.13  0-757.15@  0-758.13  0-758.27  0-758.35  0-758.51
+                                 0-765.15@  0-766.16  0-766.28  0-778.15@  0-780.17  0-780.27  0-780.37  0-780.44  0-780.51
+                                 0-780.62
+ 
+kadiab                           Common member, Integer(4) (1:16, 1:2), Offset: 0, Alignment: quadruple word
+                                 0-136.25$
+ 
+kgtype                           Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-165.12$
+ 
+khinterp                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-852.10@
+ 
+kkcloud2                         Common member, Integer(4) (1:2, 1:2), Offset: 144, Alignment: quadruple word
+                                 0-138.25$
+ 
+kkgse2                           Common member, Integer(4) (1:2, 1:2), Offset: 224, Alignment: quadruple word
+                                 0-141.25$
+ 
+kkgsp2                           Common member, Integer(4) (1:2, 1:2), Offset: 208, Alignment: quadruple word
+                                 0-140.25$
+ 
+klift1                           Common member, Integer(4), Offset: 484, Alignment: full word
+                                 0-110.44$
+ 
+klift2                           Common member, Integer(4), Offset: 488, Alignment: double word
+                                 0-110.52$
+ 
+km                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-102.32$  0-412.7@  0-414.19  0-488.14  0-488.35  0-566.21  0-740.20  0-744.14  0-750.20  0-757.20
+                                 0-761.10  0-761.24  0-761.37  0-765.20  0-770.56  0-778.18  0-852.26  0-878.21  0-1025.21
+ 
+km0                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-657.7@  0-676.49
+ 
+kmp10                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-658.7@  0-677.14
+ 
+kumulus                          Common member, Integer(4), Offset: 476, Alignment: full word
+                                 0-110.25$
+ 
+label84                          Common member, Integer(4) (1:27), Offset: 11636, Alignment: full word
+                                 0-199.22$
+ 
+labfsub2                         Common member, Integer(4), Offset: 11772, Alignment: full word
+                                 0-206.29$
+ 
+labkgrid                         Common member, Integer(4), Offset: 11776, Alignment: quadruple word
+                                 0-206.39$
+ 
+labmldif                         Common member, Integer(4), Offset: 11764, Alignment: full word
+                                 0-206.9$
+ 
+labnumpt                         Common member, Integer(4), Offset: 11780, Alignment: full word
+                                 0-206.49$
+ 
+labqtype                         Common member, Integer(4), Offset: 11744, Alignment: quadruple word
+                                 0-205.9$
+ 
+labssub1                         Common member, Integer(4), Offset: 11748, Alignment: full word
+                                 0-205.19$
+ 
+labssub2                         Common member, Integer(4), Offset: 11768, Alignment: double word
+                                 0-206.19$
+ 
+labtmark                         Common member, Integer(4), Offset: 11752, Alignment: double word
+                                 0-205.29$
+ 
+latbnd                           External Subroutine
+                                 0-882.19  0-964.21  0-1029.19
+ 
+latg                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-407.7@  0-474.14
+ 
+lbch0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-659.7@  0-677.23
+ 
+lbhi0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-660.7@  0-677.30
+ 
+lbui0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-661.7@  0-677.39
+ 
+lbuo0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-662.7@  0-677.49
+ 
+lbvi0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-663.7@  0-677.56
+ 
+lbvo0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-664.7@  0-677.63
+ 
+lengd                            Common member, Integer(4) (1:2), Offset: 11296, Alignment: quadruple word
+                                 0-184.9$
+ 
+levels                           Common member, Integer(4) (1:20, 1:100), Offset: 2836, Alignment: full word
+                                 0-169.30$
+ 
+levelstr                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-612.15@  0-614.25  0-617.20
+ 
+levh                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-410.7@  0-474.32
+ 
+levs                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-409.7@  0-474.26
+ 
+lfrstges                         Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-98.15$  0-897.10@  0-928.45@  0-930.10@  0-954.13  0-989.32
+ 
+lgridppt                         Common member, Integer(4), Offset: 480, Alignment: quadruple word
+                                 0-110.34$
+ 
+lhinterp                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-878.10@  0-882.30  0-884.24  0-964.32  0-966.26  0-1025.10@  0-1029.30  0-1031.24
+ 
+lmout                            Common member, Integer(4), Offset: 10844, Alignment: full word
+                                 0-172.21$  0-642.7@  0-691.14
+ 
+lofclds                          Common member, Integer(4) (1:2, 1:4), Offset: 16, Alignment: quadruple word
+                                 0-102.51$
+ 
+lonf                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-408.7@  0-474.20
+ 
+loopbig                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-998.18@  0-999.43  0-1005.23
+ 
+lqtype                           Common member, Integer(4) (1:100), Offset: 36, Alignment: full word
+                                 0-168.10$
+ 
+lstart                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-561.7@  0-569.33  0-570.13@  0-570.22  0-578.33  0-579.13@  0-579.22  0-583.30  0-584.10@
+                                 0-584.19  0-587.33  0-588.13@  0-588.22  0-592.30  0-593.10@  0-593.19  0-596.33  0-597.13@
+                                 0-597.22  0-601.30  0-602.10@  0-602.19  0-605.33  0-606.13@  0-606.22  0-611.15
+ 
+lstartdp                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-562.7@  0-571.33  0-572.15@  0-572.24  0-574.28  0-575.13@  0-575.22  0-614.35  0-615.11@
+                                 0-615.20  0-617.30  0-618.9@  0-618.18  0-620.15
+ 
+lstop                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-611.7@  0-636.48
+ 
+lstopdp                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-620.7@  0-622.20
+ 
+lstype                           Common member, Integer(4) (1:100), Offset: 436, Alignment: full word
+                                 0-168.30$
+ 
+ltype                            Common member, Integer(4) (1:20, 1:2), Offset: 11304, Alignment: double word
+                                 0-184.26$
+ 
+lvar                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-568.18@  0-569.21  0-571.24  0-577.18@  0-578.21  0-582.10@  0-583.18  0-586.18@  0-587.21
+                                 0-591.10@  0-592.18  0-595.18@  0-596.21  0-600.10@  0-601.18  0-604.18@  0-605.21  0-613.17@
+                                 0-614.20  0-629.15  0-629.32  0-629.43@
+ 
+lvltot                           Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-102.36$  0-643.7@  0-691.22
+ 
+m1h                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-978.10@  0-990.67  0-1002.67
+ 
+m1q                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-977.10@  0-990.54  0-1002.54
+ 
+m1t                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-976.10@  0-990.41  0-1002.41
+ 
+m1u                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-974.10@  0-990.15  0-1002.15
+ 
+m1v                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-975.10@  0-990.28  0-1002.28
+ 
+m2h                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-983.10@  0-991.67  0-1003.67
+ 
+m2q                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-982.10@  0-991.54  0-1003.54
+ 
+m2t                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-981.10@  0-991.41  0-1003.41
+ 
+m2u                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-979.10@  0-991.15  0-1003.15
+ 
+m2v                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-980.10@  0-991.28  0-1003.28
+ 
+m3h                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-988.10@  0-992.67  0-1004.67
+ 
+m3q                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-987.10@  0-992.54  0-1004.54
+ 
+m3t                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-986.10@  0-992.41  0-1004.41
+ 
+m3u                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-984.10@  0-992.15  0-1004.15
+ 
+m3v                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-985.10@  0-992.28  0-1004.28
+ 
+main                             Program
+                                 0-1.16$
+ 
+maxoutf                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-645.7@  0-691.31
+ 
+maxoutt                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-646.7@  0-691.40
+ 
+maxoutv                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-647.7@  0-691.49
+ 
+maxprof                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-665.7@  0-691.59
+ 
+mb1                              Common member, Integer(4), Offset: 11464, Alignment: double word
+                                 0-184.50$
+ 
+mb2                              Common member, Integer(4), Offset: 11468, Alignment: full word
+                                 0-184.55$
+ 
+mcopy                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-886.12@  0-1013.12@  0-1035.12@
+ 
+mhout                            Common member, Integer(4), Offset: 11492, Alignment: full word
+                                 0-185.47$
+ 
+min                              Pure Intrinsic
+                                 0-247.18
+ 
+mint                             Common member, Integer(4), Offset: 11472, Alignment: quadruple word
+                                 0-184.60$
+ 
+mngm3                            Common member, Integer(4), Offset: 11488, Alignment: quadruple word
+                                 0-185.39$
+ 
+msout1                           Common member, Integer(4), Offset: 11476, Alignment: full word
+                                 0-185.10$
+ 
+msout2                           Common member, Integer(4), Offset: 11480, Alignment: double word
+                                 0-185.19$
+ 
+mszgnd                           Common member, Integer(4) (1:2), Offset: 11504, Alignment: quadruple word
+                                 0-186.13$
+ 
+mzfr                             Common member, Integer(4), Offset: 11496, Alignment: double word
+                                 0-185.54$
+ 
+mzgndout                         Common member, Integer(4), Offset: 11484, Alignment: full word
+                                 0-185.28$
+ 
+mztro                            Common member, Integer(4), Offset: 11500, Alignment: full word
+                                 0-185.60$
+ 
+ndpfillr                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-621.7@  0-622.28
+ 
+nfiles                           Static, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-227.34$
+ 
+nfiller                          Common member, Integer(4), Offset: 10848, Alignment: quadruple word
+                                 0-172.28$  0-692.14
+ 
+ng                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-422.14@  0-423.14  0-423.41  0-424.14  0-424.41  0-425.17  0-425.41  0-426.17  0-426.41
+                                 0-430.14@  0-431.14  0-431.38  0-432.14  0-432.38  0-433.14  0-433.38  0-434.14  0-434.38
+                                 0-508.15@  0-509.14  0-511.20  0-511.28  0-511.37  0-511.49  0-511.61  0-519.20  0-519.28  0-519.37
+                                 0-519.49  0-519.61  0-520.24  0-520.33  0-520.42  0-520.51  0-564.15@  0-565.20  0-565.30  0-569.27
+                                 0-571.29  0-574.24  0-578.27  0-583.24  0-587.27  0-592.24  0-596.27  0-601.24  0-605.27  0-629.21
+                                 0-629.38  0-629.55@  0-815.18@  0-816.41  0-817.41  0-818.41  0-819.30  0-819.39  0-819.44
+                                 0-830.15@  0-831.19  0-831.29  0-834.27  0-836.34  0-837.33  0-837.50  0-839.18  0-841.49  0-844.20
+                                 0-844.45  0-879.18@  0-880.15  0-881.18  0-886.29  0-887.34  0-961.19@  0-962.17  0-963.20
+                                 0-1012.18@  0-1013.29  0-1014.34  0-1026.18@  0-1027.15  0-1028.18  0-1034.18@  0-1035.29
+                                 0-1036.32
+ 
+ngm                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-881.14@  0-882.26  0-963.16@  0-964.28  0-1028.14@  0-1029.26
+ 
+ngrduse                          Common member, Integer(4), Offset: 56, Alignment: double word
+                                 0-103.44$  0-419.7@  0-422.20  0-429.18  0-494.61  0-508.23  0-509.22  0-564.21  0-629.61  0-808.10
+                                 0-815.23  0-830.21  0-879.23  0-961.24  0-1012.23  0-1026.23  0-1034.23
+ 
+ngrdusm1                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-429.7@  0-430.22
+ 
+ngridata                         Common member, Integer(4) (1:2), Offset: 11512, Alignment: double word
+                                 0-186.31$
+ 
+nguse0                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-666.7@  0-693.14
+ 
+ngusm10                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-667.7@  0-693.22
+ 
+nh                               Common member, Integer(4), Offset: 60, Alignment: full word
+                                 0-103.53$  0-418.7@  0-494.48  0-726.40  0-806.21
+ 
+nh0                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-668.7@  0-693.31
+ 
+niadrs0                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-669.7@  0-693.40
+ 
+nint                             Pure Intrinsic
+                                 0-397.18  0-404.18  0-405.18  0-407.14  0-408.14  0-409.14  0-410.14  0-412.14  0-418.17  0-419.17
+                                 0-423.23  0-424.23  0-431.20  0-432.20  0-433.20  0-434.20  0-437.17  0-440.17  0-445.17
+ 
+nonloopb                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-243.40@  0-253.22  0-889.13  0-998.28  0-1005.31  0-1007.23  0-1045.16  0-1048.16
+ 
+noutvbls                         Common member, Integer(4), Offset: 10836, Alignment: full word
+                                 0-169.56$
+ 
+npair                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-833.18@  0-834.20  0-836.28  0-837.27  0-837.44  0-839.36  0-841.42  0-844.24  0-844.38
+ 
+nptsbuoy                         Common member, Integer(4) (1:2, 1:2), Offset: 160, Alignment: quadruple word
+                                 0-138.48$
+ 
+nptscc                           Common member, Integer(4) (1:2, 1:2), Offset: 192, Alignment: quadruple word
+                                 0-139.48$
+ 
+nptsdhq                          Common member, Integer(4) (1:2, 1:2), Offset: 128, Alignment: quadruple word
+                                 0-137.25$
+ 
+nptsevap                         Common member, Integer(4) (1:16, 1:2, 1:2), Offset: 496, Alignment: quadruple word
+                                 0-143.25$
+ 
+nptsfh                           Common member, Integer(4) (1:2, 1:2), Offset: 460, Alignment: full word
+                                 0-109.25$  0-834.13@  0-837.20@  0-837.37  0-841.35  0-844.31
+ 
+nptsgsp                          Common member, Integer(4) (1:2, 1:2), Offset: 752, Alignment: quadruple word
+                                 0-144.25$
+ 
+nptssat                          Common member, Integer(4) (1:16, 1:2, 1:2), Offset: 240, Alignment: quadruple word
+                                 0-142.25$
+ 
+nptswatr                         Common member, Integer(4) (1:2, 1:2), Offset: 176, Alignment: quadruple word
+                                 0-139.25$
+ 
+ns2                              Common member, Integer(4), Offset: 10852, Alignment: full word
+                                 0-172.37$
+ 
+ns3ngm                           Common member, Integer(4), Offset: 10856, Alignment: double word
+                                 0-172.42$
+ 
+ns3out                           Common member, Integer(4), Offset: 10860, Alignment: full word
+                                 0-172.50$
+ 
+nscr                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-648.7@  0-693.49
+ 
+nscr3                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-650.7@  0-694.14
+ 
+nscrgeo                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-649.7@  0-693.57
+ 
+nshem0                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-670.7@  0-694.22
+ 
+nsteps                           Common member, Integer(4), Offset: 72, Alignment: double word
+                                 0-104.39$  0-446.7@
+ 
+nsteps0                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-445.7@  0-446.17  0-454.30
+ 
+nsumg0                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-671.7@  0-694.31
+ 
+ntime                            Common member, Integer(4), Offset: 64, Alignment: quadruple word
+                                 0-104.25$
+ 
+numgdreq                         Common member, Integer(4), Offset: 11520, Alignment: quadruple word
+                                 0-190.23$
+ 
+numprof                          Common member, Integer(4), Offset: 768, Alignment: quadruple word
+                                 0-144.48$
+ 
+numvert                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-247.10@  0-253.31  0-1001.36  0-1007.32
+ 
+numvert0                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-243.31@  0-245.13  0-247.27
+ 
+numvertx                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-246.10@  0-247.37
+ 
+nvbl0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-672.7@  0-694.41
+ 
+onemsig                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-96.12$  0-751.10@  0-752.24
+ 
+outhord                          Common member, Real(4), Offset: 11632, Alignment: quadruple word
+                                 0-194.58$
+ 
+padder                           Common member, Real(4), Offset: 11044, Alignment: full word
+                                 0-177.41$
+ 
+percent                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-841.13@  0-844.54
+ 
+pkato                            Common member, Real(4), Offset: 832, Alignment: quadruple word
+                                 0-117.61$
+ 
+plout                            Common member, Real(4) (1:20), Offset: 10940, Alignment: full word
+                                 0-177.13$
+ 
+pptcc                            Common member, Real(4) (1:2, 1:2), Offset: 772, Alignment: full word
+                                 0-145.25$
+ 
+pptgsp                           Common member, Real(4) (1:2, 1:2), Offset: 788, Alignment: full word
+                                 0-145.48$
+ 
+pptoint                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-323.7@  0-373.44
+ 
+pr                               Common member, Real(4) (1:16), Offset: 580, Alignment: full word
+                                 0-112.38$  0-748.7@  0-752.10@  0-758.10@  0-758.24  0-758.32  0-761.7@  0-761.21  0-766.25
+                                 0-780.41  0-780.48
+ 
+press                            Common member, Real(4) (1:16), Offset: 644, Alignment: full word
+                                 0-112.47$  0-766.10@  0-780.31
+ 
+qbound                           Common member, Real(4), Offset: 808, Alignment: double word
+                                 0-116.43$
+ 
+radius                           Common member, Real(4), Offset: 512, Alignment: quadruple word
+                                 0-111.61$  0-715.7@  0-726.24
+ 
+real                             Pure Intrinsic
+                                 0-314.18  0-315.18  0-316.18  0-317.18  0-318.18  0-319.18  0-320.18  0-321.18  0-322.18  0-323.18
+                                 0-324.18  0-325.18  0-442.17  0-528.20  0-529.20  0-530.20  0-532.20  0-533.20  0-535.20  0-536.20
+                                 0-544.20  0-545.20  0-546.20  0-547.20  0-548.20  0-549.20  0-551.20  0-552.20  0-553.20  0-554.20
+                                 0-556.20  0-557.20  0-726.35  0-727.17  0-752.18  0-755.24  0-841.30  0-841.56
+ 
+refbuck                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-320.7@  0-359.24
+ 
+refppto                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-322.7@  0-373.24
+ 
+refrst                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-314.7@  0-332.24
+ 
+refsigo                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-324.7@  0-374.24
+ 
+refsmo                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-318.7@  0-358.24
+ 
+restartr                         External Subroutine
+                                 0-393.12  0-922.15  0-1019.15
+ 
+restartw                         External Subroutine
+                                 0-1042.18
+ 
+rgasd                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-718.7@  0-721.18  0-722.26
+ 
+rhfactor                         Common member, Real(4), Offset: 804, Alignment: full word
+                                 0-116.33$
+ 
+rstint                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-315.7@  0-332.44
+ 
+s1value                          Common member, Real(4), Offset: 11756, Alignment: full word
+                                 0-205.40$
+ 
+s2value                          Common member, Real(4), Offset: 11760, Alignment: quadruple word
+                                 0-205.50$
+ 
+satdel                           Common member, Real(4), Offset: 800, Alignment: quadruple word
+                                 0-116.25$
+ 
+scaleht                          Common member, Real(4), Offset: 836, Alignment: full word
+                                 0-118.25$  0-542.20
+ 
+scr                              Common member, Real(4) (1:23668, 1:23), Offset: 0, Alignment: quadruple word
+                                 0-120.25$
+ 
+scr3                             Common member, Real(4) (1:378688, 1:10), Offset: 3313520, Alignment: quadruple word
+                                 0-122.25$
+ 
+scrgeog                          Common member, Real(4) (1:23668, 1:12), Offset: 2177456, Alignment: quadruple word
+                                 0-121.25$
+ 
+scrhord                          Common member, Real(4), Offset: 11628, Alignment: full word
+                                 0-194.48$
+ 
+sec2hour                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-313.7@  0-314.35  0-315.35  0-316.35  0-317.35  0-318.35  0-319.35  0-320.35  0-321.35  0-322.35
+                                 0-323.35  0-324.35  0-325.35  0-438.30  0-442.31  0-443.30
+ 
+setdsig                          External Subroutine
+                                 0-997.15
+ 
+setupr00                         External Subroutine
+                                 0-989.15
+ 
+shem                             External Subroutine
+                                 0-884.19  0-966.21  0-1031.19
+ 
+shempre                          External Subroutine
+                                 0-806.12
+ 
+sigdot                           Common member, Real(4), Offset: 840, Alignment: double word
+                                 0-118.34$
+ 
+sigint                           Common member, Real(4) (1:17), Offset: 708, Alignment: full word
+                                 0-113.25$  0-738.7@  0-741.10@  0-741.24  0-744.7@  0-751.23  0-770.48  0-780.55
+ 
+sigmacc                          Common member, Real(4), Offset: 784, Alignment: quadruple word
+                                 0-115.25$
+ 
+sigmadhq                         Common member, Real(4), Offset: 792, Alignment: double word
+                                 0-115.44$
+ 
+sigmagsp                         Common member, Real(4), Offset: 788, Alignment: full word
+                                 0-115.34$
+ 
+sigoint                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-325.7@  0-374.44
+ 
+sinout                           Common member, Real(4), Offset: 10868, Alignment: full word
+                                 0-173.24$
+ 
+smoint                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-319.7@  0-358.44
+ 
+specopy                          Static, Real(4) (1:700), Offset: 0, Alignment: full word
+                                 0-218.17$  0-898.10@  0-922.38  0-925.14  0-926.14  0-927.14  0-928.14
+ 
+specs                            Static, Real(4) (1:700), Offset: 0, Alignment: full word
+                                 0-217.17$  0-393.42  0-397.24  0-399.18  0-400.18  0-401.18  0-402.18  0-404.23  0-405.23  0-407.20
+                                 0-408.20  0-409.20  0-410.20  0-412.20  0-415.22  0-418.23  0-419.23  0-420.23  0-423.29  0-424.29
+                                 0-425.29  0-426.29  0-431.26  0-432.26  0-433.26  0-434.26  0-437.23  0-438.17  0-440.23  0-443.17
+                                 0-445.23  0-528.7@  0-529.7@  0-530.7@  0-532.7@  0-533.7@  0-535.7@  0-536.7@  0-538.7@  0-539.7@
+                                 0-540.7@  0-541.7@  0-542.7@  0-544.7@  0-545.7@  0-546.7@  0-547.7@  0-548.7@  0-549.7@  0-551.7@
+                                 0-552.7@  0-553.7@  0-554.7@  0-556.7@  0-557.7@  0-925.32  0-926.32  0-927.32  0-928.32  0-1019.45
+                                 0-1042.58
+ 
+steptime                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-317.7@  0-334.24
+ 
+timehrs                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-442.7@
+ 
+timei0                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-443.7@  0-454.22
+ 
+timesmoo                         External Subroutine
+                                 0-1001.19
+ 
+timestop                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-316.7@  0-333.24
+ 
+vbl                              Common member, Real(4) (1:6282436), Offset: 18501040, Alignment: quadruple word
+                                 0-124.25$  0-393.49  0-922.47  0-1019.52  0-1042.65
+ 
+w3tagb                           External Subroutine
+                                 0-231.12
+ 
+w3tage                           External Subroutine
+                                 0-1065.12  0-1087.12
+ 
+xipout                           Common member, Real(4), Offset: 28, Alignment: full word
+                                 0-165.53$
+ 
+xpoleh                           Common member, Real(4) (1:2), Offset: 496, Alignment: quadruple word
+                                 0-111.25$  0-425.10@  0-511.42  0-519.42
+ 
+yjpout                           Common member, Real(4), Offset: 32, Alignment: quadruple word
+                                 0-165.61$
+ 
+ypoleh                           Common member, Real(4) (1:2), Offset: 504, Alignment: double word
+                                 0-111.43$  0-426.10@  0-511.54  0-519.54
+ 
+zlout                            Common member, Real(4) (1:20), Offset: 11524, Alignment: full word
+                                 0-190.36$
+ 
+zsiglyr                          Common member, Real(4) (1:16), Offset: 10876, Alignment: full word
+                                 0-173.45$
+ 
+** main   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    MAIN.f                      10/09/02   12:45:08
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/myparam
+                                      02/09/00   18:27:58      0      89
+     2    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      1       1
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................    1173
+1501-510  Compilation successful for file MAIN.f.
+1501-543  Object file created.

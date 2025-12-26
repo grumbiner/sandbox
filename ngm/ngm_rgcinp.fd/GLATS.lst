@@ -1,0 +1,235 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/GLATS.f 09/30/06 19:45:33
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE GLATS(KHAF,COLRAD,WGT,WGTCS,RCS2)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    GLATS       COMPUTES COLAT OF R40 G.G. (FROM SELA)
+          5 |C   PRGMMR: TUCCILLO         ORG: W/NMC22    DATE: 86-10-21
+          6 |C
+          7 |C ABSTRACT: COMPUTES COLATITUDE OF R40 G.G.
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   86-10-21  JIM TUCCILLO
+         11 |C   88-08-02  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         12 |C
+         13 |C USAGE:    CALL GLATS ( KHAF, COLRAD, WGT, WGTCS, RCS2 )
+         14 |C   INPUT ARGUMENT LIST:
+         15 |C     KHAF     - NUMBER OF GAUSSIAN LATITUDES PER HEMISPHERE
+         16 |C
+         17 |C   OUTPUT ARGUMENT LIST:
+         18 |C     COLRAD   - COLATITUDE IN RADIANS
+         19 |C     WGT      - NOT USED
+         20 |C     WGTCS    - NOT USED
+         21 |C     RCS2     - NOT USED
+         22 |C
+         23 |C   OUTPUT FILES:
+         24 |C     FT06F001 - FOR PRINTOUT
+         25 |C
+         26 |C   SUBPROGRAMS CALLED:
+         27 |C     UNIQUE:    - POLY
+         28 |C
+         29 |C ATTRIBUTES:
+         30 |C   LANGUAGE: CYBER FORTRAN 200
+         31 |C   MACHINE:  CYBER 205
+         32 |C
+         33 |C$$$
+         34 |C
+         35 |      DIMENSION  COLRAD(KHAF) ,WGT(KHAF), WGTCS(KHAF), RCS2(KHAF)
+         36 |C
+         37 |      EPS=1.E-12
+         38 |      SI=1.
+         39 |      K2=2*KHAF
+         40 |      RK2=K2
+         41 |      SCALE=2.  /(RK2*RK2)
+         42 |      K1=K2-1
+         43 |      PI=ATAN(SI)*4.
+         44 |      DRADZ=PI/360.
+         45 |      RAD=0.
+         46 |      DO 1000 K=1,KHAF
+         47 |      ITER=0
+         48 |      DRAD=DRADZ
+         49 |1     CALL POLY(K2,RAD,P2)
+         50 |2     P1 =P2
+         51 |      ITER=ITER+1
+         52 |      RAD=RAD+DRAD
+         53 |      CALL POLY(K2,RAD,P2)
+         54 |      IF ( SIGN(SI,P1) .EQ. SIGN(SI,P2) )  GO TO 2
+         55 |      IF(DRAD.LT.EPS)GO TO 3
+         56 |      RAD=RAD-DRAD
+         57 |      DRAD=DRAD*0.25
+         58 |      GO TO 1
+         59 |3     CONTINUE
+         60 |      COLRAD(K)=RAD
+         61 |      PHI=RAD   *180.  /PI
+         62 |      CALL POLY(K1,RAD,P1)
+         63 |      X=  COS(RAD)
+         64 |      W=SCALE*(1.  -X*X)/(P1*P1)
+         65 |      WGT(K)=    W
+         66 |      SN=  SIN(RAD)
+         67 |      W=W/(SN*SN)
+         68 |      WGTCS(K)=    W
+         69 |      RC=1./(SN*SN)
+         70 |      RCS2(K)=   RC
+         71 |      CALL POLY(K2,RAD,P1)
+         72 |      PRPHI =    PHI
+         73 |      PRCOL =    COLRAD(K)
+         74 |1000  CONTINUE
+         75 |      PRINT 100,KHAF
+         76 |100   FORMAT(1H ,'END GLATS FOR ',I3)
+         77 |      RETURN
+         78 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+atan                             Pure Intrinsic
+                                 0-43.10
+ 
+colrad                           Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-35.18$  0-1.29  0-60.7@  0-73.18
+ 
+cos                              Pure Intrinsic
+                                 0-63.11
+ 
+drad                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-48.7@  0-52.15  0-55.10  0-56.15  0-57.7@  0-57.12
+ 
+dradz                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-44.7@  0-48.12
+ 
+eps                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.7@  0-55.18
+ 
+glats                            Subroutine
+                                 0-1.18$
+ 
+iter                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-47.7@  0-51.7@  0-51.12
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-46.15@  0-60.14  0-65.11  0-68.13  0-70.12  0-73.25
+ 
+k1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-42.7@  0-62.17
+ 
+k2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-39.7@  0-40.11  0-42.10  0-49.17  0-53.17  0-71.17
+ 
+khaf                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.24  0-35.25  0-35.25  0-35.36  0-35.36  0-35.49  0-35.49  0-35.61  0-35.61  0-39.12  0-46.19
+                                 0-75.17
+ 
+p1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-50.7@  0-54.20  0-62.24  0-64.27  0-64.30  0-71.24
+ 
+p2                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-49.24  0-50.11  0-53.24  0-54.37
+ 
+phi                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-61.7@  0-72.18
+ 
+pi                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-43.7@  0-44.13  0-61.25
+ 
+poly                             External Subroutine
+                                 0-49.12  0-53.12  0-62.12  0-71.12
+ 
+prcol                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-73.7@
+ 
+prphi                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-72.7@
+ 
+rad                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-49.20  0-52.7@  0-52.11  0-53.20  0-56.7@  0-56.11  0-60.17  0-61.11  0-62.20  0-63.15
+                                 0-66.16  0-71.20
+ 
+rc                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-69.7@  0-70.18
+ 
+rcs2                             Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-35.56$  0-1.46  0-70.7@
+ 
+rk2                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-40.7@  0-41.19  0-41.23
+ 
+scale                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-41.7@  0-64.9
+ 
+si                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-38.7@  0-43.15  0-54.17  0-54.34
+ 
+sign                             Pure Intrinsic
+                                 0-54.12  0-54.29
+ 
+sin                              Pure Intrinsic
+                                 0-66.12
+ 
+sn                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-67.12  0-67.15  0-69.14  0-69.17
+ 
+w                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-64.7@  0-65.18  0-67.7@  0-67.9  0-68.20
+ 
+wgt                              Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-35.32$  0-1.36  0-65.7@
+ 
+wgtcs                            Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-35.43$  0-1.40  0-68.7@
+ 
+x                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-63.7@  0-64.21  0-64.23
+ 
+** glats   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    GLATS.f                     10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      78
+1501-510  Compilation successful for file GLATS.f.
+1501-543  Object file created.

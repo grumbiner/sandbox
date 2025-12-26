@@ -1,0 +1,105 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/ncpus.f 08/24/05 14:24:55
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |C-----------------------------------------------------------------------
+          2 |      FUNCTION NCPUS()
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C
+          5 |C SUBPROGRAM: NCPUS          SET NUMBER OF CPUS
+          6 |C   PRGMMR: IREDELL          ORG: W/NMC23     DATE: 94-08-19
+          7 |C
+          8 |C ABSTRACT: SET NUMBER OF CPUS
+          9 |C   DESIGNATING THE NUMBER OF PROCESSORS OVER WHICH TO PARALLELIZE.
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   94-08-19  IREDELL
+         13 |C   98-11-09  VUONG     ADD DOC BLOCK AND REMOVE CRAY REFERENCES
+         14 |C 1998-12-18  IREDELL   IBM SMP VERSION
+         15 |C
+         16 |C USAGE:    NC=NCPUS()
+         17 |C   OUTPUT ARGUMENTS:
+         18 |C     NCPUS        INTEGER NUMBER OF CPUS
+         19 |C
+         20 |C SUBPROGRAMS CALLED:
+         21 |C     NUM_PARTHDS  XLF INTRINSIC TO RETURN NUMBER OF THREADS
+         22 |C
+         23 |C ATTRIBUTES:
+         24 |C   LANGUAGE: FORTRAN
+         25 |
+         26 |	character*16 thrdval
+         27 |	integer nval
+         28 |C
+         29 |C$$$
+         30 |C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+         31 |Cmp      NCPUS=NUM_PARTHDS()
+         32 |
+         33 |	call getenv("OMP_NUM_THREADS",thrdval)
+         34 |	read(thrdval(1:3),73) nval
+         35 |  73    format(I3)
+         36 |	NCPUS=nval
+         37 |      RETURN
+         38 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+getenv                           Intrinsic
+                                 0-33.7
+ 
+ncpus                            Function Integer(4)
+                                 0-2.16$  0-36.2@
+ 
+nval                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-27.10$  0-34.24@  0-36.8
+ 
+thrdval                          Automatic, Character(16), Offset: 0, Alignment: full word
+                                 0-26.15$  0-33.32  0-34.7
+ 
+** ncpus   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ncpus.f                     03/26/03   17:35:10
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      38
+1501-510  Compilation successful for file ncpus.f.
+1501-543  Object file created.

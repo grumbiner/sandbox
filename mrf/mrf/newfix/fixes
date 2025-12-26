@@ -1,0 +1,7 @@
+1. 1 m/s minimum windspeed at surface enforced
+
+2. MONINP call list fixed.
+
+3. Expand specific humidity GRIB precision.
+
+4. Temperature determining rain/snow fixed at 850 mb.

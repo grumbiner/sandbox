@@ -1,0 +1,2 @@
+      real(4),pointer::VAPINC(:,:),VAPINC7(:,:),CLDINC(:,:),CLDINC7(:,:)
+      COMMON /PPTASM/VAPINC,VAPINC7,CLDINC,CLDINC7

@@ -1,0 +1,104 @@
+################################################################################
+# 
+#     Makefile for Eta Coordinate Quilt
+#
+#     Use:
+#     make         -  build the executable
+#     make clean   -  start with a clean slate
+#
+#     The following macros will be of interest:
+#
+#         TARGET   - name of the executable
+#         FC       - name of Fortran compiler
+#         CPP      - name of CPP
+#         ARCH     - architecture
+#         CPPFLAGS - CPP flags
+#         OPTS     - compiler code optimizations
+#         LIST     - source listing
+#         SMP      - threading
+#         TRAPS    - runtime traps for floating point exceptions
+#         PROFILE  - source code profiling ( -pg )
+#         DEBUG    - -g
+#         MEM      - user data area and stack size
+#         MAP      - load map
+#         W3LIB    - w3lib
+#         BACIO    - bacio lib
+#         ESSL     - ESSL library
+#         MASS     - MASS library
+#         SEARCH   - library search location
+#
+#################################################################################
+#
+# Define the name of the executable
+#
+TARGET = grdeta_new.x_cold
+#
+# CPP, Compiler, and Linker Options
+#
+FC       = xlf
+CPP      = /lib/cpp -P
+ARCH     = 604
+CPPFLAGS = 
+OPTS     = -O3 -qnosave -qarch=$(ARCH) -qmaxmem=-1 -qstrict -qddim -qxref=full -qattr -qnosave -NS2000
+LIST     = -qsource -qxref=full -qattr=full
+SMP      = 
+TRAPS    =
+#TRAPS    = -qinitauto=FF -qflttrap=ov:zero:inv:imp:en -qsigtrap
+PROFILE  = 
+DEBUG    = -g
+MEM      = -bmaxdata:2000000000 -bmaxstack:256000000
+MAP      = -bmap:map -bloadmap:lm
+W3LIB    = /nwprod/w3lib90/w3lib_4
+BACIO    = /nwprod/w3lib90/bacio_4
+SPLIB    = /nwprod/w3lib90/splib_4
+ESSL     = -lessl
+MASS     = -lmass
+SEARCH   =
+#
+# Assemble Options
+#
+FFLAGS   = $(OPTS) $(LIST) $(TRAPS) $(PROFILE) $(DEBUG)
+FFLAGST  = $(OPTS) $(LIST) $(SMP) $(TRAPS) $(PROFILE) $(DEBUG)
+LDFLAGS  = $(MEM) $(MAP) $(SMP) $(PROFILE)
+LIBS     = $(W3LIB) ${SPLIB} $(BACIO) $(ESSL) $(MASS) $(SEARCH) 
+#
+#
+# Non-threaded object files
+#
+OBJS=   CNSTS_cold.o ECONVK.o ETALL.o FLIP.o INTERP.o GRIBST.o W3FI63.o \
+        FRH2O.o GETVEG.o ROTLLE.o SNOHIRES.o SPLINE.o SSTHIRES.o TABLE.o TABLEQ.o \
+        INTERPS.o ETA2ETA.o GRD2ETA.o GRDETA.o SST14K.o ZTERPG.o C2K.o SNO8GET.o \
+        READIT.o GAULAT.o  GAUTOETA.o GAUTOICE.o BSSLZ1.o PUTEM.o PUTVEG.o \
+        SFCEDASC.o LL2ETA.o SFCGDAS.o PRINTAF.o PRINTETA.o GETGBOPL.o SNO16GET.o PRINTIMS.o
+#
+# Threaded object files
+#
+OBJST=  
+#
+# Includes
+#
+INCLUDES=  parmeta.h parmsoil parmeta.res griddef parmeta.resin griddef.in
+#
+# Common Blocks
+#
+COMMS=
+
+DEPS= $(COMMS) $(INCLUDES)
+
+.SUFFIXES:	.F .f .o
+
+.F.f:
+	$(CPP) $(CPPFLAGS) $< > $*.f
+
+$(TARGET):	$(OBJS) $(OBJST)
+	$(FC) $(LDFLAGS) -o $@ $(OBJS) $(OBJST) $(LIBS) 
+
+$(OBJS):	$(DEPS)
+	$(FC) $(FFLAGS) -c $<
+
+$(OBJST):	$(DEPS)
+	$(FC) $(FFLAGST) -c $<
+
+clean:	
+	/bin/rm -f  $(TARGET) *.lst *.o lm map
+#

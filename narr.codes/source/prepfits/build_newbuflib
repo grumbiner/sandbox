@@ -1,0 +1,8 @@
+rm prep.a
+xlf -qcheck -qextchk -qfixed -c *.f
+/bin/rm prepfits.o
+ar -ruv -X 64 prep.a *.o
+xlf -qcheck -qextchk -qfixed -g -o prepfits.x prepfits.f prep.a \
+      /nwprod/lib/libw3_4.a /nfsuser/g01/wx22dk/source.jifs/lib/libbufr_4_64.a \
+      /nwprod/lib/libbacio_4.a -bmaxdata:2000000000 -bmaxstack:256000000
+#rm *.o

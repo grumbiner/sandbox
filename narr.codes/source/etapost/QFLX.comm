@@ -1,0 +1,22 @@
+      COMMON /QFLX/
+     & FQNEV(IM,JM),FQSEV(IM,JM)
+     &,FQNEV7(IM,JM),FQSEV7(IM,JM)
+C
+     &,FCNEV(IM,JM),FCSEV(IM,JM)
+     &,FCNEV7(IM,JM),FCSEV7(IM,JM)
+C     &,FCNEV1(IM,JM),FCSEV1(IM,JM)
+C
+     &,FQU(IM,JM),FQV(IM,JM)
+     &,FCU(IM,JM),FCV(IM,JM)
+     &,FQU7(IM,JM),FQV7(IM,JM)
+     &,FCU7(IM,JM),FCV7(IM,JM)
+
+     &,DQFLX(IM,JM)
+     &,DCFLX(IM,JM)
+     &,DQFLX7(IM,JM)
+     &,DCFLX7(IM,JM)
+C
+     &,DQADV(IM,JM)
+     &,FQNEV1(IM,JM),FQSEV1(IM,JM)
+C     &,FCNEV1(IM,JM),FCSEV1(IM,JM)
+C     &,QOLD(IM,JM,LM)

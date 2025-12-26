@@ -1,0 +1,635 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/SANDF.f 09/30/06 19:43:51
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE SANDF(Z,D,H,ZS,DF,HF,DEPTH,JCAPIN)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    SANDF       SLOW+FAST TO SLOW-AND-FAST TRANSFORM
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-06-13
+          6 |C
+          7 |C ABSTRACT: GO FROM FULL VARIABLES TO TEMPERTON SLOW-AND-FAST
+          8 |C   DECOMPOSITION.
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   88-06-13  PARRISH
+         12 |C
+         13 |C USAGE:    CALL SANDF(Z,D,H,ZS,DF,HF,DEPTH)
+         14 |C   INPUT ARGUMENT LIST:
+         15 |C     Z        - SLOW + FAST VORTICITY
+         16 |C     D        - DIVERGENCE.
+         17 |C     H        - SLOW + FAST HEIGHT
+         18 |C     DEPTH    - SCALE HEIGHT.
+         19 |C
+         20 |C   OUTPUT ARGUMENT LIST:
+         21 |C     ZS       - SLOW COMPONENT OF VORTICITY.
+         22 |C     DF       - FAST DIVERGENCE (NOT CHANGED FROM INPUT--SLOW DIV=0)
+         23 |C     HF       - FAST HEIGHT COMPONENT
+         24 |C
+         25 |C REMARKS: MUST INCLUDE BLOCK DATA BLOCKSP02 AND DEFINITION OF
+         26 |C           PL1 VARIABLES BEFORE COMPILING.
+         27 |C
+         28 |C ATTRIBUTES:
+         29 |C   LANGUAGE: FORTRAN200
+         30 |C   MACHINE:  CYBER
+         31 |C
+         32 |C$$$
+         33 |         include "myparam"
+  1       1 |        INCLUDE 'parmodel'
+  2       1 |C     PARAMETER FILE
+  2       2 |C
+  2       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  2       4 |C     ON OUTPUT
+  2       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  2       6 |C
+  2       7 |      PARAMETER (
+  2       8 |     *      IBPW      =      4,
+  2       9 |     *      IBPOR     = 120000,
+  2      10 |     *      INUMREC   = IBPOR / IBPW,
+  2      11 |     *      INSPECS   =    700,
+  2      12 |     *      ILATG2    =    120,
+  2      13 |     *      ILEVH     =     12,
+  2      14 |     *      ILEVS     =     16,
+  2      15 |     *      ILONF     =    360,
+  2      16 |     *      INLATSH   =      5,
+  2      17 |     *      IIJMAX    =  23668,
+  2      18 |     *      IIJMAXB   =  25536,
+  2      19 |     *      IIJRAD    =    892,
+  2      20 |     *      IJCAP     =     80,
+  2      21 |     *      IWPCPL    =     80,
+  2      22 |     *      IKM       =     16 )
+  2      23 |      PARAMETER (
+  2      24 |     *      ILBCH     =   7*(147+111-7),
+  2      25 |     *      ILBHI     =    (147+111-26),
+  2      26 |     *      ILBUI     =    (2*147+111-39),
+  2      27 |     *      ILBUO     =   (8*147+7*111-56),
+  2      28 |     *      ILBVI     =    (147+2*111-39),
+  2      29 |     *      ILBVO     =   (7*147+8*111-56),
+  2      30 |     *      ILMOUT    =     20 )
+  2      31 |      PARAMETER (
+  2      32 |     *      IMAXOUTF  =     17,
+  2      33 |     *      IMAXOUTT  =      3,
+  2      34 |     *      IMAXOUTV  =    100,
+  2      35 |     *      IMAXPROF  =      6,
+  2      36 |     *      INFILLER  =  10000,
+  2      37 |     *      INH       =     65,
+  2      38 |     *      INGRDUSE  =      2,
+  2      39 |     *      INGRDUS1  =      1,
+  2      40 |     *      INIADDRS  =     44,
+  2      41 |     *      INSCR     =     23,
+  2      42 |     *      INSCRGEO  =     12,
+  2      43 |     *      INSCR3    =     10,
+  2      44 |     *      INSOIL    =      2,
+  2      45 |     *      INSUMG    =  42164,
+  2      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  2      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  2      48 |     *      INSHEM    = 13 * INH + 23,
+  2      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  2      50 |      PARAMETER (
+  2      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  2      52 |     *  IKMP1     = IKM + 1,
+  2      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  2      54 |     *  ILONFP1   = ILONF + 1,
+  2      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  2      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  2      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  2      58 |     *  IBLK1D    =  2 * IKM + 14,
+  2      59 |     *  IBLK2D    = 16 * IKM + 36,
+  2      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  2      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  2      62 |C
+  1       2 |C-------
+  1       3 |C------- FOLLOWING IS EXTRA STUFF FOR INITIALIZATION
+  1       4 |C-------
+  1       5 |         PARAMETER (INLATH=101,INUMCOEF=3*INLATH+35,
+  1       6 |     *        INUMGRID=4,IJCAPDP=80,INLON=300,INKLON=2,INKLAT=2,
+  1       7 |     *        IIORBPL=3,IIORDPL=3,IIORBLP=3,IIORDLP=3,IMCUBIC=1,
+  1       8 |     *        INUMVERT=2,INSIG=IKM,INMODES=18,INGMAX=3000,
+  1       9 |     *        INKSIG=2,INSIGP1=INSIG+1,INLONEX=INLON+INKLON,
+  1      10 |     *        INLATDP=2*INLATH,INLOLA=INLATDP*INLONEX,
+  1      11 |     *        IJCAP1DP=IJCAPDP+1,IJCAP12=2*IJCAP1DP,
+  1      12 |     *        INCOEFS=IJCAP1DP*(IJCAPDP+2),
+  1      13 |     *     IDPFILLR=(4*IKM+1)*INSUMG+       3*(IIJKMAX*4+IIJMAX) )
+  1      14 |C    *     IDPFILLR=(4*IKM+1)*INSUMG+INGRDUSE*(IIJKMAX*4+IIJMAX) )
+         34 |C--------
+         35 |         real Z(1),D(1),H(1),ZS(1),DF(1),HF(1)
+         36 |C--------
+         37 |         REAL RC0INV
+         38 |         LOGICAL BWORK(INCOEFS)
+         39 |C--------
+         40 |         COMMON/DAVEBUFF/ COF(INCOEFS,INUMCOEF),GRD(INLOLA,INUMGRID)
+         41 |         real COF,GRD
+         42 |         REAL RCF(INCOEFS,2)
+         43 |         EQUIVALENCE (COF,RCF)
+         44 |C--------
+         45 |         COMMON/FIXSP02/JCAP,NCOEFS,NFOP,JFOP,
+         46 |     *      ISCALZD,IUNSCLZD,
+         47 |     *      IBSHAT,IBVHAT,IBVIHAT,
+         48 |     *      IBOP,ICOP,IFOP,ICINVOP,
+         49 |     *      IRFOP,IRCINVOP,
+         50 |     *      BFOP(INCOEFS),BONES(INCOEFS)
+         51 |         LOGICAL BFOP,BONES
+         52 |C--------
+         53 |C-------- CHECK TO SEE IF INITIALIZATION OF INTERNAL VARIABLES NEEDED
+         54 |         IF(JCAP.NE.JCAPIN) CALL SETSP02(JCAPIN)
+         55 |C--------
+         56 |C-------- MAKE SURE ZONAL PART OF COEFS HAS PROPER FORM
+         57 |C--------
+         58 |         do 10002 i=1,ncoefs
+         59 |         Z(i)=COF(i,IBVHAT)*Z(i)
+         60 |         D(i)=COF(i,IBVIHAT)*D(i)
+         61 |         H(i)=COF(i,IBSHAT)*H(i)
+         62 |10002    continue
+         63 |         CALL getcoef(IRF,1)
+         64 |         CALL getcoef(IRZ,1)
+         65 |         CALL getcoef(IRWORK,1)
+         66 |         CALL getcoef(IRC,1)
+         67 |         CALL getcoef(IRB,1)
+         68 |         CALL getcoef(IRR,1)
+         69 |         RC0INV=6.3712E6*7.2921E-5/SQRT(9.8062*DEPTH)
+         70 |         JCAP1=JCAP+1
+         71 |C--------
+         72 |C-------- OBTAIN RHS OF EQUATION TO SOLVE FOR FAST HEIGHT
+         73 |C--------
+         74 |         do 10004 i=1,ncoefs
+         75 |         RCF(i,IRZ)=Z(i)
+         76 |10004    continue
+         77 |         CALL FOPMULT(RCF(1,IRZ),RCF(1,IRF),RCF(1,IRFOP),NCOEFS,NFOP,
+         78 |     *                 JFOP,RCF(1,IRWORK),BFOP,BONES,BWORK)
+         79 |         do 10006 i=1,ncoefs
+         80 |         RCF(i,IRF)=RC0INV*RCF(i,IRCINVOP)
+         81 |     *              *RCF(i,IRF)+H(i)
+         82 |10006    continue
+         83 |C--------
+         84 |C-------- SOLVE TRIDIAGONAL MATRIX EQUATION FOR FAST HEIGHT
+         85 |C--------
+         86 |         CALL SOLVTRID(IRF,IRZ,IRWORK,IRC,IRB,IRR,RC0INV)
+         87 |         do 10008 i=1,ncoefs
+         88 |         HF(i)=RCF(i,IRF)
+         89 |10008    continue
+         90 |C--------
+         91 |C-------- COMPUTE FAST COMPONENT OF VORTICITY
+         92 |C--------
+         93 |         do 10010 i=1,ncoefs
+         94 |         RCF(i,IRZ)=RC0INV
+         95 |     *       *RCF(i,IRCINVOP)*RCF(i,IRF)
+         96 |10010    continue
+         97 |         CALL FOPMULT(RCF(1,IRZ),RCF(1,IRF),RCF(1,IRFOP),NCOEFS,NFOP,
+         98 |     *        JFOP,RCF(1,IRWORK),BFOP,BONES,BWORK)
+         99 |C-------- NOW GET SLOW COMPONENT OF VORTICITY
+        100 |         do 10012 i=1,ncoefs
+        101 |         ZS(i)=Z(i)-RCF(i,IRF)
+        102 |10012    continue
+        103 |C-------- FINALLY DIVERGENCE
+        104 |         do 10014 i=1,ncoefs
+        105 |         DF(i)=D(i)
+        106 |10014    continue
+        107 |         CALL freecoef(IRF,1)
+        108 |         CALL freecoef(IRZ,1)
+        109 |         CALL freecoef(IRWORK,1)
+        110 |         CALL freecoef(IRC,1)
+        111 |         CALL freecoef(IRB,1)
+        112 |         CALL freecoef(IRR,1)
+        113 |C--------
+        114 |C-------- MAKE SURE ZONAL PART OF COEFS HAS PROPER FORM
+        115 |C--------
+        116 |         do 10016 i=1,ncoefs
+        117 |         ZS(i)=COF(i,IBVHAT)*ZS(i)
+        118 |         DF(i)=COF(i,IBVIHAT)*DF(i)
+        119 |         HF(i)=COF(i,IBSHAT)*HF(i)
+        120 |10016    continue
+        121 |       RETURN
+        122 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bfop                             Common member, Logical(4) (1:6642), Offset: 60, Alignment: full word
+                                 0-50.13$  0-51.18$  0-78.43  0-98.34
+ 
+bones                            Common member, Logical(4) (1:6642), Offset: 26628, Alignment: full word
+                                 0-50.27$  0-51.23$  0-78.48  0-98.39
+ 
+bwork                            Static, Logical(4) (1:6642), Offset: 0, Alignment: full word
+                                 0-38.18$  0-78.54  0-98.45
+ 
+cof                              Common member, Real(4) (1:6642, 1:338), Offset: 0, Alignment: quadruple word
+                                 0-40.27$  0-41.15$  0-43.23  0-59.15  0-60.15  0-61.15  0-117.16  0-118.16  0-119.16
+ 
+d                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.20$  0-1.27  0-60.10@  0-60.30  0-105.16
+ 
+davebuff                         Common Block, Alignment: double word
+                                 0-40.17$
+ 
+depth                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-69.48
+ 
+df                               Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.36$  0-1.34  0-105.10@  0-118.10@  0-118.31
+ 
+fixsp02                          Common Block, Alignment: double word
+                                 0-45.17$
+ 
+fopmult                          External Subroutine
+                                 0-77.15  0-97.15
+ 
+freecoef                         External Subroutine
+                                 0-107.15  0-108.15  0-109.15  0-110.15  0-111.15  0-112.15
+ 
+getcoef                          External Subroutine
+                                 0-63.15  0-64.15  0-65.15  0-66.15  0-67.15  0-68.15
+ 
+grd                              Common member, Real(4) (1:61004, 1:4), Offset: 8979984, Alignment: quadruple word
+                                 0-40.49$  0-41.19$
+ 
+h                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.25$  0-1.29  0-61.10@  0-61.29  0-81.33
+ 
+hf                               Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.42$  0-1.37  0-88.10@  0-119.10@  0-119.30
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-58.19@  0-59.12  0-59.19  0-59.31  0-60.12  0-60.19  0-60.32  0-61.12  0-61.19  0-61.31  0-74.19@
+                                 0-75.14  0-75.23  0-79.19@  0-80.14  0-80.32  0-81.26  0-81.35  0-87.19@  0-88.13  0-88.20
+                                 0-93.19@  0-94.14  0-95.19  0-95.35  0-100.19@  0-101.13  0-101.18  0-101.25  0-104.19@  0-105.13
+                                 0-105.18  0-116.19@  0-117.13  0-117.20  0-117.33  0-118.13  0-118.20  0-118.34  0-119.13  0-119.20
+                                 0-119.33
+ 
+iblk1d                           Parameter, Integer(4)
+                                 2-58.9$  2-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 2-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 2-59.9$  2-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 2-61.9$
+ 
+ibop                             Common member, Integer(4), Offset: 36, Alignment: full word
+                                 0-48.13$
+ 
+ibpor                            Parameter, Integer(4)
+                                 2-9.13$  2-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 2-8.13$  2-10.33
+ 
+ibshat                           Common member, Integer(4), Offset: 24, Alignment: double word
+                                 0-47.13$  0-61.21  0-119.22
+ 
+ibvhat                           Common member, Integer(4), Offset: 28, Alignment: full word
+                                 0-47.20$  0-59.21  0-117.22
+ 
+ibvihat                          Common member, Integer(4), Offset: 32, Alignment: quadruple word
+                                 0-47.27$  0-60.21  0-118.22
+ 
+icinvop                          Common member, Integer(4), Offset: 48, Alignment: quadruple word
+                                 0-48.28$
+ 
+icop                             Common member, Integer(4), Offset: 40, Alignment: double word
+                                 0-48.18$
+ 
+idpfillr                         Parameter, Integer(4)
+                                 1-13.12$
+ 
+ifop                             Common member, Integer(4), Offset: 44, Alignment: full word
+                                 0-48.23$
+ 
+iijkmax                          Parameter, Integer(4)
+                                 2-49.13$  1-13.48  2-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 2-17.13$  1-13.58  2-49.31  2-56.21  2-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 2-18.13$  2-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 2-19.13$  2-57.30  2-61.21
+ 
+iiorblp                          Parameter, Integer(4)
+                                 1-7.35$
+ 
+iiorbpl                          Parameter, Integer(4)
+                                 1-7.15$
+ 
+iiordlp                          Parameter, Integer(4)
+                                 1-7.45$
+ 
+iiordpl                          Parameter, Integer(4)
+                                 1-7.25$
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 2-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 2-20.13$
+ 
+ijcap12                          Parameter, Integer(4)
+                                 1-11.34$
+ 
+ijcap1dp                         Parameter, Integer(4)
+                                 1-11.15$  1-11.44  1-12.23
+ 
+ijcapdp                          Parameter, Integer(4)
+                                 1-6.26$  1-11.24  1-12.33
+ 
+ikm                              Parameter, Integer(4)
+                                 2-22.13$  1-8.32  1-13.24  2-49.25  2-52.21  2-53.25  2-57.39  2-58.26  2-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 2-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 2-12.13$  2-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 2-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 2-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 2-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 2-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 2-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 2-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 2-13.13$  2-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 2-14.13$  2-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 2-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 2-15.13$  2-46.25  2-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 2-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 2-53.9$  2-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 2-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 2-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 2-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 2-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 2-56.9$
+ 
+imcubic                          Parameter, Integer(4)
+                                 1-7.55$
+ 
+incoefs                          Parameter, Integer(4)
+                                 1-12.15$  0-38.24  0-40.31  0-42.19  0-50.18  0-50.33
+ 
+infiller                         Parameter, Integer(4)
+                                 2-36.13$  2-56.62
+ 
+ingmax                           Parameter, Integer(4)
+                                 1-8.47$
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 2-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 2-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 2-37.13$  2-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 2-40.13$
+ 
+inklat                           Parameter, Integer(4)
+                                 1-6.56$
+ 
+inklon                           Parameter, Integer(4)
+                                 1-6.47$  1-9.54
+ 
+inksig                           Parameter, Integer(4)
+                                 1-9.15$
+ 
+inlat                            Parameter, Integer(4)
+                                 2-47.13$
+ 
+inlatdp                          Parameter, Integer(4)
+                                 1-10.15$  1-10.39
+ 
+inlath                           Parameter, Integer(4)
+                                 1-5.21$  1-5.43  1-10.25
+ 
+inlatsh                          Parameter, Integer(4)
+                                 2-16.13$  2-47.34
+ 
+inlola                           Parameter, Integer(4)
+                                 1-10.32$  0-40.53
+ 
+inlon                            Parameter, Integer(4)
+                                 1-6.37$  1-9.48
+ 
+inlonex                          Parameter, Integer(4)
+                                 1-9.40$  1-10.47
+ 
+inmodes                          Parameter, Integer(4)
+                                 1-8.36$
+ 
+inscr                            Parameter, Integer(4)
+                                 2-41.13$  2-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 2-43.13$  2-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 2-42.13$  2-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 2-48.13$
+ 
+insig                            Parameter, Integer(4)
+                                 1-8.26$  1-9.32
+ 
+insigp1                          Parameter, Integer(4)
+                                 1-9.24$
+ 
+insigstp                         Parameter, Integer(4)
+                                 2-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 2-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 2-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 2-45.13$  1-13.31  2-55.31
+ 
+inumcoef                         Parameter, Integer(4)
+                                 1-5.32$  0-40.39
+ 
+inumgrid                         Parameter, Integer(4)
+                                 1-6.15$  0-40.60
+ 
+inumrec                          Parameter, Integer(4)
+                                 2-10.13$
+ 
+inumvert                         Parameter, Integer(4)
+                                 1-8.15$
+ 
+invbl                            Parameter, Integer(4)
+                                 2-55.9$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 2-57.9$
+ 
+irb                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-67.23  0-86.43  0-111.24
+ 
+irc                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.23  0-86.39  0-110.24
+ 
+ircinvop                         Common member, Integer(4), Offset: 56, Alignment: double word
+                                 0-49.19$  0-80.34  0-95.21
+ 
+irf                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-63.23  0-77.40  0-80.16  0-81.28  0-86.24  0-88.22  0-95.37  0-97.40  0-101.27  0-107.24
+ 
+irfop                            Common member, Integer(4), Offset: 52, Alignment: full word
+                                 0-49.13$  0-77.51  0-97.51
+ 
+irr                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.23  0-86.47  0-112.24
+ 
+irwork                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.23  0-78.35  0-86.32  0-98.26  0-109.24
+ 
+irz                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.23  0-75.16  0-77.29  0-86.28  0-94.16  0-97.29  0-108.24
+ 
+iscalzd                          Common member, Integer(4), Offset: 16, Alignment: quadruple word
+                                 0-46.13$
+ 
+iunsclzd                         Common member, Integer(4), Offset: 20, Alignment: full word
+                                 0-46.21$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 2-21.13$  2-57.21
+ 
+jcap                             Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-45.25$  0-54.13  0-70.16
+ 
+jcap1                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.10@
+ 
+jcapin                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.46  0-54.21  0-54.42
+ 
+jfop                             Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-45.42$  0-78.24  0-98.15
+ 
+ncoefs                           Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-45.30$  0-58.23  0-74.23  0-77.58  0-79.23  0-87.23  0-93.23  0-97.58  0-100.23  0-104.23
+                                 0-116.23
+ 
+nfop                             Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-45.37$  0-77.65  0-97.65
+ 
+rc0inv                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.15$  0-69.10@  0-80.21  0-86.51  0-94.21
+ 
+rcf                              Common member, Real(4) (1:6642, 1:2), Offset: 0, Alignment: quadruple word
+                                 0-42.15$  0-43.27  0-75.10@  0-77.23  0-77.34  0-77.45  0-78.29  0-80.10@  0-80.28  0-81.22
+                                 0-88.16  0-94.10@  0-95.15  0-95.31  0-97.23  0-97.34  0-97.45  0-98.20  0-101.21
+ 
+sandf                            Subroutine
+                                 0-1.19$
+ 
+setsp02                          External Subroutine
+                                 0-54.34
+ 
+solvtrid                         External Subroutine
+                                 0-86.15
+ 
+sqrt                             Pure Intrinsic
+                                 0-69.36
+ 
+z                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.15$  0-1.25  0-59.10@  0-59.29  0-75.21  0-101.16
+ 
+zs                               Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.30$  0-1.31  0-101.10@  0-117.10@  0-117.30
+ 
+** sandf   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    SANDF.f                     10/09/02   12:45:08
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/myparam
+                                      02/09/00   18:27:58      0      33
+     2    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      1       1
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     198
+1501-510  Compilation successful for file SANDF.f.
+1501-543  Object file created.

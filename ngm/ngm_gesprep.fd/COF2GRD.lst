@@ -1,0 +1,342 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/COF2GRD.f 09/30/06 19:43:44
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE COF2GRD (LUN1,NC,KMAX,IWIND,JROMB,
+          2 |     1      JCAP,AGRID,AGRID2)
+          3 |C
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    COF2GRD     CONVERT ONE RECORD OF SIGMA COEFF FILE
+          7 |C                            TO LAT/LON GRID
+          8 |C   PRGMMR: ROGERS           ORG: W/NP22     DATE: 99-01-28
+          9 |C
+         10 |C ABSTRACT: CONVERT SIGMA COEFFICIENT RECORD TO GRID SPACE USING
+         11 |C           SPLIB ROUTINES. THESE ROUTINES WILL RETURN A GLOBAL
+         12 |C           LAT/LON GRID WHOSE RESOLUTION IS DETERMINED BY THE
+         13 |C           NUMBER OF GRID POINTS. THEN, THE RELEVENT SUBSET FOR
+         14 |C           WHICH WE HAVE HIGH-RES OROGRAPHY IS EXTRACTED (DIMENSION
+         15 |C           OF BOTH THE EXTRACTED GRID AND GLOBAL GRID SET IN
+         16 |C           parmanl FILE)
+         17 |C
+         18 |C PROGRAM HISTORY LOG:
+         19 |C   99-01-28  ROGERS
+         20 |C   99-08-21  ROGERS MADE SPECIAL VERSION FOR NGM GESPREP : GET GLOBAL
+         21 |C             LAT LON GRID WITH DLON=0.375 DEG, THEN USE EVERY OTHER
+         22 |C             LATITUDE CIRCLE FROM THAT GRID TO GET 360x120 GRID WHICH
+         23 |C             MATCHES INPUT TERRAIN
+         24 |C
+         25 |C USAGE:    CALL COF2GRD(LUN1,NC,KMAX,IWIND,JROMB,
+         26 |C               JCAP,AGRID,AGRID2)
+         27 |C
+         28 |C   INPUT ARGUMENT LIST:
+         29 |C     LUN1     - FORTRAN UNIT FOR SIGMA FILE
+         30 |C     NC       - LENGTH OF SIGMA RECORD = RES+1*RES+2
+         31 |C     KMAX     - NUMBER OF SIGMA LEVELS IN GLOBAL MODEL
+         32 |C     IWIND    - SWITCH WHICH SHOULD BE SET=1 IF WE WANT TO
+         33 |C                PROCESS DIVERGENCE/VORTICITY COEFFICIENTS FOR
+         34 |C                LAT/LON WINDS
+         35 |C     JROMB    - SPECTRAL DOMAIN SHAPE (0 FOR TRIANGULAR,
+         36 |C                1 FOR RHOMBOIDAL)
+         37 |C     JCAP     - SPECTRAL TRUNCATION
+         38 |C
+         39 |C   OUTPUT FILES:
+         40 |C     AGRID    - EXTRACTED LAT/LON GRID
+         41 |C     AGRID2   - SECONDARY EXTRACTED LAT/LON GRID; USED ONLY IF U AND
+         42 |C                V WIND COMPONENTS MUST BE RETURNED
+         43 |C
+         44 |C ATTRIBUTES:
+         45 |C   LANGUAGE: FORTRAN-90
+         46 |C   MACHINE: CRAY C-90
+         47 |C
+         48 |C$$$
+         49 |      INCLUDE "parmanl"
+  1       1 |C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       2 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       3 |C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       4 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       5 |C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       6 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       7 |C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       8 |C  DCL /*                                                           */
+  1       9 |C  DCL /* LMAX       LMAX IS THE NUMBER OF SIGMA LAYERS IN THE      */
+  1      10 |C  DCL /*            ANALYSIS GRID                                  */
+  1      11 |C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF SIGMA-LAYER            */
+  1      12 |C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+  1      13 |C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF SIGMA-LAYER            */
+  1      14 |C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+  1      15 |C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+  1      16 |C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+  1      17 |C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+  1      18 |       PARAMETER (IMGLO = 360 )
+  1      19 |       PARAMETER (JMGLO = 481 )
+  1      20 |       PARAMETER (IMAX = 360 )
+  1      21 |       PARAMETER (JMAX = 120  )
+  1      22 |       PARAMETER (LMAX = 16    )
+  1      23 |       PARAMETER (LMAXP1 = 17 )
+  1      24 |       PARAMETER (LMXDBL = 70 )
+  1      25 |       PARAMETER (LDMAX = 12 )
+  1      26 |       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+  1      27 |       LOGICAL    GLOBAL
+  1      28 |       PARAMETER (GLOBAL = .false. )
+  1      29 |       PARAMETER (YSOUTH = 0.375 )
+  1      30 |       PARAMETER (DLON = 1.0)
+         50 |      COMMON /GRID/ POLA,NORTH,ALONVT,POLEI,POLEJ,XMESHL,SIGERR
+         51 |C
+         52 |C     XMESHL = EAST-WEST GRID INCREMENT
+         53 |C     POLEI  = SOUTH-NORTH GRID INCREMENT
+         54 |C     POLEJ  = WESTERN BOUNDARY OF LAT/LON GRID
+         55 |C     ALONVT = SOUTHERN BOUNDARY OF LAT/LON GRID
+         56 |C
+         57 |      REAL AGRID(IMAX,JMAX),AGRID2(IMAX,JMAX)
+         58 |      REAL GRIDGB(IMGLO,JMGLO),DWORK(NC),ZWORK(NC),HWORK(NC)
+         59 |      REAL GRIDGB1(IMGLO,JMGLO)
+         60 |      INTEGER IWIND
+         61 |C
+         62 |      print *,LUN1,NC,KMAX,IWIND,JROMB,
+         63 |     1      JCAP
+         64 |C
+         65 |      POLEIGB = 0.375
+         66 |C
+         67 |C   COMPUTE INDICES FOR GRID EXTRACTION
+         68 |C
+         69 |      ISTART = (360.0 - POLEJ) / XMESHL + 1
+         70 |      IEND = ISTART + IMAX - 1
+         71 |      JSTART = ((ALONVT + 90.0) / POLEIGB) + 1
+         72 |      JEND = JSTART + (JMAX - 1) * 2
+         73 |      print *,istart,iend,jstart,jend
+         74 |C
+         75 |      IF(IWIND .EQ. 0) THEN
+         76 |        READ(LUN1) HWORK
+         77 |C
+         78 |C   CONVERT COEFFICIENTS TO GRID SPACE HERE, ENSURING THAT THE
+         79 |C   RETURNED LAT/LON GRID STARTS AT THE SOUTH POLE
+         80 |C
+         81 |        print *,JROMB,JCAP,IMGLO,JMGLO
+         82 |        CALL SPTRAN(JROMB,JCAP,0,IMGLO,JMGLO,1,0,0,-IMGLO,IMGLO,
+         83 |     1        0,0,0,0,1,HWORK,GRIDGB(1,JMGLO),GRIDGB(1,1),1)
+         84 |        print *,'after sptran',JROMB,JCAP,IMGLO,JMGLO
+         85 |C
+         86 |C   EXTRACT WORKING GRID FROM GLOBAL GRID
+         87 |C
+         88 |        DO J = 1, JMAX
+         89 |          DO I = 1, IMAX
+         90 |            JINC = JSTART + (J-1) * 2
+         91 |            AGRID(I,J) = GRIDGB(ISTART+I-1,JINC)
+         92 |          ENDDO
+         93 |        ENDDO
+         94 |C
+         95 |      ELSE
+         96 |C
+         97 |        READ(LUN1) DWORK
+         98 |        READ(LUN1) ZWORK
+         99 |C
+        100 |C  GRIDGB = U-COMPONENT
+        101 |C  GRIDGB1 = V-COMPONENT
+        102 |C
+        103 |        CALL SPTRANV(JROMB,JCAP,0,IMGLO,JMGLO,1,0,0,-IMGLO,IMGLO,
+        104 |     1        0,0,0,0,1,DWORK,ZWORK,GRIDGB(1,JMGLO),GRIDGB(1,1),
+        105 |     2        GRIDGB1(1,JMGLO),GRIDGB1(1,1),1)
+        106 |C
+        107 |C   EXTRACT WORKING GRID FROM GLOBAL GRID
+        108 |C
+        109 |        DO J = 1, JMAX
+        110 |          DO I = 1, IMAX
+        111 |            JINC = JSTART + (J-1) * 2
+        112 |            AGRID(I,J) = GRIDGB(ISTART+I-1,JINC)
+        113 |            AGRID2(I,J) = GRIDGB1(ISTART+I-1,JINC)
+        114 |          ENDDO
+        115 |        ENDDO
+        116 |C
+        117 |      ENDIF
+        118 |C
+        119 |      RETURN
+        120 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+agrid                            Reference argument, Real(4) (1:360, 1:120), Offset: 0, Alignment: full word
+                                 0-57.12$  0-2.18  0-91.13@  0-112.13@
+ 
+agrid2                           Reference argument, Real(4) (1:360, 1:120), Offset: 0, Alignment: full word
+                                 0-57.29$  0-2.24  0-113.13@
+ 
+alonvt                           Common member, Real(4), Offset: 8, Alignment: double word
+                                 0-50.32$  0-71.18
+ 
+cof2grd                          Subroutine
+                                 0-1.18$
+ 
+dlon                             Parameter, Real(4)
+                                 1-30.19$
+ 
+dwork                            Controlled Automatic, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-58.32$  0-97.20@  0-104.25
+ 
+global                           Parameter, Logical(4)
+                                 1-27.19$  1-28.19$
+ 
+grid                             Common Block, Alignment: double word
+                                 0-50.15$
+ 
+gridgb                           Automatic, Real(4) (1:360, 1:481), Offset: 0, Alignment: full word
+                                 0-58.12$  0-83.31  0-83.47  0-91.26  0-104.37  0-104.53  0-112.26
+ 
+gridgb1                          Automatic, Real(4) (1:360, 1:481), Offset: 0, Alignment: full word
+                                 0-59.12$  0-105.15  0-105.32  0-113.27
+ 
+hwork                            Controlled Automatic, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-58.52$  0-76.20@  0-83.25
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-89.14@  0-91.19  0-91.40  0-110.14@  0-112.19  0-112.40  0-113.20  0-113.42
+ 
+iend                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.7@  0-73.22
+ 
+imax                             Parameter, Integer(4)
+                                 1-20.19$  0-57.18  0-57.36  0-70.23  0-89.21  0-110.21
+ 
+imglo                            Parameter, Integer(4)
+                                 1-18.19$  0-58.19  0-59.20  0-81.28  0-82.34  0-82.53  0-82.59  0-84.43  0-103.35  0-103.54
+                                 0-103.60
+ 
+istart                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.7@  0-70.14  0-73.15  0-91.33  0-112.33  0-113.35
+ 
+iwind                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-60.15$  0-1.40  0-62.28  0-75.10
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-88.12@  0-90.30  0-91.21  0-109.12@  0-111.30  0-112.21  0-113.22
+ 
+jcap                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.13  0-63.13  0-81.23  0-82.27  0-84.38  0-103.28
+ 
+jend                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.7@  0-73.34
+ 
+jinc                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-90.13@  0-91.44  0-111.13@  0-112.44  0-113.46
+ 
+jmax                             Parameter, Integer(4)
+                                 1-21.19$  0-57.23  0-57.41  0-72.24  0-88.19  0-109.19
+ 
+jmglo                            Parameter, Integer(4)
+                                 1-19.19$  0-58.25  0-59.26  0-81.34  0-82.40  0-83.40  0-84.49  0-103.41  0-104.46  0-105.25
+ 
+jromb                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.46  0-62.34  0-81.17  0-82.21  0-84.32  0-103.22
+ 
+jstart                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-72.14  0-73.27  0-90.20  0-111.20
+ 
+kmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.35  0-62.23
+ 
+ldmax                            Parameter, Integer(4)
+                                 1-25.19$  1-26.37
+ 
+levx                             Parameter, Integer(4)
+                                 1-26.19$
+ 
+lmax                             Parameter, Integer(4)
+                                 1-22.19$  1-26.30
+ 
+lmaxp1                           Parameter, Integer(4)
+                                 1-23.19$
+ 
+lmxdbl                           Parameter, Integer(4)
+                                 1-24.19$
+ 
+lun1                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-62.15  0-76.14  0-97.14  0-98.14
+ 
+nc                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-58.38  0-58.38  0-58.48  0-58.48  0-58.58  0-58.58  0-62.20
+ 
+north                            Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-50.26$
+ 
+pola                             Common member, Real(4), Offset: 0, Alignment: quadruple word
+                                 0-50.21$
+ 
+polei                            Common member, Real(4), Offset: 12, Alignment: full word
+                                 0-50.39$
+ 
+poleigb                          Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-71.35
+ 
+polej                            Common member, Real(4), Offset: 16, Alignment: quadruple word
+                                 0-50.45$  0-69.25
+ 
+sigerr                           Common member, Real(4), Offset: 24, Alignment: double word
+                                 0-50.58$
+ 
+sptran                           External Subroutine
+                                 0-82.14
+ 
+sptranv                          External Subroutine
+                                 0-103.14
+ 
+xmeshl                           Common member, Real(4), Offset: 20, Alignment: full word
+                                 0-50.51$  0-69.34
+ 
+ysouth                           Parameter, Real(4)
+                                 1-29.19$
+ 
+zwork                            Controlled Automatic, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-58.42$  0-98.20@  0-104.31
+ 
+** cof2grd   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    COF2GRD.f                   12/17/02   09:23:58
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/parmanl
+                                      12/17/02   09:24:04      0      49
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     150
+1501-510  Compilation successful for file COF2GRD.f.
+1501-543  Object file created.

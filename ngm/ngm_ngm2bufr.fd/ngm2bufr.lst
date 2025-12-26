@@ -1,0 +1,391 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f 05/28/08 12:37:19
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              INLGLUE         NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |	PROGRAM NGM2BUFR
+          2 |C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C MAIN PROGRAM: NGM_NGM2BUFR
+          5 |C   PRGMMR: ROGERS           ORG: NP22        DATE: 2000-02-14
+          6 |C
+          7 |C ABSTRACT: This programs converts the sequential sounding data
+          8 |C     to the BUFR format.
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   96-02-14 Keith Brill
+         12 |C   96-05-03 Keith Brill - Changes to correct for precip accumulated ove
+         13 |C			   12-hr intervals (output is hourly precip)
+         14 |C			   Change precip units to mm (kg/m**2)
+         15 |C			   Change lat/lon to degrees
+         16 |C   96-10-30 Keith Brill - Changes to write to individual station files
+         17 |C   98-07-29 Keith Brill - Changes for Y2K; remove W3LOG
+         18 |C   00-02-09 Eric Rogers - Converted to run on IBM-SP
+         19 |C
+         20 |C USAGE:
+         21 |C   INPUT FILES:
+         22 |C     FT40F001 - Table file
+         23 |C     FT47F001 - Input sequential file
+         24 |C
+         25 |C   OUTPUT FILES:  (INCLUDING SCRATCH FILES)
+         26 |C     FT89F001 - Output BUFR file.  Assigned internally using ISHELL.
+         27 |C     FT06F001 - print error messages
+         28 |C
+         29 |C   SUBPROGRAMS CALLED: (LIST ALL CALLED FROM ANYWHERE IN CODES)
+         30 |C     UNIQUE:    - GUVTQP, BFRIZE
+         31 |C     LIBRARY:
+         32 |C       W3LIB    -
+         33 |C
+         34 |C   EXIT STATES:
+         35 |C     COND =   0 - SUCCESSFUL RUN
+         36 |C
+         37 |C REMARKS: LIST CAVEATS, OTHER HELPFUL HINTS OR INFORMATION
+         38 |C
+         39 |C ATTRIBUTES:
+         40 |C   LANGUAGE: FORTRAN 77
+         41 |C   MACHINE:  CRAY
+         42 |C
+         43 |C$$$
+         44 |C*** PROGRAM DOCUMENTATION BLOCK
+         45 |C                .      .    .                                       .
+         46 |C   PROGRAM:    NGM2BUF
+         47 |C   PRGMMR: K. Brill         ORG: W/NP22     DATE: 96-02-07
+         48 |C
+         49 |C ABSTRACT: THIS PROGRAM BUFRIZES THE NGM SOUNDING OUTPUT.
+         50 |C
+         51 |C*	Assign fort.40 to the BUFR TABLE file (input).
+         52 |C*
+         53 |C*	    assign -a bufr_ngm.tbl fort.40
+         54 |C*
+         55 |C*	Assign fort.47 to the input sequential file:
+         56 |C*
+         57 |C*	    assign -a ngm.YYMMDDHH.RFwvsnd -F cos -C ascii -N ibm fort.47
+         58 |C*
+         59 |C*	fort.89 is automatically assigned to the output BUFR file:
+         60 |C*
+         61 |C*	    The output file is named ${DIRD}#####.YYMMDDHH, where
+         62 |C*	    DIRD is an environmental variable, ##### is the station
+         63 |C*	    number, and YYMMDDHH is the date time stamp.
+         64 |C
+         65 |C$$$
+         66 |C***********************************************************************
+         67 |C*   Main program to convert NGM sequential sounding output files to	*
+         68 |C*   BUFR files.							*
+         69 |C***********************************************************************
+         70 |	PARAMETER	(MXSTN=500,MXFHR=49,MXDAT=134)
+         71 |	REAL(8)   	qsndat (256), wrkspc (256)
+         72 |	LOGICAL		done, more, debug
+         73 |	CHARACTER	seqnam (5)*8, clist (5)*80, sbset*8
+         74 |	CHARACTER*80	ASSIGN, FMTO
+         75 |	LOGICAL		seqflg (5), first
+         76 |	INTEGER		npr (5)
+         77 |C*
+         78 |        REAL    	prcpg (MXSTN), prcpc (MXSTN)
+         79 |        INTEGER		istns (MXSTN), npstn
+         80 |        COMMON		prcpg, prcpc, istns, npstn
+         81 |	REAL(8)		sndat (MXSTN,MXFHR,MXDAT)
+         82 |	COMMON/dat/	sndat
+         83 |C*
+         84 |	DATA		seqnam / 'HEADR', 'PROFILE', 'CLS0', 'FLXRAD',
+         85 |     +				 'MISC' /
+         86 |	DATA		seqflg / .false., .true., .false., .false.,
+         87 |     +				 .false. /
+         88 |	DATA		sbset / 'NGM' /
+         89 |C-----------------------------------------------------------------------
+         90 |C
+         91 |      CALL W3TAGB('NGM_NGM2BUFR',2000,0045,0080,'NP22')
+         92 |C
+         93 |        FMTO = '("ln -s ${DIRD}",I5.5,".",4I2.2,'//
+         94 |     + 		'" fort.",I2.2)'
+         95 |c	debug = .true.
+         96 |        debug = .false.
+         97 |	iskip = 1
+         98 |	luntbl = 40
+         99 |	lunseq = 47
+        100 |	lunbuf = 89
+        101 |	npstn = 0
+        102 |	clist (1) = ' '
+        103 |	done = .false.
+        104 |	first = .true.
+        105 |	iqstn = 0
+        106 |	iqhr = 1
+        107 |	stnout = 72403
+        108 |	DO WHILE ( .not. done )
+        109 |	    CALL GUVTQP ( lunseq, iyr, imn, idy, ihr, qsndat, ier )
+        110 |	    IF ( ier .lt. 0 ) THEN
+        111 |		WRITE (6,*) ' READ failed.'
+        112 |		STOP
+        113 |	    ELSE IF ( ier .gt. 0 ) THEN
+        114 |		WRITE (6,*) ' Normal END OF FILE encountered.'
+        115 |		done = .true.
+        116 |	    ENDIF
+        117 |	    IF ( .not. done ) THEN
+        118 |	      iqstn = iqstn + 1
+        119 |	      IF ( first ) THEN
+        120 |		stn1 = qsndat (2)
+        121 |		first = .false.
+        122 |	      ELSE IF ( stn1 .eq. qsndat (2) ) THEN
+        123 |		iqstn = 1
+        124 |		iqhr = iqhr + 1
+        125 |	      ENDIF
+        126 |	      IF ( iqstn .le. MXSTN .and. iqhr .le. MXFHR ) THEN
+        127 |C*	-------------------------DBUG PRINTS-------------------------
+        128 |	          IF ( debug )
+        129 |     +    		print *, ' Processing frcst time ',
+        130 |     +			qsndat(1), ' for ',
+        131 |     +			qsndat (2), ' qsndat(20) = ', qsndat(20)
+        132 |C*	-------------------------------------------------------------
+        133 |	          DO i = 1, MXDAT
+        134 |		    sndat (iqstn,iqhr,i) = qsndat (i)
+        135 |	      	  END DO
+        136 |	      ELSE
+        137 |		  IF ( iqstn .gt. MXSTN ) WRITE (6,*)
+        138 |     +		  ' Number of stations = ', iqstn, ' exceeds ',
+        139 |     +		  MXSTN
+        140 |		  IF ( iqhr .gt. MXFHR ) WRITE (6,*)
+        141 |     +		  ' Number of times = ', iqhr, ' exceeds ', MXFHR
+        142 |	      END IF
+        143 |	    END IF
+        144 |	END DO
+        145 |C*
+        146 |	DO istn = 1, iqstn, iskip
+        147 |	    ista = NINT ( sndat ( istn, 1, 2 ) )
+        148 |    	    IF ( ista .ne. istns (istn) ) THEN
+        149 |		WRITE (6,*) ' Station count error'
+        150 |		STOP
+        151 |	    END IF
+        152 |	    jyr = MOD ( iyr, 100 )
+        153 |            print *,'before assign ',sndat(istn,1,2),ista,jyr,imn,idy,
+        154 |     +           ihr,lunbuf
+        155 |            WRITE (ASSIGN,FMTO) ista,jyr,imn,idy,ihr,lunbuf
+        156 |            CALL SYSTEM(ASSIGN)
+        157 |c           IF(ISHELL(ASSIGN).NE.0) CALL ABORT('BAD ASSIGN:'//ASSIGN)
+        158 |	    DO jhr = 1, iqhr
+        159 |	        DO i = 1, MXDAT
+        160 |		    qsndat (i) = sndat (istn,jhr,i)
+        161 |	      	END DO
+        162 |	        CALL BFRIZE ( luntbl, lunbuf, sbset,
+        163 |     +			      iyr, imn, idy, ihr,
+        164 |     +			      seqnam, seqflg, 5, .true., qsndat,
+        165 |     +			      16, clist, npr, wrkspc, ier )
+        166 |C	------------------DBUG PRINTS-----------------------------------
+        167 |		    IF ( MOD (jhr,10) .eq. 0 .and. debug ) THEN
+        168 |			DO jdb = 3, MXDAT
+        169 |			    print *, sndat (istn,jhr,1),
+        170 |     +				sndat(istn,jhr,2), sndat (istn,jhr,jdb)
+        171 |			END DO
+        172 |		    END IF	
+        173 |C*	----------------------------------------------------------------	
+        174 |	    	IF ( ier .ne. 0 ) THEN
+        175 |		    WRITE (6,*) ' BFRIZE failed.'
+        176 |	    	END IF
+        177 |	    END DO
+        178 |	    CALL BFRIZE ( 0, lunbuf, sbset, iyr, imn, idy, ihr,
+        179 |     +		      seqnam, seqflg, 5, .true., sndat, 16,
+        180 |     +		      clist, npr, wrkspc, ier )
+        181 |	END DO
+        182 |      CALL W3TAGE('NGM_NGM2BUFR')
+        183 |	STOP
+        184 |	END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-80.8$
+ 
+assign                           Static, Character(80), Offset: 0, Alignment: full word
+                                 0-74.15$  0-155.20  0-156.25
+ 
+bfrize                           External Subroutine
+                                 0-162.15  0-178.11
+ 
+clist                            Static, Character(80) (1:5), Offset: 0, Alignment: full word
+                                 0-73.26$  0-102.2@  0-165.20  0-180.15
+ 
+dat                              Common Block, Alignment: double word
+                                 0-82.9$
+ 
+debug                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-72.23$  0-96.9@  0-128.17  0-167.38
+ 
+done                             Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-72.11$  0-103.4@  0-108.19  0-115.5@  0-117.17
+ 
+first                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-75.23$  0-104.2@  0-119.13  0-121.3@
+ 
+fmto                             Static, Character(80), Offset: 0, Alignment: full word
+                                 0-74.23$  0-93.9@  0-155.27
+ 
+guvtqp                           External Subroutine
+                                 0-109.11
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-133.15@  0-134.25  0-134.38  0-159.13@  0-160.15  0-160.36
+ 
+idy                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-109.38  0-153.67  0-155.46  0-163.26  0-178.48
+ 
+ier                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-109.56  0-110.11  0-113.16  0-165.40  0-174.12  0-180.35
+ 
+ihr                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-109.43  0-154.18  0-155.50  0-163.31  0-178.53
+ 
+imn                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-109.33  0-153.63  0-155.42  0-163.21  0-178.43
+ 
+iqhr                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-106.2@  0-124.3@  0-124.10  0-126.36  0-134.20  0-140.10  0-141.34  0-158.18
+ 
+iqstn                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-105.2@  0-118.8@  0-118.16  0-123.3@  0-126.13  0-134.14  0-137.10  0-138.37  0-146.15
+ 
+iskip                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-97.2@  0-146.22
+ 
+ista                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-147.6@  0-148.15  0-153.54  0-155.33
+ 
+istn                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-146.5@  0-147.28  0-148.32  0-153.44  0-160.27  0-169.24  0-170.17  0-170.37
+ 
+istns                            Common member, Integer(4) (1:500), Offset: 4000, Alignment: quadruple word
+                                 0-79.18$  0-80.31$  0-148.25
+ 
+iyr                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-109.28  0-152.18  0-163.16  0-178.38
+ 
+jdb                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-168.7@  0-170.46
+ 
+jhr                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-158.9@  0-160.32  0-167.17  0-169.29  0-170.22  0-170.42
+ 
+jyr                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-152.6@  0-153.59  0-155.38
+ 
+lunbuf                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-100.2@  0-154.22  0-155.54  0-162.32  0-178.23
+ 
+lunseq                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-99.2@  0-109.20
+ 
+luntbl                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-98.2@  0-162.24
+ 
+mod                              Pure Intrinsic
+                                 0-152.12  0-167.12
+ 
+more                             Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-72.17$
+ 
+mxdat                            Parameter, Integer(4)
+                                 0-70.32$  0-81.30  0-133.22  0-159.20  0-168.16
+ 
+mxfhr                            Parameter, Integer(4)
+                                 0-70.23$  0-81.24  0-126.46  0-140.20  0-141.53
+ 
+mxstn                            Parameter, Integer(4)
+                                 0-70.13$  0-78.25  0-78.40  0-79.25  0-81.18  0-126.24  0-137.21  0-139.11
+ 
+ngm2bufr                         Program
+                                 0-1.10$
+ 
+nint                             Pure Intrinsic
+                                 0-147.13
+ 
+npr                              Static, Integer(4) (1:5), Offset: 0, Alignment: full word
+                                 0-76.11$  0-165.27  0-180.22
+ 
+npstn                            Common member, Integer(4), Offset: 6000, Alignment: quadruple word
+                                 0-79.33$  0-80.38$  0-101.2@
+ 
+prcpc                            Common member, Real(4) (1:500), Offset: 2000, Alignment: quadruple word
+                                 0-78.33$  0-80.24$
+ 
+prcpg                            Common member, Real(4) (1:500), Offset: 0, Alignment: quadruple word
+                                 0-78.18$  0-80.17$
+ 
+qsndat                           Static, Real(8) (1:256), Offset: 0, Alignment: double word
+                                 0-71.13$  0-109.48  0-120.10  0-122.28  0-130.10  0-131.10  0-131.40  0-134.30  0-160.7@  0-164.43
+ 
+sbset                            Static, Character(8), Offset: 0, Alignment: full word
+                                 0-73.40$  0-88.8*  0-162.40  0-178.31
+ 
+seqflg                           Static, Logical(4) (1:5), Offset: 0, Alignment: full word
+                                 0-75.11$  0-86.8*  0-164.24  0-179.23
+ 
+seqnam                           Static, Character(8) (1:5), Offset: 0, Alignment: full word
+                                 0-73.12$  0-84.8*  0-164.16  0-179.15
+ 
+sndat                            Common member, Real(8) (1:500, 1:49, 1:134), Offset: 0, Alignment: quadruple word
+                                 0-81.11$  0-82.14$  0-134.7@  0-147.20  0-153.38  0-160.20  0-169.17  0-170.11  0-170.30  0-179.42
+ 
+stn1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-120.3@  0-122.18
+ 
+stnout                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-107.2@
+ 
+system                           Intrinsic
+                                 0-156.18
+ 
+w3tagb                           External Subroutine
+                                 0-91.12
+ 
+w3tage                           External Subroutine
+                                 0-182.12
+ 
+wrkspc                           Static, Real(8) (1:256), Offset: 0, Alignment: double word
+                                 0-71.27$  0-165.32  0-180.27
+ 
+** ngm2bufr   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ngm2bufr.f                  10/09/02   12:47:47
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     184
+1501-510  Compilation successful for file ngm2bufr.f.
+1501-543  Object file created.

@@ -1,0 +1,619 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f 05/28/08 12:37:19
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              INLGLUE         NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE GUVTQP ( lunseq, iyr, imn, idy, ihr, datao, iret )
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    GUVTQP      DESCRIPTIVE TITLE NOT PAST COL 70
+          5 |C   PRGMMR: TUCCILLO         ORG: W/NMCXX    DATE: 88-08-03
+          6 |C           K. BRILL	     W/NP22          DATE: 96-02
+          7 |C
+          8 |C ABSTRACT: THIS SUBROUTINE RETRIEVES NMC POINT FORECAST VALUES FROM A
+          9 |C   SEQUENTIAL DATA SET.
+         10 |C
+         11 |C   FUNCTIONAL DESCRIPTION
+         12 |C
+         13 |C      THIS SUBROUTINE READS THE NEXT STATION FROM THE DATABASE
+         14 |C      AND RETURNS THE DATA.
+         15 |C
+         16 |C
+         17 |C   SPECIAL COMMENTS
+         18 |C
+         19 |C     THE PRECIPITATION VALUES READ FROM THE DATABASE REPRESENT
+         20 |C     CUMULATIVE TOTALS.  TO OBTAIN INDIVIDUAL HOURLY VALUES,
+         21 |C     THIS PROGRAM MAKES SEQUENTIAL HOURLY READS FOR DATA, RETAINS
+         22 |C     THE PRECIPITATION VALUE FROM THE PREVIOUS READ AND
+         23 |C     SUBTRACTS IT FROM THE CURRENT PRECIPITATION VALUE.
+         24 |C
+         25 |C PROGRAM HISTORY LOG:
+         26 |C   88-08-03  TUCCILLO
+         27 |C   92-04-22  CAVANAUGH   ADDED VALUE FOR VERTICAL VELOCITY
+         28 |C   95-12     BRILL	  MODIFIED FOR SEQUENTIAL READ ON CRAY
+         29 |C   96-02     BRILL	  MODIFY TO FEED BUFRIZING PROGRAM
+         30 |C   96-05-09  BRILL       FIX PRECIP FOR HOURLY ACCUMULATIONS
+         31 |C
+         32 |C USAGE:    CALL GUVTQP ( lunseq, iyr, imn, idy, ihr, datao, IRET )
+         33 |C   INPUT ARGUMENT LIST:
+         34 |C     LUNSEQ	   INT   Unit number of sequential data
+         35 |C
+         36 |C   OUTPUT ARGUMENT LIST:
+         37 |C     IYR          INT   YEAR
+         38 |C     IMN          INT   MONTH
+         39 |C     IDY          INT   DAY
+         40 |C     IHR          INT   RUN TIME
+         41 |C     DATAO	   FLT   Data -- see contents below
+         42 |C     IRET	   INT   Return code (0=normal)
+         43 |C
+         44 |C  Contents of DATA:
+         45 |C
+         46 |C     Name         Index        Description and units
+         47 |C
+         48 |C     FTIM           1      FORECAST TIME (S)
+         49 |C     STNM           2      STATION NUMBER
+         50 |C     RLAT           3      STATION LATITUDE (DEGREES)
+         51 |C     RLON           4      STATION LONGITUDE (DEGREES)
+         52 |C     SELV           5      STATION ELEVATION    (METERS)
+         53 |C
+         54 |C     P(NZ)         6-21    PRESSURE AT LAYER MIDPOINT (PA)
+         55 |C     T(NZ)        22-37    TEMPERATURE          (K)
+         56 |C     U(NZ)        38-53    NORTH RELATIVE U-COMPONENT (M/S)
+         57 |C     V(NZ)        54-69    NORTH RELATIVE V-COMPONENT (M/S)
+         58 |C     Q(NZ)        70-85    SPECIFIC HUMIDITY    (KG/KG)
+         59 |C     OMEG(NZ)     86-101   VERTICAL VELOCITY (PA/SEC)
+         60 |C     DTAR(NZ)    102-117   RADIATIVE HEATING PROFILE (K/S)
+         61 |C
+         62 |C     PMSL	    118     MEAN SEA LEVEL PRESSURE (PA)
+         63 |C     PRSS          119     TERRAIN PRESSURE     (PA)
+         64 |C     SKTK          120     SKIN TEMPERATURE     (K)
+         65 |C     P01M          121     1 HOUR ACCUMULATED TOTAL PRECIP. (MM)
+         66 |C     C01M          122     1 HOUR ACCUMULATED SUB-GRID SCALE PRECIP. (M
+         67 |C     FXLH          123     LATENT HEAT FLUX (W/M**2)
+         68 |C     FXSH          124     SENSIBLE HEAT FLUX (W/M**2)
+         69 |C     FXSS          125     SUB-SOIL FLUX    (W/M**2)
+         70 |C     SWRD          126     SHORTWAVE RADIATION FLUX  (W/M**2)
+         71 |C     LWRD          127     NET LONGWAVE RADIATION FLUX (W/M**2)
+         72 |C     SLTK          128     SUB-SOIL TEMPERATURE (K)
+         73 |C     LCLD          129     LOW CLOUD AMOUNT (%)
+         74 |C     MCLD          130     MID CLOUD AMOUNT (%)
+         75 |C     HCLD          131     HI CLOUD AMOUNT (%)
+         76 |C     CLPL          132     LO CLOUD PRESSURE (PA)
+         77 |C     CLPM          133     MID CLOUD PRESSURE (PA)
+         78 |C     CLPH          134     HI CLOUD PRESSURE (PA)
+         79 |C     CCLD          135     CONVECTIVE CLOUD AMOUNT (%)
+         80 |C     CLDL          136     PRESSURE AT BASE OF CLOUD (PA)
+         81 |C     CLDT          137     PRESSURE AT TOP OF CLOUD (PA)
+         82 |C
+         83 |C     Unknowns    138-167   Unknown values
+         84 |C
+         85 |C
+         86 |C
+         87 |C   INPUT FILES:   (DELETE IF NO INPUT FILES IN SUBPROGRAM)
+         88 |C     LUNSEQ  -- points to input sequential file
+         89 |C
+         90 |C
+         91 |C ATTRIBUTES:
+         92 |C   LANGUAGE: FORTRAN 77
+         93 |C   MACHINE:  CRAY
+         94 |C
+         95 |C$$$
+         96 |C**********************************************************************
+         97 |C
+         98 |C CHANGE HISTORY
+         99 |C
+        100 |C
+        101 |C**********************************************************************
+        102 |C
+        103 |      PARAMETER	(MXSTN=500,MXFHR=49,MXDAT=134)
+        104 |      PARAMETER ( NZ = 16, IDIMM = 500, NDATA = 146 )
+        105 |      PARAMETER ( DTR = .01745329 )
+        106 |      PARAMETER ( RD = 287.04, G = 9.80616 )
+        107 |      REAL(8) datao (*)
+        108 |C*
+        109 |      REAL    ppk (NZ)
+        110 |      REAL    data ( IDIMM )
+        111 |C*
+        112 |      REAL    prcpg (MXSTN), prcpc (MXSTN)
+        113 |      INTEGER istns (MXSTN), npstn
+        114 |      COMMON    prcpg, prcpc, istns, npstn
+        115 |C*
+        116 |      LOGICAL		found
+        117 |      CHARACTER*4 	cpack
+        118 |C*
+        119 |      DATA    rot /-105./
+        120 |C*
+        121 |      DATA ppk/   0.9823040,
+        122 |     *            0.9431677,
+        123 |     *            0.8967100,
+        124 |     *            0.8436723,
+        125 |     *            0.7848307,
+        126 |     *            0.7210065,
+        127 |     *            0.6530743,
+        128 |     *            0.5819620,
+        129 |     *            0.5086423,
+        130 |     *            0.4341393,
+        131 |     *            0.3595226,
+        132 |     *            0.2859137,
+        133 |     *            0.2144695,
+        134 |     *            0.1463738,
+        135 |     *            0.0827399,
+        136 |     *            0.0223290
+        137 |     *            /
+        138 |C-----------------------------------------------------------------------
+        139 |	iret = 0
+        140 |C
+        141 |C*	Read the next station record.
+        142 |C
+        143 |	READ ( lunseq, IOSTAT=iostat ) cpack,iscc,ista,alat,alon,
+        144 |     +			( data (ij), ij = 1, NDATA )
+        145 |	IF ( iostat .lt. 0 ) THEN
+        146 |	    iret = 1
+        147 |	    RETURN
+        148 |	ELSE IF ( iostat .gt. 0 ) THEN
+        149 |	    PRINT *, ' IOSTAT = ', iostat
+        150 |	    iret = -1
+        151 |	    RETURN
+        152 |	ENDIF
+        153 |	CALL W3YMDH4 ( cpack, iyr, imn, idy, ihr, 1 )
+        154 |	datao (1) = FLOAT ( iscc )
+        155 |	IFHR = iscc / 3600
+        156 |	datao (2) = ista
+        157 |C
+        158 |C*     OBTAIN BASE VALUES FROM THE DATABASE TO USE IN CALCULATION
+        159 |C*     OF PROFILE VALUES:
+        160 |C
+        161 |      datao (3)   = ALAT
+        162 |      datao (4)   = ALON
+        163 |      PSTAR       = DATA ( 4 * NZ + 1 )
+        164 |      PSTARI      = 1. / PSTAR
+        165 |C
+        166 |      PSTAR       = 1000. * PSTAR
+        167 |      ps	  = PSTAR
+        168 |      datao (119) = PSTAR * 100.
+        169 |C
+        170 |      datao (120) = DATA ( 4 * NZ + 2 )
+        171 |      TSKIN	  = DATA ( 4 * NZ + 2 )
+        172 |      datao (5)   = DATA ( 4 * NZ + 6 ) * ( 1004. / 9.8 )
+        173 |      zsfc        = datao (5)
+        174 |      DIF         = DTR * ( ROT - ALON )
+        175 |C
+        176 |      COSDIF      = COS ( DIF )
+        177 |C
+        178 |      SINDIF      = SIN ( DIF )
+        179 |C
+        180 |C*    FILL UP THE PROFILE VALUES FOR THE NUMBER OF LEVELS NZ
+        181 |C*    CALCULATE AND STORE U,V,T,Q AND P FOR LEVEL K
+        182 |C
+        183 |      ioff = 5
+        184 |      DO 100 K = 1, NZ
+        185 |         PPP 			   = PSTAR * PPK(K)
+        186 |	 p1			   = PPP
+        187 |         datao ( ioff + k )        = PPP * 100.0
+        188 |         datao ( ioff + NZ + k )   = DATA ( 2 * NZ + K ) * PSTARI *
+        189 |     +					( (PPP*0.001) ** 0.286 )
+        190 |	 t1			   = datao ( ioff + NZ + k )
+        191 |         UG         		   = DATA (        K ) * PSTARI
+        192 |         VG         		   = DATA (   NZ + K ) * PSTARI
+        193 |         datao ( ioff + 2*NZ + k ) = UG * COSDIF - VG * SINDIF
+        194 |         datao ( ioff + 3*NZ + k ) = VG * COSDIF + UG * SINDIF
+        195 |         datao ( ioff + 4*NZ + k ) = DATA ( 3 * NZ + K ) * PSTARI
+        196 |	 q1			   = datao ( ioff + 4*NZ + k )
+        197 |100   CONTINUE
+        198 |C
+        199 |C*	Compute PMSL (118) using Sheull correction.
+        200 |C
+        201 |	IF ( zsfc .ne. 0. ) THEN
+        202 |	    tv1 = t1 * ( 1. + .608 * q1 )
+        203 |	    dz1 = - ( RD * tv1 / G ) * ALOG ( p1 / ps )
+        204 |	    tvs = tv1 + .0065 * dz1
+        205 |	    tv0 = tv1 + .0065 * ( dz1 + zsfc )
+        206 |	    IF ( zsfc .gt. 0. ) THEN
+        207 |	    	IF ( tvs .gt. 290.66 ) THEN
+        208 |		    tv0 = 290.66 - .005 * ( tvs - 290.66 ) ** 2
+        209 |	    	ELSE IF ( tv0 .gt. 290.66 ) THEN
+        210 |		    tv0 = 290.66
+        211 |	    	END IF
+        212 |	    END IF
+        213 |	    ff = (G * zsfc ) / ( RD * .5 * ( tvs + tv0 ) )
+        214 |	    datao (118) = datao (119) * EXP (ff)
+        215 |	ELSE
+        216 |	    datao (118) = datao (119)
+        217 |	END IF
+        218 |C
+        219 |C*    SET VARIABLE CONSTANTS FOR RADIATIVE HEATING PROFILE
+        220 |C
+        221 |      KK         = 4 * NZ + 1
+        222 |      ASTAR      = DATA ( 4*NZ + 1 )
+        223 |C
+        224 |C*    -OLD      ASTARI     = ( 3600. * 24. ) / ASTAR
+        225 |C
+        226 |      astari     = 1.0 / astar
+        227 |      DO 110 K = 1, NZ
+        228 |C
+        229 |C*       COMPUTE RADIATIVE HEATING VALUE AND VERTICAL VELOCITY
+        230 |C*       FOR EACH PROFILE LEVEL
+        231 |C
+        232 |         PPP  = ( ASTAR * PPK(K) ) ** 0.286
+        233 |         omeg   = DATA(6 * NZ + 31 + K)
+        234 |         datao ( ioff + 6*NZ + k ) = DATA(4*NZ+9+K) * ASTARI * PPP
+        235 |C
+        236 |C*	 Convert to pa / s.
+        237 |C
+        238 |	 datao ( ioff + 5*NZ + k ) = omeg * 100.
+        239 |110   CONTINUE
+        240 |C
+        241 |C*    DETERMINE OFFSET TO GET CLOUD AMOUNT VALUES
+        242 |C
+        243 |      JOFF = 6*NZ + 20
+        244 |C
+        245 |C*    COLLECT CLOUD AMOUNT VALUES
+        246 |C
+        247 |      datao (135)          = DATA ( JOFF + 1  ) * 100.
+        248 |      datao (129)          = DATA ( JOFF + 2  ) * 100.
+        249 |      datao (130)          = DATA ( JOFF + 3  ) * 100.
+        250 |      datao (131)          = DATA ( JOFF + 4  ) * 100.
+        251 |      datao (132)          = DATA ( JOFF + 5  ) * 100000.
+        252 |      datao (133)          = DATA ( JOFF + 6  ) * 100000.
+        253 |      datao (134)          = DATA ( JOFF + 7  ) * 100000.
+        254 |      datao (136)          = DATA ( JOFF + 8  ) * 100000.
+        255 |      datao (137)          = DATA ( JOFF + 9  ) * 100000.
+        256 |C
+        257 |C*    COLLECT ENERGY BUDGET PARAMETERS
+        258 |C
+        259 |      datao (128)  = DATA ( 5*NZ + 16 )
+        260 |      TSUB	   = DATA ( 5*NZ + 16 )
+        261 |      datao (126)  = DATA ( 5*NZ + 11) * 1000.
+        262 |      datao (127)  = ( DATA ( 5*NZ + 10) - DATA ( 6*NZ + 19 ) ) * 1000.
+        263 |      datao (124)  = DATA ( 6*NZ + 30 ) * ( -1000. )
+        264 |      datao (123)  = DATA ( 6*NZ + 31 ) * ( -1000. * 2.5E+06 )
+        265 |      datao (125)  = DATA ( 5*NZ + 17 ) * 7.29E-05 * ( TSUB - TSKIN )
+        266 |C
+        267 |C*    Load the unknown values.
+        268 |C
+        269 |	datao (138) = data ( 4*NZ + 3 )
+        270 |	datao (139) = data ( 4*NZ + 4 )
+        271 |	datao (140) = data ( 4*NZ + 5 )
+        272 |	datao (141) = data ( 4*NZ + 7 )
+        273 |	datao (142) = data ( 5*NZ + 12 )
+        274 |	datao (143) = data ( 5*NZ + 13 )
+        275 |	datao (144) = data ( 5*NZ + 14 )
+        276 |	datao (145) = data ( 5*NZ + 15 )
+        277 |	datao (146) = data ( 5*NZ + 16 )
+        278 |	iq = 146
+        279 |	DO i = 2, 20
+        280 |	    iq = iq + 1
+        281 |	    datao (iq) = data ( 6*NZ + i )
+        282 |	END DO
+        283 |	datao (166) = data (144)
+        284 |	datao (167) = data (145)
+        285 |	datao (168) = data (146)
+        286 |C
+        287 |C*    COLLECT PRECIP VALUES ONLY IF NOT THE INITIAL FORECAST HOUR
+        288 |C*    SET THE DEFAULT PRECIP. VALUES TO ZERO
+        289 |C
+        290 |      IF (IFHR.EQ.0) THEN
+        291 |	  datao ( 121 ) = 0.
+        292 |	  datao ( 122 ) = 0.
+        293 |	  npstn = npstn + 1
+        294 |	  istns (npstn) = ista
+        295 |	  prcpg (npstn) = 0.
+        296 |	  prcpc (npstn) = 0.
+        297 |      ELSE
+        298 |          sgsp     = DATA ( 4*NZ + 8 )
+        299 |          gsp      = DATA ( 4*NZ + 9 )
+        300 |	  found = .false.
+        301 |	  iqs = 0
+        302 |	  DO WHILE ( .not. found )
+        303 |	      iqs = iqs + 1
+        304 |	      IF ( istns (iqs) .eq. ista ) THEN
+        305 |		  found = .true.
+        306 |		  xsgsp = sgsp - prcpc (iqs)
+        307 |		  xgsp = gsp - prcpg (iqs)
+        308 |		  IF ( MOD ( IFHR, 12 ) .eq. 0. ) THEN
+        309 |		      prcpc (iqs) = 0.0
+        310 |		      prcpg (iqs) = 0.0
+        311 |		  ELSE
+        312 |		      prcpc (iqs) = sgsp
+        313 |		      prcpg (iqs) = gsp
+        314 |		  END IF
+        315 |	      END IF
+        316 |	  END DO
+        317 |	  datao (121) = ( xsgsp + xgsp ) * 1000.
+        318 |	  datao (122) = ( xsgsp ) * 1000.
+        319 |      END IF
+        320 |C*
+        321 |      RETURN
+        322 |C*
+        323 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-114.6$
+ 
+alat                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-143.49@  0-161.21
+ 
+alog                             Pure Intrinsic Real(4)
+                                 0-203.33
+ 
+alon                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-143.54@  0-162.21  0-174.35
+ 
+astar                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-222.7@  0-226.26  0-232.19
+ 
+astari                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-226.7@  0-234.55
+ 
+cos                              Pure Intrinsic
+                                 0-176.21
+ 
+cosdif                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-176.7@  0-193.43  0-194.43
+ 
+cpack                            Static, Character(4), Offset: 0, Alignment: full word
+                                 0-117.20$  0-143.33@  0-153.17
+ 
+data                             Static, Real(4) (1:500), Offset: 0, Alignment: full word
+                                 0-110.15$  0-144.12@  0-163.21  0-170.21  0-171.17  0-172.21  0-188.38  0-191.28  0-192.28
+                                 0-195.38  0-222.20  0-233.19  0-234.38  0-247.30  0-248.30  0-249.30  0-250.30  0-251.30  0-252.30
+                                 0-253.30  0-254.30  0-255.30  0-259.22  0-260.17  0-261.22  0-262.24  0-262.44  0-263.22  0-264.22
+                                 0-265.22  0-269.16  0-270.16  0-271.16  0-272.16  0-273.16  0-274.16  0-275.16  0-276.16  0-277.16
+                                 0-281.19  0-283.16  0-284.16  0-285.16  0-298.22  0-299.22
+ 
+datao                            Reference argument, Real(8) (1:*), Offset: 0, Alignment: double word
+                                 0-107.15$  0-1.55  0-154.1@  0-156.1@  0-161.6@  0-162.6@  0-168.6@  0-170.6@  0-172.6@  0-173.21
+                                 0-187.9@  0-188.9@  0-190.13  0-193.9@  0-194.9@  0-195.9@  0-196.13  0-214.5@  0-214.20  0-216.5@
+                                 0-216.20  0-234.9@  0-238.2@  0-247.6@  0-248.6@  0-249.6@  0-250.6@  0-251.6@  0-252.6@  0-253.6@
+                                 0-254.6@  0-255.6@  0-259.6@  0-261.6@  0-262.6@  0-263.6@  0-264.6@  0-265.6@  0-269.1@  0-270.1@
+                                 0-271.1@  0-272.1@  0-273.1@  0-274.1@  0-275.1@  0-276.1@  0-277.1@  0-281.5@  0-283.1@  0-284.1@
+                                 0-285.1@  0-291.3@  0-292.3@  0-317.3@  0-318.3@
+ 
+dif                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-174.7@  0-176.27  0-178.27
+ 
+dtr                              Parameter, Real(4)
+                                 0-105.19$  0-174.21
+ 
+dz1                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-203.6@  0-204.26  0-205.28
+ 
+exp                              Pure Intrinsic
+                                 0-214.34
+ 
+ff                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-213.6@  0-214.39
+ 
+float                            Pure Intrinsic
+                                 0-154.14
+ 
+found                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-116.16$  0-300.4@  0-302.21  0-305.5@
+ 
+g                                Parameter, Real(4)
+                                 0-106.32$  0-203.27  0-213.12
+ 
+gsp                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-299.11@  0-307.12  0-313.23
+ 
+guvtqp                           Subroutine
+                                 0-1.18$
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-279.5@  0-281.33
+ 
+idimm                            Parameter, Integer(4)
+                                 0-104.28$  0-110.22
+ 
+idy                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.45  0-153.34
+ 
+ifhr                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-155.2@  0-290.11  0-308.16
+ 
+ihr                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.50  0-153.39
+ 
+ij                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-144.18  0-144.23@
+ 
+imn                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-153.29
+ 
+ioff                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-183.7@  0-187.18  0-188.18  0-190.21  0-193.18  0-194.18  0-195.18  0-196.21  0-234.18  0-238.11
+ 
+iostat                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-143.24  0-145.7  0-148.12  0-149.29
+ 
+iq                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-278.2@  0-280.6@  0-280.11  0-281.13
+ 
+iqs                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-301.4@  0-303.8@  0-303.14  0-304.20  0-306.27  0-307.25  0-309.16  0-310.16  0-312.16  0-313.16
+ 
+iret                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.62  0-139.2@  0-146.6@  0-150.6@
+ 
+iscc                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-143.39@  0-154.22  0-155.9
+ 
+ista                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-143.44@  0-156.14  0-294.20  0-304.30
+ 
+istns                            Common member, Integer(4) (1:500), Offset: 4000, Alignment: quadruple word
+                                 0-113.15$  0-114.31$  0-294.4@  0-304.13
+ 
+iyr                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.35  0-153.24
+ 
+joff                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-243.7@  0-247.37  0-248.37  0-249.37  0-250.37  0-251.37  0-252.37  0-253.37  0-254.37  0-255.37
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-184.14@  0-185.34  0-187.25  0-188.30  0-188.54  0-190.33  0-191.42  0-192.42  0-193.32  0-194.32
+                                 0-195.32  0-195.54  0-196.35  0-227.14@  0-232.31  0-233.38  0-234.32  0-234.50  0-238.25
+ 
+kk                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-221.7@
+ 
+lunseq                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-143.9
+ 
+mod                              Pure Intrinsic
+                                 0-308.10
+ 
+mxdat                            Parameter, Integer(4)
+                                 0-103.37$
+ 
+mxfhr                            Parameter, Integer(4)
+                                 0-103.28$
+ 
+mxstn                            Parameter, Integer(4)
+                                 0-103.18$  0-112.22  0-112.37  0-113.22
+ 
+ndata                            Parameter, Integer(4)
+                                 0-104.41$  0-144.31
+ 
+npstn                            Common member, Integer(4), Offset: 6000, Alignment: quadruple word
+                                 0-113.30$  0-114.38$  0-293.4@  0-293.12  0-294.11  0-295.11  0-296.11
+ 
+nz                               Parameter, Integer(4)
+                                 0-104.19$  0-109.20  0-163.32  0-170.32  0-171.28  0-172.32  0-184.21  0-188.25  0-188.49  0-190.28
+                                 0-192.37  0-193.27  0-194.27  0-195.27  0-195.49  0-196.30  0-221.24  0-222.29  0-227.21  0-233.28
+                                 0-234.27  0-234.45  0-238.20  0-243.16  0-259.31  0-260.26  0-261.31  0-262.33  0-262.53  0-263.31
+                                 0-264.31  0-265.31  0-269.25  0-270.25  0-271.25  0-272.25  0-273.25  0-274.25  0-275.25  0-276.25
+                                 0-277.25  0-281.28  0-298.31  0-299.31
+ 
+omeg                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-233.10@  0-238.31
+ 
+p1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-186.3@  0-203.40
+ 
+ppk                              Static, Real(4) (1:16), Offset: 0, Alignment: full word
+                                 0-109.15$  0-121.12*  0-185.30  0-232.27
+ 
+ppp                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-185.10@  0-186.13  0-187.38  0-189.15  0-232.10@  0-234.64
+ 
+prcpc                            Common member, Real(4) (1:500), Offset: 2000, Alignment: quadruple word
+                                 0-112.30$  0-114.24$  0-296.4@  0-306.20  0-309.9@  0-312.9@
+ 
+prcpg                            Common member, Real(4) (1:500), Offset: 0, Alignment: quadruple word
+                                 0-112.15$  0-114.17$  0-295.4@  0-307.18  0-310.9@  0-313.9@
+ 
+ps                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-167.7@  0-203.45
+ 
+pstar                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-163.7@  0-164.26  0-166.7@  0-166.29  0-167.14  0-168.21  0-185.22
+ 
+pstari                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-164.7@  0-188.60  0-191.48  0-192.48  0-195.60
+ 
+q1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-196.3@  0-202.31
+ 
+rd                               Parameter, Real(4)
+                                 0-106.19$  0-203.16  0-213.27
+ 
+rot                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-119.15*  0-174.29
+ 
+sgsp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-298.11@  0-306.13  0-312.23
+ 
+sin                              Pure Intrinsic
+                                 0-178.21
+ 
+sindif                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-178.7@  0-193.57  0-194.57
+ 
+t1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-190.3@  0-202.12
+ 
+tskin                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-171.7@  0-265.63
+ 
+tsub                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-260.7@  0-265.56
+ 
+tv0                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-205.6@  0-208.7@  0-209.17  0-210.7@  0-213.45
+ 
+tv1                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-202.6@  0-203.21  0-204.12  0-205.12
+ 
+tvs                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-204.6@  0-207.12  0-208.31  0-213.39
+ 
+ug                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-191.10@  0-193.38  0-194.52
+ 
+vg                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-192.10@  0-193.52  0-194.38
+ 
+w3ymdh4                          External Subroutine
+                                 0-153.7
+ 
+xgsp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-307.5@  0-317.28
+ 
+xsgsp                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-306.5@  0-317.20  0-318.20
+ 
+zsfc                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-173.7@  0-201.7  0-205.34  0-206.11  0-213.16
+ 
+** guvtqp   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    guvtqp.f                    10/09/02   12:47:47
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     323
+1501-510  Compilation successful for file guvtqp.f.
+1501-543  Object file created.

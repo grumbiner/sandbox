@@ -1,0 +1,643 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/S2G1.f 09/30/06 19:43:50
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE S2G1(ZS,DS,TS,PS,RS,QS,U,V,T,P,R,Q,
+          2 |     *                  NSIG,JCAP,NLON,NLATH,
+          3 |     *       IRS,IIS,AP,BP,AQR,BQR,GR,SLAT,CLAT,PE0,QE0,RO0,TRIGS,IFAX)
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    S2G1       SPECTRAL TO GRID TRANSFORM
+          7 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 90-09-21
+          8 |C
+          9 |C ABSTRACT: SUM COEFFICIENTS OF SPHERICAL HARMONIC SERIES
+         10 |C   FOR ALL SPECTRAL MODEL VARIABLES.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   90-09-21  PARRISH
+         14 |C
+         15 |C USAGE:    CALL S2G1(ZS,DS,TS,PS,RS,QS,U,V,T,P,R,Q,
+         16 |C    *                  NSIG,JCAP,NLON,NLATH,
+         17 |C    *       IRS,IIS,AP,BP,AQR,BQR,GR,SLAT,CLAT,PE0,QE0,RO0,TRIGS,IFAX)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     ZS       - ZS((JCAP+1)*(JCAP+2)+1,NSIG): VORTICITY COEFFICIENTS
+         20 |C     DS       - DS((JCAP+1)*(JCAP+2)+1,NSIG): DIVERGENCE COEFFICIENTS
+         21 |C     TS       - TS((JCAP+1)*(JCAP+2)+1,NSIG): VIRTUAL TEMP COEFS (K)
+         22 |C     PS       - PS((JCAP+1)*(JCAP+2)+1): LOG(PSF) COEFS  (P IN CB)
+         23 |C     RS       - RS((JCAP+1)*(JCAP+2)+1): TERRAIN COEFS (M)
+         24 |C     QS       - QS((JCAP+1)*(JCAP+2)+1,NSIG): SPECIFIC HUMITITY COEFS
+         25 |C     NSIG     - NUMBER OF SIGMA LEVELS
+         26 |C     JCAP     - TRIANGULAR TRUNCATION
+         27 |C     NLON     - NUMBER OF LONGITUDES
+         28 |C     NLATH    - NUMBER OF GAUSSIAN LATS IN ONE HEMISPHERE
+         29 |C     IRS      - IRS(0:JCAP,0:JCAP): ADDR OF RE(ZS(N,L)), ETC.
+         30 |C     IIS      - IIS(0:JCAP,0:JCAP): SAME FOR IM PART
+         31 |C     AP       - AP(0:JCAP,0:JCAP):  RECURSION
+         32 |C     BP       - BP(0:JCAP,0:JCAP):    CONSTANTS
+         33 |C     AQR      - AQR(0:JCAP,0:JCAP):     FOR GENERATING
+         34 |C     BQR      - BQR(0:JCAP,0:JCAP):       VECTOR SPHERICAL
+         35 |C     GR       - GR(0:JCAP,0:JCAP):          HARMONICS
+         36 |C     SLAT     - SLAT(NLATH):  SIN(GAUSSIAN LATITUDES)
+         37 |C     CLAT     - CLAT(NLATH):  COS(GAUSSIAN LATS)
+         38 |C     PE0      - PE0(NLATH,0:JCAP): P(L,L)
+         39 |C     QE0      - QE0(NLATH,0:JCAP): Q(L,L)
+         40 |C     RO0      - RO0(NLATH,0:JCAP): R(L,L)
+         41 |C     TRIGS    - TRIGS(NLON*2)
+         42 |C     IFAX     - IFAX(10)
+         43 |C
+         44 |C   OUTPUT ARGUMENT LIST:
+         45 |C     U        - LONGITUDE COMPONENT OF WINDS
+         46 |C     V        - LATITUDE COMPONENT OF WINDS
+         47 |C     T        - TEMPS
+         48 |C     P        - LOG(PSFC)
+         49 |C     R        - TERRAIN
+         50 |C     Q        - MOISTURE VARIABLES
+         51 |C
+         52 |C ATTRIBUTES:
+         53 |C   LANGUAGE: CFT77
+         54 |C   MACHINE:  CRAY YMP
+         55 |C
+         56 |C$$$
+         57 |         DIMENSION ZS((JCAP+1)*(JCAP+2)+1,NSIG)
+         58 |         DIMENSION DS((JCAP+1)*(JCAP+2)+1,NSIG)
+         59 |         DIMENSION TS((JCAP+1)*(JCAP+2)+1,NSIG)
+         60 |         DIMENSION PS((JCAP+1)*(JCAP+2)+1)
+         61 |         DIMENSION RS((JCAP+1)*(JCAP+2)+1)
+         62 |         DIMENSION QS((JCAP+1)*(JCAP+2)+1,NSIG)
+         63 |         DIMENSION U(2*NLATH,NLON+1,NSIG),V(2*NLATH,NLON+1,NSIG)
+         64 |         DIMENSION T(2*NLATH,NLON+1,NSIG),Q(2*NLATH,NLON+1,NSIG)
+         65 |         DIMENSION P(2*NLATH,NLON+1),R(2*NLATH,NLON+1)
+         66 |         DIMENSION IRS(0:JCAP,0:JCAP),IIS(0:JCAP,0:JCAP)
+         67 |         double precision AP(0:JCAP,0:JCAP),BP(0:JCAP,0:JCAP)
+         68 |         double precision AQR(0:JCAP,0:JCAP),BQR(0:JCAP,0:JCAP)
+         69 |         double precision GR(0:JCAP,0:JCAP)
+         70 |         double precision SLAT(NLATH),CLAT(NLATH)
+         71 |         DIMENSION TRIGS(NLON*2),IFAX(10)
+         72 |         double precision PE0(NLATH,0:JCAP),QE0(NLATH,0:JCAP)
+         73 |         double precision RO0(NLATH,0:JCAP)
+         74 |C--------
+         75 |C-------- INTERNAL SCRATCH DYNAMIC SPACE FOLLOWS:
+         76 |C--------
+         77 |         double precision PE(NLATH,0:JCAP),QE(NLATH,0:JCAP)
+         78 |         double precision RO(NLATH,0:JCAP)
+         79 |         double precision PO(NLATH,0:JCAP),QO(NLATH,0:JCAP)
+         80 |         double precision RE(NLATH,0:JCAP)
+         81 |         DIMENSION WORK(2*NLATH*NLON)
+         82 |C--------
+         83 |C-------- MAKE SURE THAT ZONAL IMAGINARY COEFS ARE ZERO, AND
+         84 |C-------- (0,0) COMPONENT OF Z,D ALSO
+         85 |C--------
+         86 |         DO 20 K=1,NSIG
+         87 |CDIR$ IVDEP
+         88 |           DO 10 N=0,JCAP
+         89 |             ZS(IIS(N,0),K)=0.
+         90 |             DS(IIS(N,0),K)=0.
+         91 |             TS(IIS(N,0),K)=0.
+         92 |             QS(IIS(N,0),K)=0.
+         93 |10         CONTINUE
+         94 |           ZS(IRS(0,0),K)=0.
+         95 |           DS(IRS(0,0),K)=0.
+         96 |20       CONTINUE
+         97 |CDIR$ IVDEP
+         98 |         DO 30 N=0,JCAP
+         99 |           PS(IIS(N,0))=0.
+        100 |           RS(IIS(N,0))=0.
+        101 |30       CONTINUE
+        102 |         PO=0.d0
+        103 |         QO=0.d0
+        104 |         RE=0.d0
+        105 |         PE=PE0
+        106 |         QE=QE0
+        107 |         RO=RO0
+        108 |C--------
+        109 |C-------- NOW SUM IN LATITUDE (AFTER ZEROING OUTPUT ARRAYS)
+        110 |C--------
+        111 |         U=0.
+        112 |         V=0.
+        113 |         T=0.
+        114 |         P=0.
+        115 |         R=0.
+        116 |         Q=0.
+        117 |C--------
+        118 |         DO 1300 L=0,JCAP
+        119 |           LR=2*L+1
+        120 |           LI=2*L+2
+        121 |           JSTART=1
+        122 |           IF(L.GT.1) JSTART=2
+        123 |           DO 900 N=L,JCAP,2
+        124 |C------------
+        125 |C------------ FIRST SUM EVEN/ODD TERMS (N=L,L+2,...)
+        126 |C------------
+        127 |             DO 200 K=1,NSIG
+        128 |CDIR$ IVDEP
+        129 |               DO 100 J=JSTART,NLATH
+        130 |                 JR=2*NLATH+1-J
+        131 |                 T(J,LR,K)=T(J,LR,K)+PE(J,L)*TS(IRS(N,L),K)
+        132 |                 T(J,LI,K)=T(J,LI,K)+PE(J,L)*TS(IIS(N,L),K)
+        133 |                 Q(J,LR,K)=Q(J,LR,K)+PE(J,L)*QS(IRS(N,L),K)
+        134 |                 Q(J,LI,K)=Q(J,LI,K)+PE(J,L)*QS(IIS(N,L),K)
+        135 |                 U(JR,LR,K)=U(JR,LR,K)+RO(J,L)*ZS(IRS(N,L),K)
+        136 |                 U(J,LR,K)=U(J,LR,K)+QE(J,L)*DS(IIS(N,L),K)
+        137 |                 U(JR,LI,K)=U(JR,LI,K)+RO(J,L)*ZS(IIS(N,L),K)
+        138 |                 U(J,LI,K)=U(J,LI,K)-QE(J,L)*DS(IRS(N,L),K)
+        139 |                 V(J,LR,K)=V(J,LR,K)+QE(J,L)*ZS(IIS(N,L),K)
+        140 |                 V(JR,LR,K)=V(JR,LR,K)-RO(J,L)*DS(IRS(N,L),K)
+        141 |                 V(J,LI,K)=V(J,LI,K)-QE(J,L)*ZS(IRS(N,L),K)
+        142 |                 V(JR,LI,K)=V(JR,LI,K)-RO(J,L)*DS(IIS(N,L),K)
+        143 | 100           CONTINUE
+        144 | 200         CONTINUE
+        145 |CDIR$ IVDEP
+        146 |             DO 300 J=JSTART,NLATH
+        147 |               P(J,LR)=P(J,LR)+PE(J,L)*PS(IRS(N,L))
+        148 |               P(J,LI)=P(J,LI)+PE(J,L)*PS(IIS(N,L))
+        149 |               R(J,LR)=R(J,LR)+PE(J,L)*RS(IRS(N,L))
+        150 |               R(J,LI)=R(J,LI)+PE(J,L)*RS(IIS(N,L))
+        151 |300          CONTINUE
+        152 |C------------
+        153 |C------------ NOW DO ODD/EVEN  (N=L+1,L+3,...)
+        154 |C------------
+        155 |             IF(N+1.LE.JCAP) THEN
+        156 |CDIR$ IVDEP
+        157 |               DO 400 J=JSTART,NLATH
+        158 |                 PO(J,L)=AP(N,L)*SLAT(J)*PE(J,L)+BP(N,L)*PO(J,L)
+        159 |                 QO(J,L)=AQR(N,L)*SLAT(J)*QE(J,L)
+        160 |     *                     +BQR(N,L)*QO(J,L)
+        161 |                 RE(J,L)=AQR(N,L)*SLAT(J)*RO(J,L)
+        162 |     *                 +BQR(N,L)*RE(J,L)+GR(N,L)*PE(J,L)*CLAT(J)
+        163 |400            CONTINUE
+        164 |               DO 600 K=1,NSIG
+        165 |CDIR$ IVDEP
+        166 |                 DO 500 J=JSTART,NLATH
+        167 |                   JR=2*NLATH+1-J
+        168 |                   T(JR,LR,K)=T(JR,LR,K)+PO(J,L)*TS(IRS(N+1,L),K)
+        169 |                   T(JR,LI,K)=T(JR,LI,K)+PO(J,L)*TS(IIS(N+1,L),K)
+        170 |                   Q(JR,LR,K)=Q(JR,LR,K)+PO(J,L)*QS(IRS(N+1,L),K)
+        171 |                   Q(JR,LI,K)=Q(JR,LI,K)+PO(J,L)*QS(IIS(N+1,L),K)
+        172 |                   U(J,LR,K)=U(J,LR,K)+RE(J,L)*ZS(IRS(N+1,L),K)
+        173 |                   U(JR,LR,K)=U(JR,LR,K)+QO(J,L)*DS(IIS(N+1,L),K)
+        174 |                   U(J,LI,K)=U(J,LI,K)+RE(J,L)*ZS(IIS(N+1,L),K)
+        175 |                   U(JR,LI,K)=U(JR,LI,K)-QO(J,L)*DS(IRS(N+1,L),K)
+        176 |                   V(JR,LR,K)=V(JR,LR,K)+QO(J,L)*ZS(IIS(N+1,L),K)
+        177 |                   V(J,LR,K)=V(J,LR,K)-RE(J,L)*DS(IRS(N+1,L),K)
+        178 |                   V(JR,LI,K)=V(JR,LI,K)-QO(J,L)*ZS(IRS(N+1,L),K)
+        179 |                   V(J,LI,K)=V(J,LI,K)-RE(J,L)*DS(IIS(N+1,L),K)
+        180 | 500             CONTINUE
+        181 | 600           CONTINUE
+        182 |CDIR$ IVDEP
+        183 |               DO 700 J=JSTART,NLATH
+        184 |                 JR=2*NLATH+1-J
+        185 |                 P(JR,LR)=P(JR,LR)+PO(J,L)*PS(IRS(N+1,L))
+        186 |                 P(JR,LI)=P(JR,LI)+PO(J,L)*PS(IIS(N+1,L))
+        187 |                 R(JR,LR)=R(JR,LR)+PO(J,L)*RS(IRS(N+1,L))
+        188 |                 R(JR,LI)=R(JR,LI)+PO(J,L)*RS(IIS(N+1,L))
+        189 |700            CONTINUE
+        190 |C--------------
+        191 |C-------------- GET NEXT PE,QE,RO
+        192 |C--------------
+        193 |CDIR$ IVDEP
+        194 |               DO 800 J=JSTART,NLATH
+        195 |                 PE(J,L)=AP(N+1,L)*SLAT(J)*PO(J,L)+BP(N+1,L)*PE(J,L)
+        196 |                 QE(J,L)=AQR(N+1,L)*SLAT(J)*QO(J,L)
+        197 |     *                     +BQR(N+1,L)*QE(J,L)
+        198 |                 RO(J,L)=AQR(N+1,L)*SLAT(J)*RE(J,L)
+        199 |     *                 +BQR(N+1,L)*RO(J,L)+GR(N+1,L)*PO(J,L)*CLAT(J)
+        200 |800            CONTINUE
+        201 |             END IF
+        202 |900        CONTINUE
+        203 |C----------
+        204 |C---------- NOW COMBINE EVEN AND ODD PARTS
+        205 |C----------
+        206 |           DO 1100 K=1,NSIG
+        207 |CDIR$ IVDEP
+        208 |             DO 1000 J=JSTART,NLATH
+        209 |               JR=2*NLATH+1-J
+        210 |               TRE=T(J,LR,K)
+        211 |               TRO=T(JR,LR,K)
+        212 |               T(J,LR,K)=TRE+TRO
+        213 |               T(JR,LR,K)=TRE-TRO
+        214 |               TIE=T(J,LI,K)
+        215 |               TIO=T(JR,LI,K)
+        216 |               T(J,LI,K)=TIE+TIO
+        217 |               T(JR,LI,K)=TIE-TIO
+        218 |               QRE=Q(J,LR,K)
+        219 |               QRO=Q(JR,LR,K)
+        220 |               Q(J,LR,K)=QRE+QRO
+        221 |               Q(JR,LR,K)=QRE-QRO
+        222 |               QIE=Q(J,LI,K)
+        223 |               QIO=Q(JR,LI,K)
+        224 |               Q(J,LI,K)=QIE+QIO
+        225 |               Q(JR,LI,K)=QIE-QIO
+        226 |               URE=U(J,LR,K)
+        227 |               URO=U(JR,LR,K)
+        228 |               U(J,LR,K)=URE+URO
+        229 |               U(JR,LR,K)=URE-URO
+        230 |               UIE=U(J,LI,K)
+        231 |               UIO=U(JR,LI,K)
+        232 |               U(J,LI,K)=UIE+UIO
+        233 |               U(JR,LI,K)=UIE-UIO
+        234 |               VRE=V(J,LR,K)
+        235 |               VRO=V(JR,LR,K)
+        236 |               V(J,LR,K)=VRE+VRO
+        237 |               V(JR,LR,K)=VRE-VRO
+        238 |               VIE=V(J,LI,K)
+        239 |               VIO=V(JR,LI,K)
+        240 |               V(J,LI,K)=VIE+VIO
+        241 |               V(JR,LI,K)=VIE-VIO
+        242 | 1000        CONTINUE
+        243 | 1100      CONTINUE
+        244 |CDIR$ IVDEP
+        245 |           DO 1200 J=JSTART,NLATH
+        246 |             JR=2*NLATH+1-J
+        247 |             PRE=P(J,LR)
+        248 |             PRO=P(JR,LR)
+        249 |             P(J,LR)=PRE+PRO
+        250 |             P(JR,LR)=PRE-PRO
+        251 |             PIE=P(J,LI)
+        252 |             PIO=P(JR,LI)
+        253 |             P(J,LI)=PIE+PIO
+        254 |             P(JR,LI)=PIE-PIO
+        255 |             RRE=R(J,LR)
+        256 |             RRO=R(JR,LR)
+        257 |             R(J,LR)=RRE+RRO
+        258 |             R(JR,LR)=RRE-RRO
+        259 |             RIE=R(J,LI)
+        260 |             RIO=R(JR,LI)
+        261 |             R(J,LI)=RIE+RIO
+        262 |             R(JR,LI)=RIE-RIO
+        263 |1200       CONTINUE
+        264 |1300     CONTINUE
+        265 |C--------
+        266 |C-------- FINALLY DO FOURIER SUMS IN LONGITUDE
+        267 |C--------
+        268 |         LOT=NLATH*2
+        269 |         DO 1400 K=1,NSIG
+        270 |           CALL M1FFTM(U(1,1,K),WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        271 |           CALL M1FFTM(V(1,1,K),WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        272 |           CALL M1FFTM(T(1,1,K),WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        273 |           CALL M1FFTM(Q(1,1,K),WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        274 | 1400    CONTINUE
+        275 |         CALL M1FFTM(P,WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        276 |         CALL M1FFTM(R,WORK,TRIGS,IFAX,LOT,1,NLON,LOT,1)
+        277 |       RETURN
+        278 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+ap                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-67.27$  0-3.22  0-158.26  0-195.26
+ 
+aqr                              Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-68.27$  0-3.28  0-159.26  0-161.26  0-196.26  0-198.26
+ 
+bp                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-67.45$  0-3.25  0-158.50  0-195.52
+ 
+bqr                              Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-68.46$  0-3.32  0-160.29  0-162.25  0-197.29  0-199.25
+ 
+clat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-70.39$  0-3.44  0-162.58  0-199.62
+ 
+ds                               Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-58.20$  0-1.26  0-90.14@  0-95.12@  0-136.46  0-138.46  0-140.48  0-142.48  0-173.50  0-175.50
+                                 0-177.48  0-179.48
+ 
+gr                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-69.27$  0-3.36  0-162.42  0-199.44
+ 
+ifax                             Reference argument, Integer(4) (1:10), Offset: 0, Alignment: full word
+                                 0-71.34$  0-3.67  0-270.44  0-271.44  0-272.44  0-273.44  0-275.35  0-276.35
+ 
+iis                              Reference argument, Integer(4) (0:?, 0:?), Offset: 0, Alignment: full word
+                                 0-66.39$  0-3.18  0-89.17  0-90.17  0-91.17  0-92.17  0-99.15  0-100.15  0-132.49  0-134.49
+                                 0-136.49  0-137.51  0-139.49  0-142.51  0-148.43  0-150.43  0-169.53  0-171.53  0-173.53  0-174.51
+                                 0-176.53  0-179.51  0-186.47  0-188.47
+ 
+irs                              Reference argument, Integer(4) (0:?, 0:?), Offset: 0, Alignment: full word
+                                 0-66.20$  0-3.14  0-94.15  0-95.15  0-131.49  0-133.49  0-135.51  0-138.49  0-140.51  0-141.49
+                                 0-147.43  0-149.43  0-168.53  0-170.53  0-172.51  0-175.53  0-177.51  0-178.53  0-185.47  0-187.47
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-129.23@  0-130.31  0-131.20  0-131.30  0-131.41  0-132.20  0-132.30  0-132.41  0-133.20  0-133.30
+                                 0-133.41  0-134.20  0-134.30  0-134.41  0-135.43  0-136.20  0-136.30  0-136.41  0-137.43  0-138.20
+                                 0-138.30  0-138.41  0-139.20  0-139.30  0-139.41  0-140.43  0-141.20  0-141.30  0-141.41  0-142.43
+                                 0-146.21@  0-147.18  0-147.26  0-147.35  0-148.18  0-148.26  0-148.35  0-149.18  0-149.26  0-149.35
+                                 0-150.18  0-150.26  0-150.35  0-157.23@  0-158.21  0-158.39  0-158.45  0-158.61  0-159.21  0-159.40
+                                 0-159.46  0-160.41  0-161.21  0-161.40  0-161.46  0-162.37  0-162.53  0-162.63  0-166.25@  0-167.33
+                                 0-168.45  0-169.45  0-170.45  0-171.45  0-172.22  0-172.32  0-172.43  0-173.45  0-174.22  0-174.32
+                                 0-174.43  0-175.45  0-176.45  0-177.22  0-177.32  0-177.43  0-178.45  0-179.22  0-179.32  0-179.43
+                                 0-183.23@  0-184.31  0-185.39  0-186.39  0-187.39  0-188.39  0-194.23@  0-195.21  0-195.41
+                                 0-195.47  0-195.65  0-196.21  0-196.42  0-196.48  0-197.43  0-198.21  0-198.42  0-198.48  0-199.39
+                                 0-199.57  0-199.67  0-208.22@  0-209.29  0-210.22  0-212.18  0-214.22  0-216.18  0-218.22  0-220.18
+                                 0-222.22  0-224.18  0-226.22  0-228.18  0-230.22  0-232.18  0-234.22  0-236.18  0-238.22  0-240.18
+                                 0-245.20@  0-246.27  0-247.20  0-249.16  0-251.20  0-253.16  0-255.20  0-257.16  0-259.20  0-261.16
+ 
+jcap                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.30  0-57.24  0-57.24  0-57.33  0-57.33  0-58.24  0-58.24  0-58.33  0-58.33  0-59.24  0-59.24
+                                 0-59.33  0-59.33  0-60.24  0-60.24  0-60.33  0-60.33  0-61.24  0-61.24  0-61.33  0-61.33  0-62.24
+                                 0-62.24  0-62.33  0-62.33  0-66.26  0-66.26  0-66.33  0-66.33  0-66.45  0-66.45  0-66.52  0-66.52
+                                 0-67.32  0-67.32  0-67.39  0-67.39  0-67.50  0-67.50  0-67.57  0-67.57  0-68.33  0-68.33  0-68.40
+                                 0-68.40  0-68.52  0-68.52  0-68.59  0-68.59  0-69.32  0-69.32  0-69.39  0-69.39  0-72.39  0-72.39
+                                 0-72.57  0-72.57  0-73.39  0-73.39  0-77.38  0-77.38  0-77.55  0-77.55  0-78.38  0-78.38  0-79.38
+                                 0-79.38  0-79.55  0-79.55  0-80.38  0-80.38  0-88.22  0-98.20  0-118.22  0-123.23  0-155.24
+ 
+jr                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-130.18@  0-135.20  0-135.31  0-137.20  0-137.31  0-140.20  0-140.31  0-142.20  0-142.31
+                                 0-167.20@  0-168.22  0-168.33  0-169.22  0-169.33  0-170.22  0-170.33  0-171.22  0-171.33  0-173.22
+                                 0-173.33  0-175.22  0-175.33  0-176.22  0-176.33  0-178.22  0-178.33  0-184.18@  0-185.20  0-185.29
+                                 0-186.20  0-186.29  0-187.20  0-187.29  0-188.20  0-188.29  0-209.16@  0-211.22  0-213.18  0-215.22
+                                 0-217.18  0-219.22  0-221.18  0-223.22  0-225.18  0-227.22  0-229.18  0-231.22  0-233.18  0-235.22
+                                 0-237.18  0-239.22  0-241.18  0-246.14@  0-248.20  0-250.16  0-252.20  0-254.16  0-256.20  0-258.16
+                                 0-260.20  0-262.16
+ 
+jstart                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.12@  0-122.23@  0-129.25  0-146.23  0-157.25  0-166.27  0-183.25  0-194.25  0-208.24
+                                 0-245.22
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-86.16@  0-89.26  0-90.26  0-91.26  0-92.26  0-94.24  0-95.24  0-127.21@  0-131.25  0-131.35
+                                 0-131.58  0-132.25  0-132.35  0-132.58  0-133.25  0-133.35  0-133.58  0-134.25  0-134.35  0-134.58
+                                 0-135.26  0-135.37  0-135.60  0-136.25  0-136.35  0-136.58  0-137.26  0-137.37  0-137.60  0-138.25
+                                 0-138.35  0-138.58  0-139.25  0-139.35  0-139.58  0-140.26  0-140.37  0-140.60  0-141.25  0-141.35
+                                 0-141.58  0-142.26  0-142.37  0-142.60  0-164.23@  0-168.28  0-168.39  0-168.64  0-169.28  0-169.39
+                                 0-169.64  0-170.28  0-170.39  0-170.64  0-171.28  0-171.39  0-171.64  0-172.27  0-172.37  0-172.62
+                                 0-173.28  0-173.39  0-173.64  0-174.27  0-174.37  0-174.62  0-175.28  0-175.39  0-175.64  0-176.28
+                                 0-176.39  0-176.64  0-177.27  0-177.37  0-177.62  0-178.28  0-178.39  0-178.64  0-179.27  0-179.37
+                                 0-179.62  0-206.20@  0-210.27  0-211.28  0-212.23  0-213.24  0-214.27  0-215.28  0-216.23  0-217.24
+                                 0-218.27  0-219.28  0-220.23  0-221.24  0-222.27  0-223.28  0-224.23  0-225.24  0-226.27  0-227.28
+                                 0-228.23  0-229.24  0-230.27  0-231.28  0-232.23  0-233.24  0-234.27  0-235.28  0-236.23  0-237.24
+                                 0-238.27  0-239.28  0-240.23  0-241.24  0-269.18@  0-270.30  0-271.30  0-272.30  0-273.30
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-118.18@  0-119.17  0-120.17  0-122.15  0-123.21  0-131.43  0-131.55  0-132.43  0-132.55  0-133.43
+                                 0-133.55  0-134.43  0-134.55  0-135.45  0-135.57  0-136.43  0-136.55  0-137.45  0-137.57  0-138.43
+                                 0-138.55  0-139.43  0-139.55  0-140.45  0-140.57  0-141.43  0-141.55  0-142.45  0-142.57  0-147.37
+                                 0-147.49  0-148.37  0-148.49  0-149.37  0-149.49  0-150.37  0-150.49  0-158.23  0-158.31  0-158.47
+                                 0-158.55  0-158.63  0-159.23  0-159.32  0-159.48  0-160.35  0-160.43  0-161.23  0-161.32  0-161.48
+                                 0-162.31  0-162.39  0-162.47  0-162.55  0-168.47  0-168.61  0-169.47  0-169.61  0-170.47  0-170.61
+                                 0-171.47  0-171.61  0-172.45  0-172.59  0-173.47  0-173.61  0-174.45  0-174.59  0-175.47  0-175.61
+                                 0-176.47  0-176.61  0-177.45  0-177.59  0-178.47  0-178.61  0-179.45  0-179.59  0-185.41  0-185.55
+                                 0-186.41  0-186.55  0-187.41  0-187.55  0-188.41  0-188.55  0-195.23  0-195.33  0-195.49  0-195.59
+                                 0-195.67  0-196.23  0-196.34  0-196.50  0-197.37  0-197.45  0-198.23  0-198.34  0-198.50  0-199.33
+                                 0-199.41  0-199.51  0-199.59
+ 
+li                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.12@  0-132.22  0-132.32  0-134.22  0-134.32  0-137.23  0-137.34  0-138.22  0-138.32  0-141.22
+                                 0-141.32  0-142.23  0-142.34  0-148.20  0-148.28  0-150.20  0-150.28  0-169.25  0-169.36  0-171.25
+                                 0-171.36  0-174.24  0-174.34  0-175.25  0-175.36  0-178.25  0-178.36  0-179.24  0-179.34  0-186.23
+                                 0-186.32  0-188.23  0-188.32  0-214.24  0-215.25  0-216.20  0-217.21  0-222.24  0-223.25  0-224.20
+                                 0-225.21  0-230.24  0-231.25  0-232.20  0-233.21  0-238.24  0-239.25  0-240.20  0-241.21  0-251.22
+                                 0-252.23  0-253.18  0-254.19  0-259.22  0-260.23  0-261.18  0-262.19
+ 
+lot                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-268.10@  0-270.49  0-270.60  0-271.49  0-271.60  0-272.49  0-272.60  0-273.49  0-273.60  0-275.40
+                                 0-275.51  0-276.40  0-276.51
+ 
+lr                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-119.12@  0-131.22  0-131.32  0-133.22  0-133.32  0-135.23  0-135.34  0-136.22  0-136.32  0-139.22
+                                 0-139.32  0-140.23  0-140.34  0-147.20  0-147.28  0-149.20  0-149.28  0-168.25  0-168.36  0-170.25
+                                 0-170.36  0-172.24  0-172.34  0-173.25  0-173.36  0-176.25  0-176.36  0-177.24  0-177.34  0-185.23
+                                 0-185.32  0-187.23  0-187.32  0-210.24  0-211.25  0-212.20  0-213.21  0-218.24  0-219.25  0-220.20
+                                 0-221.21  0-226.24  0-227.25  0-228.20  0-229.21  0-234.24  0-235.25  0-236.20  0-237.21  0-247.22
+                                 0-248.23  0-249.18  0-250.19  0-255.22  0-256.23  0-257.18  0-258.19
+ 
+m1fftm                           External Subroutine
+                                 0-270.17  0-271.17  0-272.17  0-273.17  0-275.15  0-276.15
+ 
+n                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-88.18@  0-89.21  0-90.21  0-91.21  0-92.21  0-98.16@  0-99.19  0-100.19  0-123.19@  0-131.53
+                                 0-132.53  0-133.53  0-134.53  0-135.55  0-136.53  0-137.55  0-138.53  0-139.53  0-140.55  0-141.53
+                                 0-142.55  0-147.47  0-148.47  0-149.47  0-150.47  0-155.17  0-158.29  0-158.53  0-159.30  0-160.33
+                                 0-161.30  0-162.29  0-162.45  0-168.57  0-169.57  0-170.57  0-171.57  0-172.55  0-173.57  0-174.55
+                                 0-175.57  0-176.57  0-177.55  0-178.57  0-179.55  0-185.51  0-186.51  0-187.51  0-188.51  0-195.29
+                                 0-195.55  0-196.30  0-197.33  0-198.30  0-199.29  0-199.47
+ 
+nlath                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.40  0-63.24  0-63.24  0-63.47  0-63.47  0-64.24  0-64.24  0-64.47  0-64.47  0-65.24  0-65.24
+                                 0-65.42  0-65.42  0-70.32  0-70.32  0-70.44  0-70.44  0-72.31  0-72.31  0-72.49  0-72.49  0-73.31
+                                 0-73.31  0-77.30  0-77.30  0-77.47  0-77.47  0-78.30  0-78.30  0-79.30  0-79.30  0-79.47  0-79.47
+                                 0-80.30  0-80.30  0-81.27  0-81.27  0-129.32  0-130.23  0-146.30  0-157.32  0-166.34  0-167.25
+                                 0-183.32  0-184.23  0-194.32  0-208.31  0-209.21  0-245.29  0-246.19  0-268.14
+ 
+nlon                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.35  0-63.30  0-63.30  0-63.53  0-63.53  0-64.30  0-64.30  0-64.53  0-64.53  0-65.30  0-65.30
+                                 0-65.48  0-65.48  0-71.26  0-71.26  0-81.33  0-81.33  0-270.55  0-271.55  0-272.55  0-273.55
+                                 0-275.46  0-276.46
+ 
+nsig                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.25  0-57.43  0-57.43  0-58.43  0-58.43  0-59.43  0-59.43  0-62.43  0-62.43  0-63.37  0-63.37
+                                 0-63.60  0-63.60  0-64.37  0-64.37  0-64.60  0-64.60  0-86.20  0-127.25  0-164.27  0-206.24
+                                 0-269.22
+ 
+p                                Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-65.20$  0-1.47  0-114.10@  0-147.16@  0-147.24  0-148.16@  0-148.24  0-185.18@  0-185.27
+                                 0-186.18@  0-186.27  0-247.18  0-248.18  0-249.14@  0-250.14@  0-251.18  0-252.18  0-253.14@
+                                 0-254.14@  0-275.22
+ 
+pe                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-77.27$  0-105.10@  0-131.38  0-132.38  0-133.38  0-134.38  0-147.32  0-148.32  0-149.32  0-150.32
+                                 0-158.42  0-162.50  0-195.18@  0-195.62
+ 
+pe0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-72.27$  0-3.49  0-105.13
+ 
+pie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-251.14@  0-253.22  0-254.23
+ 
+pio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-252.14@  0-253.26  0-254.27
+ 
+po                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-79.27$  0-102.10@  0-158.18@  0-158.58  0-168.42  0-169.42  0-170.42  0-171.42  0-185.36
+                                 0-186.36  0-187.36  0-188.36  0-195.44  0-199.54
+ 
+pre                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-247.14@  0-249.22  0-250.23
+ 
+pro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-248.14@  0-249.26  0-250.27
+ 
+ps                               Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-60.20$  0-1.32  0-99.12@  0-147.40  0-148.40  0-185.44  0-186.44
+ 
+q                                Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-64.43$  0-1.51  0-116.10@  0-133.18@  0-133.28  0-134.18@  0-134.28  0-170.20@  0-170.31
+                                 0-171.20@  0-171.31  0-218.20  0-219.20  0-220.16@  0-221.16@  0-222.20  0-223.20  0-224.16@
+                                 0-225.16@  0-273.24
+ 
+qe                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-77.44$  0-106.10@  0-136.38  0-138.38  0-139.38  0-141.38  0-159.43  0-196.18@  0-197.40
+ 
+qe0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-72.45$  0-3.53  0-106.13
+ 
+qie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-222.16@  0-224.26  0-225.27
+ 
+qio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-223.16@  0-224.30  0-225.31
+ 
+qo                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-79.44$  0-103.10@  0-159.18@  0-160.38  0-173.42  0-175.42  0-176.42  0-178.42  0-196.45
+ 
+qre                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-218.16@  0-220.26  0-221.27
+ 
+qro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-219.16@  0-220.30  0-221.31
+ 
+qs                               Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-62.20$  0-1.38  0-92.14@  0-133.46  0-134.46  0-170.50  0-171.50
+ 
+r                                Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-65.38$  0-1.49  0-115.10@  0-149.16@  0-149.24  0-150.16@  0-150.24  0-187.18@  0-187.27
+                                 0-188.18@  0-188.27  0-255.18  0-256.18  0-257.14@  0-258.14@  0-259.18  0-260.18  0-261.14@
+                                 0-262.14@  0-276.22
+ 
+re                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-80.27$  0-104.10@  0-161.18@  0-162.34  0-172.40  0-174.40  0-177.40  0-179.40  0-198.45
+ 
+rie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-259.14@  0-261.22  0-262.23
+ 
+rio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-260.14@  0-261.26  0-262.27
+ 
+ro                               Controlled Automatic, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-78.27$  0-107.10@  0-135.40  0-137.40  0-140.40  0-142.40  0-161.43  0-198.18@  0-199.36
+ 
+ro0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-73.27$  0-3.57  0-107.13
+ 
+rre                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-255.14@  0-257.22  0-258.23
+ 
+rro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-256.14@  0-257.26  0-258.27
+ 
+rs                               Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-61.20$  0-1.35  0-100.12@  0-149.40  0-150.40  0-187.44  0-188.44
+ 
+s2g1                             Subroutine
+                                 0-1.18$
+ 
+slat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-70.27$  0-3.39  0-158.34  0-159.35  0-161.35  0-195.36  0-196.37  0-198.37
+ 
+t                                Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-64.20$  0-1.45  0-113.10@  0-131.18@  0-131.28  0-132.18@  0-132.28  0-168.20@  0-168.31
+                                 0-169.20@  0-169.31  0-210.20  0-211.20  0-212.16@  0-213.16@  0-214.20  0-215.20  0-216.16@
+                                 0-217.16@  0-272.24
+ 
+tie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-214.16@  0-216.26  0-217.27
+ 
+tio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-215.16@  0-216.30  0-217.31
+ 
+tre                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-210.16@  0-212.26  0-213.27
+ 
+trigs                            Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-71.20$  0-3.61  0-270.38  0-271.38  0-272.38  0-273.38  0-275.29  0-276.29
+ 
+tro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-211.16@  0-212.30  0-213.31
+ 
+ts                               Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-59.20$  0-1.29  0-91.14@  0-131.46  0-132.46  0-168.50  0-169.50
+ 
+u                                Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-63.20$  0-1.41  0-111.10@  0-135.18@  0-135.29  0-136.18@  0-136.28  0-137.18@  0-137.29
+                                 0-138.18@  0-138.28  0-172.20@  0-172.30  0-173.20@  0-173.31  0-174.20@  0-174.30  0-175.20@
+                                 0-175.31  0-226.20  0-227.20  0-228.16@  0-229.16@  0-230.20  0-231.20  0-232.16@  0-233.16@
+                                 0-270.24
+ 
+uie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-230.16@  0-232.26  0-233.27
+ 
+uio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-231.16@  0-232.30  0-233.31
+ 
+ure                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-226.16@  0-228.26  0-229.27
+ 
+uro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-227.16@  0-228.30  0-229.31
+ 
+v                                Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-63.43$  0-1.43  0-112.10@  0-139.18@  0-139.28  0-140.18@  0-140.29  0-141.18@  0-141.28
+                                 0-142.18@  0-142.29  0-176.20@  0-176.31  0-177.20@  0-177.30  0-178.20@  0-178.31  0-179.20@
+                                 0-179.30  0-234.20  0-235.20  0-236.16@  0-237.16@  0-238.20  0-239.20  0-240.16@  0-241.16@
+                                 0-271.24
+ 
+vie                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-238.16@  0-240.26  0-241.27
+ 
+vio                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-239.16@  0-240.30  0-241.31
+ 
+vre                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-234.16@  0-236.26  0-237.27
+ 
+vro                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-235.16@  0-236.30  0-237.31
+ 
+work                             Controlled Automatic, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-81.20$  0-270.33  0-271.33  0-272.33  0-273.33  0-275.24  0-276.24
+ 
+zs                               Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-57.20$  0-1.23  0-89.14@  0-94.12@  0-135.48  0-137.48  0-139.46  0-141.46  0-172.48  0-174.48
+                                 0-176.50  0-178.50
+ 
+** s2g1   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    S2G1.f                      10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     278
+1501-510  Compilation successful for file S2G1.f.
+1501-543  Object file created.

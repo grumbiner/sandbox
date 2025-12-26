@@ -1,0 +1,247 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/xintrp.f 09/30/06 19:43:48
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      FUNCTION xintrp(Y,X,XBAR,N)
+          2 |      IMPLICIT REAL (A-H,O-Z)
+          3 |      INCLUDE "parmanl"
+  1       1 |C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       2 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       3 |C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       4 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       5 |C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       6 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       7 |C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       8 |C  DCL /*                                                           */
+  1       9 |C  DCL /* LMAX       LMAX IS THE NUMBER OF SIGMA LAYERS IN THE      */
+  1      10 |C  DCL /*            ANALYSIS GRID                                  */
+  1      11 |C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF SIGMA-LAYER            */
+  1      12 |C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+  1      13 |C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF SIGMA-LAYER            */
+  1      14 |C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+  1      15 |C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+  1      16 |C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+  1      17 |C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+  1      18 |       PARAMETER (IMGLO = 360 )
+  1      19 |       PARAMETER (JMGLO = 481 )
+  1      20 |       PARAMETER (IMAX = 360 )
+  1      21 |       PARAMETER (JMAX = 120  )
+  1      22 |       PARAMETER (LMAX = 16    )
+  1      23 |       PARAMETER (LMAXP1 = 17 )
+  1      24 |       PARAMETER (LMXDBL = 70 )
+  1      25 |       PARAMETER (LDMAX = 12 )
+  1      26 |       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+  1      27 |       LOGICAL    GLOBAL
+  1      28 |       PARAMETER (GLOBAL = .false. )
+  1      29 |       PARAMETER (YSOUTH = 0.375 )
+  1      30 |       PARAMETER (DLON = 1.0)
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    XINTRP      VERTICAL INTERPOLATION FUNCTION (AIKEN)
+          7 |C   PRGMMR: DEAVEN           ORG: W/NMC22    DATE: 85-01-31
+          8 |C
+          9 |C ABSTRACT: PROGRAM TO PERFORM VERTICAL INTERPOLATION FROM A PROFILE
+         10 |C   OF VALUES (Y) AT LOG PRESSURES (X) TO A PARTICULAR POINT (XBAR)
+         11 |C   USING AN ITERATIVE AIKEN SCHEME WHICH IS VARIABLE ORDER IN LN P.
+         12 |C
+         13 |C PROGRAM HISTORY LOG:
+         14 |C   85-01-31  DEAVEN
+         15 |C   88-07-28  DIMEGO      DOCBLOCK & HALF PRECISION
+         16 |C   89-03-28  DEAVEN      MODIFIED TO BE AT MOST QUADRATIC
+         17 |C
+         18 |C USAGE:    WXYZ = XINTRP(Y,X,XBAR,N)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     Y        - ARRAY CONTAINING SOURCE VALUES
+         21 |C     X        - ARRAY OF LEVELS AT WHICH WE HAVE Y
+         22 |C     XBAR     - LEVEL VALUE AT WHICH WE WANT A VALUE
+         23 |C     N        - NUMBER OF LEVELS IN ARRAYS X AND Y
+         24 |C
+         25 |C   OUTPUT ARGUMENT LIST:
+         26 |C     XINTRP   - FUNCTION VALUE IS INTERPOLATED VALUE OF Y AT XBAR
+         27 |C
+         28 |C REMARKS: SENSITIVE TO UNEQUAL SPACING IN X
+         29 |C
+         30 |C ATTRIBUTES:
+         31 |C   LANGUAGE: STANDARD FORTRAN
+         32 |C   MACHINE:
+         33 |C
+         34 |C$$$
+         35 |        DIMENSION Y(1),X(1),R(70),P(70,70)
+         36 |        DO 333 I = 1,N
+         37 |          R(I) = X(I) - XBAR
+         38 |          P(I,1) = Y(I)
+         39 |333     CONTINUE
+         40 |        RMIN = 9. E+10
+         41 |        DO 10 I = 1,N
+         42 |          IF(ABS(R(I)).GT.RMIN)GO TO 10
+         43 |            RMIN = ABS(R(I))
+         44 |            IS = I
+         45 |10      CONTINUE
+         46 |        IF(RMIN.EQ.0.0)GO TO 99
+         47 |        IF(IS.LT.2) IS = 2
+         48 |        IF(IS.GE.N) IS = N-1
+         49 |        JS = IS
+         50 |        JE = IS +1
+         51 |c       IF(JE.GT.N) JE = N
+         52 |        IF(JS.LT.3) GO TO 55
+         53 |        DO 334 I = 1,N
+         54 |          P(I,JS-1) = Y(I)
+         55 |334     CONTINUE
+         56 |55      CONTINUE
+         57 |c       DO 1 J = JS,JE
+         58 |c       DO 1 I = J,JE
+         59 |c1      P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         60 |c   J=JS and I=JS
+         61 |        J=JS
+         62 |        I=JS
+         63 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         64 |c   J=JS and I=JE
+         65 |        J=JS
+         66 |        I=JE
+         67 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         68 |c   J=JE and I=JE
+         69 |        J=JE
+         70 |        I=JE
+         71 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         72 |        XINTRP = P(JE,JE)
+         73 |        RETURN
+         74 |99      XINTRP = Y(IS)
+         75 |        RETURN
+         76 |        END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-42.14  0-43.20
+ 
+dlon                             Parameter, Real(4)
+                                 1-30.19$
+ 
+global                           Parameter, Logical(4)
+                                 1-27.19$  1-28.19$
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-36.16@  0-37.13  0-37.20  0-38.13  0-38.22  0-41.15@  0-42.20  0-43.26  0-44.18  0-53.16@
+                                 0-54.13  0-54.25  0-62.9@  0-63.11  0-63.32  0-63.46  0-63.57  0-66.9@  0-67.11  0-67.32  0-67.46
+                                 0-67.57  0-70.9@  0-71.11  0-71.32  0-71.46  0-71.57
+ 
+imax                             Parameter, Integer(4)
+                                 1-20.19$
+ 
+imglo                            Parameter, Integer(4)
+                                 1-18.19$
+ 
+is                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-44.13@  0-47.12  0-47.21@  0-48.12  0-48.21@  0-49.14  0-50.14  0-74.20
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-61.9@  0-63.13  0-63.21  0-63.25  0-63.39  0-63.48  0-63.62  0-65.9@  0-67.13  0-67.21  0-67.25
+                                 0-67.39  0-67.48  0-67.62  0-69.9@  0-71.13  0-71.21  0-71.25  0-71.39  0-71.48  0-71.62
+ 
+je                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-50.9@  0-66.11  0-69.11  0-70.11  0-72.20  0-72.23
+ 
+jmax                             Parameter, Integer(4)
+                                 1-21.19$
+ 
+jmglo                            Parameter, Integer(4)
+                                 1-19.19$
+ 
+js                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.9@  0-52.12  0-54.15  0-61.11  0-62.11  0-65.11
+ 
+ldmax                            Parameter, Integer(4)
+                                 1-25.19$  1-26.37
+ 
+levx                             Parameter, Integer(4)
+                                 1-26.19$
+ 
+lmax                             Parameter, Integer(4)
+                                 1-22.19$  1-26.30
+ 
+lmaxp1                           Parameter, Integer(4)
+                                 1-23.19$
+ 
+lmxdbl                           Parameter, Integer(4)
+                                 1-24.19$
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-36.22  0-41.21  0-48.18  0-48.26  0-53.22
+ 
+p                                Automatic, Real(4) (1:70, 1:70), Offset: 0, Alignment: full word
+                                 0-35.35$  0-38.11@  0-54.11@  0-63.9@  0-63.19  0-63.44  0-67.9@  0-67.19  0-67.44  0-71.9@
+                                 0-71.19  0-71.44  0-72.18
+ 
+r                                Automatic, Real(4) (1:70), Offset: 0, Alignment: full word
+                                 0-35.29$  0-37.11@  0-42.18  0-43.24  0-63.30  0-63.37  0-67.30  0-67.37  0-71.30  0-71.37
+ 
+rmin                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-40.9@  0-42.27  0-43.13@  0-46.12
+ 
+x                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.24$  0-1.25  0-37.18  0-63.55  0-63.60  0-67.55  0-67.60  0-71.55  0-71.60
+ 
+xbar                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-37.25
+ 
+xintrp                           Function Real(4)
+                                 0-1.16$  0-72.9@  0-74.9@
+ 
+y                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-35.19$  0-1.23  0-38.20  0-54.23  0-74.18
+ 
+ysouth                           Parameter, Real(4)
+                                 1-29.19$
+ 
+** xintrp   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    xintrp.f                    12/17/02   09:24:06
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/parmanl
+                                      12/17/02   09:24:04      0       3
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     106
+1501-510  Compilation successful for file xintrp.f.
+1501-543  Object file created.

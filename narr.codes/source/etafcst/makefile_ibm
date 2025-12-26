@@ -1,0 +1,132 @@
+################################################################################# 
+#     Makefile for Eta Coordinate Model 
+#
+#     Use:
+#     make         -  build the executable
+#     make clean   -  start with a clean slate
+#
+#     The following macros will be of interest:
+#
+#         TARGET   - name of the executable
+#         FC       - name of Fortran compiler
+#         CPP      - name of CPP
+#         ARCH     - architecture
+#         CPPFLAGS - CPP flags
+#         OPTS     - compiler code optimizations
+#         LIST     - source listing
+#         SMP      - threading
+#         TRAPS    - runtime traps for floating point exceptions
+#         PROFILE  - source code profiling ( -pg )
+#         DEBUG    - -g
+#         MEM      - user data area and stack size
+#         MAP      - load map
+#         W3LIB    - w3lib
+#         BALIB    - /nwprod/w3lib90/bacio_4
+#         ESSL     - ESSL library
+#         MASS     - MASS library
+#         SEARCH   - library search location
+#
+#         COMMENTS: This version for Eta with I/O servers and EXCHM Module
+#                   J. Tuccillo 4 April 2000
+# 
+#                   This makefile has a dependency on the file "makefile".
+#                   In other words, if "makefile" is changed then everything
+#                   will be recompiled.
+#                   J. Tuccillo 7 August 2000
+#
+#################################################################################
+#
+# Define the name of the executable
+#
+TARGET = etafcst.x
+#
+# CPP, Compiler, and Linker Options
+#
+FC       = mpxlf_r
+CPP      = /lib/cpp -P
+ARCH     = pwr3
+CPPFLAGS =
+OPTS     = -O3 -qstrict -qarch=$(ARCH) -qnosave -qmaxmem=-1 -NS2000
+#OPTS     = -g -O -qcheck -qarch=$(ARCH) -qnosave -qmaxmem=-1 -NS2000
+#OPTS     = -g -O -qarch=$(ARCH) -qnosave -qmaxmem=-1 -NS2000
+LIST     = -qsource -qxref=full -qattr=full
+#SMP      = -qsmp=noauto
+SMP      =
+#TRAPS    =  -qinitauto=FF911299 -qflttrap=ov:zero:inv:en -qsigtrap
+#TRAPS    = -qinitauto=FF -qflttrap=ov:zero:inv:en -qsigtrap
+TRAPS    =
+PROFILE  =
+DEBUG    = -g
+MEM      = -bmaxdata:2000000000 -bmaxstack:256000000
+MAP      = -bmap:map -bloadmap:lm
+W3LIB    = /nwprod/w3lib90/w3lib_4
+BALIB    = /nwprod/w3lib90/bacio_4
+ESSL     = -lessl_r
+MASS     = -lmass_r
+SEARCH   =
+#
+# Assemble Options
+#
+FFLAGS   = $(OPTS) $(LIST) $(TRAPS) $(PROFILE) $(DEBUG)
+FFLAGST  = $(OPTS) $(LIST) $(SMP) $(TRAPS) $(PROFILE) $(DEBUG)
+LDFLAGS  = $(MEM) $(MAP) $(SMP) $(PROFILE)
+LIBS     = $(W3LIB) $(ESSL) $(MASS) $(SEARCH) $(BALIB)
+#
+# Non-threaded object files
+#
+OBJS=	module_EXCH_BUF_INTEGER.o module_EXCH_BUF_REAL.o module_EXCHM.o \
+        ADJPPT.o BOCOH.o BOCOV.o BOCOHF.o CHKOUT.o \
+        CHKSNOW.o CLO89.o COLLECT.o CONRAD.o CUCNVC.o DDAMP.o \
+        DIFCOF.o DIGFLT.o DIST.o DSTRB.o E1E290.o E290.o \
+        E2SPEC.o E3V88.o EBU.o FILT25.o FST88.o \
+        GFDLRD.o GLB2LOC.o GOSSIP.o GRADFS.o HCONST.o \
+        IDSTRB.o ILOC2GLB.o INIT.o LOC2GLB.o LWR88.o \
+        MIXLEN.o MPI_FIRST.o MPPINIT.o O3CLIM.o O3INT.o \
+        OZON2D.o PARA_RANGE.o PDNEW.o PDTE.o \
+        PGCOR.o PRECPD.o PRODQ2.o \
+        RADFS.o  RDTEMP.o READ_NHB.o READPCP.o \
+        READ_RESTRT.o READ_RESTRT2.o SETUP_SERVERS.o \
+        SFCDIF.o SFLX.o SLP.o SOLARD.o SPA88.o SURFCE.o SWR93.o \
+        TABLE.o TTBLEX.o UPDATE.o VDIFH.o VDIFQ.o VDIFV.o VTADV.o \
+        VTADVF.o  ZENITH.o ZERO2.o ZERO3.o ZERO3_T.o TWR.o READGRDETA.o READICE.o \
+        EXIT.o
+#
+# Threaded object files
+#
+OBJST=	DIVHOA.o GSCOND.o HDIFF.o HZADV.o HZADV2.o RADTN.o TURBL.o 
+#
+# Includes
+#
+INCLUDES=  mpp.h parmeta EXCHM.h parmbuf parmexch
+#
+# Common Blocks
+#
+COMMS= 	ACMCLD.comm   CTLBLK.comm   MAPOT.comm    PHYS.comm     SEASO3.comm \
+	ACMCLH.comm   BOCO.comm     DYNAM.comm    MAPOT1.comm   PHYS1.comm    SOIL.comm \
+	ACMPRE.comm   CLDWTR.comm   DYNAMD.comm   MASKS.comm    PHYS2.comm    TABCOM.comm \
+	ACMRDL.comm   CNVCLD.comm   HCON.comm     MSLP.comm     PRFHLD.comm   TEMPV.comm \
+	ACMRDS.comm   CO2DTA.comm   INDX.comm     OPTIONS.comm  PVRBLS.comm   VRBLS.comm \
+	ACMSFC.comm   CONTIN.comm   LOOPS.comm    OUTFIL.comm   RNDDTA.comm   Z0EFFT.comm \
+	PARA.comm     PPTASM.comm
+
+DEPS= ###########   $(COMMS) $(INCLUDES) # makefile_ibm
+
+.SUFFIXES:	.F .f .o .mod
+
+.F.f:
+	$(CPP) $(CPPFLAGS) $< > $*.f
+
+$(TARGET):	$(OBJS) $(OBJST) QUILT.o
+	$(FC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) $(OBJST) QUILT.o
+
+$(OBJS):	$(DEPS)
+	$(FC) $(FFLAGS) -c $<
+
+$(OBJST):	$(DEPS)
+	$(FC) $(FFLAGST) -c $<
+
+QUILT.o:        QUILT.f
+	$(FC) -c $<
+
+clean:	
+	/bin/rm -f  $(TARGET) *.f *.lst *.o *.mod

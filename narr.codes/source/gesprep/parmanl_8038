@@ -1,0 +1,33 @@
+C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+C  DCL /* LMAX       LMAX IS THE NUMBER OF ETA LAYERS IN THE        */
+C  DCL /*            ANALYSIS GRID                                  */
+C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF ETA-LAYER              */
+C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF ETA-LAYER              */
+C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+C  DCL /*            PROCESSED IN THE ANALYSIS                      */
+C  DCL /* GRID       GRID IS NORTH-SOUTH EXTENT OF A DATA STRIP     */
+C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+       PARAMETER (IMGLO = 720 )
+       PARAMETER (JMGLO = 361  )
+       PARAMETER (IMAX = 440 )
+       PARAMETER (JMAX = 190  )
+       PARAMETER (LMAX = 38    )
+       PARAMETER (LMAXP1 = 39 )
+       PARAMETER (LMXDBL = LMAX + LMAXP1 )
+       PARAMETER (LDMAX = 34 )
+       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+       PARAMETER (GRID = 0.5 )
+       LOGICAL    GLOBAL
+       PARAMETER (GLOBAL = .false. )
+       PARAMETER (YSOUTH =  -4.5 )
+       PARAMETER (DLON =  0.5 )

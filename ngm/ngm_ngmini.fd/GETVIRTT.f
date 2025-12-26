@@ -1,0 +1,39 @@
+       SUBROUTINE GETVIRTT(T,H,Q,N,NMAX,KM)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    GETVIRTT    GET VIRTUAL TEMP FROM ACTUAL TEMP.
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+C
+C ABSTRACT: CONVERT ACTUAL TEMP TO VIRTUAL TEMP
+C
+C PROGRAM HISTORY LOG:
+C   88-08-08  PARRISH
+C
+C USAGE:    CALL GETVIRTT(T,H,Q,N,NMAX,KM)
+C   INPUT ARGUMENT LIST:
+C     T        - ACTUAL TEMPERATURE
+C     H        - SURFACE PRESSURE
+C     Q        - MIXING RATIO
+C     N        - NUMBER OF POINTS TO DO
+C     NMAX     - MAX POINTS PER LEVEL
+C     KM       - NUMBER OF LEVELS
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     T        - VIRTUAL TEMPERATURE
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         REAL T(NMAX,1),H(1),Q(NMAX,1)
+C--------
+         DO 100 K=1,KM
+           DO 50 I=1,N
+             T(I,K)=(1.+.609*Q(I,K)/H(I))*T(I,K)
+50         CONTINUE
+100      CONTINUE
+       RETURN
+       END

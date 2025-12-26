@@ -1,0 +1,151 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/M1IPQR.f 09/30/06 19:43:52
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE M1IPQR(PE,QE,RO,SLAT,CLAT,NLATH,JCAP)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    M1IPQR     INITIALIZE LEGENDRE RECURSIONS
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 90-09-21
+          6 |C
+          7 |C ABSTRACT: INITIALIZE LEGENDRE RECURSIONS.
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   90-09-21  PARRISH
+         11 |C
+         12 |C USAGE:    CALL M1IPQR(PE,QE,RO,SLAT,CLAT,NLATH,JCAP)
+         13 |C   INPUT ARGUMENT LIST:
+         14 |C     SLAT     - SIN OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+         15 |C     CLAT     - COS OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+         16 |C     NLATH    - NUMBER OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+         17 |C     JCAP     - TRIANGULAR TRUNCATION
+         18 |C
+         19 |C   OUTPUT ARGUMENT LIST:
+         20 |C     PE       - P(L,L) FOR 0 LE L LE JCAP
+         21 |C     QE       - Q(L,L)
+         22 |C     RO       - R(L,L)
+         23 |C
+         24 |C ATTRIBUTES:
+         25 |C   LANGUAGE: CFT77
+         26 |C   MACHINE:  CRAY YMP
+         27 |C
+         28 |C$$$
+         29 |         implicit double precision (a-h,o-z)
+         30 |         DIMENSION PE(NLATH,0:JCAP),QE(NLATH,0:JCAP),RO(NLATH,0:JCAP)
+         31 |         DIMENSION SLAT(NLATH),CLAT(NLATH)
+         32 |         real*4 conmc
+         33 |C--------
+         34 |         RERTH=CONMC('RERTH$')
+         35 |         DO 60 J=1,NLATH
+         36 |           PE(J,0)=1.d0/SQRT(2.d0)
+         37 |           QE(J,0)=0.d0
+         38 |           QE(J,1)=RERTH*SQRT(3.d0/16.d0)
+         39 |           DO 30 L=1,JCAP
+         40 |             PE(J,L)=SQRT((2.d0*L+1.d0)/(2.d0*L))*CLAT(J)*PE(J,L-1)
+         41 |30         CONTINUE
+         42 |           DO 40 L=2,JCAP
+         43 |             QE(J,L)=SQRT((2.d0*L+1.d0)/(2.d0*L))*(L/(L+1.d0))*CLAT(J)
+         44 |     *                        *QE(J,L-1)
+         45 | 40        CONTINUE
+         46 |           DO 50 L=0,JCAP
+         47 |             RO(J,L)=-QE(J,L)*SLAT(J)
+         48 | 50        CONTINUE
+         49 |60       CONTINUE
+         50 |       RETURN
+         51 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+clat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-31.32$  0-1.40  0-40.51  0-43.64
+ 
+conmc                            External Function Real(4)
+                                 0-32.17$  0-34.16
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-35.16@  0-36.15  0-37.15  0-38.15  0-40.17  0-40.56  0-40.62  0-43.17  0-43.69  0-44.35  0-47.17
+                                 0-47.26  0-47.36
+ 
+jcap                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.51  0-30.31  0-30.31  0-30.48  0-30.48  0-30.65  0-30.65  0-39.22  0-42.22  0-46.22
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-39.18@  0-40.19  0-40.33  0-40.47  0-40.64  0-42.18@  0-43.19  0-43.33  0-43.47  0-43.52  0-43.55
+                                 0-44.37  0-46.18@  0-47.19  0-47.28
+ 
+m1ipqr                           Subroutine
+                                 0-1.19$
+ 
+nlath                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.45  0-30.23  0-30.23  0-30.40  0-30.40  0-30.57  0-30.57  0-31.25  0-31.25  0-31.37  0-31.37
+                                 0-35.20
+ 
+pe                               Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-30.20$  0-1.26  0-36.12@  0-40.14@  0-40.59
+ 
+qe                               Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-30.37$  0-1.29  0-37.12@  0-38.12@  0-43.14@  0-44.32  0-47.23
+ 
+rerth                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-34.10@  0-38.20
+ 
+ro                               Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-30.54$  0-1.32  0-47.14@
+ 
+slat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-31.20$  0-1.35  0-47.31
+ 
+sqrt                             Pure Intrinsic
+                                 0-36.25  0-38.26  0-40.22  0-43.22
+ 
+** m1ipqr   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    M1IPQR.f                    10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      51
+1501-510  Compilation successful for file M1IPQR.f.
+1501-543  Object file created.

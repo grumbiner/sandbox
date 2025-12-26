@@ -1,0 +1,24 @@
+      SUBROUTINE TRANSO(A,KMAX)
+C
+      PARAMETER(MWAVE= 62 ,IROMB= 0 )
+C
+      PARAMETER(MWAVEP=MWAVE+1,
+     1          MDIM=(MWAVE+1)*(MWAVE+1)*2*IROMB+
+     2               (MWAVE+1)*(MWAVE+2)*(1-IROMB))
+C
+      COMMON/COMIND/ INDXNN(MDIM),INDXMM(MDIM)
+C
+      DIMENSION A(MDIM,KMAX)
+      DIMENSION B(MDIM)
+C
+      DO 10 K=1,KMAX
+      DO 11 M=1,MDIM
+      B(INDXMM(M))=A(M,K)
+   11 CONTINUE
+      DO 12 M=1,MDIM
+      A(M,K)=B(M)
+   12 CONTINUE
+   10 CONTINUE
+C
+      RETURN
+      END

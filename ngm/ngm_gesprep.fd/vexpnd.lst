@@ -1,0 +1,231 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/vexpnd.f 09/30/06 19:43:48
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE vexpnd(ZIN,XIP,LINP,OUT,XOP,LOUT,LN)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    VEXPND      VERTICAL INTERPOLATOR
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 88-03-31
+          6 |C
+          7 |C ABSTRACT: PERFORM VERTICAL INTERPOLATION OF A SINGLE PROFILE
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   83-03-31  DIMEGO
+         11 |C   85-07-05  DIMEGO      RESURRECTED FROM LISTING
+         12 |C   88-06-30  DIMEGO      HALF PRECISION / PL1 / FTN200
+         13 |C   90-09-20  DIMEGO      for the CRAY  inlining
+         14 |C                         removed dependence on LN
+         15 |C                         always linear in lnP
+         16 |C
+         17 |C USAGE:    CALL vexpnd(ZIN,XIP,LINP,OUT,XOP,LOUT,LN)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     ZIN      - INPUT PROFILE OF VALUES
+         20 |C     XIP      - PRESSURE (MB) OF INPUT PROFILE POINTS
+         21 |C     LINP     - NUMBER OF POINTS IN INPUT PROFILE
+         22 |C     XOP      - PRESSURE OF DESIRED OUTPUT POINTS
+         23 |C     LOUT     - NUMBER OF DESIRED OUTPUT POINTS
+         24 |C     LN       - DETERMINES TYPE OF INTERPOLATION:
+         25 |C              -  LN = 0   LINEAR IN P (PRESSURE)
+         26 |C              -  LN = 1   LINEAR IN LNP (LOG OF PRESSURE)
+         27 |C              -  LN = 2   LINEAR IN P**RCP (P TO KAPPA)
+         28 |C              -  LN = 3   LINEAR IN (P/1000.)**RCP (EXNER)
+         29 |C
+         30 |C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+         31 |C     OUT      - PROFILE OF DESIRED INTERPOLATED VALUES
+         32 |C
+         33 |C ATTRIBUTES:
+         34 |C   LANGUAGE: standard FORTRAN
+         35 |C   MACHINE:
+         36 |C
+         37 |C$$$
+         38 |      IMPLICIT REAL (A-H,O-Z)
+         39 |      DIMENSION ZIN(1),XIP(1),OUT(1),XOP(1)
+         40 |      DIMENSION PL( 99 ),PP( 99 )
+         41 |      DIMENSION LEV( 99 ),IP( 99 )
+         42 |C
+         43 |C
+         44 |      RCP = 287.05 / 1005.
+         45 |      KL = LINP
+         46 |      KM1 = KL - 1
+         47 |      K1 = KM1
+         48 |C  THIS LOOP CHECKS FOR THE LAST LEVEL WHERE GOOD DATA EXISTS
+         49 |      DO 1 K=1,K1
+         50 |      IF(XIP(K).GT.XIP(K+1) .AND. XIP(K+1).GT.0.0) GO TO 1
+         51 |      KL = K
+         52 |      KM1 = KL - 1
+         53 |      GO TO 2
+         54 |    1 CONTINUE
+         55 |C  SET VALUES OF PL AND PP, THE INPUT AND OUTPUT LEVELS RESPECTIVELY
+         56 |    2 DO 3 K=1,LOUT
+         57 |      LEV(K) = XOP(K)
+         58 |c     PL(K) = XOP(K)
+         59 |c     IF( LN.EQ.1 ) PL(K) = LOG(PL(K))
+         60 |      PL(K) = LOG(XOP(K))
+         61 |c     IF( LN.EQ.2 ) PL(K) = PL(K)**RCP
+         62 |c     IF( LN.EQ.3 ) PL(K) = (.001*PL(K))**RCP
+         63 |    3 CONTINUE
+         64 |      DO 4 K=1, KL
+         65 |      IP(K) = XIP(K)
+         66 |c     PP(K) = XIP(K)
+         67 |c     IF( LN.EQ.1 ) PP(K) = LOG(PP(K))
+         68 |      PP(K) = LOG(XIP(K))
+         69 |c     IF( LN.EQ.2 ) PP(K) = PP(K)**RCP
+         70 |c     IF( LN.EQ.3 ) PP(K) = (.001*PP(K))**RCP
+         71 |    4 CONTINUE
+         72 |      KK = 0
+         73 |   10 KK = KK + 1
+         74 |C  CHECK THAT WE ARE NOT BELOW THE FIRST DATA LEVEL
+         75 |      IF(XOP(KK).LE.XIP(1)) GO TO 20
+         76 |C  ALL LEVELS AT AND BELOW THE FIRST DATA LEVEL ARE
+         77 |C  ASSIGNED THE VALUE AT THE FIRST DATA LEVEL
+         78 |      OUT(KK) = ZIN(1)
+         79 |      GO TO 10
+         80 |   20 DO 50 K = 1,KM1
+         81 |      DELP = 1.0 / (PP(K) - PP(K+1))
+         82 |   25 IDP = LEV(KK) - IP(K+1)
+         83 |      IF(LEV(KK) .NE. IP(K)) GO TO 35
+         84 |      OUT(KK) = ZIN(K)
+         85 |      KK = KK + 1
+         86 |      IF( KK.GT.LOUT ) RETURN
+         87 |      GO TO 25
+         88 |   35 IF( IDP .LE. 0 .AND. K.LT.KM1 ) GO TO 45
+         89 |      DP = PL(KK) - PP(K+1)
+         90 |      OUT(KK) = ZIN(K+1) + DP*(ZIN(K)-ZIN(K+1))*DELP
+         91 |      KK = KK + 1
+         92 |      IF( KK.GT.LOUT ) RETURN
+         93 |      GO TO 25
+         94 |   45 IF( K.NE.KM1 .OR. IDP.LT.0 )  GO TO 50
+         95 |      OUT(KK) = ZIN(K+1)
+         96 |      KK = KK + 1
+         97 |      IF( KK.GT.LOUT ) RETURN
+         98 |   50 CONTINUE
+         99 |      IF( KK.GT.LOUT ) RETURN
+        100 |C  FILL IN TOP VALUE AT AND ABOVE TOP
+        101 |      DO 75 K = KK,LOUT
+        102 |      OUT(K) = ZIN(KL)
+        103 |   75 CONTINUE
+        104 |      RETURN
+        105 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+delp                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-81.7@  0-90.49
+ 
+dp                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-89.7@  0-90.28
+ 
+idp                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-82.7@  0-88.11  0-94.25
+ 
+ip                               Automatic, Integer(4) (1:99), Offset: 0, Alignment: full word
+                                 0-41.27$  0-65.7@  0-82.23  0-83.23
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.12@  0-50.14  0-50.24  0-50.39  0-51.12  0-56.12@  0-57.11  0-57.20  0-60.10  0-60.23
+                                 0-64.12@  0-65.10  0-65.19  0-68.10  0-68.23  0-80.13@  0-81.24  0-81.32  0-82.26  0-83.26  0-84.21
+                                 0-88.28  0-89.24  0-90.21  0-90.36  0-90.43  0-94.11  0-95.21  0-101.13@  0-102.11
+ 
+k1                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-47.7@  0-49.16
+ 
+kk                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.7@  0-73.7@  0-73.12  0-75.14  0-78.11  0-82.17  0-83.14  0-84.11  0-85.7@  0-85.12  0-86.11
+                                 0-89.15  0-90.11  0-91.7@  0-91.12  0-92.11  0-95.11  0-96.7@  0-96.12  0-97.11  0-99.11  0-101.17
+ 
+kl                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-46.13  0-51.7@  0-52.13  0-64.17  0-102.20
+ 
+km1                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-46.7@  0-47.12  0-52.7@  0-80.19  0-88.33  0-94.16
+ 
+lev                              Automatic, Integer(4) (1:99), Offset: 0, Alignment: full word
+                                 0-41.17$  0-57.7@  0-82.13  0-83.10
+ 
+linp                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-45.12
+ 
+ln                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.51
+ 
+log                              Pure Intrinsic
+                                 0-60.15  0-68.15
+ 
+lout                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.46  0-56.16  0-86.17  0-92.17  0-97.17  0-99.17  0-101.20
+ 
+out                              Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-39.31$  0-1.38  0-78.7@  0-84.7@  0-90.7@  0-95.7@  0-102.7@
+ 
+pl                               Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-40.17$  0-60.7@  0-89.12
+ 
+pp                               Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-40.26$  0-68.7@  0-81.21  0-81.29  0-89.21
+ 
+rcp                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-44.7@
+ 
+vexpnd                           Subroutine
+                                 0-1.18$
+ 
+xip                              Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-39.24$  0-1.29  0-50.10  0-50.20  0-50.35  0-65.15  0-68.19  0-75.21
+ 
+xop                              Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-39.38$  0-1.42  0-57.16  0-60.19  0-75.10
+ 
+zin                              Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-39.17$  0-1.25  0-78.17  0-84.17  0-90.17  0-90.32  0-90.39  0-95.17  0-102.16
+ 
+** vexpnd   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    vexpnd.f                    12/17/02   09:24:05
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     105
+1501-510  Compilation successful for file vexpnd.f.
+1501-543  Object file created.

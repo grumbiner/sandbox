@@ -1,0 +1,17 @@
+!-----------------------------------------------------------------------
+      real(4),pointer::deta2(:),aeta2(:),dfrlg(:),qs0(:),sqs(:)
+      real(4),pointer::the0(:),sthe(:),the0q(:),stheq(:)
+      real(4),pointer::mxsnal(:,:),epsr(:,:),radin(:,:),radot(:,:)
+      real(4),pointer::glat(:,:),glon(:,:),czen(:,:)
+      real(4),pointer::htop(:,:),hbot(:,:)
+      real(4),pointer::tg(:,:),gffc(:,:),sst(:,:),albase(:,:)
+      real(4),pointer::albedo(:,:)
+      real(4),pointer::hdac(:,:),hdacv(:,:),czmean(:,:),sigt4(:,:)
+      real(4),pointer::ptbl(:,:),ttbl(:,:),ttblq(:,:)
+      COMMON/PHYS/KTM,PT2,DTQ2,TDTQ2,DTD,TDTD,ROS,CS,DS,ROI,CI,DI,PL
+      common/phys/THL,RDQ,RDTH,RDP,RDTHE,PLQ,RDPQ,RDTHEQ,DETA2,AETA2
+      common/phys/DFRLG,QS0,SQS,THE0,STHE,THE0Q,STHEQ,MXSNAL,EPSR
+      common/phys/RADIN,RADOT,GLAT,GLON,CZEN,HTOP,HBOT,TG,GFFC
+      common/phys/SST,ALBASE,ALBEDO,HDAC,HDACV,CZMEAN,SIGT4,PTBL
+      common/phys/TTBL,TTBLQ
+!-----------------------------------------------------------------------

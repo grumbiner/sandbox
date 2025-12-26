@@ -1,0 +1,296 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/GETLALO.f 09/30/06 19:44:05
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE GETLALO(RLATS,RLONS,WGTS,
+          2 |     *                    JCAP,NLATH,NLON,NLONEX,
+          3 |     *       IRS,IIS,AP,BP,AQR,BQR,GR,SLAT,CLAT,PE0,QE0,RO0,
+          4 |     *       TRIGSout,IFAX)
+          5 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          6 |C                .      .    .                                       .
+          7 |C SUBPROGRAM:    GETLALO    RETURN GAUSSIAN LATS AND LONS AND TRANCONS
+          8 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 90-09-21
+          9 |C
+         10 |C ABSTRACT: RETURN GAUSSIAN LATS, LONS, AND TRANSFORM STUFF.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   90-09-21  PARRISH
+         14 |C
+         15 |C USAGE:  CALL GETLALO(RLATS,RLONS,WGTS,
+         16 |C    *                    JCAP,NLATH,NLON,NLONEX,
+         17 |C    *       IRS,IIS,AP,BP,AQR,BQR,GR,SLAT,CLAT,PE0,QE0,RO0,TRIGS,IFAX)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     JCAP     - TRIANGULAR TRUNCATION
+         20 |C     NLATH    - NUMBER OF GAUSSIAN LATS IN ONE HEMISPHERE
+         21 |C     NLON     - NUMBER OF LONGITUDES
+         22 |C     NLONEX   - GE NLON, TO ALLOW FOR SOME REPEAT LONGITUDES
+         23 |C
+         24 |C   OUTPUT ARGUMENT LIST:
+         25 |C     RLATS    - RLATS(NLATH*2): GRID LATITUDES (RADIANS)
+         26 |C     RLONS    - RLONS(NLONEX): GRID LONGITUDES (RADIANS)
+         27 |C     WGTS     - WGTS(NLATH*2): GAUSSIAN INTEGRATION WEIGHTS
+         28 |C     IRS      - IRS(0:JCAP,0:JCAP): SPECTRAL COEF
+         29 |C     IIS      - IIS(0:JCAP,0:JCAP):    GATHER ARRAYS
+         30 |C     AP       - AP(0:JCAP,0:JCAP):  RECURSION
+         31 |C     BP       - BP(0:JCAP,0:JCAP):    CONSTANTS
+         32 |C     AQR      - AQR(0:JCAP,0:JCAP):     FOR GENERATING
+         33 |C     BQR      - BQR(0:JCAP,0:JCAP):       VECTOR SPHERICAL
+         34 |C     GR       - GR(0:JCAP,0:JCAP):          HARMONICS
+         35 |C     SLAT     - SLAT(NLATH):  SIN(GAUSSIAN LATITUDES)
+         36 |C     CLAT     - CLAT(NLATH):  COS(GAUSSIAN LATS)
+         37 |C     PE0      - PE0(NLATH,0:JCAP): P(L,L)
+         38 |C     QE0      - QE0(NLATH,0:JCAP): Q(L,L)
+         39 |C     RO0      - RO0(NLATH,0:JCAP): R(L,L)
+         40 |C     TRIGS    - TRIGS(NLON*2)
+         41 |C     IFAX     - IFAX(10)
+         42 |C
+         43 |C ATTRIBUTES:
+         44 |C   LANGUAGE: CFT77
+         45 |C   MACHINE:  CRAY YMP
+         46 |C
+         47 |C$$$
+         48 |         implicit double precision (a-h,o-z)
+         49 |         DIMENSION RLATS(NLATH*2),WGTS(NLATH*2),RLONS(NLONEX)
+         50 |         DIMENSION W1(NLATH-1),W2(NLATH-1),W3(NLATH-1),W4(NLATH-1)
+         51 |         DIMENSION IRS(0:JCAP,0:JCAP),IIS(0:JCAP,0:JCAP)
+         52 |         DIMENSION AP(0:JCAP,0:JCAP),BP(0:JCAP,0:JCAP)
+         53 |         DIMENSION AQR(0:JCAP,0:JCAP),BQR(0:JCAP,0:JCAP)
+         54 |         DIMENSION GR(0:JCAP,0:JCAP)
+         55 |         DIMENSION SLAT(NLATH),CLAT(NLATH)
+         56 |         real*4 TRIGSout(NLON*2)
+         57 |         integer IFAX(10)
+         58 |         DIMENSION PE0(NLATH,0:JCAP),QE0(NLATH,0:JCAP),RO0(NLATH,0:JCAP)
+         59 |
+         60 |         dimension trigs(nlon*2)
+         61 |C--------
+         62 |C-------- GET STUFF FOR FFT*S
+         63 |C--------
+         64 |         CALL M1FAX(IFAX,NLON,3)
+         65 |         CALL M1FTRG(TRIGS,NLON,3)
+         66 |         trigsout=trigs
+         67 |C--------
+         68 |C-------- COMPUTE RECURSION CONSTANTS AND INITIALIZE LEGENDRE FUNCTIONS
+         69 |C--------
+         70 |         CALL M1RCONS(AP,BP,AQR,BQR,GR,JCAP)
+         71 |C--------
+         72 |C-------- GET LATITUDES, LONGITUDES, AND INTEGRATION WEIGHTS.
+         73 |C--------
+         74 |         PIH=2.d0*ATAN(1.d0)
+         75 |         CALL M1GLAT(NLATH-1,W1,W2,W3,W4)
+         76 |         RLATS(1)=-PIH
+         77 |         WGTS(1)=0.d0
+         78 |CDIR$ IVDEP
+         79 |         DO 100 I=1,NLATH-1
+         80 |           RLATS(I+1)=W1(I)-PIH
+         81 |           WGTS(I+1)=W2(I)
+         82 |100      CONTINUE
+         83 |         DO 200 I=1,NLATH
+         84 |           RLATS(NLATH*2+1-I)=-RLATS(I)
+         85 |           WGTS(NLATH*2+1-I)=WGTS(I)
+         86 |           SLAT(I)=SIN(RLATS(I))
+         87 |           CLAT(I)=COS(RLATS(I))
+         88 |200      CONTINUE
+         89 |         DLON=8.d0*ATAN(1.d0)/NLON
+         90 |         DO 300 I=1,NLONEX
+         91 |           RLONS(I)=(I-1.d0)*DLON
+         92 |300      CONTINUE
+         93 |         II=0
+         94 |         IRS=0
+         95 |         IIS=0
+         96 |         DO 500 M=0,JCAP
+         97 |           DO 400 L=0,JCAP-M
+         98 |             II=II+1
+         99 |             IRS(M+L,L)=II
+        100 |             II=II+1
+        101 |             IIS(M+L,L)=II
+        102 |400        CONTINUE
+        103 |500      CONTINUE
+        104 |C--------
+        105 |C-------- FINALLY GET INITIAL P,Q,R.
+        106 |C--------
+        107 |         CALL M1IPQR(PE0,QE0,RO0,SLAT,CLAT,NLATH,JCAP)
+        108 |       RETURN
+        109 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+ap                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-52.20$  0-3.22  0-70.23
+ 
+aqr                              Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-53.20$  0-3.28  0-70.29
+ 
+atan                             Pure Intrinsic
+                                 0-74.19  0-89.20
+ 
+bp                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-52.38$  0-3.25  0-70.26
+ 
+bqr                              Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-53.39$  0-3.32  0-70.33
+ 
+clat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-55.32$  0-3.44  0-87.12@  0-107.39
+ 
+cos                              Pure Intrinsic
+                                 0-87.20
+ 
+dlon                             Static, Real(8), Offset: 0, Alignment: double word
+                                 0-89.10@  0-91.30
+ 
+getlalo                          Subroutine
+                                 0-1.19$
+ 
+gr                               Reference argument, Real(8) (0:?, 0:?), Offset: 0, Alignment: double word
+                                 0-54.20$  0-3.36  0-70.37
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-79.17@  0-80.18  0-80.26  0-81.17  0-81.25  0-83.17@  0-84.28  0-84.38  0-85.27  0-85.35  0-86.17
+                                 0-86.30  0-87.17  0-87.30  0-90.17@  0-91.18  0-91.22
+ 
+ifax                             Reference argument, Integer(4) (1:10), Offset: 0, Alignment: full word
+                                 0-57.18$  0-4.23  0-64.21
+ 
+ii                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-93.10@  0-98.14@  0-98.17  0-99.25  0-100.14@  0-100.17  0-101.25
+ 
+iis                              Reference argument, Integer(4) (0:?, 0:?), Offset: 0, Alignment: full word
+                                 0-51.39$  0-3.18  0-95.10@  0-101.14@
+ 
+irs                              Reference argument, Integer(4) (0:?, 0:?), Offset: 0, Alignment: full word
+                                 0-51.20$  0-3.14  0-94.10@  0-99.14@
+ 
+jcap                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.27  0-51.26  0-51.26  0-51.33  0-51.33  0-51.45  0-51.45  0-51.52  0-51.52  0-52.25  0-52.25
+                                 0-52.32  0-52.32  0-52.43  0-52.43  0-52.50  0-52.50  0-53.26  0-53.26  0-53.33  0-53.33  0-53.45
+                                 0-53.45  0-53.52  0-53.52  0-54.25  0-54.25  0-54.32  0-54.32  0-58.32  0-58.32  0-58.50  0-58.50
+                                 0-58.68  0-58.68  0-70.40  0-96.21  0-97.23  0-107.50
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-97.19@  0-99.20  0-99.22  0-101.20  0-101.22
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-96.17@  0-97.28  0-99.18  0-101.18
+ 
+m1fax                            External Subroutine
+                                 0-64.15
+ 
+m1ftrg                           External Subroutine
+                                 0-65.15
+ 
+m1glat                           External Subroutine
+                                 0-75.15
+ 
+m1ipqr                           External Subroutine
+                                 0-107.15
+ 
+m1rcons                          External Subroutine
+                                 0-70.15
+ 
+nlath                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.32  0-49.26  0-49.26  0-49.40  0-49.40  0-50.23  0-50.23  0-50.35  0-50.35  0-50.47  0-50.47
+                                 0-50.59  0-50.59  0-55.25  0-55.25  0-55.37  0-55.37  0-58.24  0-58.24  0-58.42  0-58.42  0-58.60
+                                 0-58.60  0-75.22  0-79.21  0-83.21  0-84.18  0-85.17  0-107.44
+ 
+nlon                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.38  0-56.26  0-56.26  0-60.26  0-60.26  0-64.26  0-65.28  0-89.31
+ 
+nlonex                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.43  0-49.55  0-49.55  0-90.21
+ 
+pe0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-58.20$  0-3.49  0-107.22
+ 
+pih                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-74.10@  0-76.20  0-80.29
+ 
+qe0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-58.38$  0-3.53  0-107.26
+ 
+rlats                            Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-49.20$  0-1.27  0-76.10@  0-80.12@  0-84.12@  0-84.32  0-86.24  0-87.24
+ 
+rlons                            Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-49.49$  0-1.33  0-91.12@
+ 
+ro0                              Reference argument, Real(8) (1:?, 0:?), Offset: 0, Alignment: double word
+                                 0-58.56$  0-3.57  0-107.30
+ 
+sin                              Pure Intrinsic
+                                 0-86.20
+ 
+slat                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-55.20$  0-3.39  0-86.12@  0-107.34
+ 
+trigs                            Controlled Automatic, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-60.20$  0-65.22  0-66.19
+ 
+trigsout                         Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-56.17$  0-4.14  0-66.10@
+ 
+w1                               Controlled Automatic, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-50.20$  0-75.30  0-80.23
+ 
+w2                               Controlled Automatic, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-50.32$  0-75.33  0-81.22
+ 
+w3                               Controlled Automatic, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-50.44$  0-75.36
+ 
+w4                               Controlled Automatic, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-50.56$  0-75.39
+ 
+wgts                             Reference argument, Real(8) (1:?), Offset: 0, Alignment: double word
+                                 0-49.35$  0-1.39  0-77.10@  0-81.12@  0-85.12@  0-85.30
+ 
+** getlalo   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    GETLALO.f                   10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     109
+1501-510  Compilation successful for file GETLALO.f.
+1501-543  Object file created.

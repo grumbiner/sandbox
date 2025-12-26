@@ -1,0 +1,168 @@
+      SUBROUTINE HQCOEF ( NG, SP, CD, AMINSP )
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    HQCOEF COMPUTES STABILITY DEPENDENT DRAG COEF
+C   PRGMMR: J TUCCILLO       ORG: W/NMC4     DATE: 90-06-13
+C
+C ABSTRACT:   COMPUTES STABILITY DEPENDENT DRAG COEFFICIENT
+C   .
+C
+C PROGRAM HISTORY LOG:
+C   90-06-13  J TUCCILLO
+C
+C USAGE:  CALL HQCOEF ( NG, SP, CD, AMINSP )
+C   INPUT ARGUMENT LIST:
+C     NG       - GRID NUMBER (OUTER HEMISPHERIC GRID HAS
+C                 NG EQUAL TO 1.)
+C     SP       - WIND SPEED IN FIRST SIGMA LAYER
+C     AMINSP   - MINIMUM SPEED PERMITTED IN FIRST LAYER
+C
+C   OUTPUT ARGUMENT LIST:
+C     CD       - ARRAY CONTAINING DRAG COEFFICIENT
+C
+C   OUTPUT FILES:
+C     FT06F001 - FOR PRINTOUT
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - P2KAP
+C     LIBRARY:
+C       COMMON   - COMCONST
+C                  COMBLANK
+C                  COMDIAG
+C REMARKS:
+C   .
+C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C   .
+C   NAMES     MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----     ----------------------------------        ---------
+C   .
+C   IADDRG     STARTING ADDRESSES IN VBL FOR EACH TYPE   /COMCONST/
+C   .          OF DATA FOR EACH GRID.
+C   .
+C   IMG,JMG    HORIZONTAL DIMENSIONS OF ALL GRIDS.       /COMCONST/
+C   .
+C   VBL        ARRAY CONTAINING ALL FORECAST-TYPE        /COMVBLS/
+C   .          VARIABLES FOR ALL GRIDS.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+      INCLUDE 'parmodel'
+C
+      PARAMETER ( B = 5.0, C = 5.0, D = 5.0 )
+C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:44:17  
+C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+C
+C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+C          AND A FEW OTHER COMMON CONSTANTS.
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+C
+C     COMMON BLOCK /COMDIAG/ CONTAINS QUANTITIES SAVED FOR
+C          DIAGNOSTIC PURPOSES.
+      COMMON /COMDIAG/  KADIAB( IKM, INGRDUSE ),
+     1                  NPTSDHQ (2, INGRDUSE),
+     2                  KKCLOUD2(2, INGRDUSE), NPTSBUOY(2, INGRDUSE),
+     3                  NPTSWATR(2, INGRDUSE), NPTSCC  (2, INGRDUSE),
+     4                  KKGSP2  (2, INGRDUSE),
+     5                  KKGSE2  (2, INGRDUSE),
+     6                  NPTSSAT (IKM, 2, INGRDUSE),
+     7                  NPTSEVAP(IKM, 2, INGRDUSE),
+     8                  NPTSGSP (2, INGRDUSE), NUMPROF,
+     9                  PPTCC   (2, INGRDUSE), PPTGSP  (2, INGRDUSE),
+     1                  ALATPR  (IMAXPROF),    ALONPR  (IMAXPROF),
+     2                  DESCRP  (IMAXPROF)
+C
+      CHARACTER*24 DESCRP
+C
+      DIMENSION  TEMP1(IIJMAX)
+      DIMENSION  SP (1) , CD (1)
+C
+C              APPROXIMATE THICKNESS OF FIRST LAYER
+C                 Z = R * T * DELSIG(1) * 0.5 / G
+C
+      INTEGER I1X
+      REAL COFD1,COFD2,COFD3,COFD4,COFN1,COFN2,COFN3
+      PARAMETER (COFD1 = 1., COFD2 = 5.44053037, COFD3 = 2.27693825, 
+     1   COFD4 = -0.0869930591, COFN1 = 0.34757549, COFN2 = 4.36732956, 
+     2   COFN3 = 3.91557032)
+      ZLAYER1 = ( 0.5E0 * 287.04E0 * 288.0E0 / 9.8E0 ) * DELSIG(1)
+C
+C              SPECIFICATION OF STARTING ADDRESSES WITHIN ARRAY VBL
+C              FOR THIS GRID.
+C
+      MADDT   = IADDRG( 3, NG)
+      MADDH   = IADDRG( 5, NG)
+      MADDTG  = IADDRG( 6, NG)
+      MADDZ0  = IADDRG(20, NG)
+C
+      IJ = IMG(NG) * JMG(NG)
+C
+      C1 = 9.8E0 * ZLAYER1
+C
+C*****  Code Expanded From Routine:  P2KAP
+CMIC$ DO ALL VECTOR SHARED(IJ, MADDH, VBL, TEMP1) PRIVATE(I1X)
+      DO 77001 I1X = 1, IJ
+         TEMP1(I1X) = (0.34757549+VBL(I1X+MADDH-1)*(4.36732956+VBL(I1X+
+     1      MADDH-1)*3.91557032))/(1.+VBL(I1X+MADDH-1)*(5.44053037+VBL(
+     2      I1X+MADDH-1)*(2.27693825+VBL(I1X+MADDH-1)*(-0.0869930591))))
+77001 CONTINUE
+C*****  End of Code Expanded From Routine:  P2KAP
+C
+CMIC$ DO ALL VECTOR SHARED(IJ, AMINSP, MADDT, MADDH, ZLAYER1, MADDZ0, C1
+CMIC$1   , MADDTG, SP, TEMP1, VBL, CD) PRIVATE(I, SP1, T1, Z01, CN1, RI1
+CMIC$2   )
+      DO 88900 I=1,IJ
+         SP1=AMAX1(SP(I),AMINSP) ** 2
+         T1=TEMP1(I)*VBL(MADDT+I-1)/VBL(MADDH+I-1)
+         Z01=(ZLAYER1/VBL(MADDZ0+I-1)) + 1.E0
+         CN1=(0.4E0/ALOG(Z01))**2
+         RI1=AMAX1(AMIN1(
+     *     ((C1*(T1-VBL(MADDTG+I-1)))/(T1*SP1)),3.0),-10.0)
+C
+         IF ( RI1 .GE. 0.E0 ) THEN
+            CD(I) = CN1/(1.E0+(3.E0*B)*RI1*SQRT(1.E0+D*RI1))
+         ELSE
+            CD(I) = CN1*(1.E0-(3.E0*B)*
+     *         (RI1/
+     *         ((C*3.E0*B)*CN1*SQRT(Z01)*SQRT(ABS(RI1))+1.E0)))
+         END IF
+C
+88900 CONTINUE
+C
+C
+      RETURN
+      END

@@ -1,0 +1,260 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/WRTDAT.f 09/30/06 19:44:10
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE WRTDAT (DATSET, AYEAR0, AMNTH0, ADAY0, AGMT0,
+          2 |     1                    IRUNMK, IVERSN, ITUPRT, ITUOUT,
+          3 |     2                    ITIME,  NSTEPS)
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    WRTDAT       CREATES NCEP DATE WORD, WRITES IT TO DISK
+          7 |C   PRGMMR:  ERIC ROGERS      ORG: W/NMC22    DATE: 98-11-19
+          8 |C
+          9 |C ABSTRACT: CREATES THE NCEP DATE WORD FOR THE FILE
+         10 |C   BEING PROCESSED, AND WRITES IT TO DISK.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   98-11-19  ERIC ROGERS : BASED ON SUBROUTINE OUTOPN
+         14 |C
+         15 |C USAGE:    CALL WRTDAT (DATSET, AYEAR0, AMNTH0, ADAY0, AGMT0,
+         16 |C    1                    IRUNMK, IVERSN, ITUPRT, ITUOUT,
+         17 |C    2                    ITIME,  NSTEPS)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     DATSET   - DATA SET NAME
+         20 |C     AYEAR0   - FOUR-DIGIT YEAR AT MODEL TIME
+         21 |C     AMNTH0   - MONTH OF THE INITIAL MODEL TIME
+         22 |C     ADAY0    - DAY OF THE INITIAL MODEL TIME
+         23 |C     AGMT0    - GMT HOUR OF THE INITIAL MODEL TIME
+         24 |C     IRUNMK   - EXPLAIN COMPLETELY IF ERROR RETURN
+         25 |C     IVERSN   - VERSION OF THE MODEL
+         26 |C     ITUPRT   - UNIT NUMBER FOR PRINTOUT
+         27 |C     ITUOUT   - UNIT NUMBER OF THE DISK THAT THE O.N. 85 LABEL
+         28 |C                IS BEING WRITTEN
+         29 |C     ITIME    - MODEL INTEGRATION TIME IN SECONDS FOR THE DATA
+         30 |C                SET BEING OPENED
+         31 |C     NSTEPS   - NUMBER OF MODEL TIME STEPS WHEN THIS DATA SET IS
+         32 |C                BEING OPENED
+         33 |C
+         34 |C   OUTPUT FILES:
+         35 |C     ITUOUT   - UNIT FOR OUTPUT DATA SET THAT THIS ROUTINE
+         36 |C                IS WRITING AN O.N. 85 LABEL TO
+         37 |C     ITUPRT   - UNIT FOR PRINTOUT OF ERROR MESSAGE
+         38 |C
+         39 |C ATTRIBUTES:
+         40 |C   LANGUAGE: STANDARD FORTRAN
+         41 |C   MACHINE:
+         42 |C
+         43 |C$$$
+         44 |C
+         45 |C              SUBROUTINE TO CREATE THE NMC OFFICE NOTE 85 LABEL
+         46 |C              FOR THE FILE BEING PROCESSED, AND WRITE
+         47 |C              IT TO DISK.
+         48 |C
+         49 |C     COMMON BLOCK /COMPARIT/ CONTAINS QUANTITIES ASSOCIATED WITH
+         50 |C          PARITY CHECKING.
+         51 |      COMMON /COMPARIT/ IPARITY, KOUNTPAR
+         52 |C
+         53 |C     ******* END OF INCLUDED COMMON BLK COMPARIT  **********
+         54 |C
+         55 |      CHARACTER*6  DATSET
+         56 |C
+         57 |      DIMENSION INPDAT(8),JTIME(8)
+         58 |C
+         59 |      DO I = 1, 8
+         60 |        INPDAT(I) = 0
+         61 |      ENDDO
+         62 |C
+         63 |      IYEAR0 = NINT ( AYEAR0 )
+         64 |      IMNTH0 = NINT ( AMNTH0 )
+         65 |      IDAY0  = NINT ( ADAY0  )
+         66 |      IGMT0  = NINT ( AGMT0  )
+         67 |C
+         68 |      INPDAT(1) = IYEAR0
+         69 |      INPDAT(2) = IMNTH0
+         70 |      INPDAT(3) = IDAY0
+         71 |      INPDAT(5) = IGMT0
+         72 |C
+         73 |C              SPECIFY THE SET INITIATE TIME.
+         74 |      CALL W3UTCDAT(JTIME)
+         75 |C
+         76 |      ISETIM = NINT(100.*(FLOAT(JTIME(4))
+         77 |     1                   + FLOAT(JTIME(5)) / 60.0
+         78 |     2                   + FLOAT(JTIME(6)) / 3600.))
+         79 |C
+         80 |C              WRITE THE DATE WORD TO DISK
+         81 |C
+         82 |      WRITE (ITUOUT) INPDAT
+         83 |C
+         84 |C              PRINT THE FACT THAT WE HAVE OPENED THIS FILE.
+         85 |C
+         86 |      TIMEHRS = REAL(ITIME) / 3600.0E0
+         87 |C
+         88 |      WRITE (ITUPRT, 300) NSTEPS, ITIME, TIMEHRS, DATSET, ITUOUT,
+         89 |     1                      KOUNTPAR, IPARITY
+         90 |C
+         91 |  300       FORMAT('0', 'FOR NSTEPS =', I5,
+         92 |     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+         93 |     2                  F8.4, ' H AFTER I.C.:' /
+         94 |     3             ' ', 4X, 'DATA SET ', A6,
+         95 |     4                  ' WAS OPENED ON OUTPUT UNIT',
+         96 |     5                  I3, ' FOR POSTPROCESSING.  ',
+         97 |     6                  '  TOTAL NO. OF PACKED FIELDS =', I5,
+         98 |     7                  ',  PARITY CHECK =', I8, '.')
+         99 |C
+        100 |C              PRINT THE FACT THAT WE HAVE OPENED THIS FILE.
+        101 |C         AND  PRINT THE OFFICE NOTE 85 LABEL.
+        102 |C
+        103 |      WRITE (ITUPRT, 400) DATSET, ITUOUT
+        104 |  400 FORMAT ('0     NCEP DATE WORD FOR FILE ',A6,
+        105 |     1             ' WAS WRITTEN TO THE DISK WITH UNIT NUMBER ',I2,
+        106 |     2             '.  THE DATE IS:')
+        107 |c
+        108 |      WRITE (ITUPRT, 500) DATSET, IGMT0, IDAY0,
+        109 |     1                IMNTH0, IYEAR0, IRUNMK,
+        110 |     2                ISETIM, IVERSN
+        111 |c
+        112 |  500 FORMAT (' FILE=',A6,' INITIAL TIME=',I3,' GMT',I3,'/',
+        113 |     2             I3,'/',I5,/,25X,'RUN MARKER=',I3,
+        114 |     4             ', SET INITIATE TIME=',I5,
+        115 |     5             '  MODEL VERSION=',I10)
+        116 |C
+        117 |      RETURN
+        118 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+aday0                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.50  0-65.23
+ 
+agmt0                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.57  0-66.23
+ 
+amnth0                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.42  0-64.23
+ 
+ayear0                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.34  0-63.23
+ 
+comparit                         Common Block, Alignment: double word
+                                 0-51.15$
+ 
+datset                           Reference argument, Character(6), Offset: 0, Alignment: byte
+                                 0-55.20$  0-1.26  0-88.51  0-103.27  0-108.27
+ 
+float                            Pure Intrinsic
+                                 0-76.27  0-77.28  0-78.28
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-59.10@  0-60.16
+ 
+iday0                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-70.19  0-108.42
+ 
+igmt0                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-71.19  0-108.35
+ 
+imnth0                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.7@  0-69.19  0-109.23
+ 
+inpdat                           Automatic, Integer(4) (1:8), Offset: 0, Alignment: full word
+                                 0-57.17$  0-60.9@  0-68.7@  0-69.7@  0-70.7@  0-71.7@  0-82.22
+ 
+iparity                          Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-51.25$  0-89.39
+ 
+irunmk                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.27  0-109.39
+ 
+isetim                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-76.7@  0-110.23
+ 
+itime                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.27  0-86.22  0-88.35
+ 
+ituout                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.51  0-82.14  0-88.59  0-103.35
+ 
+ituprt                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.43  0-88.14  0-103.14  0-108.14
+ 
+iversn                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.35  0-110.31
+ 
+iyear0                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-63.7@  0-68.19  0-109.31
+ 
+jtime                            Automatic, Integer(4) (1:8), Offset: 0, Alignment: full word
+                                 0-57.27$  0-74.21  0-76.33  0-77.34  0-78.34
+ 
+kountpar                         Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-51.34$  0-89.29
+ 
+nint                             Pure Intrinsic
+                                 0-63.16  0-64.16  0-65.16  0-66.16  0-76.16
+ 
+nsteps                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.35  0-88.27
+ 
+real                             Pure Intrinsic
+                                 0-86.17
+ 
+timehrs                          Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-86.7@  0-88.42
+ 
+w3utcdat                         External Subroutine
+                                 0-74.12
+ 
+wrtdat                           Subroutine
+                                 0-1.18$
+ 
+** wrtdat   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    WRTDAT.f                    10/09/02   12:46:06
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     118
+1501-510  Compilation successful for file WRTDAT.f.
+1501-543  Object file created.

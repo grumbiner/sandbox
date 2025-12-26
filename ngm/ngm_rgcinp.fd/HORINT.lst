@@ -1,0 +1,325 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/HORINT.f 09/30/06 19:45:35
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE HORINT(FIELD, IMAX, JMAX, KMAX, ALONG, ALAT, ISYM,
+          2 |     1                  XLONG, YLAT, COLUMN)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    HORINT      INTERPOLATES TO A VERTICAL COLUMN
+          6 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          7 |C
+          8 |C ABSTRACT: INTERPOLATES HORIZONTALLY TO A LATITUDE-
+          9 |C   LONGITUDE POINT, GIVEN A FIELD ON A LONGITUDE-LATITUDE GRID.
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   85-03-27  JIM HOKE
+         13 |C   88-08-02  BRIAN SCHMIDT ADDED DOCBLOCKS
+         14 |C
+         15 |C USAGE:    CALL HORINT(FIELD, IMAX, JMAX, KMAX, ALONG, ALAT, ISYM,
+         16 |C                       XLONG, YLAT, COLUMN)
+         17 |C   INPUT ARGUMENT LIST:
+         18 |C     FIELD    - INPUT 3D ARRAY ON A LONGITUDE-LATITUDE GRID
+         19 |C     IMAX     - FIRST DIMENSION OF ARRAY 'FIELD'
+         20 |C     JMAX     - SECOND DIMENSION OF ARRAY 'FIELD'
+         21 |C     KMAX     - THIRD DIMENSION OF ARRAY 'FIELD'
+         22 |C     ALONG    - ARRAY OF LONGITUDES DESCRIBING THE ARRAY 'FIELD'
+         23 |C     ALAT     - ARRAY OF LATITUDES DESCRIBING THE ARRAY 'FIELD'
+         24 |C     ISYM     - EQUATORIAL SYMMETRY VARIABLE
+         25 |C     XLONG    - LONGITUDE TO WHICH THE ARRAY 'FIELD' IS INTERPOLATED
+         26 |C     YLAT     - LATITUDE TO WHICH THE ARRAY 'FIELD' IS INTERPOLATED
+         27 |C
+         28 |C   OUTPUT ARGUMENT LIST:
+         29 |C     COLUMN   - ARRAY CONTAINING VALUES OF ARRAY 'FIELD' INTERPOLATED
+         30 |C                TO XLONG,YLAT FOR KMAX LEVELS IN THE VERTICAL
+         31 |C
+         32 |C   OUTPUT FILES:
+         33 |C     FT06F001 - FOR PRINTOUT CONCERNING ERROR MESSAGES
+         34 |C
+         35 |C   SUBPROGRAMS CALLED:
+         36 |C     UNIQUE:    - FIND
+         37 |C                  ERRSTOP
+         38 |C
+         39 |C REMARKS: THE SUBROUTINE EXPECTS THAT AT LEAST THE FIRST LONGITUDE
+         40 |C   IS DUPLICATED.  IF ONLY THE FIRST LONGITUDE IS DUPLICATED,
+         41 |C   ONLY BILINEAR INTERPOLATION IS POSSIBLE.
+         42 |C   ISYM INDICATES THE EQUATORIAL SYMMETRY OF THE FIELD.
+         43 |C   EQUATORIAL SYMMETRY IS IMPOSED ON ALL SOUTHERN HEMISPHERIC
+         44 |C   POINTS.  IT IS ASSUMED THAT EQUATORIAL BLENDING OF NORTHERN
+         45 |C   AND SOUTHERN HEMISPHERIC POINTS, IF IT MUST BE DONE, HAS ALREADY
+         46 |C   BEEN DONE.
+         47 |C
+         48 |C ATTRIBUTES:
+         49 |C   LANGUAGE: CYBER FORTRAN 200
+         50 |C   MACHINE:  CYBER 205
+         51 |C
+         52 |C$$$
+         53 |C
+         54 |C
+         55 |      IMPLICIT REAL (A-H, O-Z)
+         56 |C
+         57 |      CHARACTER*35 ERRMSG(4)
+         58 |C
+         59 |      DIMENSION FIELD(IMAX, JMAX, KMAX)
+         60 |      DIMENSION ALONG(IMAX), ALAT(JMAX)
+         61 |      DIMENSION COLUMN(KMAX)
+         62 |C
+         63 |      DATA LAT0/1/
+         64 |C
+         65 |C     SPECIFY THE UNIT NUMBER OF THE PRINTER.
+         66 |      IOUTUPRT = 6
+         67 |C
+         68 |C     ENSURE THAT THE LONGITUDE IS WITHIN RANGE.
+         69 |C     THE LONGITUDE WILL RANGE FROM 0. AT THE GREENWICH MERIDIAN
+         70 |C     EASTWARD TO 360. DEGREES FOLLOWING THIS SECTION.
+         71 |      XXLONG = MOD(XLONG, 360.E+0)
+         72 |      IF (XXLONG .LT. 0.0E+0) XXLONG = XXLONG + 360.0E+0
+         73 |C
+         74 |C     ENSURE LATITUDE IS WITHIN RANGE.
+         75 |      IF (ABS(YLAT) .GT. 90.E+0) THEN
+         76 |         WRITE (IOUTUPRT, 100) YLAT
+         77 |  100    FORMAT ('0', 'LATITUDE OUT OF RANGE IN SUBROUTINE HORINT. ',
+         78 |     1                'YLAT=', F8.2, '.  JOB TERMINATED.')
+         79 |C
+         80 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+         81 |         ERRMSG(1) = 'IN SUBROUTINE HORINT   NEAR STATEME'
+         82 |         ERRMSG(2) = 'NT NUMBER 100:                     '
+         83 |         ERRMSG(3) = 'THE LATITUDE IS OUT OF RANGE.      '
+         84 |         ERRMSG(4) = '                                   '
+         85 |C
+         86 |         CALL ERRSTOP (IOUTUPRT, ERRMSG)
+         87 |C
+         88 |      END IF
+         89 |C
+         90 |C     THE EQUATORIAL BOUNDARY CONDITIONS ARE SPECIFIED, IF NECESSARY.
+         91 |      YYLAT = YLAT
+         92 |      FUNC = +1.E+0
+         93 |C
+         94 |C     IF THE POINT IS IN THE NORTHERN HEMISPHERE, THE SYMMETRY CONDITION
+         95 |C     IS IRRELEVANT.
+         96 |      IF(YLAT .GE. 0.0E+0) GO TO 500
+         97 |C
+         98 |C     IF THE POINT IS IN THE SOUTHERN HEMISPHERE AND ISYM EQUALS 0,
+         99 |C     NO SYMMETRY CONDITION IS APPLIED IN SUBROUTINE HORINT.  THE FIELD
+        100 |C     PROBABLY HAS ALREADY BEEN SET UP SYMMETRICALLY.
+        101 |      IF(ISYM .EQ. 0)  GO TO 500
+        102 |C
+        103 |      IF(ISYM .NE.  2) GO TO 300
+        104 |C     EVEN SYMMETRY AND THE POINT IS SOUTH OF THE EQUATOR, SO THE VALUES
+        105 |C     FOR THE NORTHERN HEMISPHERE ARE USED IN THE INTERPOLATION.
+        106 |      YYLAT = - YYLAT
+        107 |      GO TO 500
+        108 |C
+        109 |  300 CONTINUE
+        110 |      IF(ISYM .NE. 1) GO TO 400
+        111 |C     ODD SYMMETRY AND THE POINT IS SOUTH OF THE EQUATOR, SO THE
+        112 |C     NEGATIVE OF THE VALUES FOR THE NORTHERN HEMISPHERE ARE USED
+        113 |C     IN THE INTERPOLATION.
+        114 |      YYLAT = - YYLAT
+        115 |      FUNC = -1.0E+0
+        116 |      GO TO 500
+        117 |C
+        118 |  400 CONTINUE
+        119 |C     AN IMPROPER SYMMETRY CONDITION WAS SPECIFIED.
+        120 |      WRITE (IOUTUPRT, 450) ISYM
+        121 |  450 FORMAT('0', '***** IMPROPER SYMMETRY CONDITION REQUESTED ',
+        122 |     1            'FOR SUBROUTINE HORINT.  ISYM=', I6,
+        123 |     2            '.  EXECUTION TERMINATED.')
+        124 |C
+        125 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+        126 |      ERRMSG(1) = 'IN SUBROUTINE HORINT   NEAR STATEME'
+        127 |      ERRMSG(2) = 'NT NUMBER 450:                     '
+        128 |      ERRMSG(3) = 'AN IMPROPER SYMMETRY CONDITION WAS '
+        129 |      ERRMSG(4) = 'SPECIFIED.                         '
+        130 |C
+        131 |      CALL ERRSTOP (IOUTUPRT, ERRMSG)
+        132 |C
+        133 |  500 CONTINUE
+        134 |C     DETERMINE THE LOCATION OF THE INTERPOLATION POINT WITH
+        135 |C     RESPECT TO THE LATITUDE-LONGITUDE GRID.  THE LATITUDE AND
+        136 |C     LONGITUDE OF THE LATITUDE-LONGITUDE GRID POINT WITH SLIGHTLY
+        137 |C     SMALLER LATITUDE AND LONGITUDE ARE CALCULATED.
+        138 |C
+        139 |C     FIRST THE LATITUDE.
+        140 |      CALL FIND (YYLAT, ALAT, JMAX, LAT0)
+        141 |C
+        142 |C     NOW THE LONGITUDE.  THE LONGITUDES ARE ASSUMED TO BE EVENLY
+        143 |C     SPACED, WITH THE FIRST LONGITUDE BEING AT ALONG(1) AND PROCEEDING
+        144 |C     EASTWARD. THE SPECIAL CASE OF XXLONG < ALONG(1) IS HANDLED OK.
+        145 |      DLONG = ALONG(2) - ALONG(1)
+        146 |      LONG0 = INT((XXLONG-ALONG(1))/DLONG) + 1
+        147 |      IF ( XXLONG .LT. ALONG(1) ) THEN
+        148 |           LONG0 = IMAX - 1
+        149 |           XXLONG = XXLONG + 360.E0
+        150 |      END IF
+        151 |C
+        152 |C     THE WEIGHTING FACTORS FOR THE INTERPOLATION ARE CALCULATED.
+        153 |      XRATIO = (XXLONG - ALONG(LONG0)) / DLONG
+        154 |      YRATIO = (YYLAT - ALAT(LAT0)) / (ALAT(LAT0 + 1) - ALAT(LAT0))
+        155 |      A1 = (1.E+0 - XRATIO) * (1.E+0 - YRATIO)
+        156 |      A2 = XRATIO * (1. - YRATIO)
+        157 |      A3 = (1.E+0 - XRATIO) * YRATIO
+        158 |      A4 = XRATIO * YRATIO
+        159 |C
+        160 |C     THE BILINEAR INTERPOLATION IS PERFORMED.
+        161 |      DO 1000 K=1,KMAX
+        162 |C
+        163 |      COLUMN(K) = (A1 * FIELD(LONG0,LAT0,K)
+        164 |     1            +A2 * FIELD(LONG0+1,LAT0,K)
+        165 |     2            +A3 * FIELD(LONG0,LAT0+1,K)
+        166 |     3            +A4 * FIELD(LONG0+1,LAT0+1,K)) * FUNC
+        167 |C
+        168 | 1000 CONTINUE
+        169 |C
+        170 |      RETURN
+        171 |C
+        172 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-155.7@  0-163.20
+ 
+a2                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-156.7@  0-164.20
+ 
+a3                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-157.7@  0-165.20
+ 
+a4                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-158.7@  0-166.20
+ 
+abs                              Pure Intrinsic
+                                 0-75.11
+ 
+alat                             Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-60.30$  0-1.57  0-140.25  0-154.25  0-154.40  0-154.57
+ 
+along                            Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-60.17$  0-1.50  0-145.15  0-145.26  0-146.27  0-147.24  0-153.26
+ 
+column                           Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-61.17$  0-2.38  0-163.7@
+ 
+dlong                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-145.7@  0-146.37  0-153.42
+ 
+errmsg                           Static, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-57.20$  0-81.10@  0-82.10@  0-83.10@  0-84.10@  0-86.34  0-126.7@  0-127.7@  0-128.7@  0-129.7@
+                                 0-131.31
+ 
+errstop                          External Subroutine
+                                 0-86.15  0-131.12
+ 
+field                            Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-59.17$  0-1.25  0-163.25  0-164.25  0-165.25  0-166.25
+ 
+find                             External Subroutine
+                                 0-140.12
+ 
+func                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-92.7@  0-115.7@  0-166.52
+ 
+horint                           Subroutine
+                                 0-1.18$
+ 
+imax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-59.23  0-59.23  0-60.23  0-60.23  0-148.20
+ 
+int                              Pure Intrinsic
+                                 0-146.15
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-76.17  0-86.24  0-120.14  0-131.21
+ 
+isym                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.63  0-101.10  0-103.10  0-110.10  0-120.29
+ 
+jmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.38  0-59.29  0-59.29  0-60.35  0-60.35  0-140.31
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-161.15@  0-163.14  0-163.42  0-164.44  0-165.44  0-166.46
+ 
+kmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.44  0-59.35  0-59.35  0-61.24  0-61.24  0-161.19
+ 
+lat0                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-63.12*  0-140.37  0-154.30  0-154.45  0-154.62  0-163.37  0-164.39  0-165.37  0-166.39
+ 
+long0                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-146.7@  0-148.12@  0-153.32  0-163.31  0-164.31  0-165.31  0-166.31
+ 
+mod                              Pure Intrinsic
+                                 0-71.16
+ 
+xlong                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.25  0-71.20
+ 
+xratio                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-153.7@  0-155.21  0-156.12  0-157.21  0-158.12
+ 
+xxlong                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-72.11  0-72.31@  0-72.40  0-146.20  0-147.12  0-149.12@  0-149.21  0-153.17
+ 
+ylat                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.32  0-75.15  0-76.32  0-91.15  0-96.10
+ 
+yratio                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-154.7@  0-155.40  0-156.27  0-157.31  0-158.21
+ 
+yylat                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-91.7@  0-106.7@  0-106.17  0-114.7@  0-114.17  0-140.18  0-154.17
+ 
+** horint   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    HORINT.f                    10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     172
+1501-510  Compilation successful for file HORINT.f.
+1501-543  Object file created.

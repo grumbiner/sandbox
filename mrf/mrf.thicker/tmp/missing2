@@ -1,0 +1,22 @@
+Undefined symbols for architecture x86_64:
+  "_ismax_", referenced from:
+      _gbphys_ in gbphys.o
+  "_ismin_", referenced from:
+      _gbphys_ in gbphys.o
+  "_minv_", referenced from:
+      _gsicdf_ in gsicdf.o
+  "_qpass_", referenced from:
+      _rfftmlt_ in rfftmlt.o
+      _rfftmlt_ in rfftmlt2.o
+  "_ratch_", referenced from:
+      _gpkap_ in gpkap.o
+  "_rpass_", referenced from:
+      _rfftmlt_ in rfftmlt.o
+      _rfftmlt_ in rfftmlt2.o
+  "_sgemvx1_", referenced from:
+      _sums2i_ in sums2i.o
+      _sums2r_ in sums2r.o
+  "_sgerx1_", referenced from:
+      _fl2i_ in fl2i.o
+ld: symbol(s) not found for architecture x86_64
+collect2: error: ld returned 1 exit status

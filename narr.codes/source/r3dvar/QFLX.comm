@@ -1,0 +1,10 @@
+!-----------------------------------------------------------------------
+      real(4),pointer::FQU(:,:),FQV(:,:),DQFLX(:,:)
+      real(4),pointer::FCU(:,:),FCV(:,:),DCFLX(:,:)
+      real(4),pointer::FQU7(:,:),FQV7(:,:),DQFLX7(:,:)
+      real(4),pointer::FCU7(:,:),FCV7(:,:),DCFLX7(:,:)
+      real(4),pointer::DQADV(:,:),FQNEV1(:,:),FQSEV1(:,:)
+      common/QFLX/FQU,FQV,DQFLX,FCU,FCV,DCFLX
+      common/QFLX/FQU7,FQV7,DQFLX7,FCU7,FCV7,DCFLX7
+      common/QFLX/DQADV,FQNEV1,FQSEV1
+!-----------------------------------------------------------------------

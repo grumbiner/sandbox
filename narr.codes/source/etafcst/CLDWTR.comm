@@ -1,0 +1,6 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /CLDWTR/ 
+     & CWM(IDIM1:IDIM2,JDIM1:JDIM2,LM),U00(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,UL(2*LM)
+     &,LC(IDIM1:IDIM2,JDIM1:JDIM2),SR(IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

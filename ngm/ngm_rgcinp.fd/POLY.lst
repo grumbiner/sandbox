@@ -1,0 +1,134 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/POLY.f 09/30/06 19:45:35
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |C
+          2 |      SUBROUTINE POLY(N,RAD,P)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    POLY        USED BY GLATS ( FROM SELA )
+          6 |C   PRGMMR: TUCCILLO         ORG: W/NMC22    DATE: 86-10-21
+          7 |C
+          8 |C ABSTRACT: USED BY GLATS
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   86-10-21  JIM TUCCILLO
+         12 |C   88-08-02  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         13 |C
+         14 |C USAGE:    CALL POLY ( N, RAD, P )
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     RAD      - ANGLE IN RADIANS
+         17 |C     N        - LOOP INDICE
+         18 |C
+         19 |C   OUTPUT ARGUMENT LIST:
+         20 |C     P        - RESULT OF COMPUTATION
+         21 |C
+         22 |C ATTRIBUTES:
+         23 |C   LANGUAGE: CDC FORTRAN 200
+         24 |C   MACHINE:  CYBER 205
+         25 |C
+         26 |C$$$
+         27 |C
+         28 |      X=  COS(RAD)
+         29 |      Y1=1.
+         30 |      Y2=X
+         31 |      DO 1 I=2,N
+         32 |      G=X*Y2
+         33 |      Y3=G-Y1+G-(G-Y1)/REAL(I)
+         34 |      Y1=Y2
+         35 |      Y2=Y3
+         36 |1     CONTINUE
+         37 |      P=Y3
+         38 |      RETURN
+         39 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+cos                              Pure Intrinsic
+                                 0-28.11
+ 
+g                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-32.7@  0-33.10  0-33.15  0-33.18
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-31.12@  0-33.29
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.23  0-31.16
+ 
+p                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.29  0-37.7@
+ 
+poly                             Subroutine
+                                 0-2.18$
+ 
+rad                              Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.25  0-28.15
+ 
+real                             Pure Intrinsic
+                                 0-33.24
+ 
+x                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-28.7@  0-30.10  0-32.9
+ 
+y1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-29.7@  0-33.12  0-33.20  0-34.7@
+ 
+y2                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-30.7@  0-32.11  0-34.10  0-35.7@
+ 
+y3                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-33.7@  0-35.10  0-37.9
+ 
+** poly   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    POLY.f                      10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      39
+1501-510  Compilation successful for file POLY.f.
+1501-543  Object file created.

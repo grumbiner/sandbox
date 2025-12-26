@@ -1,0 +1,100 @@
+CFPP$ NOCONCUR R
+      SUBROUTINE GOZRIM(QLNT,QLNV,QDERT,EPSI,LAT,RCS2,WGTL)
+      %INCLUDE DBGOZRMT ;
+CRAY       SAVE
+CC
+      DIMENSION          QLNT(#LNT2)
+      DIMENSION          QLNV(#LNUT2)
+      DIMENSION         QDERT(#LNT2)
+      DIMENSION          EPSI(#JCAP2,#JCAP1)
+      DIMENSION          RCS2(#LATG2)
+CC
+      COMMON /GOZCOM/ DXA(#LNT2),DXB(#LNT2)
+CC
+CCC         PART BETWEEN GUARDS MADE INTO SR GGOZRI.
+CCC         7 DEC 1990      M. ROZWODOSKI
+CC
+CC    COMPUTE PLN DERIVATIVES IN IBM ORDER.
+      WCSA=RCS2(LAT)*WGTL/#RERTH
+CC
+      LP0 = 0
+      LP1 = 2
+      LEN = #TWOJ1
+      DO 640  I=1,#JCAP1
+      DO 620 LL=1,LEN
+             QDERT(LL+LP0) = QLNV(LL+LP1) * DXB(LL+LP0)
+  620 CONTINUE
+      LP1 = LP1 + LEN + 2
+      LP0 = LP0 + LEN
+      LEN = LEN - 2
+  640 CONTINUE
+CC
+                  LEND = #LNT2 - 4
+      DO 720 LL=1,LEND
+             QDERT(LL+2) = QDERT(LL+2) + QLNT(LL) * DXA(LL+2)
+  720 CONTINUE
+CC
+      DO 760 LL=1,#LNT2
+             QDERT(LL) = QDERT(LL) * WCSA
+  760 CONTINUE
+CC
+CC
+CC
+      RETURN
+      END
+      SUBROUTINE GGOZRM(EPSI)
+      %INCLUDE DBGGOZRM ;
+CC
+      DIMENSION          EPSI(#JCAP2,#JCAP1)
+CC
+      DIMENSION         DXINT(#LNT2)
+      DIMENSION            DX(#TWOJ1,#JCAP2)
+      DIMENSION          DEPS(#TWOJ1,#JCAP2)
+CC
+      COMMON /GOZCOM/ DXA(#LNT2),DXB(#LNT2)
+CC
+      DO 200 LL=1,#TWOJ1
+             DXINT(2*LL-1) = LL
+             DXINT(2*LL  ) = LL
+  200 CONTINUE
+      LP = 0
+      DO 240  I=1,#JCAP2
+      DO 220 LL=1,#TWOJ1
+             DX(LL,I) = DXINT(LL+LP)
+  220 CONTINUE
+      LP = LP + 2
+  240 CONTINUE
+      DO 280  I=1,#JCAP2
+      DO 260 LL=1,#JCAP1
+             DEPS(2*LL-1,I) = EPSI(I,LL)
+             DEPS(2*LL  ,I) = EPSI(I,LL)
+  260 CONTINUE
+  280 CONTINUE
+      DO 300 LL=1,#TWOJ1
+             DXA(LL) = 0.0
+  300 CONTINUE
+      LP1 = #TWOJ1
+      LEN = #TWOJ1 - 2
+      DO 340  I=1,#JCAP
+      DO 320 LL=1,LEN
+             DXA(LL+LP1) =  DX(LL,I+1) * DEPS(LL,I+1)
+             DXB(LL+LP1) = -DX(LL,I  ) * DEPS(LL,I+2)
+  320 CONTINUE
+      LP1 = LP1 + LEN
+      LEN = LEN - 2
+  340 CONTINUE
+      DO 380  I=1,#JCAP2
+      DO 360 LL=1,#TWOJ1
+             DX(LL,I) = DX(LL,I) - 1.#E0
+  360 CONTINUE
+  380 CONTINUE
+      DO 400 LL=1,#TWOJ1
+             DXB(LL) = -DX(LL,1) * DEPS(LL,2)
+  400 CONTINUE
+CC
+CC    TRANSPOSE SCALAR ARRAYS DXA, DXB, DXC, DXD
+CC    FROM CRAY ORDER TO IBM ORDER.
+      CALL TRANSO (DXA, 2)
+CC
+      RETURN
+      END

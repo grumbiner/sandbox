@@ -1,0 +1,30 @@
+C.................................................................
+C................BEGIN comfphys ..................................
+C....
+      COMMON /comfphys/SLMSK(#LONB2,#LATB2),HPRIME(#LONB2,#LATB2),
+     * SWH(#LONB2,#LEVS,#LATB2),HLW(#LONB2,#LEVS,#LATB2),
+     * SFCNSW(#LONB2,#LATB2),SFCDLW(#LONB2,#LATB2),
+     * COSZEN(#LONB2,#LATB2),XLON(#LONB2,#LATB2),
+     * SDEC,CDEC,SLAG,SOLHR,CLSTP,LASTEP,
+     * CV(#LONB2,#LATB2),CVT(#LONB2,#LATB2),CVB(#LONB2,#LATB2),
+     * ALBEDO(#LONB2,#LATB2),TSFLW(#LONB2,#LATB2),
+     *       DUSFC(#LONB2,#LATB2), DVSFC(#LONB2,#LATB2),
+     *       DTSFC(#LONB2,#LATB2), DQSFC(#LONB2,#LATB2),
+     *      DLWSFC(#LONB2,#LATB2),ULWSFC(#LONB2,#LATB2),
+     *GESHEM(#LONB2,#LATB2),TSEA(#LONB2,#LATB2),F10M(#LONB2,#LATB2),
+     *       DUGWD(#LONB2,#LATB2),DVGWD(#LONB2,#LATB2),
+     *       U10M(#LONB2,#LATB2),V10M(#LONB2,#LATB2),
+     *       T2M(#LONB2,#LATB2),Q2M(#LONB2,#LATB2),
+     *       PSURF(#LONB2,#LATB2),PSMEAN(#LONB2,#LATB2),
+     *TG3(#LONB2,#LATB2),ZORL(#LONB2,#LATB2),PLANTR(#LONB2,#LATB2),
+     *        SHELEG(#LONB2,#LATB2),BENGSH(#LONB2,#LATB2),
+     *        GFLUX(#LONB2,#LATB2),SLRAD(#LONB2),
+     *        SMC(#LONB2,#LATB2,#LSOIL),STC(#LONB2,#LATB2,#LSOIL),
+     *        CANOPY(#LONB2,#LATB2),RUNOFF(#LONB2,#LATB2),
+     *        TMPMAX(#LONB2,#LATB2),TMPMIN(#LONB2,#LATB2),
+     *        EP(#LONB2,#LATB2),CLDWRK(#LONB2,#LATB2),
+     *        HPBL(#LONB2,#LATB2),PWAT(#LONB2,#LATB2)
+      LOGICAL LASTEP
+C.................................................................
+C................sof   comfphys ..................................
+C....

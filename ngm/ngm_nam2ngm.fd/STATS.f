@@ -1,0 +1,178 @@
+      SUBROUTINE STATS (FIELDIN, ILOW, IHIGH, IMAX, JLOW, JHIGH, JMAX,
+     1                  KLOW, KHIGH, KMAX, LABEL)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    STATS       COMPUTES AND PRINTS DIAGNOSTICS
+C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+C
+C ABSTRACT: CALCULATES AND PRINT OUT SOME DIAGNOSTICS
+C   FOR THE SPECIFIED FIELD AND PRINT PART OF A REPRESENTATIVE
+C   ROW.  TO REDUCE THE POSSIBILITY OF TRUNCATION ERROR, A
+C   REPRESENTATIVE VALUE IS SUBTRACTED FROM THE FIELD.
+C
+C PROGRAM HISTORY LOG:
+C   85-03-27  JIM HOKE
+C   88-08-03  BRIAN SCHMIDT ADDED THE DOCBLOCK
+C
+C USAGE:    CALL STATS (FIELDIN, ILOW, IHIGH, IMAX, JLOW, JHIGH,
+C                       JMAX, KLOW, KHIGH, KMAX, LABEL)
+C   INPUT ARGUMENT LIST:
+C     FIELDIN  - FIELD FROM WHICH SOME STATS ARE GENERATED
+C     ILOW     - LOWER BOUND OF FIRST INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     IHIGH    - UPPER BOUND OF FIRST INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     IMAX     - FIRST DIMENSION OF ARRAY FIELDIN
+C     JLOW     - LOWER BOUND OF SECOND INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     JHIGH    - UPPER BOUND OF SECOND INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     JMAX     - SECOND DIMENSION OF ARRAY FIELDIN
+C     KLOW     - LOWER BOUND OF THIRD INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     KHIGH    - UPPER BOUND OF THIRD INDICE TO BE USED WHEN
+C                GENERATING STATISTICS
+C     KMAX     - THIRD DIMENSION OF ARRAY FIELDIN
+C     LABEL    - CHARACTER DESCRIPTION OF ARRAY FIELDIN
+C
+C   OUTPUT FILES:
+C     FT06F001 - FOR PRINTOUT
+C
+C ATTRIBUTES:
+C   LANGUAGE: CYBER FORTRAN 200
+C   MACHINE:  CYBER 205
+C
+C$$$
+C
+      REAL FIELDIN
+C
+      CHARACTER*16 LABEL
+C
+      DIMENSION FIELDIN(IMAX, JMAX, KMAX)
+C
+      DATA IACCUM /0/
+C
+      IPRINT = MIN(32,IHIGH-ILOW+1)
+      JPRINT = (JLOW + JHIGH) / 2
+      POINTS = REAL((IHIGH-ILOW+1) * (JHIGH-JLOW+1))
+C
+      WRITE (6, 50) LABEL
+   50 FORMAT(/'0', 'STATISTICS AND REPRESENTATIVE VALUES OF ',
+     1            '------------------', A16,
+     2            '  ------------------')
+C
+      DO 500 K=KLOW,KHIGH
+         REF = REAL (FIELDIN(IPRINT,JPRINT,K))
+         SUM1 =  0.0E0
+         SUM2 =  0.0E0
+         AMIN =  1.0E+20
+         AMAX = -1.0E+20
+C
+         DO 200 J=JLOW,JHIGH
+         DO 200 I=ILOW,IHIGH
+C
+            A    = REAL (FIELDIN(I,J,K))
+            SUM1 = SUM1 + (A - REF)
+            SUM2 = SUM2 + (A - REF)*(A - REF)
+C
+C     LOOK FOR THE MAXIMUM VALUE.
+            IF(A .GT. AMAX) THEN
+               AMAX = A
+               MAXI = I
+               MAXJ = J
+            END IF
+C
+C
+C     LOOK FOR THE MINIMUM VALUE.
+            IF (A .LT. AMIN) THEN
+               AMIN = A
+               MINI = I
+               MINJ = J
+            END IF
+C
+  200    CONTINUE
+C
+            AMEAN = (SUM1 / POINTS) + REF
+            RMS2 =  (SUM2 / POINTS)
+     1             + REF * (2.0E0 * AMEAN - REF)
+            AMEAN2 = AMEAN * AMEAN
+            SD2    = RMS2 - AMEAN2
+C
+            IF (SD2 .LT. 0.0E0) THEN
+               WRITE (6, 210) K, AMEAN, AMEAN2, SD2, RMS2
+  210          FORMAT ('0', 'LAYER=', I2, ', ********** ',
+     1                      'IN SR STATS, AMEAN, AMEAN2, SD2, RMS2 =',
+     2                      4(1PE15.6))
+C
+               SD  = 0.0E0
+               RMS = ABS(AMEAN)
+C
+            ELSE
+C
+               IF (RMS2 .LT. 0.0E0) THEN
+                  WRITE (6, 210) K, AMEAN, AMEAN2, SD2, RMS2
+                  SD   = 0.0E0
+                  RMS  = 0.0E0
+               ELSE
+C
+                  SD    = SQRT(SD2)
+                  RMS   = SQRT(RMS2)
+               END IF
+C
+            END IF
+C
+C     UPDATE THE PARITY CHECK.
+C     THE STANDARD DEVIATION IS NORMALIZED TO OBTAIN A VALUE BETWEEN
+C     1 AND 10, WHICH IS THEN MULTIPLIED BY 1,000,000 TO OBTAIN
+C     A 7 DIGIT INTEGER.  THE 7 DIGITS ARE SUMMED AND ADDED TO
+C     THE ACCUMULATION SO FAR FOR THIS JOB.
+C     NOTHING IS DONE IF THE STANDARD DEVIATION IS ZERO.
+C
+            IF (SD .LE. 0.0E0) GO TO 290
+C
+            EXPON = LOG10(SD)
+            IF (EXPON .LT. 0.0E0) GO TO 220
+C     THE SD IS GREATER THAN OR EQUAL TO 1.
+            FACTOR = 10.0E+0 ** REAL(INT(EXPON))
+      GO TO 240
+C
+  220 CONTINUE
+C     THE SD IS LESS THAN 1 (AND GREATER THAN ZERO.)
+      FACTOR = 10.0E+0 ** REAL(INT( EXPON  - 1.0E+0))
+C
+  240 CONTINUE
+      NORMAL = INT( (SD / FACTOR) * 1.0E+6)
+C
+  260 CONTINUE
+C
+      IQUOT1 = NORMAL
+      DO 280 N=1,7
+      IQUOT2 = IQUOT1 / 10
+      IREM   = IQUOT1 - 10 * IQUOT2
+      IACCUM = IACCUM + IREM
+      IQUOT1 = IQUOT2
+C
+C**** WRITE (6, 270) N, NORMAL, IQUOT2, IREM, IACCUM, IQUOT1
+C*270 FORMAT (' ', 'STATS=', 6I10)
+C
+  280 CONTINUE
+C
+  290 CONTINUE
+C
+      PRINT 300, K, AMEAN, SD, RMS, AMIN, MINI, MINJ, AMAX, MAXI,
+     1           MAXJ, IACCUM
+  300 FORMAT ('0', 'LAYER=', I2, ', MEAN=', 1PE13.6,
+     1             ', SD=',   1PE13.6, ', RMS=', 1PE13.6,
+     2             ', MIN=',  1PE13.6, '(', I3, ',', I3, ')',
+     3             ', MAX=',  1PE13.6, '(', I3, ',', I3, ')',
+     4             ',PC=',   I6)
+C
+C     PRINT 400, JPRINT, (FIELDIN(I,JPRINT,K), I=1,IPRINT)
+C 400 FORMAT (' ', 'ROW=', I3, ':', 8(1PE15.6)/
+C    1       (' ', 8X, 8(1PE15.6)))
+C
+  500 CONTINUE
+C
+      RETURN
+C
+      END

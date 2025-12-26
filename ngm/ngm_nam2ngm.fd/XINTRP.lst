@@ -1,0 +1,193 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/XINTRP.f 09/30/06 19:44:07
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE xintrp(Y,X,XBAR,N,AINTRP)
+          2 |c     FUNCTION xintrp(Y,X,XBAR,N)
+          3 |      IMPLICIT REAL (A-H,O-Z)
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    XINTRP      VERTICAL INTERPOLATION FUNCTION (AIKEN)
+          7 |C   PRGMMR: DEAVEN           ORG: W/NMC22    DATE: 85-01-31
+          8 |C
+          9 |C ABSTRACT: PROGRAM TO PERFORM VERTICAL INTERPOLATION FROM A PROFILE
+         10 |C   OF VALUES (Y) AT LOG PRESSURES (X) TO A PARTICULAR POINT (XBAR)
+         11 |C   USING AN ITERATIVE AIKEN SCHEME WHICH IS VARIABLE ORDER IN LN P.
+         12 |C
+         13 |C PROGRAM HISTORY LOG:
+         14 |C   85-01-31  DEAVEN
+         15 |C   88-07-28  DIMEGO      DOCBLOCK & HALF PRECISION
+         16 |C   89-03-28  DEAVEN      MODIFIED TO BE AT MOST QUADRATIC
+         17 |C
+         18 |C USAGE:    WXYZ = XINTRP(Y,X,XBAR,N)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     Y        - ARRAY CONTAINING SOURCE VALUES
+         21 |C     X        - ARRAY OF LEVELS AT WHICH WE HAVE Y
+         22 |C     XBAR     - LEVEL VALUE AT WHICH WE WANT A VALUE
+         23 |C     N        - NUMBER OF LEVELS IN ARRAYS X AND Y
+         24 |C
+         25 |C   OUTPUT ARGUMENT LIST:
+         26 |C     XINTRP   - FUNCTION VALUE IS INTERPOLATED VALUE OF Y AT XBAR
+         27 |C
+         28 |C REMARKS: SENSITIVE TO UNEQUAL SPACING IN X
+         29 |C
+         30 |C ATTRIBUTES:
+         31 |C   LANGUAGE: STANDARD FORTRAN
+         32 |C   MACHINE:
+         33 |C
+         34 |C$$$
+         35 |        PARAMETER (K15=SELECTED_REAL_KIND(15))
+         36 |        DIMENSION Y(40),P(50,50)
+         37 |        REAL(KIND=K15) X(51),XBAR,R(50),RMIN
+         38 |C
+         39 |        DO 333 I = 1,N
+         40 |          R(I) = X(I) - XBAR
+         41 |          P(I,1) = Y(I)
+         42 |c         print *,'in xintrp ',i,n,r(i),x(i),y(i),xbar
+         43 |333     CONTINUE
+         44 |        RMIN = 9.E+7
+         45 |        DO 10 I = 1,N
+         46 |          IF(ABS(R(I)).GT.RMIN)GO TO 10
+         47 |            RMIN = ABS(R(I))
+         48 |            IS = I
+         49 |10      CONTINUE
+         50 |        IF(RMIN.EQ.0.0)GO TO 99
+         51 |        IF(IS.LT.2) IS = 2
+         52 |        IF(IS.GE.N) IS = N-1
+         53 |        JS = IS
+         54 |        JE = IS +1
+         55 |c       IF(JE.GT.N) JE = N
+         56 |        IF(JS.LT.3) GO TO 55
+         57 |        DO 334 I = 1,N
+         58 |          P(I,JS-1) = Y(I)
+         59 |334     CONTINUE
+         60 |55      CONTINUE
+         61 |c       DO 1 J = JS,JE
+         62 |c       DO 1 I = J,JE
+         63 |c1      P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         64 |c   J=JS and I=JS
+         65 |        J=JS
+         66 |        I=JS
+         67 |c       print *,'in xintrp1 ',X(I),X(J-1),I,J-1
+         68 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         69 |c   J=JS and I=JE
+         70 |        J=JS
+         71 |        I=JE
+         72 |c       print *,'in xintrp2 ',X(I),X(J-1),I,J-1
+         73 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         74 |c   J=JE and I=JE
+         75 |        J=JE
+         76 |        I=JE
+         77 |c       print *,'in xintrp3 ',X(I),X(J-1),I,J-1
+         78 |        P(I,J) = (P(J-1,J-1)*R(I) - R(J-1)*P(I,J-1))/(X(I)-X(J-1))
+         79 |        AINTRP = P(JE,JE)
+         80 |        RETURN
+         81 |99      AINTRP = Y(IS)
+         82 |        RETURN
+         83 |        END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-46.14  0-47.20
+ 
+aintrp                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.36  0-79.9@  0-81.9@
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-39.16@  0-40.13  0-40.20  0-41.13  0-41.22  0-45.15@  0-46.20  0-47.26  0-48.18  0-57.16@
+                                 0-58.13  0-58.25  0-66.9@  0-68.11  0-68.32  0-68.46  0-68.57  0-71.9@  0-73.11  0-73.32  0-73.46
+                                 0-73.57  0-76.9@  0-78.11  0-78.32  0-78.46  0-78.57
+ 
+is                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.13@  0-51.12  0-51.21@  0-52.12  0-52.21@  0-53.14  0-54.14  0-81.20
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.9@  0-68.13  0-68.21  0-68.25  0-68.39  0-68.48  0-68.62  0-70.9@  0-73.13  0-73.21  0-73.25
+                                 0-73.39  0-73.48  0-73.62  0-75.9@  0-78.13  0-78.21  0-78.25  0-78.39  0-78.48  0-78.62
+ 
+je                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-54.9@  0-71.11  0-75.11  0-76.11  0-79.20  0-79.23
+ 
+js                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-53.9@  0-56.12  0-58.15  0-65.11  0-66.11  0-70.11
+ 
+k15                              Parameter, Integer(4)
+                                 0-35.20$  0-37.19
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.34  0-39.22  0-45.21  0-52.18  0-52.26  0-57.22
+ 
+p                                Automatic, Real(4) (1:50, 1:50), Offset: 0, Alignment: full word
+                                 0-36.25$  0-41.11@  0-58.11@  0-68.9@  0-68.19  0-68.44  0-73.9@  0-73.19  0-73.44  0-78.9@
+                                 0-78.19  0-78.44  0-79.18
+ 
+r                                Automatic, Real(8) (1:50), Offset: 0, Alignment: double word
+                                 0-37.35$  0-40.11@  0-46.18  0-47.24  0-68.30  0-68.37  0-73.30  0-73.37  0-78.30  0-78.37
+ 
+rmin                             Automatic, Real(8), Offset: 0, Alignment: double word
+                                 0-37.41$  0-44.9@  0-46.27  0-47.13@  0-50.12
+ 
+x                                Reference argument, Real(8) (1:51), Offset: 0, Alignment: double word
+                                 0-37.24$  0-1.27  0-40.18  0-68.55  0-68.60  0-73.55  0-73.60  0-78.55  0-78.60
+ 
+xbar                             Reference argument, Real(8), Offset: 0, Alignment: double word
+                                 0-37.30$  0-1.29  0-40.25
+ 
+xintrp                           Subroutine
+                                 0-1.18$
+ 
+y                                Reference argument, Real(4) (1:40), Offset: 0, Alignment: full word
+                                 0-36.19$  0-1.25  0-41.20  0-58.23  0-81.18
+ 
+** xintrp   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    XINTRP.f                    10/09/02   12:46:06
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      83
+1501-510  Compilation successful for file XINTRP.f.
+1501-543  Object file created.

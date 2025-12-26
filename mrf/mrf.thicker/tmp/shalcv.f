@@ -1,0 +1,189 @@
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FPKAP)
+C-----------------------------------------------------------------------
+      SUBROUTINE SHALCV(IM,IX,KM,DT,DEL,SI,SL,SLK,KUO,PS,Q,T)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:   SHALCV       COMPUTES SHALLOW CONVECTIVE HEATING AND MOI
+C   PRGMMR: PETER CAPLAN     ORG: W/NMC23    DATE: 91-03-19
+C
+C ABSTRACT: SUB-GRID-SCALE SHALLOW CONVECTIVE CLOUD PARAMETERIZATION.
+C   THIS ROUTINE COMPUTES THE EFFECTS OF SHALLOW CONVECTION
+C   BASED ON TIEDTKE (1984), ECMWF WORKSHOP ON CONVECTION IN
+C   LARGE-SCALE NUMERICAL MODELS.
+C   TAPERED K PROFILE IN CLOUD DEVELOPED BY CAPLAN AND LONG.
+C   ORIGINALLY CODED BY R. KISTLER AND P. CAPLAN, CONVERTED TO STANDARD
+C   FORTRAN FOR CRAY BY H.JUANG. H. PAN MODIFIED IT AND KUO91 TO
+C   DO MSTADB AFTER COMPRESSION AND THE REST OF THE COMPUTATION
+C   IN COMPRESSED ARRAYS. TIDY UP OF MOIST PROCESSES BY M. IREDELL.
+C
+C PROGRAM HISTORY LOG:
+C   91-03-19  HUA-LU PAN
+C   91-05-07  IREDELL             ARGUMENTS CHANGED, TRIDI2 SPLIT OFF
+C
+C USAGE:    CALL SHALCV(IM,KM,DT,DEL,SI,SL,SLK,KUO,PS,Q,T)
+C
+C   INPUT ARGUMENT LIST:
+C     IM       - INTEGER NUMBER OF POINTS
+C     KM       - INTEGER NUMBER OF LEVELS
+C     DT       - REAL TIME STEP IN SECONDS
+C     DEL      - REAL (KM) SIGMA LAYER THICKNESS
+C     SL       - REAL (KM) SIGMA VALUES
+C     SLK      - REAL (KM) SIGMA VALUES TO THE KAPPA
+C     PS       - REAL (IM) SURFACE PRESSURE IN KILOPASCALS (CB)
+C     Q        - REAL (IM,KM) CURRENT SPECIFIC HUMIDITY IN KG/KG
+C     T        - REAL (IM,KM) CURRENT TEMPERATURE IN KELVIN
+C
+C   OUTPUT ARGUMENT LIST:
+C     Q        - REAL (IM,KM) ADJUSTED SPECIFIC HUMIDITY IN KG/KG
+C     T        - REAL (IM,KM) ADJUSTED TEMPERATURE IN KELVIN
+C
+C SUBPROGRAMS CALLED:
+C   MSTADB   - COMPUTES MOIST ADIABAT AND RETURNS CLOUD VALUES
+C   TRIDI2   - SOLVES TRIDIAGONAL MATRIX PROBLEM
+C
+C REMARKS: NONSTANDARD AUTOMATIC ARRAYS ARE USED.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN 77.
+C   MACHINE:  CRAY.
+C
+C$$$
+      DIMENSION DEL(KM),SI(KM+1),SL(KM),SLK(KM),KUO(IM),PS(IM),
+     &          Q(IX,KM),T(IX,KM)
+C  PHYSICAL PARAMETERS
+      PARAMETER(G= 9.8000E+0 ,RD= 2.8705E+2 ,
+     &          CP= 1.0046E+3 ,HVAP= 2.5000E+6 )
+      PARAMETER(GOCP=G/CP)
+C  BOUNDS OF PARCEL ORIGIN
+      PARAMETER(KLIFTL=2,KLIFTU=2)
+C  LOCAL VARIABLES AND ARRAYS
+      LOGICAL LSHC
+      DIMENSION LSHC(IM)
+      DIMENSION INDEX2(IM),KLCL(IM),KBOT(IM),KTOP(IM)
+      DIMENSION PS2(IM),
+     &          Q2(IM*KM),T2(IM*KM),
+     &          AL(IM*(KM-1)),AD(IM*KM),AU(IM*(KM-1))
+C-----------------------------------------------------------------------
+C  COMPRESS FIELDS TO POINTS WITH NO DEEP CONVECTION
+C  AND MOIST STATIC INSTABILITY.
+      DO I=1,IM
+        LSHC(I)=.FALSE.
+      ENDDO
+      DO K=1,KM-1
+        DO I=1,IM
+          IF(KUO(I).EQ.0) THEN
+            ELDQ=HVAP*(Q(I,K)-Q(I,K+1))
+            CPDT=CP*(T(I,K)-T(I,K+1))
+            RTDLS=(SL(K)-SL(K+1))/SI(K+1)*RD*0.5*(T(I,K)+T(I,K+1))
+            DMSE=ELDQ+CPDT-RTDLS
+            LSHC(I)=LSHC(I).OR.DMSE.GT.0.
+          ENDIF
+        ENDDO
+      ENDDO
+      N2=0
+      DO I=1,IM
+        IF(LSHC(I)) THEN
+          N2=N2+1
+          INDEX2(N2)=I
+        ENDIF
+      ENDDO
+      IF(N2.EQ.0) RETURN
+      DO I=1,N2
+        PS2(I)=PS(INDEX2(I))
+      ENDDO
+      DO K=1,KM
+CFPP$ SELECT(VECTOR)
+        DO I=1,N2
+          IK=(K-1)*N2+I
+          Q2(IK)=Q(INDEX2(I),K)
+          T2(IK)=T(INDEX2(I),K)
+        ENDDO
+      ENDDO
+C-----------------------------------------------------------------------
+C  COMPUTE MOIST ADIABAT AND DETERMINE LIMITS OF SHALLOW CONVECTION.
+C  CHECK FOR MOIST STATIC INSTABILITY AGAIN WITHIN CLOUD.
+      CALL MSTADB(N2,KM-1,KLIFTL,KLIFTU,SL,SLK,PS2,T2,Q2,
+     &            KLCL,KBOT,KTOP,AL,AU)
+      DO I=1,N2
+        KBOT(I)=KLCL(I)-1
+        KTOP(I)=KTOP(I)+1
+        LSHC(I)=.FALSE.
+      ENDDO
+      DO K=1,KM-1
+        DO I=1,N2
+          IF(K.GE.KBOT(I).AND.K.LT.KTOP(I)) THEN
+            IK=(K-1)*N2+I
+            IKU=K*N2+I
+            ELDQ=HVAP*(Q2(IK)-Q2(IKU))
+            CPDT=CP*(T2(IK)-T2(IKU))
+            RTDLS=(SL(K)-SL(K+1))/SI(K+1)*RD*0.5*(T2(IK)+T2(IKU))
+            DMSE=ELDQ+CPDT-RTDLS
+            LSHC(I)=LSHC(I).OR.DMSE.GT.0.
+            AU(IK)=G/RTDLS
+          ENDIF
+        ENDDO
+      ENDDO
+      K1=KM+1
+      K2=0
+      DO I=1,N2
+        IF(.NOT.LSHC(I)) THEN
+          KBOT(I)=KM+1
+          KTOP(I)=0
+        ENDIF
+        K1=MIN(K1,KBOT(I))
+        K2=MAX(K2,KTOP(I))
+      ENDDO
+      KT=K2-K1+1
+      IF(KT.LT.2) RETURN
+C-----------------------------------------------------------------------
+C  SET EDDY VISCOSITY COEFFICIENT CKU AT SIGMA INTERFACES.
+C  COMPUTE DIAGONALS AND RHS FOR TRIDIAGONAL MATRIX SOLVER.
+C  EXPAND FINAL FIELDS.
+      DO I=1,N2
+        IK=(K1-1)*N2+I
+        AD(IK)=1.
+      ENDDO
+      DTODSU=2.*DT/DEL(K1)
+      DO K=K1,K2-1
+        DTODSL=DTODSU
+        DTODSU=2.*DT/DEL(K+1)
+        DSIG=SL(K)-SL(K+1)
+        DO I=1,N2
+          IK=(K-1)*N2+I
+          IKU=K*N2+I
+          IF(K.EQ.KBOT(I)) THEN
+            CK=1.5
+          ELSEIF(K.EQ.KTOP(I)-1) THEN
+            CK=1.
+          ELSEIF(K.EQ.KTOP(I)-2) THEN
+            CK=3.
+          ELSEIF(K.GT.KBOT(I).AND.K.LT.KTOP(I)-2) THEN
+            CK=5.
+          ELSE
+            CK=0.
+          ENDIF
+          DSDZ1=CK*DSIG*AU(IK)*GOCP
+          DSDZ2=CK*DSIG*AU(IK)*AU(IK)
+          AU(IK)=-DTODSL*DSDZ2
+          AL(IK)=-DTODSU*DSDZ2
+          AD(IK)=AD(IK)-AU(IK)
+          AD(IKU)=1.-AL(IK)
+          T2(IK)=T2(IK)+DTODSL*DSDZ1
+          T2(IKU)=T2(IKU)-DTODSU*DSDZ1
+        ENDDO
+      ENDDO
+      IK1=(K1-1)*N2+1
+      CALL TRIDI2(N2,KT,AL(IK1),AD(IK1),AU(IK1),Q2(IK1),T2(IK1),
+     &                                  AU(IK1),Q2(IK1),T2(IK1))
+      DO K=K1,K2
+CFPP$ SELECT(VECTOR)
+        DO I=1,N2
+          IK=(K-1)*N2+I
+          Q(INDEX2(I),K)=Q2(IK)
+          T(INDEX2(I),K)=T2(IK)
+        ENDDO
+      ENDDO
+C-----------------------------------------------------------------------
+      RETURN
+      END

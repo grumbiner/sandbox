@@ -1,0 +1,107 @@
+cdate.f:65:51:
+
+      5   4HOCT.,             4HNOV.,             4HDEC.
+                                                   1
+Warning: Legacy Extension: Hollerith constant at (1)
+cdate.f:62:11:
+
+      2   4HJAN.,             4HFEB.,             4HMAR.,
+           1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:62:31:
+
+      2   4HJAN.,             4HFEB.,             4HMAR.,
+                               1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:62:51:
+
+      2   4HJAN.,             4HFEB.,             4HMAR.,
+                                                   1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:63:11:
+
+      3   4HAPR.,             4HMAY ,             4HJUNE,
+           1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:63:31:
+
+      3   4HAPR.,             4HMAY ,             4HJUNE,
+                               1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:63:51:
+
+      3   4HAPR.,             4HMAY ,             4HJUNE,
+                                                   1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:64:11:
+
+      4   4HJULY,             4HAUG.,             4HSEP.,
+           1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:64:31:
+
+      4   4HJULY,             4HAUG.,             4HSEP.,
+                               1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:64:51:
+
+      4   4HJULY,             4HAUG.,             4HSEP.,
+                                                   1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:65:11:
+
+      5   4HOCT.,             4HNOV.,             4HDEC.
+           1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:65:31:
+
+      5   4HOCT.,             4HNOV.,             4HDEC.
+                               1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+cdate.f:65:51:
+
+      5   4HOCT.,             4HNOV.,             4HDEC.
+                                                   1
+Warning: Extension: Conversion from HOLLERITH to INTEGER(4) at (1)
+gbphys.f:377:14:
+
+gbphys.f:374:72:
+
+       DO 351 N=2, 1
+                                                                        2
+gbphys.f:377:14:
+
+       GQ0(J,K,N)=QGRS(J,K,N)
+              1
+Warning: Array reference at (1) out of bounds (2 > 1) in loop beginning at (2)
+gbphys.f:377:26:
+
+gbphys.f:374:72:
+
+       DO 351 N=2, 1
+                                                                        2
+gbphys.f:377:26:
+
+       GQ0(J,K,N)=QGRS(J,K,N)
+                          1
+Warning: Array reference at (1) out of bounds (2 > 1) in loop beginning at (2)
+hconst.f:326:19:
+
+       H1M60=1.0E-60
+                   1
+Warning: Real constant underflows its kind at (1) [-Wunderflow]
+prtime.f:5:40:
+
+       DATA       SIGN/1H-/,      SIGB/1H /
+                                        1
+Warning: Legacy Extension: Hollerith constant at (1)
+prtime.f:5:40:
+
+       DATA       SIGN/1H-/,      SIGB/1H /
+                                        1
+Warning: Extension: Conversion from HOLLERITH to REAL(4) at (1)
+prtime.f:5:24:
+
+       DATA       SIGN/1H-/,      SIGB/1H /
+                        1
+Warning: Extension: Conversion from HOLLERITH to REAL(4) at (1)

@@ -1,0 +1,17 @@
+C-------------------------------------------------------------
+C***  SET PRIMARY GRID DIMENSIONS AND PRESSURE OUTPUT LEVELS
+      PARAMETER (IM=237,JM=387,LM=45,LSM=39)
+C-------------------------------------------------------------
+C***  SET THE NUMBER OF PEs IN THE I-DIRECTION AND J-DIRECTION
+      PARAMETER(INPES=3,JNPES=5)
+C-------------------------------------------------------------
+C
+      PARAMETER(IGSTL=-5,IGSTR=5)
+      PARAMETER(JGSTL=-5,JGSTR=5)
+      PARAMETER(ITAIL=IM-(INPES*(IM/INPES)))
+      PARAMETER(JTAIL=JM-(JNPES*(JM/JNPES)))
+C
+      PARAMETER(IDIM1=IGSTL,IDIM2=IM/INPES+IGSTR+1)
+      PARAMETER(JDIM1=JGSTL,JDIM2=JM/JNPES+JGSTR+1)
+C
+C-------------------------------------------------------------

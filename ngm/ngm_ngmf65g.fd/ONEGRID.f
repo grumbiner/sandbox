@@ -1,0 +1,2480 @@
+      SUBROUTINE ONEGRID ( NG , NPAIR, LASTSTEP )
+C***  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    ONEGRID     ADVANCE GRID NG BY FULL LAX-WENDROFF STEP
+C   PRGMMR: J TUCCILLO       ORG: W/NMC4      DATE: 90-06-25
+C
+C ABSTRACT:
+C   .       ADVANCE THE SINGLE GRID NG IN TIME BY
+C   .          ONE FULL LAX-WENDROFF TIME STEP.
+C   .
+C PROGRAM HISTORY LOG:
+C   90-06-25  J TUCCILLO
+C   91-04-02  R WOBUS (CALCULATE SIGDOT)
+C   99-05-20  J TUCCILLO IBM SP VERSION WITH OPENMP
+C
+C USAGE:  CALL ONEGRID( NG, NPAIR, LASTSTEP )
+C   INPUT ARGUMENT LIST:
+C     NG       - GRID NUMBER (OUTER HEMISPHERIC GRID HAS
+C                NG EQUAL TO 1.)
+C     NPAIR    - 1 FOR THE FIRST OF A PAIR OF CALLS TO
+C                THIS GRID, 2 FOR THE SECOND OF A PAIR.
+C     LASTSTEP - A FLAG WHICH WHEN EQUAL TO 1 INDICATES
+C                THAT THIS IS THE LAST STEP FOR THIS
+C                GRID WITHIN A COMPLETE (GRID A)
+C                TIME STEP.
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - P2KAP
+C     LIBRARY:
+C       COMMON   - COMCONST
+C                  COMBLANK
+C                  COMDIAG
+C
+C REMARKS:
+C   .
+C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C   .
+C   NAMES     MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----     ----------------------------------        ---------
+C   VBL        ARRAY CONTAINING ALL VBLS FOR ALL GRIDS   COMMON
+C   .
+C   BITGRDX    (X = H, U, V) BIT VECTORS TO CONTROL      COMMON
+C   .             STORAGE OF UPDATED VBLS ONLY AT
+C   .             LEGITIMATE FORECAST POINTS.
+C   .
+C   BITSEA     BIT VECTOR (1 OVER WATER) TO ALLOW DIFF.  COMMON
+C                 TREATMENTS OF SURFACE EXCHANGES.
+C   .
+C   IMG,JMG    HORIZONTAL DIMENSIONS OF ALL GRIDS.       COMMON
+C   .
+C   KM         NUMBER OF HORIZONTAL LVLS. FOR ALL GRIDS  COMMON
+C   .
+C   NH         NH + 0.5 IS THE NUMBER OF GRID INTERVALS  COMMON
+C   .             ON GRID 1 BETWEEN POLE AND EQUATOR.
+C   .
+C   IAG,IBG,   GRID COORDINATES DEFINING THE 'HOLE' ON   COMMON
+C   JAG,JBG    A COARSE GRID THAT IS COVERED BY THE      COMMON
+C   .             NEXT FINER GRID.
+C   .
+C   IADDRG     INITIAL ADDRESSES IN VBL FOR EACH TYPE    COMMON
+C   .             OF DATA FOR EACH GRID.
+C   .
+C   XPOLEH,    VALUES OF I AND J AT THE NORTH POLE FOR   COMMON
+C   YPOLEH     H POINTS  ON ALL GRIDS.
+C   .
+C   DELSIG     VERTICAL SIGMA DIFFS. ACROSS EACH LAYER   COMMON
+C   .
+C   SIGINT     SIGMA VALUES AT THE KM + 1 INTERFACES.    COMMON
+C   .
+C   PR         HALF OF (1-SIGMA) TO THE KAPPA POWER.     COMMON
+C   .
+C   NTIME      TIME STEP(ADVANCES BY ONE FOR EACH STEP   COMMON
+C   .             ON THE OUTER GRID(NG = 1) ).
+C   .
+C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C   .
+C   NAMES     MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----     ----------------------------------        ---------
+C   VBL        UPDATED VARIABLES.                         COMMON
+C   .
+C   SIGDOT     RMS VALUE OF D(SIGMA)/DT TIMES H FOR THE   COMMON
+C   .          FINEST GRID.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+      INCLUDE 'parmodel'
+C
+      PARAMETER ( P5 = 0.5, ZERO = 0.0, ONE = 1.0, P609 = 0.609,
+     *            TWO = 2.0, ONEP5 = 1.5, IKMM1 = IKM - 1 )
+      PARAMETER ( DEF2D = 27.0 / 24.0, DEF4D = -1.0 / 24.0,
+     *            AVE2D =  9.0 /  8.0, AVE4D = -1.0 / 16.0 )
+      PARAMETER ( CSUBP = 1005.E0 )
+      REAL C11U
+C
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+      COMMON /COMDIAG/  KADIAB( IKM, INGRDUSE ),
+     1                  NPTSDHQ (2, INGRDUSE),
+     2                  KKCLOUD2(2, INGRDUSE), NPTSBUOY(2, INGRDUSE),
+     3                  NPTSWATR(2, INGRDUSE), NPTSCC  (2, INGRDUSE),
+     4                  KKGSP2  (2, INGRDUSE),
+     5                  KKGSE2  (2, INGRDUSE),
+     6                  NPTSSAT (IKM, 2, INGRDUSE),
+     7                  NPTSEVAP(IKM, 2, INGRDUSE),
+     8                  NPTSGSP (2, INGRDUSE), NUMPROF,
+     9                  PPTCC   (2, INGRDUSE), PPTGSP  (2, INGRDUSE),
+     1                  ALATPR  (IMAXPROF),    ALONPR  (IMAXPROF),
+     2                  DESCRP  (IMAXPROF)
+C
+      CHARACTER*24 DESCRP
+C
+      DIMENSION    DICOR(IIJMAX),  DJCOR(IIJMAX), SINLAT(IIJMAX),
+     1             EM2C(IIJMAX),   EM2H(IIJMAX),  GRNDP(IIJMAX),
+     2             EMU(IIJMAX),    EM2U(IIJMAX),  EMUIN(IIJMAX),
+     3             EMV(IIJMAX),    EM2V(IIJMAX),  EMVIN(IIJMAX)
+C
+      DIMENSION    S1(IIJMAX),     S2(IIJMAX),    S3(IIJMAX),
+     1             S4(IIJMAX),     S5(IIJMAX),    S6(IIJMAX),
+     2             S7(IIJMAX),     S8(IIJMAX),    S9(IIJMAX) ,
+     3             HP(IIJMAX),    S11(IIJMAX), S12(IIJMAX) ,
+     4            S13(IIJMAX),    S14(IIJMAX), S15(IIJMAX) ,
+     5            S16(IIJMAX),    S17(IIJMAX), S18(IIJMAX) ,
+     6            S19(IIJMAX),    S20(IIJMAX), S21(IIJMAX) ,
+     7            S22(IIJMAX),    S23(IIJMAX)
+C
+      DIMENSION    U(IIJKMAX),     V(IIJKMAX),    TH(IIJKMAX),
+     1             Q(IIJKMAX),
+     2             UP(IIJKMAX),    VP(IIJKMAX),   THP(IIJKMAX),
+     2             THPATH(IIJKMAX),
+     3             QP(IIJKMAX),    QPATH(IIJKMAX),
+     4             XDIS(IIJKMAX),  YDIS(IIJKMAX), ZDIS(IIJKMAX),
+     5             W(IIJKMAX),     VT(IIJKMAX),   PSI(IIJKMAX),
+     6             CORU(IIJKMAX),  CORV(IIJKMAX), FLX(IIJKMAX),
+     7             CONV(IIJKMAX),  SBAR(IIJKMAX), FLY(IIJKMAX),
+     8             FKS(IIJKMAX)
+C
+      DIMENSION    BITGRH4(IIJMAX, 2, INGRDUSE),
+     1             BITGRU4(IIJMAX, 2, INGRDUSE),
+     2             BITGRV4(IIJMAX, 2, INGRDUSE),
+     3             BITTMP4(IIJMAX, 2, INGRDUSE)
+C
+      LOGICAL BITGRH4, BITGRU4, BITGRV4, BITTMP4
+C
+      LOGICAL LFRST
+C
+      EQUIVALENCE  (SCR(1,1), S1   ),  (SCR(1,2), S2    ),
+     1             (SCR(1,3), S3   ),  (SCR(1,4), S4    ),
+     2             (SCR(1,5), S5   ),  (SCR(1,6), S6    ),
+     3             (SCR(1,7), S7   ),  (SCR(1,8), S8    ),
+     4             (SCR(1,9), S9   ),  (SCR(1,10),HP    ),
+     5             (SCR(1,11),S11  ),   (SCR(1,12),S12   ),
+     6             (SCR(1,13), S13  ),  (SCR(1,14),S14   ),
+     7             (SCR(1,15), S15  ),  (SCR(1,16),S16   ),
+     8             (SCR(1,17), S17  ),  (SCR(1,18),S18   ),
+     9             (SCR(1,19), S19  ),  (SCR(1,20),S20   ),
+     1             (SCR(1,21), S21  ),  (SCR(1,22),S22   ),
+     2             (SCR(1,23), S23  )
+C
+      EQUIVALENCE  (SCRGEOG(1, 1),DICOR),
+     1             (SCRGEOG(1, 2),DJCOR),  (SCRGEOG(1, 3),SINLAT),
+     2             (SCRGEOG(1, 4),EM2C ),  (SCRGEOG(1, 5),EM2H  ),
+     3             (SCRGEOG(1, 6),EMU  ),  (SCRGEOG(1, 7),EM2U  ),
+     4             (SCRGEOG(1, 8),EMUIN),  (SCRGEOG(1, 9),EMV   ),
+     5             (SCRGEOG(1,10),EM2V ),  (SCRGEOG(1,11),EMVIN ),
+     6             (SCRGEOG(1,12),GRNDP)
+C
+      EQUIVALENCE  (SCR3(1,1), U,          FLX               ),
+     1             (SCR3(1,2), V,          FLY               ),
+     2             (SCR3(1,3), TH,      SBAR                 ),
+     3             (SCR3(1,4), Q                             ),
+     4             (SCR3(1,5), UP                            ),
+     5             (SCR3(1,6), VP,  THPATH, QPATH            ),
+     6             (SCR3(1,7), THP                           ),
+     7             (SCR3(1,8), QP                            ),
+     8             (SCR3(1,9), W,   XDIS, VT,  CORV          ),
+     9             (SCR3(1,10),ZDIS,YDIS, PSI, CORU,CONV,FKS )
+C
+      INTEGER I1X,I2X
+      REAL COFD1,COFD2,COFD3,COFD4,COFN1,COFN2,COFN3
+      PARAMETER (COFD1 = 1., COFD2 = 5.44053037, COFD3 = 2.27693825, 
+     1   COFD4 = -0.0869930591, COFN1 = 0.34757549, COFN2 = 4.36732956, 
+     2   COFN3 = 3.91557032)
+      DATA  LFRST / .TRUE. /
+C
+!$OMP PARALLEL DO
+      DO 2991 IQ2 = 1, IMAXSCR
+         SCR(IQ2,1) = ZERO
+ 2991 CONTINUE
+C
+      IF ( LFRST ) THEN
+         LFRST = .FALSE.
+         DO 10001 IQ2 = 1, IIJMAX * 2 * INGRDUSE
+             BITGRH4(IQ2,1,1) = .FALSE.
+             BITGRU4(IQ2,1,1) = .FALSE.
+             BITGRV4(IQ2,1,1) = .FALSE.
+             BITTMP4(IQ2,1,1) = .FALSE.
+10001    CONTINUE
+C
+            DO 10 NG0=1, NGRDUSE
+               IM0    = IMG(NG0)
+               JM0    = JMG(NG0)
+               IJM0   = IM0*JM0
+               NSTART =    1 + IM0 + 1
+               NEND   = IJM0 - IM0 - 1
+               IJALL  = NEND - NSTART + 1
+C
+               M   = NSTART
+               MW  = NSTART - 1
+               MWN = NSTART - 1 + IM0
+               MWS = NSTART - 1 - IM0
+               ME  = NSTART + 1
+               MEN = NSTART + 1 + IM0
+               MES = NSTART + 1 - IM0
+               MN  = NSTART + IM0
+               MS  = NSTART - IM0
+C
+            DO 10 NPAIR0=1,2
+            NB = 1 * NPAIR0
+C
+      DO 88890 IQ2=1,IJALL
+         BITGRH4(M+IQ2-1,NPAIR0,NG0)=BITGRDH(M+IQ2-1,NPAIR0,NG0)
+88890 CONTINUE
+          DO 1 NLESS=1,NB
+      DO 88900 IQ2=1,IJALL
+         BITTMP4(M+IQ2-1,NPAIR0,NG0)=BITGRH4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITGRH4(MN+IQ2-1,NPAIR0,NG0).AND.BITGRH4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRH4(ME+IQ2-1,NPAIR0,NG0).AND.BITGRH4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITGRH4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITGRH4(MW+IQ2-1,NPAIR0,NG0).AND.BITGRH4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRH4(MWS+IQ2-1,NPAIR0,NG0)
+88900 CONTINUE
+      DO 88901 IQ2=1,IJALL
+         BITGRH4(M+IQ2-1,NPAIR0,NG0)=BITTMP4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITTMP4(MN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(ME+IQ2-1,NPAIR0,NG0).AND.BITTMP4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITTMP4(MW+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(MWS+IQ2-1,NPAIR0,NG0)
+88901 CONTINUE
+ 1         CONTINUE
+C
+      DO 88920 IQ2=1,IJALL
+         BITGRU4(M+IQ2-1,NPAIR0,NG0)=BITGRDU(M+IQ2-1,NPAIR0,NG0)
+88920 CONTINUE
+          DO 2 NLESS=1,NB
+      DO 88930 IQ2=1,IJALL
+         BITTMP4(M+IQ2-1,NPAIR0,NG0)=BITGRU4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITGRU4(MN+IQ2-1,NPAIR0,NG0).AND.BITGRU4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRU4(ME+IQ2-1,NPAIR0,NG0).AND.BITGRU4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITGRU4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITGRU4(MW+IQ2-1,NPAIR0,NG0).AND.BITGRU4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRU4(MWS+IQ2-1,NPAIR0,NG0)
+88930 CONTINUE
+      DO 88931 IQ2=1,IJALL
+         BITGRU4(M+IQ2-1,NPAIR0,NG0)=BITTMP4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITTMP4(MN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(ME+IQ2-1,NPAIR0,NG0).AND.BITTMP4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITTMP4(MW+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(MWS+IQ2-1,NPAIR0,NG0)
+88931 CONTINUE
+ 2       CONTINUE
+C
+      DO 88950 IQ2=1,IJALL
+         BITGRV4(M+IQ2-1,NPAIR0,NG0)=BITGRDV(M+IQ2-1,NPAIR0,NG0)
+88950 CONTINUE
+          DO 3 NLESS=1,NB
+      DO 88960 IQ2=1,IJALL
+         BITTMP4(M+IQ2-1,NPAIR0,NG0)=BITGRV4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITGRV4(MN+IQ2-1,NPAIR0,NG0).AND.BITGRV4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRV4(ME+IQ2-1,NPAIR0,NG0).AND.BITGRV4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITGRV4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITGRV4(MW+IQ2-1,NPAIR0,NG0).AND.BITGRV4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITGRV4(MWS+IQ2-1,NPAIR0,NG0)
+88960 CONTINUE
+      DO 88961 IQ2=1,IJALL
+         BITGRV4(M+IQ2-1,NPAIR0,NG0)=BITTMP4(M+IQ2-1,NPAIR0,NG0)
+     *   .AND.BITTMP4(MN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MS+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(ME+IQ2-1,NPAIR0,NG0).AND.BITTMP4(M
+     *   EN+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MES+IQ2-1,NPAIR0,NG0).
+     *   AND.BITTMP4(MW+IQ2-1,NPAIR0,NG0).AND.BITTMP4(MWN+IQ2-1,
+     *   NPAIR0,NG0).AND.BITTMP4(MWS+IQ2-1,NPAIR0,NG0)
+88961 CONTINUE
+ 3       CONTINUE
+   10       CONTINUE
+      ENDIF
+C
+C              GET THE GRID SIZE DIVIDED BY TWICE THE
+C              EARTH RADIUS( = DXOV2R) FOR THIS GRID.
+         DXOV2R = ONE / ((FLOAT(NH) + P5) * 2**(NG-1))
+C
+C              THE GRID SIZE IN METERS.
+         DELX = TWO * RADIUS * DXOV2R
+C
+C              HALF THE RATIO OF DELTA TIME TO DELTA X.
+         DTOV2DX = P5 * DTOVDX
+C
+C              ONE FULL TIME STEP IN SECONDS FOR THIS GRID.
+         DTIME = DTOVDX * DELX
+C
+C              GRID ARRAY DIMENSIONS
+         IM = IMG(NG)
+         JM = JMG(NG)
+         IJ = IM * JM
+C
+C              POLE COORDINATES IN I AND J FOR H POINTS.
+         XIP = XPOLEH(NG)
+         YJP = YPOLEH(NG)
+C
+C              ADDRESSES OF THE 1ST POINT(I,J,K)=(1,1,1) OF VBLS IN
+C              ARRAY VBL.
+         MADDU = IADDRG(1,NG)
+         MADDV = IADDRG(2,NG)
+         MADDT = IADDRG(3,NG)
+         MADDQ = IADDRG(4,NG)
+         MADDH = IADDRG(5,NG)
+C
+C              FIRST GET OROGRAPHY AT CENTER OF EACH GRID BOX.
+C              GRNDP = G * GROUND-HEIGHT IN METER / CSUBP
+      LEN22=IJ-3*IM
+      LADD2 = 1 + IM
+      JADD = IADDRG(10,NG)
+      JADDN4 = JADD + 3 * IM
+      JADDS4 = JADD
+!$OMP PARALLEL
+!$OMP DO
+      DO 88980 IQ2=1,IJ
+         GRNDP(IQ2)=P5*(VBL(JADD+IQ2-1)+VBL(JADD+IM+IQ2-1))
+88980 CONTINUE
+!$OMP DO 
+      DO 89000 IQ2=1,LEN22
+         GRNDP(LADD2+IQ2-1)=CVMGT(AVE2D*GRNDP(LADD2+IQ2-1)+
+     *        AVE4D*(VBL(JADDN4+IQ2-1)+VBL(JADDS4+IQ2-1)),
+     *        GRNDP(LADD2+IQ2-1),
+     *        BITGRU4(LADD2+IQ2-1, NPAIR,NG ))
+89000 CONTINUE
+!$OMP DO
+      DO 89020 IQ2=1,IJ
+         S20(IQ2)=P5*(GRNDP(IQ2)+GRNDP(IQ2+1))
+89020 CONTINUE
+!$OMP DO
+      DO 89030 IQ2=1,LEN22
+         S20(LADD2+IQ2-1)=CVMGT(AVE2D*S20(LADD2+IQ2-1)+
+     *        AVE4D*(GRNDP(LADD2+IQ2+1)+GRNDP(LADD2+IQ2-2)),
+     *        S20(LADD2+IQ2-1),
+     *        BITGRH4(LADD2+IQ2-1, NPAIR,NG ) )
+89030 CONTINUE
+!$OMP DO
+      DO 89031 IQ2 = 1, IJ
+         GRNDP(IQ2) = S20(IQ2)
+89031 CONTINUE
+!$OMP END PARALLEL
+C
+C--------------GET EM = SCALE FACTOR AT H, U, V, AND
+C              H PRIME (DESIGNATED BY C) POINTS.
+         C1 = (ONE   - XIP) * DXOV2R
+         C2 = (ONEP5 - XIP) * DXOV2R
+         DO 1001 IQ2 = 1, IM
+            S1(IQ2) = ( C1 + DXOV2R*FLOAT(IQ2-1) ) ** 2
+            S2(IQ2) = ( C2 + DXOV2R*FLOAT(IQ2-1) ) ** 2
+1001     CONTINUE
+         C1 = (ONE   - YJP) * DXOV2R
+         C2 = (ONEP5 - YJP) * DXOV2R
+         DO 1003 IQ2 = 1, JM
+            S3(IQ2) = ( C1 + DXOV2R*FLOAT(IQ2-1) ) ** 2 + ONE
+            S4(IQ2) = ( C2 + DXOV2R*FLOAT(IQ2-1) ) ** 2 + ONE
+1003     CONTINUE
+C
+      I = 1 - IM
+!$OMP PARALLEL DO PRIVATE(C11U)
+      DO 13 J = 1, JM
+         C11U = S3(J)
+         DO 77003 IQ2 = 1, IM
+            EM2H(I+IQ2-1+J*IM) = C11U + S1(IQ2)
+            EMV(I+IQ2-1+J*IM) = C11U + S2(IQ2)
+77003    CONTINUE
+         C11U = S4(J)
+         DO 77004 IQ2 = 1, IM
+            EMU(I+IQ2-1+J*IM) = C11U + S1(IQ2)
+            EM2C(I+IQ2-1+J*IM) = C11U + S2(IQ2)
+77004    CONTINUE
+   13 CONTINUE
+C
+C--------------GET SINE OF THE LATITUDE AT H POINTS FROM THE
+C              SCALE FACTOR.
+!$OMP PARALLEL DO
+      DO 89120 IQ2=1,IJ
+         SINLAT(IQ2)=(TWO/EM2H(IQ2)) - ONE
+C
+C------------- GET EM SQUARED AT H, U, AND V POINTS.
+         EM2H(IQ2)=EM2H(IQ2)*EM2H(IQ2)
+         EM2U(IQ2)=EMU(IQ2)*EMU(IQ2)
+         EM2V(IQ2)=EMV(IQ2)*EMV(IQ2)
+C
+C--------------GET RECIPROCAL OF EM AT U AND V POINTS
+         EMUIN(IQ2)=ONE/EMU(IQ2)
+         EMVIN(IQ2)=ONE/EMV(IQ2)
+C
+C------------- GET EM SQUARED AT THE H PRIME(C) POINT.
+         EM2C(IQ2)=EM2C(IQ2)*EM2C(IQ2)
+89120 CONTINUE
+C
+C--------------DTIME * (X - XP) / (2 * RADIUS**2) AT H PTS
+C              IS PLACED INTO DICOR
+C              AND  DTIME * (Y - YP) / (2 * RADIUS**2)
+C              IS PLACED INTO DJCOR.
+C
+         C2 = TWO * DTOVDX * DXOV2R * DXOV2R
+         C1 = C2 * (ONE - XIP)
+         DO 2001 IQ2 = 1, IM
+            S1(IQ2) = C1 + C2*FLOAT(IQ2-1)
+2001     CONTINUE
+         C1 = C2 * (ONE - YJP)
+         DO 2002 IQ2 = 1, JM
+            S3(IQ2) = C1 + C2*FLOAT(IQ2-1)
+2002     CONTINUE
+C
+      I = 1 - IM
+      J = 1
+      IF (JM .GT. 0) THEN
+         DO 14 J = 1, JM
+            C1 = S3(J)
+            DO 77005 IQ2 = 1, IM
+               DJCOR(I+IQ2-1+J*IM) = C1
+               DICOR(I+IQ2-1+J*IM) = S1(IQ2)
+77005       CONTINUE
+   14    CONTINUE
+         J = JM + 1
+         I = JM*IM + I
+      ENDIF
+C
+   15 CONTINUE
+C
+C--------------------- DETERMINE LIMITS ON J-ROWS
+C
+         J1 =  1
+         J2 =  2
+         J3 =  3
+         J4 =  4
+         J5 =  5
+         J6 =  6
+         JM0 = JM
+         JM1 = JM - 1
+         JM2 = JM - 2
+         JM3 = JM - 3
+         JM4 = JM - 4
+         JM5 = JM - 5
+C
+C              IF THIS IS THE SECOND TIME STEP OF A PAIR, WE
+C              MUST ADD (OR SUBTRACT) 2 .
+      IF( NPAIR .LT. 2 ) GO TO 17
+C
+         J1  = J1 + 2
+         J2  = J2 + 2
+         J3  = J3 + 2
+         J4  = J4 + 2
+         J5  = J5 + 2
+         J6  = J6 + 2
+         JM0 = JM0 - 2
+         JM1 = JM1 - 2
+         JM2 = JM2 - 2
+         JM3 = JM3 - 2
+         JM4 = JM4 - 2
+         JM5 = JM5 - 2
+C
+   17 CONTINUE
+C
+C------------- SET UP THE THREE STANDARD VECTOR INITIAL
+C              ADDRESSES (RELATIVE TO A SINGLE HORIZONTAL
+C              FIELD) THAT BEGIN WITH THE ROW.
+C              J = J1,J2,J3,J4, OR J5.
+         LADD2 = IM * (J2 - 1) + 1
+         LADD3 = IM * (J3 - 1) + 1
+         LADD4 = IM * (J4 - 1) + 1
+         LADD5 = IM * (J5 - 1) + 1
+         LADD6 = IM * (J6 - 1) + 1
+C
+         LEN15 = IM * (JM5 - J1 + 1)
+         LEN14 = IM * (JM4 - J1 + 1)
+         LEN13 = IM * (JM3 - J1 + 1)
+         LEN12 = IM * (JM2 - J1 + 1)
+         LEN11 = IM * (JM1 - J1 + 1)
+         LEN10 = IM * (JM0 - J1 + 1)
+C
+         LEN25 = IM * (JM5 - J2 + 1)
+         LEN24 = IM * (JM4 - J2 + 1)
+         LEN23 = IM * (JM3 - J2 + 1)
+         LEN22 = IM * (JM2 - J2 + 1)
+         LEN21 = IM * (JM1 - J2 + 1)
+         LEN20 = IM * (JM0 - J2 + 1)
+C
+         LEN35 = IM * (JM5 - J3 + 1)
+         LEN34 = IM * (JM4 - J3 + 1)
+         LEN33 = IM * (JM3 - J3 + 1)
+         LEN32 = IM * (JM2 - J3 + 1)
+         LEN31 = IM * (JM1 - J3 + 1)
+         LEN30 = IM * (JM0 - J3 + 1)
+C
+         LEN45 = IM * (JM5 - J4 + 1)
+         LEN44 = IM * (JM4 - J4 + 1)
+         LEN43 = IM * (JM3 - J4 + 1)
+         LEN42 = IM * (JM2 - J4 + 1)
+         LEN41 = IM * (JM1 - J4 + 1)
+         LEN40 = IM * (JM0 - J4 + 1)
+C
+         LEN55 = IM * (JM5 - J5 + 1)
+         LEN54 = IM * (JM4 - J5 + 1)
+         LEN53 = IM * (JM3 - J5 + 1)
+         LEN52 = IM * (JM2 - J5 + 1)
+         LEN51 = IM * (JM1 - J5 + 1)
+         LEN50 = IM * (JM0 - J5 + 1)
+C
+         LEN65 = IM * (JM5 - J6 + 1)
+         LEN64 = IM * (JM4 - J6 + 1)
+         LEN63 = IM * (JM3 - J6 + 1)
+         LEN62 = IM * (JM2 - J6 + 1)
+         LEN61 = IM * (JM1 - J6 + 1)
+         LEN60 = IM * (JM0 - J6 + 1)
+C
+C================ CONVERGENCE FOR HALF TIME STEP =================
+C
+         JADDUz = MADDU - 1 + LADD2 - IJ
+         JADDVz = MADDV - 1 + LADD2 - IJ
+         JADDz  = LADD2 - IJ
+C
+!$OMP PARALLEL DO PRIVATE(JADDU,JADDV,JADD,S1,S2,S3,S4,C1)
+      DO 100 K = 1,IKM
+         JADDU = JADDUz + IJ*k
+         JADDV = JADDVz + IJ*k
+         JADD =  JADDz  + IJ*k
+C
+      DO 89220 IQ2=1,LEN21
+         S1(LADD2+IQ2-1)=VBL(JADDU+IQ2-1)*EMUIN(LADD2+IQ2-1)
+89220 CONTINUE
+      DO 89230 IQ2=1,LEN20
+         S2(LADD2+IQ2-1)=VBL(JADDV+IQ2-1)*EMVIN(LADD2+IQ2-1)
+89230 CONTINUE
+      DO 89240 IQ2=1,LEN21
+         S3(LADD2+IQ2-1)=S1(LADD2+IQ2)-S1(LADD2+IQ2-1)
+         S4(LADD2+IQ2-1)=S2(LADD3+IQ2-1)-S2(LADD2+IQ2-1)
+89240 CONTINUE
+      DO 89280 IQ2=1,LEN32
+         S3(LADD3+IQ2-1)=CVMGT(DEF2D*S3(LADD3+IQ2-1)+
+     *           DEF4D*(S1(LADD3+IQ2+1)-S1(LADD3+IQ2-2)),
+     *           S3(LADD3+IQ2-1),
+     *           BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S4(LADD3+IQ2-1)=CVMGT(DEF2D*S4(LADD3+IQ2-1)+
+     *           DEF4D*(S2(LADD5+IQ2-1)-S2(LADD2+IQ2-1)),
+     *           S4(LADD3+IQ2-1),
+     *           BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89280 CONTINUE
+C
+C              PUT  - DELSIG TIMES FLUX DIFFS. * EM**2 INTO CONV
+      C1 =  - DELSIG(K)
+      DO 89310 IQ2=1,LEN21
+         CONV(JADD+IQ2-1)=EM2C(LADD2+IQ2-1)*
+     *                      C1*(S4(LADD2+IQ2-1)+S3(LADD2+IQ2-1))
+89310 CONTINUE
+  100 CONTINUE
+         JADD = LADD2 + IJ
+!$OMP PARALLEL DO
+      DO 89320 IQ2=1,LEN21
+         S1(LADD2+IQ2-1)=CONV(LADD2+IQ2-1)+CONV(JADD+IQ2-1)
+89320 CONTINUE
+      DO 105 K = 3,IKM
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 89330 IQ2=1,LEN21
+         S1(LADD2+IQ2-1)=S1(LADD2+IQ2-1)+CONV(JADD+IQ2-1)
+89330 CONTINUE
+  105 CONTINUE
+C
+C              ARRAY S1 NOW HAS DDDH, WHICH EQUALS THE LOCAL
+C              TIME DERIVATIVE OF SURFACE PRESSURE
+C              AT C POINTS, J = J2,JM1.
+C
+         JADDH = LADD2 + MADDH - 1
+!$OMP PARALLEL 
+!$OMP DO
+      DO 89340 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=P5*(VBL(JADDH+IQ2-1)+VBL(JADDH+IM+IQ2-1))
+89340 CONTINUE
+!$OMP DO
+      DO 89360 IQ2=1,LEN32
+         S4(LADD3+IQ2-1)=CVMGT(AVE2D*S4(LADD3+IQ2-1)+
+     *           AVE4D*(VBL(JADDH+IM*3+IQ2-1)+VBL(JADDH+IQ2-1)),
+     *           S4(LADD3+IQ2-1),
+     *           BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+89360 CONTINUE
+!$OMP DO
+      DO 89370 IQ2=1,LEN21
+         S3(LADD2+IQ2-1)=P5*(S4(LADD2+IQ2-1)+S4(LADD2+IQ2))
+89370 CONTINUE
+!$OMP DO 
+      DO 89390 IQ2=1,LEN32
+         S3(LADD3+IQ2-1)=CVMGT(AVE2D*S3(LADD3+IQ2-1)+
+     *           AVE4D*(S4(LADD3+IQ2+1)+S4(LADD3+IQ2-2)),
+     *           S3(LADD3+IQ2-1),
+     *           BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89390 CONTINUE
+C
+C
+C------------- COMPUTE HP(HALF TIME STEP H),J = J2 THRU JM1.
+C------------- CONVERT CONV INTO W = H * DELX * D(SIGMA) / DT, J=J2,JM1.
+!$OMP DO
+      DO 89410 IQ2=1,LEN21
+         HP(LADD2+IQ2-1)=DTOV2DX*S1(LADD2+IQ2-1)+S3(LADD2+IQ2-1)
+         W(LADD2+IJ+IQ2-1)=CONV(LADD2+IQ2-1)-DELSIG(1)*S1(LADD2+IQ2-1)
+89410 CONTINUE
+!$OMP END PARALLEL
+C
+C              K = 2 ARRAY OF W NOW CONTAINS W FOR INTERFACE K = 2.
+C              TOP NONZERO W,AT INTERFACE KM, WILL END UP AT LEVEL
+C              KM OF ARRAY W.
+      JADDW = LADD2 + IJ
+      DO 110 K = 3,IKM
+      JADDW = JADDW + IJ
+!$OMP PARALLEL DO
+      DO 89430 IQ2=1,LEN21
+         W(JADDW+IQ2-1)=CONV(JADDW-IJ+IQ2-1)+W(JADDW-IJ+IQ2-1)-
+     *                  DELSIG(K-1)*S1(LADD2+IQ2-1)
+89430 CONTINUE
+  110 CONTINUE
+C
+C--------------GET RECIPROCAL OF H INTO S11, J = J2,JM0.
+!$OMP PARALLEL
+!$OMP DO 
+      DO 89440 IQ2=1,LEN20
+         S11(LADD2+IQ2-1)=ONE/VBL(JADDH+IQ2-1)
+89440 CONTINUE
+C
+C--------------AVERAGE IN I TO GET 1/H AT V PTS (S2, J = J2,JM0).
+!$OMP DO
+      DO 89450 IQ2=1,LEN20
+         S2(LADD2+IQ2-1)=P5*(S11(LADD2+IQ2-1)+S11(LADD2+IQ2))
+89450 CONTINUE
+!$OMP DO
+      DO 89470 IQ2=1,LEN31
+         S2(LADD3+IQ2-1)=CVMGT(AVE2D*S2(LADD3+IQ2-1)+
+     *          AVE4D*(S11(LADD3+IQ2-2)+S11(LADD3+IQ2+1)),
+     *          S2(LADD3+IQ2-1),
+     *          BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+89470 CONTINUE
+C
+!$OMP DO
+      DO 89480 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=P5*(S11(LADD2+IQ2-1)+S11(LADD3+IQ2-1))
+89480 CONTINUE
+!$OMP DO
+      DO 89500 IQ2=1,LEN32
+         S4(LADD3+IQ2-1)=CVMGT(AVE2D*S4(LADD3+IQ2-1)+
+     *          AVE4D*(S11(LADD5+IQ2-1)+S11(LADD2+IQ2-1)),
+     *          S4(LADD3+IQ2-1),
+     *          BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+89500 CONTINUE
+C
+C------------- GET I AVERAGE OF THESE FOR CENTER PT. (S3, J = J2,JM1).
+!$OMP DO
+      DO 89510 IQ2=1,LEN21
+         S3(LADD2+IQ2-1)=P5*(S4(LADD2+IQ2-1)+S4(LADD2+IQ2))
+89510 CONTINUE
+!$OMP DO
+      DO 89530 IQ2=1,LEN32
+         S3(LADD3+IQ2-1)=CVMGT(AVE2D*S3(LADD3+IQ2-1)+
+     *           AVE4D*(S4(LADD3+IQ2-2)+S4(LADD3+IQ2+1)),
+     *           S3(LADD3+IQ2-1),
+     *           BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89530 CONTINUE
+!$OMP END PARALLEL
+C
+C              WE CAN CHANGE HU,HV,HTH,AND HQ TO U,V,TH,AND Q WHERE
+C              WE HAVE THE VALUES 1/H.
+C
+         JADDUHz = MADDU - 1 + LADD2 - IJ
+         JADDVHz = MADDV - 1 + LADD2 - IJ
+         JADDTHz = MADDT - 1 + LADD2 - IJ
+         JADDQHz = MADDQ - 1 + LADD2 - IJ
+         JADDz   = LADD2 - IJ
+C
+!$OMP PARALLEL DO PRIVATE(JADDUH,JADDVH,JADDTH,JADDQH,JADD)
+      DO 200 K = 1,IKM
+         JADDUH = JADDUHz + IJ*k
+         JADDVH = JADDVHz + IJ*k
+         JADDTH = JADDTHz + IJ*k
+         JADDQH = JADDQHz + IJ*k
+         JADD  = JADDz  + IJ*k
+      DO 89540 IQ2=1,LEN21
+         U(JADD+IQ2-1)=VBL(JADDUH+IQ2-1)*S4(LADD2+IQ2-1)
+89540 CONTINUE
+      DO 89550 IQ2=1,LEN20
+         V(JADD+IQ2-1)=VBL(JADDVH+IQ2-1)*S2(LADD2+IQ2-1)
+         TH(JADD+IQ2-1)=VBL(JADDTH+IQ2-1)*S11(LADD2+IQ2-1)
+         Q(JADD+IQ2-1)=VBL(JADDQH+IQ2-1)*S11(LADD2+IQ2-1)
+89550 CONTINUE
+  200 CONTINUE
+C
+         JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDE4,JADDW4,S5)
+      DO 205 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 89580 IQ2=1,LEN20
+         S5(LADD2+IQ2-1)=P5*(TH(JADD+IQ2-1)+TH(JADD+IQ2))
+89580 CONTINUE
+         JADDIM = JADD + IM
+         JADDE4 = JADDIM + 2
+         JADDW4 = JADDIM - 1
+      DO 89600 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *           AVE4D*(TH(JADDW4+IQ2-1)+TH(JADDE4+IQ2-1)),
+     *           S5(LADD3+IQ2-1),
+     *           BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+89600 CONTINUE
+      DO 89610 IQ2=1,LEN21
+         THP(JADD+IQ2-1)=P5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1))
+89610 CONTINUE
+      DO 89630 IQ2=1,LEN32
+         THP(JADDIM+IQ2-1)=CVMGT(AVE2D*THP(JADDIM+IQ2-1)+
+     *          AVE4D*(S5(LADD5+IQ2-1)+S5(LADD2+IQ2-1)),
+     *          THP(JADDIM+IQ2-1),
+     *          BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89630 CONTINUE
+      DO 89640 IQ2=1,LEN20
+         S5(LADD2+IQ2-1)=P5*(Q(JADD+IQ2-1)+Q(JADD+IQ2))
+89640 CONTINUE
+      DO 89660 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *         AVE4D*(Q(JADDW4+IQ2-1)+Q(JADDE4+IQ2-1)),
+     *         S5(LADD3+IQ2-1),
+     *         BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+89660 CONTINUE
+      DO 89670 IQ2=1,LEN21
+         QP(JADD+IQ2-1)=P5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1))
+89670 CONTINUE
+      DO 89690 IQ2=1,LEN32
+         QP(JADDIM+IQ2-1)=CVMGT(AVE2D*QP(JADDIM+IQ2-1)+
+     *        AVE4D*(S5(LADD5+IQ2-1)+S5(LADD2+IQ2-1)),
+     *        QP(JADDIM+IQ2-1),
+     *        BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89690 CONTINUE
+      DO 89700 IQ2=1,LEN20
+         S5(LADD2+IQ2-1)=P5*(V(JADD+IQ2-2)+V(JADD+IQ2-1))
+89700 CONTINUE
+      DO 89720 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *       AVE4D*(V(JADDIM+IQ2-3)+V(JADDIM+IQ2)),
+     *       S5(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89720 CONTINUE
+      DO 89730 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=P5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1))
+89730 CONTINUE
+      DO 89750 IQ2=1,LEN32
+         VP(JADDIM+IQ2-1)=CVMGT(AVE2D*VP(JADDIM+IQ2-1)+
+     *         AVE4D*(S5(LADD5+IQ2-1)+S5(LADD2+IQ2-1)),
+     *         VP(JADDIM+IQ2-1),
+     *         BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+89750 CONTINUE
+  205 CONTINUE
+C
+         JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDW4,JADDE4,S5)
+      DO 210 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+      DO 89760 IQ2=1,LEN21
+         S5(LADD2+IQ2-1)=P5*(U(JADD+IQ2-1)+U(JADD+IQ2))
+89760 CONTINUE
+         JADDW4 = JADDIM - 1
+         JADDE4 = JADDIM + 2
+      DO 89780 IQ2=1,LEN32
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *          AVE4D*(U(JADDW4+IQ2-1)+U(JADDE4+IQ2-1)),
+     *          S5(LADD3+IQ2-1),
+     *          BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+89780 CONTINUE
+      DO 89790 IQ2=1,LEN31
+         UP(JADDIM+IQ2-1)=P5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1))
+89790 CONTINUE
+         JADDIM2 = JADDIM + IM
+      DO 89810 IQ2=1,LEN42
+         UP(JADDIM2+IQ2-1)=CVMGT(AVE2D*UP(JADDIM2+IQ2-1)+
+     *         AVE4D*(S5(LADD5+IQ2-1)+S5(LADD2+IQ2-1)),
+     *         UP(JADDIM2+IQ2-1),
+     *         BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+89810 CONTINUE
+  210 CONTINUE
+C
+C------------- CONVERT W INTO ZDIS USING 1/H AT CENTER POINT.
+      JADDWz = LADD2
+!$OMP PARALLEL DO PRIVATE(JADDW,C1)
+      DO 215 K = 2,IKM
+         JADDW = JADDWz + IJ*(k-1)
+         C1 =  - DTOV2DX / (DELSIG(K) + DELSIG(K - 1) )
+      DO 89820 IQ2=1,LEN21
+         ZDIS(JADDW+IQ2-1)=W(JADDW+IQ2-1)*
+     *                      C1*S3(LADD2+IQ2-1)
+89820 CONTINUE
+  215 CONTINUE
+C
+C              NONZERO VALUES OF ZDIS(K = 2,KM) ARE AT THE
+C              CORRECT PLACE IN THE ZDIS ARRAY.
+C
+C---VER TH---- DO VERTICAL ADVECTION OF THETA.  FIRST
+C              COMPUTE ZDIS(K) * (TH(K) - TH(K-1) ) FOR K=2,KM,
+C              AND STORE IN W.
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 220 K = 2,IKM
+         JADD  = JADDz + IJ*(k-1)
+      DO 89840 IQ2=1,LEN21
+         W(JADD+IQ2-1)=ZDIS(JADD+IQ2-1)*
+     *         (THP(JADD+IQ2-1)-THP(JADD-IJ+IQ2-1))
+89840 CONTINUE
+  220 CONTINUE
+C
+      JADD  = JADDz + IJ*(IKM-1)
+!$OMP PARALLEL DO
+      DO 89860 IQ2=1,LEN21
+         THP(LADD2+IQ2-1)=THP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+         THP(JADD+IQ2-1)=THP(JADD+IQ2-1)+W(JADD+IQ2-1)
+89860 CONTINUE
+C
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 225 K = 2,IKMM1
+         JADD  = JADDz + IJ*(k-1)
+      DO 89880 IQ2=1,LEN21
+         THP(JADD+IQ2-1)=THP(JADD+IQ2-1)+
+     *            W(JADD+IQ2-1)+W(JADD+IJ+IQ2-1)
+89880 CONTINUE
+  225 CONTINUE
+C
+C---VER Q------DO THE VERTICAL ADVECTION OF THE SPECIFIC HUMIDITY.
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 230 K = 2,IKM
+         JADD  = JADDz + IJ*(k-1)
+      DO 89900 IQ2=1,LEN21
+         W(JADD+IQ2-1)=ZDIS(JADD+IQ2-1)*
+     *            (QP(JADD+IQ2-1)-QP(JADD-IJ+IQ2-1))
+89900 CONTINUE
+  230 CONTINUE
+C
+      JADD  = JADDz + IJ*(IKM-1)
+!$OMP PARALLEL DO
+      DO 89920 IQ2=1,LEN21
+         QP(LADD2+IQ2-1)=QP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+         QP(JADD+IQ2-1)=QP(JADD+IQ2-1)+W(JADD+IQ2-1)
+89920 CONTINUE
+C
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 235 K = 2,IKMM1
+         JADD  = JADDz + IJ*(k-1)
+      DO 89940 IQ2=1,LEN21
+         QP(JADD+IQ2-1)=QP(JADD+IQ2-1)+
+     *            W(JADD+IQ2-1)+W(JADD+IJ+IQ2-1)
+89940 CONTINUE
+  235 CONTINUE
+C
+C---VER U------THE VERTICAL ADVECTION OF U IS SIMILAR EXCEPT THAT A
+C              BACKWARD J-AVERAGING OF ZDIS IS NECESSARY.
+      JADDz  = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 240 K = 2,IKM
+         JADD  = JADDz + IJ*(k-1)
+      DO 89960 IQ2=1,LEN31
+         W(JADD+IQ2-1)=
+     *        (UP(JADD+IQ2-1)-UP(JADD-IJ+IQ2-1))*
+     *        (P5*(ZDIS(JADD-IM+IQ2-1)+ZDIS(JADD+IQ2-1)))
+89960 CONTINUE
+  240 CONTINUE
+C
+      JADD  = JADDz + IJ*(IKM-1)
+!$OMP PARALLEL DO
+      DO 89990 IQ2=1,LEN31
+         UP(LADD3+IQ2-1)=UP(LADD3+IQ2-1)+W(LADD3+IJ+IQ2-1)
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+W(JADD+IQ2-1)
+89990 CONTINUE
+C
+      JADDz  = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 245 K = 2,IKMM1
+         JADD  = JADDz + IJ*(k-1)
+      DO 90010 IQ2=1,LEN31
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+
+     *         W(JADD+IQ2-1)+W(JADD+IJ+IQ2-1)
+90010 CONTINUE
+  245 CONTINUE
+C
+C---VER V----- THE VERTICAL ADVECTION OF V NEEDS BACKWARD
+C              I-AVERAGE OF ZDIS.
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 250 K = 2,IKM
+         JADD  = JADDz + IJ*(k-1)
+      DO 90030 IQ2=1,LEN21
+         W(JADD+IQ2-1)=
+     *     (VP(JADD+IQ2-1)-VP(JADD-IJ+IQ2-1))*
+     *     (P5*(ZDIS(JADD+IQ2-2)+ZDIS(JADD+IQ2-1)))
+90030 CONTINUE
+  250 CONTINUE
+C
+      JADD  = JADDz + IJ*(IKM-1)
+!$OMP PARALLEL DO
+      DO 90060 IQ2=1,LEN21
+         VP(LADD2+IQ2-1)=VP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)+W(JADD+IQ2-1)
+90060 CONTINUE
+C
+      JADDz  = LADD2
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 255 K = 2,IKMM1
+         JADD  = JADDz + IJ*(k-1)
+      DO 90080 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)+
+     *          W(JADD+IQ2-1)+W(JADD+IJ+IQ2-1)
+90080 CONTINUE
+  255 CONTINUE
+C
+C=====================HORIZONTAL ADVECTION===========================
+C---XDIS-------COMPUTE XDIS AND YDIS TO USE IN HORIZONTAL ADVECTION.
+C---YDIS---    XDIS FOR (J2,JM1), YDIS FOR (J2,JM0).
+C
+      JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 260 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 90100 IQ2=1,LEN21
+         XDIS(JADD+IQ2-1)=-EMU(LADD2+IQ2-1)*U(JADD+IQ2-1)
+90100 CONTINUE
+      DO 90110 IQ2=1,LEN20
+         YDIS(JADD+IQ2-1)=-EMV(LADD2+IQ2-1)*V(JADD+IQ2-1)
+90110 CONTINUE
+  260 CONTINUE
+C
+C---ADV TH-----DO HORIZ. ADVECT. OF THETA AND HUMIDITY(J2,JM1).
+C---ADV Q---
+      LADDN4 = LADD3 + 2 * IM
+      LADDS4 = LADD3 - IM
+      LADDE4 = LADD3 + 2
+      LADDW4 = LADD3 - 1
+C
+      JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,JADDE4,JADDW4,
+!$OMP&S5,S6,S7,S9,S20,S21,S22,S23) 
+      DO 270 K = 1,IKM
+      JADD  = JADDz + IJ*k
+      JADDIM  = JADD + IM
+      JADDN4 = JADDIM + 2 * IM
+      JADDS4 = JADDIM - IM
+      JADDE4 = JADDIM + 2
+      JADDW4 = JADDIM - 1
+C
+      DO 90130 IQ2=1,LEN21
+         S6(LADD2+IQ2-1)=P5*(TH(JADDIM+IQ2-1)+TH(JADD+IQ2-1))
+90130 CONTINUE
+      DO 90160 IQ2=1,LEN32
+         S6(LADD3+IQ2-1)=CVMGT(AVE2D*S6(LADD3+IQ2-1)+
+     *             AVE4D*(TH(JADDN4+IQ2-1)+TH(JADDS4+IQ2-1)),
+     *             S6(LADD3+IQ2-1),
+     *             BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+90160 CONTINUE
+      DO 90170 IQ2=1,LEN20
+         S7(LADD2+IQ2-1)=P5*(TH(JADD+IQ2)+TH(JADD+IQ2-1))
+90170 CONTINUE
+      DO 90190 IQ2=1,LEN32
+         S7(LADD3+IQ2-1)=CVMGT(AVE2D*S7(LADD3+IQ2-1)+
+     *        AVE4D*(TH(JADDE4+IQ2-1)+TH(JADDW4+IQ2-1)),
+     *        S7(LADD3+IQ2-1),
+     *        BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+90190 CONTINUE
+C
+      DO 90120 IQ2=1,LEN21
+         S5(LADD2+IQ2-1)=P5*(XDIS(JADD+IQ2-1)+XDIS(JADD+IQ2))
+         S20(LADD2+IQ2-1)=S6(LADD2+IQ2)-S6(LADD2+IQ2-1)
+         S21(LADD2+IQ2-1)=S7(LADD3+IQ2-1)-S7(LADD2+IQ2-1)
+90120 CONTINUE
+C
+      DO 90240 IQ2=1,LEN32
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *       AVE4D*(XDIS(JADDE4+IQ2-1)+XDIS(JADDW4+IQ2-1)),
+     *       S5(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S20(LADD3+IQ2-1)=CVMGT(DEF2D*S20(LADD3+IQ2-1)+
+     *       DEF4D*(S6(LADDE4+IQ2-1)-S6(LADDW4+IQ2-1)),
+     *       S20(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S21(LADD3+IQ2-1)=CVMGT(DEF2D*S21(LADD3+IQ2-1)+
+     *       DEF4D*(S7(LADDN4+IQ2-1)-S7(LADDS4+IQ2-1)),
+     *       S21(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+90240 CONTINUE
+C
+C--XDIS TH--  ADD DELTA I OF TH TIMES XDIS TERM TO THP.
+      DO 90270 IQ2 = 1, LEN21
+         THP(JADD+IQ2-1) = THP(JADD+IQ2-1) + DTOV2DX*S20(LADD2+IQ2-1)*S5
+     1      (LADD2+IQ2-1)
+         S9(LADD2+IQ2-1) = 0.5*(Q(JADDIM+IQ2-1)+Q(JADD+IQ2-1))
+90270 CONTINUE
+      DO 90310 IQ2=1,LEN32
+         S9(LADD3+IQ2-1)=CVMGT(AVE2D*S9(LADD3+IQ2-1)+
+     *      AVE4D*(Q(JADDN4+IQ2-1)+Q(JADDS4+IQ2-1)),
+     *      S9(LADD3+IQ2-1),
+     *      BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+90310 CONTINUE
+      DO 90320 IQ2=1,LEN20
+         S7(LADD2+IQ2-1)=P5*(Q(JADD+IQ2)+Q(JADD+IQ2-1))
+90320 CONTINUE
+      DO 90340 IQ2=1,LEN32
+         S7(LADD3+IQ2-1)=CVMGT(AVE2D*S7(LADD3+IQ2-1)+
+     *     AVE4D*(Q(JADDE4+IQ2-1)+Q(JADDW4+IQ2-1)),
+     *     S7(LADD3+IQ2-1),
+     *     BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+90340 CONTINUE
+C
+C              I DIFFERENCE AND J DIFFERENCE FOR Q
+      DO 90350 IQ2 = 1, LEN21
+         S22(LADD2+IQ2-1) = S9(LADD2+IQ2) - S9(LADD2+IQ2-1)
+         S23(LADD2+IQ2-1) = S7(LADD3+IQ2-1) - S7(LADD2+IQ2-1)
+90350 CONTINUE
+C
+      DO 90390 IQ2=1,LEN32
+         S22(LADD3+IQ2-1)=CVMGT(DEF2D*S22(LADD3+IQ2-1)+
+     *       DEF4D*(S9(LADDE4+IQ2-1)-S9(LADDW4+IQ2-1)),
+     *       S22(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S23(LADD3+IQ2-1)=CVMGT(DEF2D*S23(LADD3+IQ2-1)+
+     *       DEF4D*(S7(LADDN4+IQ2-1)-S7(LADDS4+IQ2-1)),
+     *       S23(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+90390 CONTINUE
+C
+C--XDIS Q--   ADD DELTA I OF Q TIMES XDIS TERM TO QP.
+      DO 90410 IQ2 = 1, LEN21
+         QP(JADD+IQ2-1) = QP(JADD+IQ2-1) + DTOV2DX*S22(LADD2+IQ2-1)*S5(
+     1      LADD2+IQ2-1)
+         S5(LADD2+IQ2-1) = 0.5*(YDIS(JADD+IQ2-1)+YDIS(JADDIM+IQ2-1))
+90410 CONTINUE
+      DO 90450 IQ2=1,LEN32
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *       AVE4D*(YDIS(JADDN4+IQ2-1)+YDIS(JADDS4+IQ2-1)),
+     *       S5(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+90450 CONTINUE
+C
+C--YDIS TH--  ADD YDIS * DELTA J OF THETA TERM TO THP.
+      DO 90460 IQ2=1,LEN21
+         THP(JADD+IQ2-1)=THP(JADD+IQ2-1)+DTOV2DX*
+     *          S5(LADD2+IQ2-1)*S21(LADD2+IQ2-1)
+C
+C--YDIS Q--   ADD YDIS * DELTA J OF Q TERM TO QP.
+         QP(JADD+IQ2-1)=QP(JADD+IQ2-1)+DTOV2DX*
+     *          S5(LADD2+IQ2-1)*S23(LADD2+IQ2-1)
+90460 CONTINUE
+  270 CONTINUE
+C
+C---ADV U----- DO THE HORIZONTAL ADVECTION OF U(J3,JM1).
+C
+         LADDN4 = LADD4 + IM
+         LADDS4 = LADD4 - 2 * IM
+         LADDE4 = LADD4 + 2
+         LADDW4 = LADD4 - 1
+C
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,JADDE4,JADDW4,
+!$OMP& S5,S6,S7,S8)
+      DO 280 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM  = JADD + IM
+C
+C --XDIS U--------------------------------------------------
+C              GET AVERAGED XDIS AND U IN Y DIRECTION.
+C              S6 = XDIS AND S7 = U AT H POINT.
+      DO 90500 IQ2=1,LEN31
+         S6(LADD3+IQ2-1)=P5*(XDIS(JADD+IQ2-1)+
+     *                       XDIS(JADD-IM+IQ2-1))
+         S7(LADD3+IQ2-1)=P5*(U(JADD+IQ2-1)+U(JADD-IM+IQ2-1))
+90500 CONTINUE
+         JADDN4 = JADDIM + IM
+         JADDS4 = JADDIM - 2 * IM
+      DO 90540 IQ2=1,LEN42
+         S6(LADD4+IQ2-1)=CVMGT(AVE2D*S6(LADD4+IQ2-1)+
+     *      AVE4D*(XDIS(JADDN4+IQ2-1)+XDIS(JADDS4+IQ2-1)),
+     *      S6(LADD4+IQ2-1),
+     *      BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+         S7(LADD4+IQ2-1)=CVMGT(AVE2D*S7(LADD4+IQ2-1)+
+     *      AVE4D*(U(JADDN4+IQ2-1)+U(JADDS4+IQ2-1)),
+     *      S7(LADD4+IQ2-1),
+     *      BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+90540 CONTINUE
+C
+C              GET THE I AVERAGE IN XDIS AND DIFFERENCES IN U.
+C              S5 = XDIS AND S8 = DEL U AT V POINT.
+      DO 90560 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=P5*(S6(LADD3+IQ2)+S6(LADD3+IQ2-1))
+         S8(LADD3+IQ2-1)=S7(LADD3+IQ2)-S7(LADD3+IQ2-1)
+90560 CONTINUE
+         JADDE4 = JADDIM + 2
+         JADDW4 = JADDIM - 1
+      DO 90600 IQ2=1,LEN42
+         S5(LADD4+IQ2-1)=CVMGT(AVE2D*S5(LADD4+IQ2-1)+
+     *         AVE4D*(S6(LADDE4+IQ2-1)+S6(LADDW4+IQ2-1)),
+     *         S5(LADD4+IQ2-1),
+     *         BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *         DEF4D*(S7(LADDE4+IQ2-1)-S7(LADDW4+IQ2-1)),
+     *         S8(LADD4+IQ2-1),
+     *         BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+90600 CONTINUE
+C
+C              ADD XDIS TIMES I DIFFERENCE OF U TERM TO UP.
+      DO 90620 IQ2=1,LEN31
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+DTOV2DX*
+     *          S8(LADD3+IQ2-1)*S5(LADD3+IQ2-1)
+90620 CONTINUE
+C --YDIS U-----------------------------------------------------
+C              GET AVERAGED YDIS. ( NO NEED )
+C              GET THE J DIFFERENCES IN U.
+C              S6 IS AVERAGED U AT HP POINT.
+      DO 90640 IQ2=1,LEN21
+         S6(LADD2+IQ2-1)=P5*(U(JADD-IM+IQ2-1)+U(JADD-IM+IQ2))
+90640 CONTINUE
+      DO 90660 IQ2=1,LEN42
+         S6(LADD4+IQ2-1)=CVMGT(AVE2D*S6(LADD4+IQ2-1)+
+     *        AVE4D*(U(JADDW4+IQ2-1)+U(JADDE4+IQ2-1)),
+     *        S6(LADD4+IQ2-1),
+     *        BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+90660 CONTINUE
+C
+      DO 90670 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S6(LADD3+IQ2-1)-S6(LADD2+IQ2-1)
+90670 CONTINUE
+      DO 90690 IQ2=1,LEN42
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *         DEF4D*(S6(LADDN4+IQ2-1)-S6(LADDS4+IQ2-1)),
+     *         S8(LADD4+IQ2-1),
+     *         BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+90690 CONTINUE
+C
+C              ADD YDIS TIMES J DIFFERENCE OF U TERM TO UP.
+      DO 90700 IQ2=1,LEN31
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+DTOV2DX*
+     *           S8(LADD3+IQ2-1)*YDIS(JADD+IQ2-1)
+90700 CONTINUE
+  280 CONTINUE
+C
+C---ADV V----- DO THE HORIZONTAL ADVECTION OF V(J2,JM1) FOR VP.
+         LADDN4 = LADD3 + 2 * IM
+         LADDS4 = LADD3 - IM
+         LADDE4 = LADD3 + 1
+         LADDW4 = LADD3 - 2
+C
+         JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,JADDE4,JADDW4,
+!$OMP& S5,S6,S7,S8)
+      DO 290 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+C
+C ---XDIS V-----------------------------------------------------
+      DO 90720 IQ2=1,LEN21
+         S6(LADD2+IQ2-1)=P5*(V(JADD+IQ2-1)+V(JADDIM+IQ2-1))
+90720 CONTINUE
+         JADDN4 = JADDIM + 2 * IM
+         JADDS4 = JADDIM - IM
+      DO 90740 IQ2=1,LEN32
+         S6(LADD3+IQ2-1)=CVMGT(AVE2D*S6(LADD3+IQ2-1)+
+     *       AVE4D*(V(JADDN4+IQ2-1)+V(JADDS4+IQ2-1)),
+     *       S6(LADD3+IQ2-1),
+     *       BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+90740 CONTINUE
+C
+C              GET THE I DIFFERENCES IN V.
+      DO 90750 IQ2=1,LEN21
+         S8(LADD2+IQ2-1)=S6(LADD2+IQ2-1)-S6(LADD2+IQ2-2)
+90750 CONTINUE
+      DO 90770 IQ2=1,LEN32
+         S8(LADD3+IQ2-1)=CVMGT(DEF2D*S8(LADD3+IQ2-1)+
+     *         DEF4D*(S6(LADDE4+IQ2-1)-S6(LADDW4+IQ2-1)),
+     *         S8(LADD3+IQ2-1),
+     *         BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+90770 CONTINUE
+C
+C              ADD XDIS TIMES I DIFFERENCE OF V TERM TO VP.
+      DO 90780 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)+DTOV2DX*
+     *              S8(LADD2+IQ2-1)*XDIS(JADD+IQ2-1)
+90780 CONTINUE
+C --YDIS V-----------------------------------------------------
+C              GET AVERAGED YDIS AND V AT H POINT.
+C              S6 = YDIS AND S7 = V AT H POINT.
+      DO 90800 IQ2=1,LEN20
+         S6(LADD2+IQ2-1)=P5*(YDIS(JADD+IQ2-1)+YDIS(JADD+IQ2-2))
+         S7(LADD2+IQ2-1)=P5*(V(JADD+IQ2-1)+V(JADD+IQ2-2))
+90800 CONTINUE
+         JADDE4 = JADDIM + 1
+         JADDW4 = JADDIM - 2
+C
+      DO 90840 IQ2=1,LEN32
+         S6(LADD3+IQ2-1)=CVMGT(AVE2D*S6(LADD3+IQ2-1)+
+     *         AVE4D*(YDIS(JADDE4+IQ2-1)+YDIS(JADDW4+IQ2-1)),
+     *         S6(LADD3+IQ2-1),
+     *         BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S7(LADD3+IQ2-1)=CVMGT(AVE2D*S7(LADD3+IQ2-1)+
+     *         AVE4D*(V(JADDE4+IQ2-1)+V(LADDW4+IQ2-1)),
+     *         S7(LADD3+IQ2-1),
+     *         BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+90840 CONTINUE
+C
+C              GET THE J AVERAGE IN YDIS AND DIFFERENCES IN V.
+C              S5 = YDIS AND S8 = DEL U AT V POINT.
+      DO 90860 IQ2=1,LEN21
+         S5(LADD2+IQ2-1)=P5*(S6(LADD3+IQ2-1)+S6(LADD2+IQ2-1))
+         S8(LADD2+IQ2-1)=S7(LADD3+IQ2-1)-S7(LADD2+IQ2-1)
+90860 CONTINUE
+C
+      DO 90900 IQ2=1,LEN32
+         S5(LADD3+IQ2-1)=CVMGT(AVE2D*S5(LADD3+IQ2-1)+
+     *           AVE4D*(S6(LADDN4+IQ2-1)+S6(LADDS4+IQ2-1)),
+     *           S5(LADD3+IQ2-1),
+     *           BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+         S8(LADD3+IQ2-1)=CVMGT(DEF2D*S8(LADD3+IQ2-1)+
+     *           DEF4D*(S7(LADDN4+IQ2-1)-S7(LADDS4+IQ2-1)),
+     *           S8(LADD3+IQ2-1),
+     *           BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+90900 CONTINUE
+C
+C              ADD YDIS TIMES J DIFFERENCE OF V TERM TO VP.
+      DO 90920 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)+DTOV2DX*
+     *              S8(LADD2+IQ2-1)*S5(LADD2+IQ2-1)
+90920 CONTINUE
+  290 CONTINUE
+C  
+C================= HYDROSTATIC FOR HALF TIME STEP ==============
+C
+C------------- DO THE HYDROSTATIC COMPUTATIONS,J = J2,JM0.
+C              MAKE VIRTUAL TEMPERATURE CORRECTION TO THETA.
+      JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 300 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 90940 IQ2=1,LEN20
+         VT(JADD+IQ2-1)=(ONE + P609*Q(JADD+IQ2-1))*
+     *                     TH(JADD+IQ2-1)
+90940 CONTINUE
+  300 CONTINUE
+C
+C-------------- GET SFC PRESS(H) **KAPPA INTO S9(J2,JM0)
+      LADKAPPA = MADDH - 1 + LADD2
+C
+!$OMP PARALLEL DO
+      DO 77001 I1X = 1, LEN20
+         S9(I1X+LADD2-1) = (0.34757549+VBL(I1X+LADKAPPA-1)*(4.36732956+
+     1      VBL(I1X+LADKAPPA-1)*3.91557032))/(1.+VBL(I1X+LADKAPPA-1)*(
+     2      5.44053037+VBL(I1X+LADKAPPA-1)*(2.27693825+VBL(I1X+LADKAPPA-
+     3      1)*(-0.0869930591))))
+77001 CONTINUE
+C
+C------------- COMPUTE PSI FOR K = 1,(J2,JM0).
+C         A SIMPLE HYDROSTATIC EQUATION FOR LAYER ONE
+C              MULTIPLY BY H**KAPPA AND ADD GROUND VALUE
+      C1 = ONE - TWO * PR(1)
+      JADD = IADDRG(10,NG) - 1 + LADD2
+!$OMP PARALLEL DO
+      DO 90960 IQ2=1,LEN20
+         PSI(LADD2+IQ2-1)= C1 * VT(LADD2+IQ2-1) *
+     *             S9(LADD2+IQ2-1) + VBL(JADD+IQ2-1)
+90960 CONTINUE
+C
+C              NOW EXTEND TO PSI AT K = 2,KM
+      JADDz  = LADD2
+      DO 320 K = 2,IKM
+         JADD  = JADDz + IJ*(k-1)
+         C1 = PR(K - 1) - PR(K)
+!$OMP PARALLEL DO 
+      DO 90990 IQ2=1,LEN20
+         PSI(JADD+IQ2-1)=PSI(JADD-IJ+IQ2-1)+
+     *         C1*(VT(JADD+IQ2-1)+VT(JADD-IJ+IQ2-1))*
+     *         S9(LADD2+IQ2-1)
+90990 CONTINUE
+  320 CONTINUE
+C
+C========================PRESSURE GRADIENT FORCE======================
+C
+C---PGF U----- COMPUTE U ACCEL. TERM AND ADD TO UP(J3,JM1).
+C
+         LADDE4 = LADD4 + 2
+         LADDW4 = LADD4 - 1
+C
+         C2 = CSUBP * DTOV2DX
+!$OMP PARALLEL
+!$OMP DO
+      DO 91020 IQ2=1,LEN31
+         S6(LADD3+IQ2-1)=S9(LADD3+IQ2)-S9(LADD3+IQ2-1)
+91020 CONTINUE
+!$OMP DO
+      DO 91040 IQ2=1,LEN42
+         S6(LADD4+IQ2-1)=CVMGT(DEF2D*S6(LADD4+IQ2-1)+
+     *             DEF4D*(S9(LADDE4+IQ2-1)-S9(LADDW4+IQ2-1)),
+     *             S6(LADD4+IQ2-1),
+     *             BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+91040 CONTINUE
+!$OMP END PARALLEL
+C
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDE4,JADDW4,C1,S7,S15)
+      DO 330 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+      JADDE4 = JADDIM + 2
+      JADDW4 = JADDIM - 1
+      DO 91050 IQ2 = 1, LEN31
+         S7(LADD3+IQ2-1) = 0.5*(VT(JADD+IQ2-1)+VT(JADD+IQ2))
+         S15(LADD3+IQ2-1) = PSI(JADD+IQ2) - PSI(JADD+IQ2-1)
+91050 CONTINUE
+      DO 91090 IQ2=1,LEN42
+         S7(LADD4+IQ2-1)=CVMGT(AVE2D*S7(LADD4+IQ2-1)+
+     *            AVE4D*(VT(JADDE4+IQ2-1)+VT(JADDW4+IQ2-1)),
+     *            S7(LADD4+IQ2-1),
+     *            BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+         S15(LADD4+IQ2-1)=CVMGT(DEF2D*S15(LADD4+IQ2-1)+
+     *            DEF4D*(PSI(JADDE4+IQ2-1)-PSI(JADDW4+IQ2-1)),
+     *            S15(LADD4+IQ2-1),
+     *            BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+91090 CONTINUE
+      C1 = PR(K) * TWO
+      DO 91110 IQ2=1,LEN31
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)-C2*
+     *   ( C1*S7(LADD3+IQ2-1)*S6(LADD3+IQ2-1) +
+     *   S15(LADD3+IQ2-1) )  *  EMV(LADD3+IQ2-1)
+91110 CONTINUE
+  330 CONTINUE
+C
+C---PGF V------COMPUTE V ACCELERATION TERM AND ADD TO VP(J2,JM1).
+C
+C              PUT J-DIFF. OF H**KAPPA INTO S6.
+C              DELY PI
+      LADDN4 = LADD3 + 2 * IM
+      LADDS4 = LADD3 - IM
+!$OMP PARALLEL
+!$OMP DO
+      DO 91150 IQ2=1,LEN21
+         S6(LADD2+IQ2-1)=S9(LADD3+IQ2-1)-S9(LADD2+IQ2-1)
+91150 CONTINUE
+!$OMP DO
+      DO 91170 IQ2=1,LEN32
+         S6(LADD3+IQ2-1)=CVMGT(DEF2D*S6(LADD3+IQ2-1)+
+     *         DEF4D*(S9(LADDN4+IQ2-1)-S9(LADDS4+IQ2-1)),
+     *         S6(LADD3+IQ2-1),
+     *         BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+91170 CONTINUE
+!$OMP END PARALLEL
+C
+      JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,C1,S7,S15)
+      DO 340 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+      JADDN4 = JADDIM + 2 * IM
+      JADDS4 = JADDIM - IM
+      DO 91180 IQ2=1,LEN21
+         S7(LADD2+IQ2-1)=P5*(VT(JADD+IQ2-1)+VT(JADDIM+IQ2-1))
+         S15(LADD2+IQ2-1)=PSI(JADDIM+IQ2-1)-PSI(JADD+IQ2-1)
+91180 CONTINUE
+      DO 91220 IQ2=1,LEN32
+         S7(LADD3+IQ2-1)=CVMGT(AVE2D*S7(LADD3+IQ2-1)+
+     *        AVE4D*(VT(JADDN4+IQ2-1)+VT(JADDS4+IQ2-1)),
+     *        S7(LADD3+IQ2-1),
+     *        BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+         S15(LADD3+IQ2-1)=CVMGT(DEF2D*S15(LADD3+IQ2-1)+
+     *        DEF4D*(PSI(JADDN4+IQ2-1)-PSI(JADDS4+IQ2-1)),
+     *        S15(LADD3+IQ2-1),
+     *        BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+91220 CONTINUE
+C
+      C1 = PR(K) * TWO
+      DO 91240 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)-C2*
+     *   ( C1*S7(LADD2+IQ2-1)*S6(LADD2+IQ2-1)+
+     *   S15(LADD2+IQ2-1) ) * EMU(LADD2+IQ2-1)
+91240 CONTINUE
+  340 CONTINUE
+C
+C ======================= CORIOLIS FORCE ===========================
+C
+C------------- GET CORIOLIS COEFFICIENTS AT HU AND HV PTS.
+C                   CORU FOR J = J2 THRU JM1
+C                   CORV FOR J = J3 THRU JM1.
+C
+C              FIRST PUT SINE LATITUDE TIMES H INTO S5(J2,JM0).
+!$OMP PARALLEL DO
+      DO 91280 IQ2=1,LEN20
+         S5(LADD2+IQ2-1)=SINLAT(LADD2+IQ2-1)*
+     *   VBL(MADDH+LADD2+IQ2-2)
+91280 CONTINUE
+         C1 = TWO * ANGVEL * DTIME
+C
+         LADDE4 = LADD3 + 2
+         LADDW4 = LADD3 -1
+         LADDN4 = LADD3 + 2 * IM
+         LADDS4 = LADD3 - IM
+C
+         JADDz  = LADD2 - IJ
+         JADDUz = MADDU - 1 + JADDz
+         JADDVz = MADDV - 1 + JADDz
+C
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDU,JADDV,JADDVIM,
+!$OMP& S6,S7)
+      DO 400 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+         JADDU = JADDUz + IJ*k
+         JADDV = JADDVz + IJ*k
+C
+C              TWICE HU AT H PTS(J2,JM0) TIMES DJCOR INTO S6.
+      JADDVIM = JADDV + IM
+      DO 91290 IQ2=1,LEN20
+         S6(LADD2+IQ2-1)=P5*(VBL(JADDU+IQ2-1)+
+     *                       VBL(JADDU-IM+IQ2-1))
+         S7(LADD2+IQ2-1)=P5*(VBL(JADDV+IQ2-2)+
+     *                       VBL(JADDV+IQ2-1))
+91290 CONTINUE
+      DO 91330 IQ2=1,LEN32
+         S6(LADD3+IQ2-1)=CVMGT(AVE2D*S6(LADD3+IQ2-1)+
+     *      AVE4D*(VBL(JADDU+IM*2+IQ2-1)+VBL(JADDU-IM+IQ2-1)),
+     *      S6(LADD3+IQ2-1),
+     *      BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+         S7(LADD3+IQ2-1)=CVMGT(AVE2D*S7(LADD3+IQ2-1)+
+     *      AVE4D*(VBL(JADDVIM+IQ2)+VBL(JADDVIM+IQ2-3)),
+     *      S7(LADD3+IQ2-1),
+     *      BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+91330 CONTINUE
+C
+C              AVG HV AT H PTS(J2,JM0) TIMES DICOR INTO S7.
+      DO 91350 IQ2=1,LEN20
+         S6(LADD2+IQ2-1)=DJCOR(LADD2+IQ2-1)*S6(LADD2+IQ2-1)
+     *   -  DICOR(LADD2+IQ2-1)*S7(LADD2+IQ2-1)
+     *   +  C1*S5(LADD2+IQ2-1)
+91350 CONTINUE
+C
+C              S6 NOW CONTAINS THE QUANTITY (H * DTIME) TIMES
+C              ( 2 * ANGVEL * SIN(LATITUDE)
+C              + (U * Y - V * X) / (2 * RADIUS * RADIUS)),
+C              AT H POINTS.
+C              AVERAGE S6 IN J TO GET CORU(J2,JM1).
+      DO 91390 IQ2=1,LEN21
+         CORU(JADD+IQ2-1)=P5*(S6(LADD2+IQ2-1)+S6(LADD3+IQ2-1))
+91390 CONTINUE
+      DO 91410 IQ2=1,LEN32
+         CORU(JADDIM+IQ2-1)=CVMGT(AVE2D*CORU(JADDIM+IQ2-1)+
+     *      AVE4D*(S6(LADDN4+IQ2-1)+S6(LADDS4+IQ2-1)),
+     *      CORU(JADDIM+IQ2-1),
+     *      BITGRU4(LADD3+IQ2-1, NPAIR,NG ) )
+91410 CONTINUE
+      DO 91420 IQ2=1,LEN21
+         CORV(JADD+IQ2-1)=P5*(S6(LADD2+IQ2-1)+S6(LADD2+IQ2))
+91420 CONTINUE
+      DO 91440 IQ2=1,LEN32
+         CORV(JADDIM+IQ2-1)=CVMGT(AVE2D*CORV(JADDIM+IQ2-1)+
+     *       AVE4D*(S6(LADDE4+IQ2-1)+S6(LADDW4+IQ2-1)),
+     *       CORV(JADDIM+IQ2-1),
+     *       BITGRV4(LADD3+IQ2-1, NPAIR,NG ) )
+91440 CONTINUE
+C
+  400 CONTINUE
+C
+C--------------DO THE CORIOLIS ACCELERATIONS FOR THE HALF TIME STEP.
+C              S2 STILL HAS 1/H AT V POINTS.
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 410 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 91450 IQ2=1,LEN31
+         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+P5*
+     *   CORV(JADD+IQ2-1)*V(JADD+IQ2-1)*
+     *   S2(LADD3+IQ2-1)
+91450 CONTINUE
+  410 CONTINUE
+C
+C--------------DO CORIOLIS ACCEL. FOR THE HALF TIME STEP VP(J2,JM1).
+C              S4 STILL HAS 1/H AT U POINTS.
+      JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 420 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 91480 IQ2=1,LEN21
+         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)-P5*
+     *   CORU(JADD+IQ2-1)*U(JADD+IQ2-1)*
+     *   S4(LADD2+IQ2-1)
+91480 CONTINUE
+  420 CONTINUE
+C
+C************* START THE FULL TIME STEP **************************
+C
+         III = LADD3 - 1 - IJ
+         NADDU = MADDU + III
+         NADDV = MADDV + III
+         NADDT = MADDT + III
+         NADDQ = MADDQ + III
+C
+C------------- DO CORIOLIS FORCE FOR HU(J3,JM2) AND HV(J3,JM1),
+      JADDUz = NADDU
+      JADDVz = NADDV
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADDU,JADDV,JADD)
+      DO 600 K = 1,IKM
+         JADDU = JADDUz + IJ*k
+         JADDV = JADDVz + IJ*k
+         JADD  = JADDz + IJ*k
+      DO 91530 IQ2=1,LEN32
+         VBL(JADDU+IQ2-1)=CVMGT(VBL(JADDU+IQ2-1)+
+     *              CORU(JADD+IQ2-1)*VP(JADD+IQ2-1),
+     *              VBL(JADDU+IQ2-1),
+     *              BITGRDU(LADD3+IQ2-1, NPAIR, NG) )
+91530 CONTINUE
+      DO 91540 IQ2=1,LEN31
+         VBL(JADDV+IQ2-1)=CVMGT(VBL(JADDV+IQ2-1)-
+     *              CORV(JADD+IQ2-1)*UP(JADD+IQ2-1),
+     *              VBL(JADDV+IQ2-1),
+     *              BITGRDV(LADD3+IQ2-1, NPAIR, NG) )
+91540 CONTINUE
+  600 CONTINUE
+C
+C              PLACE HP AT HU PTS INTO S1(J2,JM1).
+!$OMP PARALLEL
+!$OMP DO
+      DO 91550 IQ2=1,LEN21
+         S1(LADD2+IQ2-1)=P5*(HP(LADD2+IQ2-2)+HP(LADD2+IQ2-1))
+91550 CONTINUE
+C
+C              PLACE HP AT HV PTS(J3,JM1) INTO S2.
+!$OMP DO
+      DO 91560 IQ2=1,LEN31
+         S2(LADD3+IQ2-1)=P5*(HP(LADD2+IQ2-1)+HP(LADD3+IQ2-1))
+91560 CONTINUE
+!$OMP DO
+      DO 91580 IQ2=1,LEN42
+         S1(LADD4+IQ2-1)=CVMGT(AVE2D*S1(LADD4+IQ2-1)+
+     *          AVE4D*(HP(LADD4+IQ2-3)+HP(LADD4+IQ2)),
+     *          S1(LADD4+IQ2-1),
+     *          BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+         S2(LADD4+IQ2-1)=CVMGT(AVE2D*S2(LADD4+IQ2-1)+
+     *          AVE4D*(HP(LADD2+IQ2-1)+HP(LADD5+IQ2-1)),
+     *          S2(LADD4+IQ2-1),
+     *          BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+91580 CONTINUE
+C
+C              HP / EM AT UP PTS(J3,JM1) INTO S5.
+!$OMP DO
+      DO 91610 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=S2(LADD3+IQ2-1)*EMVIN(LADD3+IQ2-1)
+91610 CONTINUE
+C
+C              HP / EM AT VP PTS(J2,JM1) INTO S6.
+!$OMP DO
+      DO 91620 IQ2=1,LEN21
+         S6(LADD2+IQ2-1)=S1(LADD2+IQ2-1)*EMUIN(LADD2+IQ2-1)
+91620 CONTINUE
+!$OMP END PARALLEL
+C
+C------------- PUT HORIZONTAL MASS FLUXES FLX (J3,JM1) AND FLY(J2,JM1)
+C              INTO ARRAYS FLX AND FLY.
+C              FLX = HUP/EM     FLY = HVP/EM     EM=MAP FACTOR
+         JADD2z = LADD2 - IJ
+         JADD3z = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD2,JADD3)
+      DO 630 K = 1,IKM
+         JADD2 = JADD2z + IJ*k
+         JADD3 = JADD3z + IJ*k
+      DO 91630 IQ2=1,LEN31
+         FLX(JADD3+IQ2-1)=S5(LADD3+IQ2-1)*UP(JADD3+IQ2-1)
+91630 CONTINUE
+      DO 91640 IQ2=1,LEN21
+         FLY(JADD2+IQ2-1)=S6(LADD2+IQ2-1)*VP(JADD2+IQ2-1)
+91640 CONTINUE
+  630 CONTINUE
+C
+C============= CONVERGENCE FOR FULL TIME STEP ======================
+C
+C------------- EVALUATE CONV AT H POINTS(J3,JM1), PUT IN ARRAY CONV.
+      JADDz = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDE4,JADDW4,JADDN4,JADDS4,C1,
+!$OMP& S7,S8)
+      DO 640 K = 1,IKM
+         JADD = JADDz + IJ*k
+C               DELX HUP/M
+      DO 91650 IQ2=1,LEN31
+         S7(LADD3+IQ2-1)=FLX(JADD+IQ2-1)-FLX(JADD+IQ2-2)
+C               DELY HVP/M
+         S8(LADD3+IQ2-1)=FLY(JADD+IQ2-1)-FLY(JADD-IM+IQ2-1)
+91650 CONTINUE
+      JADDIM = JADD + IM
+      JADDE4 = JADDIM + 1
+      JADDW4 = JADDIM - 2
+      JADDN4 = JADDIM + IM
+      JADDS4 = JADDIM - 2 * IM
+      DO 91690 IQ2=1,LEN42
+         S7(LADD4+IQ2-1)=CVMGT(DEF2D*S7(LADD4+IQ2-1)+
+     *            DEF4D*(FLX(JADDE4+IQ2-1)-FLX(JADDW4+IQ2-1)),
+     *            S7(LADD4+IQ2-1),
+     *            BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *            DEF4D*(FLY(JADDN4+IQ2-1)-FLY(JADDS4+IQ2-1)),
+     *            S8(LADD4+IQ2-1),
+     *            BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+91690 CONTINUE
+      C1   = - DELSIG(K)
+      DO 91710 IQ2=1,LEN31
+         CONV(JADD+IQ2-1)=EM2H(LADD3+IQ2-1)*
+     *               C1*(S7(LADD3+IQ2-1)+S8(LADD3+IQ2-1))
+91710 CONTINUE
+  640 CONTINUE
+C
+C------------- ACCUMULATE VERT. SUM OF CONV IN S7,(J3,JM1)
+      JADD = LADD3 + IJ
+!$OMP PARALLEL DO
+      DO 91730 IQ2=1,LEN31
+         S7(LADD3+IQ2-1)=CONV(LADD3+IQ2-1)+CONV(JADD+IQ2-1)
+91730 CONTINUE
+C
+      DO 650 K = 3,IKM
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 91740 IQ2=1,LEN31
+         S7(LADD3+IQ2-1)=S7(LADD3+IQ2-1)+CONV(JADD+IQ2-1)
+91740 CONTINUE
+  650 CONTINUE
+C
+C              ARRAY S7 NOW HAS DELX * (THE LOCAL TIME DERIVATIVE
+C              OF SURFACE PRESSURE, WHICH EQUALS THE VERTICAL
+C              SUM OF CONV) AT H POINTS.
+C
+C------------- COMPUTE NEW VALUE OF H IN ARRAY VBL(J3,JM1)
+C
+      JADD = MADDH - 1 + LADD3
+!$OMP PARALLEL DO
+      DO 91750 IQ2=1,LEN31
+         VBL(JADD+IQ2-1)=CVMGT(DTOVDX*S7(LADD3+IQ2-1)+VBL(JADD+IQ2-1),
+     *                         VBL(JADD+IQ2-1),
+     *                         BITGRDH(LADD3+IQ2-1, NPAIR, NG) )
+91750 CONTINUE
+C
+C--------------COMPUTE INTERFACE W(K) AT H PTS(J3,JM1),(K = 2,KM).
+      C1 =  - DELSIG(1)
+!$OMP PARALLEL DO
+      DO 91760 IQ2=1,LEN31
+         W(LADD3+IJ+IQ2-1)=CONV(LADD3+IQ2-1)+C1*S7(LADD3+IQ2-1)
+91760 CONTINUE
+      JADD = LADD3
+C
+      DO 660 K = 3,IKM
+         JADD = JADD + IJ
+         C1   =  - DELSIG(K - 1)
+!$OMP PARALLEL DO
+      DO 91770 IQ2=1,LEN31
+         W(JADD+IJ+IQ2-1)=W(JADD+IQ2-1)+
+     *           CONV(JADD+IQ2-1)+C1*S7(LADD3+IQ2-1)
+91770 CONTINUE
+  660 CONTINUE
+C
+C--------------COMPUTE RMS OF H * D(SIGMA)/DT ON FINEST GRID.
+C              ONLY THOSE POINTS THAT ARE FORECAST POINTS FOR
+C              NPAIR = 2 ARE USED FOR BOTH THE NPAIR = 1 AND 
+C              NPAIR = 2 CASES.
+C
+      IF ((NG .EQ. NGRDUSE) .AND. (LASTSTEP .EQ. 1)) THEN
+         SIGDOT = ZERO
+         SIGSQ = 0.0
+         LADD3X= 4 * IM + 1
+         JADD  = LADD3X
+         LEN31X= IM * (JM - 7)
+         DO 665 IZZ = 1, LEN31X
+            S8(IZZ)   = 0.0
+  665    CONTINUE
+      DO 680 K = 2, M
+         JADD = JADD + IJ
+         DO 675 IZZ = 1, LEN31X
+            IF (BITGRDH(LADD3X+IZZ-1, 2, NG)) THEN
+               S8(IZZ) = W(JADD+IZZ-1) 
+            ENDIF
+  675    CONTINUE
+          SIGSQK = 0.0
+         do i = 1, len31x
+            SIGSQK =  SIGSQK + S8(i)*S8(i)
+         end do
+cwas     SIGSQK = SDOT(LEN31X,S8,1,S8,1)
+         SIGSQ  = SIGSQ + SIGSQK 
+  680 CONTINUE
+C
+C              NORMALIZE WITH NUMBER OF GRID POINTS ASSUMING NG .GT.1
+         POINTSIJ   = FLOAT((IM - 7) * (JM - 7) ) 
+         SIGSQ = SQRT(SIGSQ / POINTSIJ)
+C
+C              DIVIDE OUT DELTA X.
+         SIGDOT = SIGSQ / DELX
+      ENDIF
+C============== FULL ADVECTION FOR FULL TIME STEP =====================
+C
+C--ADV HU----- DO FULL TIME STEP ADVECTION OF HU.
+C              PUT UP AT H PTS INTO SBAR(J3,JM1)
+         JADDz = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM)
+      DO 700 K = 1,IKM
+         JADD = JADDz + IJ*k
+C
+      DO 91810 IQ2=1,LEN31
+         SBAR(JADD+IQ2-1)=P5*(UP(JADD+IQ2-2)+UP(JADD+IQ2-1))
+91810 CONTINUE
+      JADDIM = JADD + IM
+      DO 91830 IQ2=1,LEN42
+         SBAR(JADDIM+IQ2-1)=CVMGT(AVE2D*SBAR(JADDIM+IQ2-1)+
+     *       AVE4D*(UP(JADDIM+IQ2-3)+UP(JADDIM+IQ2)),
+     *       SBAR(JADDIM+IQ2-1),
+     *       BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+91830 CONTINUE
+  700 CONTINUE
+C
+C              PUT W * UP AT H INTERFACE PTS INTO
+C              FKS(K = 2,KM),J = J3,JM1.
+         JADDz = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 710 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+C              UP(H PTS) AT INTERFACE K INTO S8.
+      DO 91840 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=W(JADD+IQ2-1)*
+     *             P5*(SBAR(JADD+IQ2-1)+SBAR(JADD-IJ+IQ2-1))
+91840 CONTINUE
+  710 CONTINUE
+C
+C              AVERAGE THIS TO HU POINTS(J3,JM2) TO GET FKU.
+      JADDz = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,S20)
+      DO 720 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+         JADDIM = JADD + IM
+         JADDN4 = JADDIM + IM * 2
+         JADDS4 = JADDIM - IM
+      DO 91870 IQ2=1,LEN32
+         S20(LADD3+IQ2-1)=P5*(FKS(JADD+IQ2-1)+FKS(JADDIM+IQ2-1))
+91870 CONTINUE
+      DO 91880 IQ2=1,LEN43
+         S20(LADD4+IQ2-1)=CVMGT(AVE2D*S20(LADD4+IQ2-1)+
+     *        AVE4D*(FKS(JADDN4+IQ2-1)+FKS(JADDS4+IQ2-1)),
+     *        S20(LADD4+IQ2-1),
+     *        BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+91880 CONTINUE
+      DO 91881 IQ2 = 1, LEN32
+         FKS(JADD+IQ2-1) = S20(LADD3+IQ2-1)
+91881 CONTINUE
+  720 CONTINUE
+C
+C              TAKE THE VERTICAL DIFFS AND ACCUMULATE D(HU) IN FKS
+         C1  =  - DTOVDX / DELSIG(1)
+!$OMP PARALLEL DO
+      DO 91890 IQ2=1,LEN32
+         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+91890 CONTINUE
+         JADD = LADD3
+      DO 730 K = 2,IKMM1
+         JADD = JADD + IJ
+         C1   =  - DTOVDX / DELSIG(K)
+!$OMP PARALLEL DO
+      DO 91900 IQ2=1,LEN32
+         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+91900 CONTINUE
+  730 CONTINUE
+C
+         C1 = DTOVDX / DELSIG(KM)
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 91910 IQ2=1,LEN32
+         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+91910 CONTINUE
+C
+C  --HOR ADV-- GET CONTRIBUTIONS FROM HORIZONTAL FLUXES(J3,JM2)
+      JADDz = LADD3 - IJ
+      JADDUz = NADDU
+!$OMP PARALLEL DO PRIVATE(JADD,JADDU,JADDIM,JADDN4,JADDS4,
+!$OMP& S4,S8,S9,S20)
+      DO 740 K = 1,IKM
+         JADD = JADDz + IJ*k
+         JADDU = JADDUz + IJ*k
+C
+      DO 91920 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=FLX(JADD+IQ2-1)*UP(JADD+IQ2-1)
+91920 CONTINUE
+C
+      DO 91930 IQ2=1,LEN32
+         S4(LADD3+IQ2-1)=P5*(S8(LADD3+IQ2-1)+S8(LADD3+IM+IQ2-1))
+91930 CONTINUE
+      DO 91950 IQ2=1,LEN43
+         S4(LADD4+IQ2-1)=CVMGT(AVE2D*S4(LADD4+IQ2-1)+
+     *         AVE4D*(S8(LADD6+IQ2-1)+S8(LADD3+IQ2-1)),
+     *         S4(LADD4+IQ2-1),
+     *         BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+91950 CONTINUE
+C
+      DO 91970 IQ2=1,LEN32
+         S20(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD3+IQ2-2)
+91970 CONTINUE
+      DO 91980 IQ2=1,LEN43
+         S20(LADD4+IQ2-1)=CVMGT(DEF2D*S20(LADD4+IQ2-1)+
+     *         DEF4D*(S4(LADD4+IQ2)-S4(LADD4+IQ2-3)),
+     *         S20(LADD4+IQ2-1),
+     *         BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+91980 CONTINUE
+      DO 91981 IQ2 =1 , LEN32
+         S4(LADD3+IQ2-1) = S20(LADD3+IQ2-1)
+91981 CONTINUE
+C
+      JADDIM = JADD + IM
+      JADDN4 = JADDIM + IM
+      JADDS4 = JADDIM - 2 * IM
+      DO 91990 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=P5*(FLY(JADD+IQ2-1)+
+     *               FLY(JADD-IM+IQ2-1))
+91990 CONTINUE
+      DO 92010 IQ2=1,LEN42
+         S8(LADD4+IQ2-1)=CVMGT(AVE2D*S8(LADD4+IQ2-1)+
+     *         AVE4D*(FLY(JADDN4+IQ2-1)+FLY(JADDS4+IQ2-1)),
+     *         S8(LADD4+IQ2-1),
+     *         BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92010 CONTINUE
+      DO 92020 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S8(LADD3+IQ2-1)*SBAR(JADD+IQ2-1)
+92020 CONTINUE
+C
+      DO 92030 IQ2=1,LEN32
+         S9(LADD3+IQ2-1)=S8(LADD3+IM+IQ2-1)-S8(LADD3+IQ2-1)
+92030 CONTINUE
+      DO 92050 IQ2=1,LEN43
+         S9(LADD4+IQ2-1)=CVMGT(DEF2D*S9(LADD4+IQ2-1)+
+     *           DEF4D*(S8(LADD6+IQ2-1)-S8(LADD3+IQ2-1)),
+     *           S9(LADD4+IQ2-1),
+     *           BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+92050 CONTINUE
+C
+C              COMBINE WITH X-DIFF, MULT BY EM**2,
+C              AND ADD TO VERTICAL TERM ALREADY IN FKS.
+C              STORE NEW HU VALUE IN VBL WHERE ALLOWED.
+      DO 92090 IQ2=1,LEN32
+         VBL(JADDU+IQ2-1)=CVMGT(VBL(JADDU+IQ2-1)+
+     *           FKS(JADD+IQ2-1)-DTOVDX*
+     *           (S9(LADD3+IQ2-1)+S4(LADD3+IQ2-1))*EM2U(LADD3+IQ2-1),
+     *           VBL(JADDU+IQ2-1),
+     *           BITGRDU(LADD3+IQ2-1, NPAIR, NG) )
+92090 CONTINUE
+C
+  740 CONTINUE
+C
+C---ADV HV-----DO FULL TIME STEP ADVECTION OF HV.
+C              PUT VP AT H PTS INTO SBAR(J3,JM1)
+      JADDz = LADD3 - IJ
+C
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4)
+      DO 750 K = 1,IKM
+         JADD = JADDz + IJ*k
+      JADDIM = JADD + IM
+      JADDN4 = JADDIM + IM
+      JADDS4 = JADDIM - 2 * IM
+      DO 92100 IQ2=1,LEN31
+         SBAR(JADD+IQ2-1)=P5*(VP(JADD+IQ2-1)+VP(JADD-IM+IQ2-1))
+92100 CONTINUE
+      DO 92120 IQ2=1,LEN42
+         SBAR(JADDIM+IQ2-1)=CVMGT(AVE2D*SBAR(JADDIM+IQ2-1)+
+     *         AVE4D*(VP(JADDN4+IQ2-1)+VP(JADDS4+IQ2-1)),
+     *         SBAR(JADDIM+IQ2-1),
+     *         BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92120 CONTINUE
+  750 CONTINUE
+C
+C              PUT W * VP (H, INTERFACE PTS) INTO
+C              FKS(K = 2,KM AND J = J3,JM1).
+      JADDz = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 760 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+C              PUT VP (H PTS) AT INTERFACE K INTO S8.
+      DO 92130 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=W(JADD+IQ2-1)*
+     *         P5*(SBAR(JADD+IQ2-1)+SBAR(JADD-IJ+IQ2-1))
+92130 CONTINUE
+  760 CONTINUE
+C
+C              AVERAGE THIS TO HV POINTS (J = J3,JM1).
+      JADD = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDE4,JADDW4,S20)
+      DO 770 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+         JADDIM = JADD + IM
+         JADDE4 = JADDIM + 2
+         JADDW4 = JADDIM - 1
+      DO 92160 IQ2=1,LEN31
+         S20(LADD3+IQ2-1)=P5*(FKS(JADD+IQ2-1)+FKS(JADD+IQ2))
+92160 CONTINUE
+      DO 92170 IQ2=1,LEN42
+         S20(LADD4+IQ2-1)=CVMGT(AVE2D*S20(LADD4+IQ2-1)+
+     *       AVE4D*(FKS(JADDE4+IQ2-1)+FKS(JADDW4+IQ2-1)),
+     *       S20(LADD4+IQ2-1),
+     *       BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+92170 CONTINUE
+      DO 92171 IQ2 = 1, LEN31
+         FKS(JADD+IQ2-1) = S20(LADD3+IQ2-1)
+92171 CONTINUE
+  770 CONTINUE
+C
+C              TAKE VERTICAL DIFFS AND ACCUMULATE D(HV) IN FKS(J3,JM1).
+         C1   =  - DTOVDX / DELSIG(1)
+!$OMP PARALLEL DO
+      DO 92180 IQ2=1,LEN31
+         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+92180 CONTINUE
+      JADD = LADD3
+      DO 780 K = 2,IKMM1
+         JADD = JADD + IJ
+         C1   =  - DTOVDX / DELSIG(K)
+!$OMP PARALLEL DO
+      DO 92190 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+92190 CONTINUE
+  780 CONTINUE
+C
+         C1   = DTOVDX / DELSIG(KM)
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 92200 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+92200 CONTINUE
+C
+C --HOR ADV--  GET CONTRIBUTIONS FROM HORIZONTAL FLUXES AND COMBINE
+C              WITH THE VERTICAL TERM.(J3,JM1).
+      JADDz  = LADD3 - IJ
+      JADDVz = NADDV
+!$OMP PARALLEL DO PRIVATE(JADD,JADDV,JADDIM,JADDW4,JADDE4,
+!$OMP& S4,S8,S9,S20)
+      DO 790 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDV = JADDVz + IJ*k
+         JADDIM = JADD + IM
+         JADDW4 = JADDIM - 2
+         JADDE4 = JADDIM + 1
+      DO 92210 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=P5*(FLX(JADD+IQ2-2)+FLX(JADD+IQ2-1))
+92210 CONTINUE
+      DO 92230 IQ2=1,LEN42
+         S9(LADD4+IQ2-1)=CVMGT(AVE2D*S9(LADD4+IQ2-1)+
+     *       AVE4D*(FLX(JADDW4+IQ2-1)+FLX(JADDE4+IQ2-1)),
+     *       S9(LADD4+IQ2-1),
+     *       BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92230 CONTINUE
+C
+C              FIV AT H PTS (J = J3,JM1).
+      DO 92240 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S9(LADD3+IQ2-1)*SBAR(JADD+IQ2-1)
+92240 CONTINUE
+C
+      DO 92250 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=S8(LADD3+IQ2)-S8(LADD3+IQ2-1)
+92250 CONTINUE
+      DO 92270 IQ2=1,LEN42
+         S9(LADD4+IQ2-1)=CVMGT(DEF2D*S9(LADD4+IQ2-1)+
+     *       DEF4D*(S8(LADD4+IQ2+1)-S8(LADD4+IQ2-2)),
+     *       S9(LADD4+IQ2-1),
+     *       BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+92270 CONTINUE
+C
+      DO 92280 IQ2=1,LEN21
+         S20(LADD2+IQ2-1)=FLY(JADD-IM+IQ2-1)*VP(JADD-IM+IQ2-1)
+92280 CONTINUE
+      DO 92300 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=P5*(S20(LADD2+IQ2-1)+S20(LADD2+IQ2))
+92300 CONTINUE
+      DO 92310 IQ2=1,LEN32
+         S4(LADD3+IQ2-1)=CVMGT(AVE2D*S4(LADD3+IQ2-1)+
+     *        AVE4D*(S20(LADD3+IQ2-2)+S20(LADD3+IQ2+1)),
+     *        S4(LADD3+IQ2-1),
+     *        BITGRH4(LADD3+IQ2-1, NPAIR,NG ) )
+92310 CONTINUE
+C
+      DO 92320 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD2+IQ2-1)
+92320 CONTINUE
+      DO 92340 IQ2=1,LEN42
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *       DEF4D*(S4(LADD5+IQ2-1)-S4(LADD2+IQ2-1)),
+     *       S8(LADD4+IQ2-1),
+     *       BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+92340 CONTINUE
+C
+C              COMBINE WITH X-DIFF,MULT. BY M**2 AND ADD TO VERT.TERM.
+C              STORE NEW HV VALUE IN VBL WHERE ALLOWED.
+      DO 92380 IQ2=1,LEN31
+         VBL(JADDV+IQ2-1)=CVMGT(VBL(JADDV+IQ2-1)+
+     *         FKS(JADD+IQ2-1)-DTOVDX*
+     *         (S8(LADD3+IQ2-1)+S9(LADD3+IQ2-1))*
+     *         EM2V(LADD3+IQ2-1),
+     *         VBL(JADDV+IQ2-1),
+     *         BITGRDV(LADD3+IQ2-1, NPAIR, NG) )
+92380 CONTINUE
+  790 CONTINUE
+C
+C              ARRAYS UP AND VP ARE NO LONGER NEEDED.
+C              THEREFORE, THE SPACE USED BY VP IS AVAILABLE FOR USE
+C              AS THPATH AND THEN QPATH.
+C
+C---ADV HTH---- DO FULL TIME STEP ADVECTION OF HTH (H * THETA).
+C              CALCULATE THP AT HV PTS AND PUT IT INTO SBAR(J=J3,JM1).
+C              CALCULATE THP AT H PTS AND PUT IT INTO THPATH (J3,JM1).
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,JADDW4,JADDE4)
+      DO 800 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDIM = JADD + IM
+         JADDN4 = JADDIM + IM
+         JADDS4 = JADDIM - 2 * IM
+      DO 92390 IQ2=1,LEN31
+         SBAR(JADD+IQ2-1)=P5*(THP(JADD+IQ2-1)+
+     *                        THP(JADD-IM+IQ2-1))
+92390 CONTINUE
+      DO 92410 IQ2=1,LEN42
+         SBAR(JADDIM+IQ2-1)=CVMGT(AVE2D*SBAR(JADDIM+IQ2-1)+
+     *           AVE4D*(THP(JADDN4+IQ2-1)+THP(JADDS4+IQ2-1)),
+     *           SBAR(JADDIM+IQ2-1),
+     *           BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+92410 CONTINUE
+         JADDW4 = JADDIM - 2
+         JADDE4 = JADDIM + 1
+      DO 92420 IQ2=1,LEN31
+         THPATH(JADD+IQ2-1)=P5*(SBAR(JADD+IQ2-2)+
+     *                          SBAR(JADD+IQ2-1))
+92420 CONTINUE
+      DO 92440 IQ2=1,LEN42
+         THPATH(JADDIM+IQ2-1)=CVMGT(AVE2D*THPATH(JADDIM+IQ2-1)+
+     *         AVE4D*(SBAR(JADDE4+IQ2-1)+SBAR(JADDW4+IQ2-1)),
+     *         THPATH(JADDIM+IQ2-1),
+     *         BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92440 CONTINUE
+  800 CONTINUE
+C
+C              PUT W * THP(H INTERFACE PTS) INTO
+C              FKS(K = 2,KM AND J = J3,JM1).
+         JADDz  = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 810 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+      DO 92450 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=W(JADD+IQ2-1)*
+     *        P5*(THPATH(JADD+IQ2-1)+THPATH(JADD-IJ+IQ2-1))
+92450 CONTINUE
+  810 CONTINUE
+C
+C              TAKE VERTICAL DIFFS AND ACCUMULATE D(HT) IN FKS.
+         C1   = - DTOVDX / DELSIG(1)
+!$OMP PARALLEL DO
+      DO 92470 IQ2=1,LEN31
+         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+92470 CONTINUE
+         JADD = LADD3
+      DO 820 K = 2,IKMM1
+         JADD = JADD + IJ
+         C1   =  - DTOVDX / DELSIG(K)
+!$OMP PARALLEL DO
+      DO 92480 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+92480 CONTINUE
+  820 CONTINUE
+C
+         C1   = DTOVDX / DELSIG(KM)
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 92490 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+92490 CONTINUE
+C
+C              GET CONTRIBUTIONS FROM X AND Y FLUX.
+         JADDz  = LADD3 - IJ
+         JADDTz = NADDT
+!$OMP PARALLEL DO PRIVATE(JADD,JADDT,JADDIM,JADDE4,JADDW4,
+!$OMP& S4,S8,S9)
+      DO 830 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDT = JADDTz + IJ*k
+         JADDIM = JADD + IM
+C
+C              FIT AT HV PTS(J3,JM1)
+      DO 92500 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=FLX(JADD+IQ2-1)*SBAR(JADD+IQ2-1)
+92500 CONTINUE
+C
+      DO 92510 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S9(LADD3+IQ2-1)-S9(LADD3+IQ2-2)
+92510 CONTINUE
+      DO 92530 IQ2=1,LEN42
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *        DEF4D*(S9(LADD4+IQ2)-S9(LADD4+IQ2-3)),
+     *        S8(LADD4+IQ2-1),
+     *        BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92530 CONTINUE
+C
+         JADDE4 = JADDIM + 1
+         JADDW4 = JADDIM - 2
+      DO 92540 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=P5*(THP(JADD-IM+IQ2-2)+
+     *                       THP(JADD-IM+IQ2-1))
+92540 CONTINUE
+      DO 92560 IQ2=1,LEN42
+         S4(LADD4+IQ2-1)=CVMGT(AVE2D*S4(LADD4+IQ2-1)+
+     *       AVE4D*(THP(JADDW4+IQ2-1)+THP(JADDE4+IQ2-1)),
+     *       S4(LADD4+IQ2-1),
+     *       BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+92560 CONTINUE
+      DO 92570 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=S4(LADD2+IQ2-1)*FLY(JADD-IM+IQ2-1)
+92570 CONTINUE
+C
+      DO 92580 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD2+IQ2-1)
+92580 CONTINUE
+      DO 92600 IQ2=1,LEN42
+         S9(LADD4+IQ2-1)=CVMGT(DEF2D*S9(LADD4+IQ2-1)+
+     *       DEF4D*(S4(LADD5+IQ2-1)-S4(LADD2+IQ2-1)),
+     *       S9(LADD4+IQ2-1),
+     *       BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92600 CONTINUE
+C
+C              COMBINE WITH X-DIFF, MULT BY M**2 AND ADD TO VERT. TERM.
+C              PUT NEW H * THETA IN VBL WHERE ALLOWED TO.
+      DO 92640 IQ2=1,LEN31
+         VBL(JADDT+IQ2-1)=CVMGT(VBL(JADDT+IQ2-1)+
+     *       FKS(JADD+IQ2-1)-DTOVDX*
+     *       (S9(LADD3+IQ2-1)+S8(LADD3+IQ2-1))*
+     *       EM2H(LADD3+IQ2-1),
+     *       VBL(JADDT+IQ2-1),
+     *       BITGRDH(LADD3+IQ2-1, NPAIR, NG) )
+92640 CONTINUE
+  830 CONTINUE
+C
+C---ADV HQ---- DO FULL TIME STEP ADVECTION OF HQ
+C              PUT QP AT HV PTS INTO SBAR(J3,JM1)
+C              AND QP AT H PTS INTO QPATH (J = J3, JM1).
+         JADDz = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDIM,JADDN4,JADDS4,JADDW4,JADDE4)
+      DO 850 K = 1,IKM
+         JADD = JADDz + IJ*k
+         JADDIM = JADD + IM
+         JADDN4 = JADDIM + IM
+         JADDS4 = JADDIM - 2 * IM
+      DO 92650 IQ2=1,LEN31
+         SBAR(JADD+IQ2-1)=P5*(QP(JADD+IQ2-1)+QP(JADD-IM+IQ2-1))
+92650 CONTINUE
+      DO 92670 IQ2=1,LEN42
+         SBAR(JADDIM+IQ2-1)=CVMGT(AVE2D*SBAR(JADDIM+IQ2-1)+
+     *         AVE4D*(QP(JADDN4+IQ2-1)+QP(JADDS4+IQ2-1)),
+     *         SBAR(JADDIM+IQ2-1),
+     *         BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+92670 CONTINUE
+         JADDW4 = JADDIM - 2
+         JADDE4 = JADDIM + 1
+      DO 92680 IQ2=1,LEN31
+         QPATH(JADD+IQ2-1)=P5*(SBAR(JADD+IQ2-2)+
+     *                         SBAR(JADD+IQ2-1))
+92680 CONTINUE
+      DO 92700 IQ2=1,LEN42
+         QPATH(JADDIM+IQ2-1)=CVMGT(AVE2D*QPATH(JADDIM+IQ2-1)+
+     *       AVE4D*(SBAR(JADDE4+IQ2-1)+SBAR(JADDW4+IQ2-1)),
+     *       QPATH(JADDIM+IQ2-1),
+     *       BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92700 CONTINUE
+  850 CONTINUE
+C
+C              PUT W * QP(H INTERFACE PTS) INTO
+C              FKS(K = 2,KM AND J = J3,JM1).
+      JADDz = LADD3
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 860 K = 2,IKM
+         JADD = JADDz + IJ*(k-1)
+      DO 92710 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=W(JADD+IQ2-1)*
+     *     P5*(QPATH(JADD+IQ2-1)+QPATH(JADD-IJ+IQ2-1))
+92710 CONTINUE
+  860 CONTINUE
+C
+C              TAKE VERTICAL DIFFS
+         C1   =  - DTOVDX / DELSIG(1)
+!$OMP PARALLEL DO
+      DO 92730 IQ2=1,LEN31
+         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+92730 CONTINUE
+      JADD = LADD3
+      DO 870 K = 2,IKMM1
+         JADD = JADD + IJ
+         C1   = - DTOVDX / DELSIG(K)
+!$OMP PARALLEL DO
+      DO 92740 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+92740 CONTINUE
+  870 CONTINUE
+C
+         C1   = DTOVDX / DELSIG(KM)
+         JADD = JADD + IJ
+!$OMP PARALLEL DO
+      DO 92750 IQ2=1,LEN31
+         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+92750 CONTINUE
+C
+C              GET CONTRIBUTIONS FROM X AND Y FLUX.
+         JADDz  = LADD3 - IJ
+         JADDQz = NADDQ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDQ,JADDIM,JADDE4,JADDW4,
+!$OMP& S4,S8,S9)
+      DO 880 K = 1,IKM
+         JADD  = JADDz  + IJ*k
+         JADDQ = JADDQz + IJ*k
+         JADDIM = JADD + IM
+C
+C              FIQ AT HV PTS(J3,JM1).
+      DO 92760 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=FLX(JADD+IQ2-1)*SBAR(JADD+IQ2-1)
+92760 CONTINUE
+C
+         JADDE4 = JADDIM + 1
+         JADDW4 = JADDIM - 2
+      DO 92770 IQ2=1,LEN31
+         S8(LADD3+IQ2-1)=S9(LADD3+IQ2-1)-S9(LADD3+IQ2-2)
+92770 CONTINUE
+      DO 92790 IQ2=1,LEN42
+         S8(LADD4+IQ2-1)=CVMGT(DEF2D*S8(LADD4+IQ2-1)+
+     *       DEF4D*(S9(LADD4+IQ2)-S9(LADD4+IQ2-3)),
+     *       S8(LADD4+IQ2-1),
+     *       BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92790 CONTINUE
+C
+      DO 92800 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=P5*(QP(JADD-IM+IQ2-2)+
+     *                       QP(JADD-IM+IQ2-1))
+92800 CONTINUE
+      DO 92820 IQ2=1,LEN42
+         S4(LADD4+IQ2-1)=CVMGT(AVE2D*S4(LADD4+IQ2-1)+
+     *             AVE4D*(QP(JADDW4+IQ2-1)+QP(JADDE4+IQ2-1)),
+     *             S4(LADD4+IQ2-1),
+     *             BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+92820 CONTINUE
+      DO 92830 IQ2=1,LEN21
+         S4(LADD2+IQ2-1)=S4(LADD2+IQ2-1)*FLY(JADD-IM+IQ2-1)
+92830 CONTINUE
+C
+      DO 92840 IQ2=1,LEN31
+         S9(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD2+IQ2-1)
+92840 CONTINUE
+      DO 92860 IQ2=1,LEN42
+         S9(LADD4+IQ2-1)=CVMGT(DEF2D*S9(LADD4+IQ2-1)+
+     *      DEF4D*(S4(LADD5+IQ2-1)-S4(LADD2+IQ2-1)),
+     *      S9(LADD4+IQ2-1),
+     *      BITGRH4(LADD4+IQ2-1, NPAIR,NG ) )
+92860 CONTINUE
+C
+      DO 92920 IQ2=1,LEN31
+         VBL(JADDQ+IQ2-1)=CVMGT(FKS(JADD+IQ2-1)-DTOVDX*
+     *                   (S9(LADD3+IQ2-1)+S8(LADD3+IQ2-1) ) *
+     *                   EM2H(LADD3+IQ2-1)+VBL(JADDQ+IQ2-1),
+     *                   VBL(JADDQ+IQ2-1),
+     *                   BITGRDH(LADD3+IQ2-1, NPAIR, NG) )
+92920 CONTINUE
+C
+  880 CONTINUE
+C
+C============== HYDROSTATIC COMPUTATION FOR FULL TIME STEP ===========
+C
+C--------------DO THE HYDROSTATIC COMPUTATIONS (J = J2,JM1).
+C              FIRST MAKE VIRTUAL TEMP CORRN TO THETA PRIME (THP).
+         JADDz  = LADD2 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD)
+      DO 900 K = 1,IKM
+         JADD  = JADDz + IJ*k
+      DO 92930 IQ2=1,LEN21
+         VT(JADD+IQ2-1)=THP(JADD+IQ2-1)*
+     *                      (ONE+P609*QP(JADD+IQ2-1))
+92930 CONTINUE
+  900 CONTINUE
+C
+!$OMP PARALLEL DO
+      DO 77002 I2X = 1, LEN21
+         S4(I2X+LADD2-1) = (0.34757549+HP(I2X+LADD2-1)*(4.36732956+HP(
+     1      I2X+LADD2-1)*3.91557032))/(1.+HP(I2X+LADD2-1)*(5.44053037+HP
+     2      (I2X+LADD2-1)*(2.27693825+HP(I2X+LADD2-1)*(-0.0869930591))))
+77002 CONTINUE
+C
+C              COMPUTE PSI PRIME FOR K = 1 IN ARRAY PSI(J = J2,JM1).
+C           A SIMPLE HYDROSTATIC EQUATION FOR LAYER ONE
+      C1 = ONE - TWO * PR(1)
+!$OMP PARALLEL DO
+      DO 92950 IQ2=1,LEN21
+         PSI(LADD2+IQ2-1)=GRNDP(LADD2+IQ2-1)+
+     *         C1*VT(LADD2+IQ2-1)*S4(LADD2+IQ2-1)
+92950 CONTINUE
+C
+C              NOW EXTEND PSI PRIME TO HIGHER LEVELS.
+         JADD = LADD2
+      DO 920 K = 2,IKM
+         JADD = JADD + IJ
+         C1   = PR(K - 1) - PR(K)
+!$OMP PARALLEL DO
+      DO 92980 IQ2=1,LEN21
+         PSI(JADD+IQ2-1)=PSI(JADD-IJ+IQ2-1)+
+     *       C1*(VT(JADD+IQ2-1)+VT(JADD-IJ+IQ2-1))*
+     *       S4(LADD2+IQ2-1)
+92980 CONTINUE
+  920 CONTINUE
+C
+C============== PRESSURE GRADIENT FORCE FOR FULL TIME STEP ===========
+C
+C---PGF HU-----THE PRESSURE FORCE CHANGE TO HU(N + 1) FOR J = J3,JM2.
+C
+      C2 = CSUBP * DTOVDX
+C
+!$OMP PARALLEL 
+!$OMP DO
+      DO 93010 IQ2=1,LEN32
+         S3(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD3+IQ2-2)
+93010 CONTINUE
+!$OMP DO
+      DO 93030 IQ2=1,LEN43
+         S3(LADD4+IQ2-1)=CVMGT(DEF2D*S3(LADD4+IQ2-1)+
+     *       DEF4D*(S4(LADD4+IQ2)-S4(LADD4+IQ2-3)),
+     *       S3(LADD4+IQ2-1),
+     *       BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+93030 CONTINUE
+C
+!$OMP DO
+      DO 93040 IQ2=1,LEN32
+         S1(LADD3+IQ2-1)=S1(LADD3+IQ2-1)*EMU(LADD3+IQ2-1)
+93040 CONTINUE
+!$OMP END PARALLEL
+C
+      JADDUz = NADDU
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDU,JADDIM,JADDE4,JADDW4,C1,
+!$OMP& S5,S7)
+      DO 930 K = 1,IKM
+         JADD  = JADDz  + IJ*k
+         JADDU = JADDUz + IJ*k
+         JADDIM = JADD + IM
+C
+         JADDE4 = JADDIM + 1
+         JADDW4 = JADDIM - 2
+      DO 93050 IQ2=1,LEN32
+         S5(LADD3+IQ2-1)=P5*(VT(JADD+IQ2-2)+VT(JADD+IQ2-1))
+93050 CONTINUE
+      DO 93070 IQ2=1,LEN43
+         S5(LADD4+IQ2-1)=CVMGT(AVE2D*S5(LADD4+IQ2-1)+
+     *      AVE4D*(VT(JADDE4+IQ2-1)+VT(JADDW4+IQ2-1)),
+     *      S5(LADD4+IQ2-1),
+     *      BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+93070 CONTINUE
+      DO 93080 IQ2 = 1, LEN32
+         S7(LADD3+IQ2-1) = S3(LADD3+IQ2-1)*S5(LADD3+IQ2-1)
+         S5(LADD3+IQ2-1) = PSI(JADD+IQ2-1) - PSI(JADD-2+IQ2)
+93080 CONTINUE
+      DO 93110 IQ2=1,LEN43
+         S5(LADD4+IQ2-1)=CVMGT(DEF2D*S5(LADD4+IQ2-1)+
+     *       DEF4D*(PSI(JADDE4+IQ2-1)-PSI(JADDW4+IQ2-1)),
+     *       S5(LADD4+IQ2-1),
+     *       BITGRU4(LADD4+IQ2-1, NPAIR,NG ) )
+93110 CONTINUE
+C
+      C1  = TWO * PR(K)
+C              MULT. BY HP * EM FROM S1.
+      DO 93130 IQ2=1,LEN32
+         VBL(JADDU+IQ2-1)=CVMGT(VBL(JADDU+IQ2-1)-C2*
+     *     ( S5(LADD3+IQ2-1)+C1*S7(LADD3+IQ2-1) ) *
+     *     S1(LADD3+IQ2-1),
+     *     VBL(JADDU+IQ2-1),
+     *     BITGRDU(LADD3+IQ2-1, NPAIR, NG) )
+93130 CONTINUE
+  930 CONTINUE
+C
+C---PGF HV---- GET THE PRESSURE FORCE CHANGE TO HV (J = J3,JM1).
+C
+!$OMP PARALLEL 
+!$OMP DO
+      DO 93150 IQ2=1,LEN31
+         S3(LADD3+IQ2-1)=S4(LADD3+IQ2-1)-S4(LADD2+IQ2-1)
+93150 CONTINUE
+!$OMP DO
+      DO 93170 IQ2=1,LEN42
+         S3(LADD4+IQ2-1)=CVMGT(DEF2D*S3(LADD4+IQ2-1)+
+     *      DEF4D*(S4(LADD5+IQ2-1)-S4(LADD2+IQ2-1)),
+     *      S3(LADD4+IQ2-1),
+     *      BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+93170 CONTINUE
+C
+C              GET HP TIMES EM AT HV PTS INTO S2(J3,JM1).
+!$OMP DO
+      DO 93180 IQ2=1,LEN31
+         S2(LADD3+IQ2-1)=S2(LADD3+IQ2-1)*EMV(LADD3+IQ2-1)
+93180 CONTINUE
+!$OMP END PARALLEL
+C
+      JADDVz = NADDV
+      JADDz  = LADD3 - IJ
+!$OMP PARALLEL DO PRIVATE(JADD,JADDV,JADDIM,JADDN4,JADDS4,C1,
+!$OMP& S5,S8)
+      DO 940 K = 1,IKM
+         JADD  = JADDz + IJ*k
+         JADDV = JADDVz + IJ*k
+         JADDIM = JADD + IM
+C
+C              BACKWARD J-SUM OF VIRT. POT. TEMP TIMES
+      JADDN4 = JADDIM + IM
+      JADDS4 = JADDIM - 2 * IM
+      DO 93190 IQ2=1,LEN31
+         S5(LADD3+IQ2-1)=P5*(VT(JADD+IQ2-1)+VT(JADD-IM+IQ2-1))
+93190 CONTINUE
+      DO 93210 IQ2=1,LEN42
+         S5(LADD4+IQ2-1)=CVMGT(AVE2D*S5(LADD4+IQ2-1)+
+     *      AVE4D*(VT(JADDN4+IQ2-1)+VT(JADDS4+IQ2-1)),
+     *      S5(LADD4+IQ2-1),
+     *      BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+93210 CONTINUE
+C
+      DO 93220 IQ2 = 1, LEN31
+         S8(LADD3+IQ2-1) = S5(LADD3+IQ2-1)*S3(LADD3+IQ2-1)
+         S5(LADD3+IQ2-1) = PSI(JADD+IQ2-1) - PSI(JADD-IM+IQ2-1)
+93220 CONTINUE
+      DO 93250 IQ2=1,LEN42
+         S5(LADD4+IQ2-1)=CVMGT(DEF2D*S5(LADD4+IQ2-1)+
+     *      DEF4D*(PSI(JADDN4+IQ2-1)-PSI(JADDS4+IQ2-1)),
+     *      S5(LADD4+IQ2-1),
+     *      BITGRV4(LADD4+IQ2-1, NPAIR,NG ) )
+93250 CONTINUE
+C
+      C1  = TWO * PR(K)
+C              MULT. BY HP * EM FROM S2.
+      DO 93280 IQ2=1,LEN31
+         VBL(JADDV+IQ2-1)=CVMGT(VBL(JADDV+IQ2-1)-C2*
+     *      ( S5(LADD3+IQ2-1)+C1*S8(LADD3+IQ2-1) ) *
+     *      S2(LADD3+IQ2-1),
+     *      VBL(JADDV+IQ2-1),
+     *      BITGRDV(LADD3+IQ2-1, NPAIR, NG) )
+93280 CONTINUE
+  940 CONTINUE
+C
+      RETURN
+      END

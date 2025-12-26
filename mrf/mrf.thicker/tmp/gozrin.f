@@ -1,0 +1,42 @@
+CFPP$ NOCONCUR R
+      SUBROUTINE GOZRIN(QLNT,QLNV,QDERT,EPSI,LAT,RCS2,WGT)
+CC
+      DIMENSION          QLNT( 4032 )
+      DIMENSION          QLNV( 4158 )
+      DIMENSION         QDERT( 4032 )
+      DIMENSION          EPSI( 64 , 63 )
+      DIMENSION          RCS2( 47 )
+      DIMENSION           WGT( 47 )
+CC
+      COMMON /GOZCOM/ DXA( 4032 ),DXB( 4032 )
+CC
+CCC         PART BETWEEN GUARDS MADE INTO SR GGOZRI.
+CCC         7 DEC 1990      M. ROZWODOSKI
+CC
+CC    COMPUTE PLN DERIVATIVES IN IBM ORDER.
+      WCSA=RCS2(LAT)/ 6.3712E+6
+CC
+      LP0 = 0
+      LP1 = 2
+      LEN =  126
+      DO 640  I=1, 63
+      DO 620 LL=1,LEN
+             QDERT(LL+LP0) = QLNV(LL+LP1) * DXB(LL+LP0)
+  620 CONTINUE
+      LP1 = LP1 + LEN + 2
+      LP0 = LP0 + LEN
+      LEN = LEN - 2
+  640 CONTINUE
+CC
+                  LEND =  4032  - 4
+      DO 720 LL=1,LEND
+             QDERT(LL+2) = QDERT(LL+2) + QLNT(LL) * DXA(LL+2)
+  720 CONTINUE
+CC
+      DO 760 LL=1, 4032
+             QDERT(LL) = QDERT(LL) * WCSA
+              QLNT(LL) =  QLNT(LL) * WGT(LAT)
+  760 CONTINUE
+CC
+      RETURN
+      END

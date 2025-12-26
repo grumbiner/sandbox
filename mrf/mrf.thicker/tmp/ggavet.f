@@ -1,0 +1,35 @@
+      SUBROUTINE GGAVET(CTTIN,IIN,JTWIDL,JIN,CTTOUT,IOUT,JPOUT,JOUT,
+     1                  ILEFT,IRGHT,INSLAT,WGTLAT,
+     2                  TT,SUM,NN,LTWIDL,LATRD1,LATINB)
+C--   *****************************************************************
+C     * PUT CLOUD TOP TEMPERATURE ONTO FCST MODEL GRID......          *
+C     *    ONLY AVERAGE THOSE POINTS WHICH HAVE CLD (IE TEMP NONZERO) *
+C-    *  J = 1 IS JUST BELO N.POLE, I = 1 IS GREENWICH (THEN GO EAST).*
+C     * IIN,JIN ARE I,J DIMENSIONS OF INPUT GRID--IOUT,JOUT FOR OUTPUT*
+C     * JIN2,JOUT2=JIN/2,JOUT/2                                       *
+C     *                                     --K.CAMPANA - AUGUST 91   *
+C--   *****************************************************************
+      DIMENSION CTTIN(IIN,JTWIDL)
+      DIMENSION CTTOUT(IOUT,JPOUT)
+      DIMENSION ILEFT(IOUT),IRGHT(IOUT)
+      DIMENSION INSLAT(JOUT),WGTLAT(JOUT)
+      DIMENSION TT(IOUT,4),SUM(IOUT)
+      DIMENSION NN(IOUT)
+      III = IIN
+      JBB = JTWIDL
+      JJJ = JIN
+      IIIOUT = IOUT
+      LBB = LTWIDL
+      LR1 = LATRD1
+      DO 50 LATOUT=1,JPOUT
+       LAT=LATOUT+LATINB-1
+CCC     PRINT 100,LAT,XLAT
+C===>    IF OUTPUT LAT IS POLEWARD OF INPUT LAT=1 ,THEN SIMPL AVERAGE
+C          (SMALL REGION AND CLD AMT WOULDN T EXTRAPOLATE WELL)
+       CALL GINTP(III,JBB,JJJ,IIIOUT,
+     1            ILEFT,IRGHT,INSLAT(LAT),WGTLAT(LAT),
+     2            CTTIN,CTTOUT(1,LATOUT),TT,SUM,NN,LBB,LR1)
+   50 CONTINUE
+CK100 FORMAT(1H ,' ROW =',I5,'  LAT =',E15.5)
+      RETURN
+      END

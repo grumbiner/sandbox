@@ -1,0 +1,69 @@
+      SUBROUTINE DELDIF(RT,W,DELTIM,QM,SL,X,Y)
+      %INCLUDE DBDELDIF;
+
+      DIMENSION SL(#LEVS),QM(#LNT22)
+      DIMENSION W(#LNT22,#LEVS),X(#LNT22,#LEVS),
+     &          Y(#LNT22,#LEVS),RT(#LNT22,#LEVH)
+      DIMENSION DN(#LNT2),SF(#LEVS)
+      DATA IFIRST/0/
+      SAVE IFIRST,DN,SF
+
+      IF(IFIRST.EQ.0) THEN
+        IFIRST=1
+C  RECIPROCAL OF TIME SCALE OF DIFFUSION AT REFERENCE WAVENUMBER NP
+        RTNP=3.E15/(#RERTH**4)*FLOAT(80*81)**2
+C       NP=80
+        NP=#JCAP
+C  MAXIMUM WAVENUMBER FOR ZERO DIFFUSION
+C       N0=0
+        N0=0.55*#JCAP
+C  ORDER OF DIFFUSION (EVEN POWER TO RAISE DEL)
+C       JDEL=4
+        JDEL=2
+C
+        PRINT 6,RTNP,NP,N0,JDEL
+6       FORMAT(' HORIZONTAL DIFFUSION PARAMETERS'/
+     &  '   EFFECTIVE ',6PF10.3,' MICROHERTZ AT WAVENUMBER ',I4/
+     &  '   MAXIMUM WAVENUMBER FOR ZERO DIFFUSION ',I4/
+     &  '   ORDER OF DIFFUSION ',I2)
+C
+        JDELH=JDEL/2
+        NPD=MAX(NP-N0,0)
+        DN1=2.*RTNP/FLOAT(NPD*(NPD+1))**JDELH
+        I=0
+        DO 10 NM=0,#JCAP
+        DO 10 M=0,#JCAP-NM
+          ND=MAX(NM+M-N0,0)
+          DN(I+1)=DN1*FLOAT(ND*(ND+1))**JDELH
+          DN(I+2)=DN(I+1)
+          I=I+2
+10      CONTINUE
+        DO 20 K=1,#LEVS
+          KD=MAX(K-1,1)
+          KU=MIN(K+1,#LEVS)
+          SF(K)=SL(K)/(SL(KU)-SL(KD))/SQRT(2.)
+20      CONTINUE
+      ENDIF
+
+CFPP$ NODEPCHK
+      DO 70 K=1,#LEVS
+        KD=MAX(K-1,1)
+        KU=MIN(K+1,#LEVS)
+        YSK=(Y(1,KU)-Y(1,KD))*SF(K)
+        DO 60 I=3,#LNT2
+          W(I,K)= W(I,K)/(1.+DELTIM*DN(I))
+          X(I,K)= X(I,K)/(1.+DELTIM*DN(I))
+          Y(I,K)=(Y(I,K)+DELTIM*DN(I)*YSK*QM(I))/(1.+DELTIM*DN(I))
+60      CONTINUE
+        DO 62 IT=1,#NTRAC
+          IS=(IT-1)*#LEVS
+          RTSK=(RT(1,IS+KU)-RT(1,IS+KD))*SF(K)
+          L=IS+K
+          DO 61 I=3,#LNT2
+            RT(I,L)=(RT(I,L)+DELTIM*DN(I)*RTSK*QM(I))/(1.+DELTIM*DN(I))
+61        CONTINUE
+62      CONTINUE
+70    CONTINUE
+
+      RETURN
+      END

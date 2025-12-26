@@ -1,0 +1,72 @@
+      SUBROUTINE COMPJD(JYR,JMNTH,JDAY,JHR,JMN,JD,FJD)
+CFPP$ NOCONCUR R
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    COMPJD      COMPUTES JULIAN DAY AND FRACTION
+C   PRGMMR: KENNETH CAMPANA  ORG: W/NMC23    DATE: 89-07-07
+C
+C ABSTRACT: THIS CODE WRITTEN AT GFDL ....
+C   COMPUTES JULIAN DAY AND FRACTION
+C   FROM YEAR, MONTH, DAY AND TIME UT...ACCURATE ONLY BETWEEN
+C   MARCH 1, 1900 AND FEBRUARY 28, 2100.. BASED ON JULIAN CALENDAR
+C   CORRECTED TO CORRESPOND TO GREGORIAN CALENDAR DURING THIS PERIOD.
+C
+C PROGRAM HISTORY LOG:
+C   77-05-06  RAY ORZOL,GFDL
+C
+C USAGE:    CALL COMPJD(JYR,JMNTH,JDAY,JHR,JMN,JD,FJD)
+C   INPUT ARGUMENT LIST:
+C     JYR      - YEAR (4 DIGITS)-INTIAL FCST TIME.
+C     JMNTH    - MONTH-INITIAL FCST TIME.
+C     JDAY     - DAY-INITIAL FCST TIME.
+C     JHR      - Z-TIME OF INITIAL FCST TIME.
+C     JMN      - MINUTES (ZERO PASSED FROM CALLING PROGRAM).
+C   OUTPUT ARGUMENT LIST:
+C     JD       - JULIAN DAY.
+C     FJD      - FRACTION OF THE JULIAN DAY.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN 200.
+C   MACHINE:  CYBER 205.
+C
+C$$$
+C    *******************************************************************
+C    *                           C O M P J D                           *
+C    *    STATEMENT BLOCKED BY RAY ORZOL                               *
+C    *******************************************************************
+C
+                               D I M E N S I O N
+     1   NDM(12)
+C
+                                   D A T A
+     1   JDOR/2415019/,
+     2   JYR19/1900/
+C
+                                   D A T A
+     1   NDM/0,31,59,90,120,151,181,212,243,273,304,334/
+C    *******************************************************************
+C     COMPUTES JULIAN DAY AND FRACTION FROM YEAR, MONTH, DAY AND TIME UT
+C     ACCURATE ONLY BETWEEN MARCH 1, 1900 AND FEBRUARY 28, 2100
+C     BASED ON JULIAN CALENDAR CORRECTED TO CORRESPOND TO GREGORIAN
+C        CALENDAR DURING THIS PERIOD
+C    JDOR=JD OF DECEMBER 30, 1899 AT 12 HOURS UT
+C    *******************************************************************
+      JD=JDOR
+      JYRM9=JYR-JYR19
+      LP=JYRM9/4
+      IF(LP.LE.0) GO TO 4
+      JD=JD+1461*LP
+  4   NY=JYRM9-4*LP
+      IC=0
+      IF(NY.GT.0) GO TO 5
+      IF(JMNTH.GT.2) IC=1
+      GO TO 6
+  5   JD=JD+365*NY+1
+  6   JD=JD+NDM(JMNTH)+JDAY+IC
+      IF(JHR.GE.12) GO TO 7
+      JD=JD-1
+      FJD=.5 E 0+.041666667 E 0*FLOAT(JHR)+.00069444444 E 0*FLOAT(JMN)
+      RETURN
+  7   FJD=.041666667 E 0*FLOAT(JHR-12)+.00069444444 E 0*FLOAT(JMN)
+      RETURN
+      END

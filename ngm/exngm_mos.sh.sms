@@ -1,0 +1,570 @@
+#!/bin/sh
+
+set +x
+echo " -------------------------------------------------------------"
+echo "  "
+echo "                        NGM MOS"
+echo "  "
+echo "  "
+echo "                        Job 380  "
+echo "  "
+echo "  "
+echo " -------------------------------------------------------------"
+echo "History:     1996 - Convert to Cray"
+echo  "      : Aug 1996 - standardize and add SMS hooks"
+echo  "      : Feb 1996 - get obs from dcom"
+echo  "      : Apr 1998 - changed status file for storafo"
+echo  "                 - to be saved in /com instead of /scom"
+echo "       : FEB 2000 - Convert to IBM SP."
+echo "       : APR 2002 - Removed old step to create RFC mx/mn message."
+echo "       : JUN 2002 - Added dbnet alert for tgftp."
+echo "       : SEP 2004 - Changed mdl_mosbufr to mdl_ngmmosbufr."
+echo "       : NOV 2004 - Changed BUFR dbnet alerts to go NTC."
+echo "       : AUG 2005 - Removed AEV processing including storafo "
+echo "       :            and aevstatus "
+echo "       : OCT 2005 - Transfer to TOC via NTC             "
+echo " --------------------------------------------------------------"
+set -x
+
+export DAT="$PDY$cyc"
+ 
+#########################################################
+msg="Begin job J380"
+postmsg "$jlogfile" "$msg"
+#########################################################
+
+COMFILES=$COMIN/${RUN}.${cycle}
+
+cp $COMFILES.pgrb.f00 ngm.pgrb.f00
+cp $COMFILES.pgrb.f06 ngm.pgrb.f06
+cp $COMFILES.pgrb.f12 ngm.pgrb.f12
+cp $COMFILES.pgrb.f18 ngm.pgrb.f18
+cp $COMFILES.pgrb.f24 ngm.pgrb.f24
+cp $COMFILES.pgrb.f30 ngm.pgrb.f30
+cp $COMFILES.pgrb.f36 ngm.pgrb.f36
+cp $COMFILES.pgrb.f42 ngm.pgrb.f42
+cp $COMFILES.pgrb.f48 ngm.pgrb.f48
+
+cp $COMFILES.pgrbif00 ngm.pgrbif00
+cp $COMFILES.pgrbif06 ngm.pgrbif06
+cp $COMFILES.pgrbif12 ngm.pgrbif12
+cp $COMFILES.pgrbif18 ngm.pgrbif18
+cp $COMFILES.pgrbif24 ngm.pgrbif24
+cp $COMFILES.pgrbif30 ngm.pgrbif30
+cp $COMFILES.pgrbif36 ngm.pgrbif36
+cp $COMFILES.pgrbif42 ngm.pgrbif42
+cp $COMFILES.pgrbif48 ngm.pgrbif48
+
+#########################################################
+#   Initialize MOS forecast file.
+#########################################################
+export pgm="mdl_mosinit"
+. prep_step
+
+export XLFUNIT_20="$FIXmdl/mdl_mosdir"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_70="mosfcsts.ngm.$cycle"
+ 
+startmsg
+$EXECmdl/mdl_mosinit < $PARMmdl/mdl_ngminit.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#########################################################
+#   Run Model Pre-processor
+#########################################################
+export pgm="mdl_mosprepngm"
+. prep_step
+
+export XLFUNIT_11="ngm.pgrb.f00"
+export XLFUNIT_12="ngm.pgrb.f06"
+export XLFUNIT_13="ngm.pgrb.f12"
+export XLFUNIT_14="ngm.pgrb.f18"
+export XLFUNIT_15="ngm.pgrb.f24"
+export XLFUNIT_16="ngm.pgrb.f30"
+export XLFUNIT_17="ngm.pgrb.f36"
+export XLFUNIT_18="ngm.pgrb.f42"
+export XLFUNIT_19="ngm.pgrb.f48"
+export XLFUNIT_21="ngm.pgrbif00"
+export XLFUNIT_22="ngm.pgrbif06"
+export XLFUNIT_23="ngm.pgrbif12"
+export XLFUNIT_24="ngm.pgrbif18"
+export XLFUNIT_25="ngm.pgrbif24"
+export XLFUNIT_26="ngm.pgrbif30"
+export XLFUNIT_27="ngm.pgrbif36"
+export XLFUNIT_28="ngm.pgrbif42"
+export XLFUNIT_29="ngm.pgrbif48"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_75="ngmgrb.$cycle"
+ 
+startmsg
+$EXECmdl/mdl_mosprepngm < $PARMmdl/mdl_storngm.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#########################################################
+#   Create GRIB index file
+#########################################################
+$EXECutil/grbindex ngmgrb.$cycle ngmgrbi.$cycle 2>errfile
+export err=$?
+ 
+if test "$err" = 0
+then
+  msg="ngmgrbi.$cycle built"
+  postmsg "$jlogfile" "$msg"
+else
+  msg="grbindex failed building ngmgrbi.$cycle"
+  postmsg "$jlogfile" "$msg"
+  err_exit
+fi
+ 
+#########################################################
+#    Set variables to get hourly obs from dcom
+#########################################################
+if test $cyc -eq '00'
+then
+   cycp3=03
+   cycp2=02
+   cycp1=01
+else
+   cycp3=15
+   cycp2=14
+   cycp1=13
+fi
+
+#########################################################
+#    Run MOSOBS
+#
+#    First test for dcom directory; don't run MOSOBS if obs are missing 
+#########################################################
+if [ ! -d $DCOM ] 
+then
+    msg="$DCOM does not exist; skip MOSOBS due to lack of obs data"
+    postmsg "$jlogfile" "$msg"
+else
+    export pgm="mdl_mosobs"
+    . prep_step
+
+    export XLFUNIT_20="$DCOM/sfctbl.${cycp3}"
+    export XLFUNIT_21="$DCOM/sfctbl.${cycp2}"
+    export XLFUNIT_22="$DCOM/sfctbl.${cycp1}"
+    export XLFUNIT_30="$FIXmdl/mdl_icaostation.tbl"
+    export XLFUNIT_49="ncepdate"
+    export XLFUNIT_70="mosfcsts.ngm.$cycle"
+ 
+    startmsg
+    $EXECmdl/mdl_mosobs < $PARMmdl/mdl_mosobsngm.dat >> $pgmout 2>errfile
+    export err=$?;err_chk
+fi
+
+#########################################################
+#    Run MOSFCSTS
+#########################################################
+export pgm="mdl_mosfcst"
+. prep_step
+
+export XLFUNIT_11="$FIXmdl/mdl_ncodes"
+export XLFUNIT_12="$FIXmdl/mdl_constantids"
+export XLFUNIT_18="ngmgrb.$cycle"
+export XLFUNIT_19="ngmgrbi.$cycle"
+export XLFUNIT_26="$FIXmdl/mdl_ngm.terrain"
+export XLFUNIT_30="$FIXmdl/mdl_constant"
+export XLFUNIT_35="$FIXmdl/mdl_tempijs"
+export XLFUNIT_40="$FIXmdl/mdl_ngm.equations"
+export XLFUNIT_48="$FIXmdl/mdl_hexidngm"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_70="mosfcsts.ngm.$cycle"
+export XLFUNIT_90="tempspace"
+ 
+startmsg
+$EXECmdl/mdl_mosfcst < $PARMmdl/mdl_ngmmos.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#########################################################
+#    Run MOS post-processor
+#########################################################
+export pgm="mdl_mospost"
+. prep_step
+
+export XLFUNIT_11="$FIXmdl/mdl_id.tbl"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_30="$FIXmdl/mdl_constant"
+export XLFUNIT_40="$FIXmdl/mdl_calibration"
+export XLFUNIT_70="mosfcsts.ngm.$cycle"
+ 
+startmsg
+$EXECmdl/mdl_mospost < $PARMmdl/mdl_postngm.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test $SENDCOM = 'YES'
+then
+   cp mosfcsts.ngm.$cycle $COMOUT
+fi
+ 
+#########################################################
+#   Generate FOUS14 bulletin
+#########################################################
+export pgm="mdl_fous14tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_60="fous14.$cycle"
+export XLFUNIT_65="fous14.tran"
+ 
+startmsg
+$EXECmdl/mdl_fous14tx < $PARMmdl/mdl_drfous14.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp fous14.$cycle $COMOUT
+fi
+ 
+if test $SENDDBN = 'YES'
+then
+   $USHutil/make_ntc_bull.pl  FOUS14 NONE KWNO NONE fous14.tran $pcom/fous14.tran.$job
+   $DBNROOT/bin/dbn_alert MDLFCST NGMMOSTXT ngm_mos $COMOUT/fous14.$cycle
+fi
+
+#########################################################
+#   Generate FXXX01 Air Force bulletins
+#########################################################
+export pgm="mdl_fxxx01tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_60="fxxx01.$cycle"
+export XLFUNIT_65="fxxx01.tran"
+ 
+startmsg 
+$EXECmdl/mdl_fxxx01tx < $PARMmdl/mdl_drfxxx01.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test $SENDCOM = 'YES'
+then
+   cp fxxx01.$cycle $COMOUT
+fi
+ 
+if test $SENDDBN = 'YES'
+then
+   $DBNROOT/bin/dbn_alert MDLFCST NGMMOSAFTXT ngm_mos $COMOUT/fxxx01.$cycle
+fi
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWNO NONE fxxx01.tran $pcom/fxxx01.tran.$job
+
+#########################################################
+#   Generate NGM MOS Alaska bulletins FOAK25-FOAK29 KWNO
+#########################################################
+export pgm="mdl_ngmmosaktx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_30="$FIXmdl/mdl_icaostation.tbl"
+export XLFUNIT_60="ngmmosaktx.$cycle"
+export XLFUNIT_65="ngmmosaktx.tran"
+ 
+startmsg
+$EXECmdl/mdl_ngmmosaktx < $PARMmdl/mdl_ngmmosaktx.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp ngmmosaktx.$cycle $COMOUT
+fi
+ 
+$USHutil/make_ntc_bull.pl  WMOAK NONE KWNO NONE ngmmosaktx.tran $pcom/ngmosaktx.tran.$job
+ 
+#########################################################
+#   Generate FOAK14 Alaska bulletin - AFOS
+#########################################################
+export pgm="mdl_foak13tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_60="foak14.$cycle"
+export XLFUNIT_65="foak14.tran"
+ 
+startmsg
+$EXECmdl/mdl_foak13tx < $PARMmdl/mdl_drfoak14.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp foak14.$cycle $COMOUT
+fi
+ 
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWNO NONE foak14.tran $pcom/foak14.tran.$job
+ 
+#########################################################
+#   Generate FXXX34 Alaska Air Force bulletin
+#########################################################
+export pgm="mdl_fxxx34tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_60="fxxx34.$cycle"
+export XLFUNIT_65="fxxx34.tran"
+ 
+startmsg
+$EXECmdl/mdl_fxxx34tx < $PARMmdl/mdl_drfxxx34.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp fxxx34.$cycle $COMOUT
+fi
+ 
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWNO NONE fxxx34.tran $pcom/fxxx34.tran.$job
+ 
+#########################################################
+#   Generate FOUS33 MAX/MIN for Western Region
+#########################################################
+export pgm="mdl_fous33tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.ngm.$cycle"
+export XLFUNIT_18="ncepdate"
+export XLFUNIT_60="fous33.$cycle"
+export XLFUNIT_65="fous33.tran"
+ 
+startmsg
+$EXECmdl/mdl_fous33tx < $PARMmdl/mdl_drfous33.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp fous33.$cycle $COMOUT
+fi
+ 
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWNO NONE fous33.tran $pcom/fous33.tran.$job
+
+#########################################################
+#      Run plotmos for HPC's TAP for CIG/VIS forecasts
+#########################################################
+export pgm="mdl_plotmos"
+. prep_step
+
+export XLFUNIT_11="mosfcsts.ngm.$cycle"
+export XLFUNIT_12="$FIXmdl/mdl_constant"
+export XLFUNIT_14="$FIXmdl/mdl_id.tbl"
+export XLFUNIT_22="$FIXmdl/mdl_plot.ngmstas"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_66="ngmmosplot.$cycle"
+
+startmsg
+$EXECmdl/mdl_plotmos <$PARMmdl/mdl_plotngm.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test $SENDCOM = 'YES'
+then
+  cp ngmmosplot.$cycle $COMOUT/ngmmosplot.$cycle
+  if [ $SENDDBN = 'YES' ] ; then
+    $DBNROOT/bin/dbn_alert MODEL MDL_GEMPAK $job $COMOUT/ngmmosplot.$cycle
+  fi
+fi
+
+#########################################################
+#    Create MOS GRIB fields
+#########################################################
+export pgm="mdl_gribmos"
+. prep_step
+
+export XLFUNIT_11="mosfcsts.ngm.$cycle"
+export XLFUNIT_12="$FIXmdl/mdl_constant"
+export XLFUNIT_14="$FIXmdl/mdl_id.tbl"
+export XLFUNIT_22="$FIXmdl/mdl_ngmstas.grib"
+export XLFUNIT_33="$FIXmdl/mdl_usapoints"
+export XLFUNIT_44="$FIXmdl/mdl_grids"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_66="ngmmosgrib.$cycle"
+ 
+startmsg
+$EXECmdl/mdl_gribmos < $PARMmdl/mdl_ngmids.grib.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#########################################################
+#   Create MOS GRIB index file
+#########################################################
+$EXECutil/grbindex ngmmosgrib.$cycle ngmmosgribi.$cycle 2> errfile
+
+cat errfile
+ 
+if test $SENDCOM = 'YES'
+then
+   cp ngmmosgrib* $COMOUT
+   cp ngmmosgribi* $COMOUT
+fi
+
+if test $SENDDBN = 'YES'
+then
+    $DBNROOT/bin/dbn_alert MDLFCST NGMMOSGRIB $job $COMOUT/ngmmosgrib.$cycle
+fi
+
+#########################################################
+#   Generate NGM MOS BUFR messages for stations in the Main U.S.
+#########################################################
+export pgm="mdl_ngmbufrmos"
+. prep_step
+
+export XLFUNIT_7="$FIXmdl/mdl_ngmdrngmbuf"
+export XLFUNIT_20="mosfcsts.ngm.$cycle"
+export XLFUNIT_30="$FIXmdl/mdl_constant"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_60="ngmbufr.xtrn"
+ 
+startmsg 
+$EXECmdl/mdl_ngmbufrmos < $PARMmdl/mdl_bufrqpf.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp ngmbufr.xtrn $pcom/ngmbufr.xtrn.$job
+   cp ngmbufr.xtrn $COMOUT/ngmmosbufr.$cycle
+fi
+ 
+if test $SENDDBN = 'YES'
+then
+   $DBNROOT/bin/dbn_alert GRIB_LOW ngm ngm_mos $pcom/ngmbufr.xtrn.$job
+fi
+
+#########################################################
+#   Generate NGM MOS BUFR messages for stations in Alaska
+#########################################################
+export pgm="mdl_ngmbufrmos"
+. prep_step
+
+export XLFUNIT_7="$FIXmdl/mdl_ngmdrnakbuf"
+export XLFUNIT_20="mosfcsts.ngm.$cycle"
+export XLFUNIT_30="$FIXmdl/mdl_constant"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_60="ngmbufrak.xtrn"
+ 
+startmsg 
+$EXECmdl/mdl_ngmbufrmos < $PARMmdl/mdl_bufrnak.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+ 
+if test $SENDCOM = 'YES'
+then
+   cp ngmbufrak.xtrn $pcom/ngmbufrak.xtrn.$job
+   cp ngmbufrak.xtrn $COMOUT/ngmbufrak.xtrn.$cycle
+fi
+ 
+if test $SENDDBN = 'YES'
+then
+   $DBNROOT/bin/dbn_alert GRIB_LOW ngm ngm_mos $pcom/ngmbufrak.xtrn.$job
+fi
+ 
+#########################################################
+#       Format the FOUS14 bulletin for internal archiving
+#########################################################
+export pgm="mdl_storfous"
+. prep_step
+
+export XLFUNIT_20="fous14.$cycle"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_51="fous14rot.$cycle"
+
+startmsg
+$EXECmdl/mdl_storfous <$PARMmdl/mdl_storf14.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test $SENDCOM = 'YES'
+then
+   cp fous14rot.$cycle $COMOUT/fous14rot.$cycle
+fi
+
+#########################################################
+# Aug 2005 - removed storafo and aevstatus because the
+#            AEV program has been terminated.
+#########################################################
+
+#########################################################
+#   Create RGL MOS FAX GRIB fields
+#########################################################
+export pgm="mdl_gribmos"
+. prep_step
+
+export XLFUNIT_11="mosfcsts.ngm.$cycle"
+export XLFUNIT_12="$FIXmdl/mdl_constant"
+export XLFUNIT_14="$FIXmdl/mdl_id.tbl"
+export XLFUNIT_22="$FIXmdl/mdl_ngmfaxstas.grib"
+export XLFUNIT_33="$FIXmdl/mdl_usapoints"
+export XLFUNIT_44="$FIXmdl/mdl_grids"
+export XLFUNIT_49="ncepdate"
+export XLFUNIT_66="ngmmosfaxgrib.$cycle"
+ 
+startmsg 
+$EXECmdl/mdl_gribmos <$PARMmdl/mdl_ngmfaxids.grib.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#########################################################
+#    Create MOS FAX GRIB index file
+#########################################################
+$EXECutil/grbindex ngmmosfaxgrib.$cycle ngmmosfaxgribi.$cycle 2>errfile
+export err=$?
+ 
+if test "$err" = 0
+then
+   msg="ngmmosfaxgribi.$cycle built"
+   postmsg "$jlogfile" "$msg"
+else
+   msg="grbindex failed building ngmmosfaxgribi.$cycle"
+   postmsg "$jlogfile" "$msg"
+   err_exit
+fi
+ 
+if test $SENDCOM = 'YES'
+then
+   cp ngmmosfaxgrib.$cycle $COMOUT/ngmmosfaxgrib.$cycle
+   cp ngmmosfaxgribi.$cycle $COMOUT/ngmmosfaxgribi.$cycle
+fi
+ 
+#########################################################
+#   Generate a subset of the NGM forecasts of wind, pressure
+#   temperature and precipitation fields for use as input
+#   for local AWIPS MOS program software
+#########################################################
+export pgm="mdl_lampgrid"
+. prep_step
+
+export XLFUNIT_11="ngm.pgrb.f00"
+export XLFUNIT_12="ngm.pgrb.f06"
+export XLFUNIT_13="ngm.pgrb.f12"
+export XLFUNIT_14="ngm.pgrb.f18"
+export XLFUNIT_15="ngm.pgrb.f24"
+export XLFUNIT_16="ngm.pgrb.f30"
+export XLFUNIT_17="ngm.pgrb.f36"
+export XLFUNIT_31="ngm.pgrbif00"
+export XLFUNIT_32="ngm.pgrbif06"
+export XLFUNIT_33="ngm.pgrbif12"
+export XLFUNIT_34="ngm.pgrbif18"
+export XLFUNIT_35="ngm.pgrbif24"
+export XLFUNIT_36="ngm.pgrbif30"
+export XLFUNIT_37="ngm.pgrbif36"
+export XLFUNIT_20="ncepdate"
+export XLFUNIT_60="lampgrid.$cycle"
+
+startmsg 
+$EXECmdl/mdl_lampgrid < $PARMmdl/mdl_lampgrid.data >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test $SENDCOM = 'YES'
+then
+   cp lampgrid.$cycle $COMOUT/lampgrid.$cycle
+fi
+
+#########################################################
+msg='COMPLELED NORMALLY'
+postmsg "$jlogfile" "$msg"
+#########################################################
+ 
+set +x
+echo " ***** PROCESSING COMPLETED NORMALLY *****"
+echo " ***** PROCESSING COMPLETED NORMALLY *****"
+echo " ***** PROCESSING COMPLETED NORMALLY *****"
+set -x
+
+# ---------------END OF EX380 SCRIPT ----------------------------

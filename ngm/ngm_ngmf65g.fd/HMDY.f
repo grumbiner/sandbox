@@ -1,0 +1,78 @@
+      SUBROUTINE HMDY ( ID0 , IM0 , IY0 , GMT0, ITIME, JD, GMT )
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    HMDY        COMPUTES THE CURRENT GMT TIME
+C   PRGMMR: J TUCCILLO       ORG: W/NMC4     DATE: 90-06-13
+C
+C ABSTRACT:  COMPUTES THE CURRENT TIME AND JULIAN DAY
+C   .
+C
+C PROGRAM HISTORY LOG:
+C   90-06-13  J TUCCILLO
+C
+C USAGE:  CALL HMDY ( ID0 , IM0 , IY0 , GMT0, ITIME, JD, GMT )
+C   INPUT ARGUMENT LIST:
+C     ID0      - THE DAY OF THE MONTH
+C     IM0      - THE MONTH OF THE YEAR
+C     IY0      - THE FULL DIGIT YEAR 
+C     GMT0     - THE TIME OF THE DAY
+C     ITIME    - NUMBER OF SECONDS FROM I.C.
+C
+C   OUTPUT ARGUMENT LIST:
+C     JD       - JULIAN DAY
+C     GMT      - CURRENT GMT
+C
+C SUBPROGRAMS CALLED:
+C   UNIQUE:    - JULDAY
+C   LIBRARY:
+C     COMMON   - MONTH
+C
+C REMARKS:
+C   .
+C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C   .
+C   NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----       ----------------------------------        ---------
+C   IMONTH      NUMBER OF DAYS IN EACH MONTH              /MONTH/
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP 
+C
+C$$$
+C
+      COMMON/MONTH/IMONTH(0:12)
+C
+      ID = ID0
+      IM = IM0
+      IY = IY0
+      CALL JULDAY ( ID, IM, IY, JD )
+      GMT = GMT0 + FLOAT(ITIME) / 3600.E0
+C
+11    CONTINUE
+      IF (GMT.GE.24.E0) THEN
+         GMT = GMT - 24.E0
+         ID  = ID + 1
+         JD  = JD + 1
+         GOTO 11
+      END IF
+C
+12    CONTINUE
+      IF (ID.GT.IMONTH(MOD(IM,12))) THEN
+         ID = ID - IMONTH(MOD(IM,12))
+         IM = IM + 1
+         GOTO 12
+      END IF
+C
+13    CONTINUE
+      IF (IM.GT.12) THEN
+         IM = IM - 12
+         IY = IY + 1
+         CALL JULDAY ( ID, IM, IY, JD )
+         GOTO 13
+      END IF
+C
+C
+      RETURN
+      END

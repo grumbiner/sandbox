@@ -1,0 +1,1300 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/SHEMPRE.f 09/30/06 19:43:59
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE SHEMPRE (NH)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C SUBPROGRAM:    SHEMPRE     COMPUTE GATHER-SCATTER INT & INTERP COEF
+          5 |C   PRGMMR:  J TUCCILLO         ORG: W/NMC4     DATE: 90-06-18
+          6 |C
+          7 |C ABSTRACT: COMPUTE GATHER-SCATTER INTEGERS AND INTER-
+          8 |C   POLATION COEFFICIENTS TO BE USED BY SUBROUTINE
+          9 |C   'SHEM' TO CALCULATE VARIABLE VALUES AT THE
+         10 |C   'BOUNDARY' POINTS OF GRID A IN THE SOUTHERN
+         11 |C   HEMISPHERE.  THE FORECAST POINT BIT VECTORS
+         12 |C   FOR GRID A ARE ALSO SET UP.
+         13 |C   .
+         14 |C   ANY GRID SQUARE OF GRID A HAVING AT LEAST ONE CORNER IN
+         15 |C   THE NORTHERN HEMISPHERE HAS 'FORECAST' POINTS AT ALL FOUR CORNERS.
+         16 |C   A SET OF SURROUNDING POINTS IS NEEDED TO MAKE A FORECAST OF ONE
+         17 |C   TIME STEP FOR ALL FORECAST POINTS.  THIS CODE GENERATES THE
+         18 |C   MACHINERY BY WHICH SUBROUTINE  'SHEM'  , WHEN CALLED AFTER EVERY
+         19 |C   FORECAST STEP FOR GRID A, WILL GENERATE THE NEEDED 'BOUNDARY'
+         20 |C   POINT VARIABLES.
+         21 |C   .  THE PROCEDURE USES BILINEAR INTERPOLATION TO OBTAIN
+         22 |C   VALUES AT NORTHERN HEMISPHERE IMAGE POINTS.  EVEN SYMMETRY IS
+         23 |C   ASSUMED FOR ZONAL VELOCITY AND MASS VARIABLES ACROSS THE EQUATOR
+         24 |C   WHILE ODD SYMMETRY IS ASSUMED FOR MERIDIONAL VELOCITY.
+         25 |C   .
+         26 |C   .
+         27 |C   MUST BE CALLED ONCE, AT THE INITIATION OF THE FORECASTING PROCESS
+         28 |C   IN ANY SINGLE JOB. ( E.G. IT NEED NOT BE CALLED AGAIN
+         29 |C   AFTER A CALL TO THE OUTPUT POSTPROCESSER IF FORECASTING RESUMES
+         30 |C   WITHIN THAT JOB. )
+         31 |C
+         32 |C PROGRAM HISTORY LOG:
+         33 |C   90-06-18  J TUCCILLO
+         34 |C
+         35 |C USAGE:  CALL SHEMPRE( NH )
+         36 |C   INPUT ARGUMENT LIST:
+         37 |C     NH       -  NH + .5 IS THE NUMBER OF GRID INCREMENTS
+         38 |C                 ON GRID A BETWEEN POLE AND EQUATOR.
+         39 |C
+         40 |C   OUTPUT FILES:
+         41 |C     IOUTUPRT - FOR PRINTOUT
+         42 |C
+         43 |C   SUBPROGRAMS CALLED:
+         44 |C     UNIQUE:    - ERRPRINT
+         45 |C     LIBRARY
+         46 |C       COMMON   - COMBLANK
+         47 |C                  COMSHEM
+         48 |C
+         49 |C REMARKS:
+         50 |C   .
+         51 |C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+         52 |C   .
+         53 |C   NAMES         MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         54 |C   -----         ----------------------------------        ---------
+         55 |C   NSHEM         ESTIMATED NUMBER OF BOUNDARY POINTS         PLI
+         56 |C   .             ON GRID A FOR H, U, OR V-TYPE VBLS.
+         57 |C   .
+         58 |C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+         59 |C   .
+         60 |C   NAMES         MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         61 |C   -----         ----------------------------------        ---------
+         62 |C   BITGRDH,       BIT VECTORS CONTAINING A 1 FOR FORECAST   COMMON
+         63 |C   BITGRDU,AND    POINTS ON GRID A.
+         64 |C   BITGRDV.
+         65 |C   .
+         66 |C   NSHEMH,NSHEMU, THE ACTUAL NUMBER OF BOUNDARY POINTS FOR  COMMON
+         67 |C   AND NSHEMV.    H,U, AND V-TYPE VARIABLES ON GRID A.
+         68 |C   .
+         69 |C   ISHEMX(N,L)    GATHER AND SCATTER INTEGERS FOR           COMMON
+         70 |C   .              X=H,U, OR V BOUNDARY POINTS.
+         71 |C   .
+         72 |C   SHX4Y          BILINEAR INTERPOLATION COEFFICIENTS TO    COMMON
+         73 |C   .              OPERATE ON VARIABLE X=H,U,V TO GET
+         74 |C   .              VARIABLE Y=H,U,V.
+         75 |C
+         76 |C ATTRIBUTES:
+         77 |C   LANGUAGE: FORTRAN
+         78 |C   MACHINE:  CRAY Y-MP
+         79 |C
+         80 |C$$$
+         81 |C
+         82 |      include 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      3,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =  10000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         83 |C
+         84 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:43:31
+         85 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+         86 |C
+         87 |C
+         88 |C          BIT VECTORS FOR STORING FCST VALUES ON GRID A.
+         89 |      LOGICAL BITH(IIJMAX,2),BITU(IIJMAX,2),BITV(IIJMAX,2)
+         90 |C
+         91 |      CHARACTER*35 ERRMSG(4)
+         92 |C
+         93 |      COMMON            SCR     (IIJMAX,  INSCR),
+         94 |     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+         95 |     2                  SCR3    (IIJKMAX, INSCR3),
+         96 |     3                  FILLER  (INFILLER),
+         97 |     4                  VBL     (INVBL),
+         98 |     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+         99 |     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+        100 |     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+        101 |     8                  BITSEA  (IIJMAX, INGRDUSE),
+        102 |     9                  BITSNO  (IIJMAX, INGRDUSE),
+        103 |     1                  BITWVL  (IIJMAX, INGRDUSE)
+        104 |C
+        105 |      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+        106 |C
+        107 |C     COMMON BLOCK /COMSHEM/ CONTAINS VARIABLES NEEDED
+        108 |C     FOR THE EQUATORIAL BOUNDARY CONDITIONS.
+        109 |      COMMON /COMSHEM/  NSHEM, NSHEMH, NSHEMU, NSHEMV,
+        110 |     1                  ISHEMH(INSHEM, 2), ISHEMU(INSHEM, 3),
+        111 |     2                  ISHEMV(INSHEM, 3),
+        112 |     3                  SHH4H (INSHEM, 4), SHU4U (INSHEM, 4),
+        113 |     4                  SHV4U (INSHEM, 4), SHU4V (INSHEM, 4),
+        114 |     5                  SHV4V (INSHEM, 4)
+        115 |C
+        116 |      DIMENSION R2H(IIJMAX), R2U(IIJMAX), R2V(IIJMAX),
+        117 |     *          FH(IIJMAX),  FU(IIJMAX),  FV(IIJMAX),
+        118 |     *          CH(IIJMAX),  CU(IIJMAX),  CV(IIJMAX)
+        119 |C
+        120 |C****  NOTE THAT THE CODE REFERS TO BOTH FORMS OF THE FOLLOWING
+        121 |C****  EQUIVALENCED ARRAYS.
+        122 |C
+        123 |      EQUIVALENCE (R2H(1), SCR(1,1) ), (R2U(1), SCR(1,2) ),
+        124 |     1            (R2V(1), SCR(1,3) ), (FH(1),  SCR(1,4) ),
+        125 |     2            (FU(1),  SCR(1,5) )
+        126 |      EQUIVALENCE (FV(1), SCR(1, 6)),
+        127 |     1            (CH(1), SCR(1, 7)), (CU(1), SCR(1, 8)),
+        128 |     2            (CV(1), SCR(1, 9))
+        129 |C
+        130 |      EQUIVALENCE (BITH,BITGRDH(1,1,1)),(BITU,BITGRDU(1,1,1)),
+        131 |     1            (BITV,BITGRDV(1,1,1))
+        132 |C
+        133 |      DATA ONE/1.E0/
+        134 |C
+        135 |C     INITIALIZE NSHEM=ARRAY DIMEN IN /COMSHEM/
+        136 |C
+        137 |C     INITIALIZE NSHEM=ARRAY DIMEN IN /COMSHEM/
+        138 |      NSHEM = INSHEM
+        139 |C
+        140 |C              SPECIFY THE UNIT NUMBER OF THE PRINTER.
+        141 |      IOUTUPRT = 6
+        142 |C
+        143 |C              ZERO THE BIT VECTORS (I.E. NO FCST POINTS).
+        144 |CMIC$ DO ALL SHARED(BITH, BITU, BITV) PRIVATE(IQ2, IQ1)
+        145 |      DO 1002 IQ2 = 1, 20568
+        146 |         BITH(IQ2,1) = .FALSE.
+        147 |         BITU(IQ2,1) = .FALSE.
+        148 |         BITV(IQ2,1) = .FALSE.
+        149 | 1002 CONTINUE
+        150 |C
+        151 |      IM=2*NH+6
+        152 |      JM=IM
+        153 |      IJM=IM*JM
+        154 |      IMM1=IM-1
+        155 |      JMM1=JM-1
+        156 |      DNH=FLOAT(NH)
+        157 |      XP=DNH+4.E0
+        158 |      YP=XP
+        159 |C          SQUARE OF EQUATORIAL RADIUS IN GRID DISTANCE UNITS.
+        160 |      RSQE=DNH+.5E0
+        161 |      RSQE=RSQE*RSQE
+        162 |C          GET SQUARED DISTANCE FROM POLE IN GRID MESH UNITS FOR H,U,V.
+        163 |      IAD=0
+        164 |      DJ=0.E0
+        165 |      DO 20 J=1,JM
+        166 |      DJ=DJ+1.E0
+        167 |      Y1=DJ-YP
+        168 |      YH=Y1*Y1
+        169 |      Y1=Y1+.5E0
+        170 |      YU=Y1*Y1
+        171 |      DI=0.E0
+        172 |        DO 10 I=1,IM
+        173 |        IAD=IAD+1
+        174 |        DI=DI+1.E0
+        175 |        X1=DI-XP
+        176 |        XH=X1*X1
+        177 |        X1=X1+.5E0
+        178 |        XV=X1*X1
+        179 |        R2H(IAD)=XH+YH
+        180 |        R2V(IAD)=XV+YH
+        181 |        R2U(IAD)=XH+YU
+        182 |   10   CONTINUE
+        183 |   20 CONTINUE
+        184 |C          DETERMINE FORECAST POINTS SO AS TO COVER THE N. HEMISPHERE.
+        185 |CMIC$ DO ALL VECTOR SHARED(IJM, FH, FU, FV) PRIVATE(IQ2W6E)
+        186 |      DO 88890 IQ2W6E=1,IJM
+        187 |         FH(IQ2W6E)=0.E0
+        188 |         FU(IQ2W6E)=0.E0
+        189 |         FV(IQ2W6E)=0.E0
+        190 |88890 CONTINUE
+        191 |      DO 40 J=1,JMM1
+        192 |      IADD=(J-1)*IM
+        193 |        DO 30 I=1,IMM1
+        194 |        IADD=IADD+1
+        195 |C          IV=1,2,3 FOR H,U, AND V POINTS.
+        196 |CMIC$ DO ALL VECTOR SHARED(IADD, IM, RSQE, ONE, SCR) PRIVATE(IV, IV3)
+        197 |          DO 25 IV=1,3
+        198 |          IV3=IV+3
+        199 |          IF( SCR(IADD,IV) .LT. RSQE ) GO TO 22
+        200 |          IF( SCR(IADD+1,IV) .LT. RSQE ) GO TO 22
+        201 |          IF( SCR(IADD+IM,IV) .LT. RSQE ) GO TO 22
+        202 |          IF( SCR(IADD+IM+1,IV) .LT. RSQE ) GO TO 22
+        203 |C     NO POINTS OF THIS GRID SQUARE ARE NORTH OF THE EQUATOR.
+        204 |          GO TO 25
+        205 |C
+        206 |C       ONE POINT IS IN NORTHERN HEMISPHERE, THEREFORE ALL FOUR
+        207 |C       POINTS MUST BE FORECAST POINTS.
+        208 |   22     SCR(IADD,IV3) = SCR(IADD,IV3) + ONE
+        209 |          SCR(IADD+1,IV3) = SCR(IADD+1,IV3) + ONE
+        210 |          SCR(IADD+IM,IV3) = SCR(IADD+IM,IV3) + ONE
+        211 |          SCR(IADD+IM+1,IV3) = SCR(IADD+IM+1,IV3) + ONE
+        212 |C
+        213 |   25     CONTINUE
+        214 |C
+        215 |   30   CONTINUE
+        216 |   40 CONTINUE
+        217 |C          A FCST POINT NOW HAS 1.,2.,3., OR 4. IN FH(OR FU OR FV).
+        218 |C
+        219 |C          DETERMINE THE SURROUNDING POINTS NEEDED TO FORECAST ANY
+        220 |C          FORECAST POINT.
+        221 |CMIC$ DO ALL VECTOR SHARED(IJM, CH, CU, CV) PRIVATE(IQ2W6E)
+        222 |      DO 88920 IQ2W6E=1,IJM
+        223 |         CH(IQ2W6E)=0.E0
+        224 |         CU(IQ2W6E)=0.E0
+        225 |         CV(IQ2W6E)=0.E0
+        226 |88920 CONTINUE
+        227 |      J = 2
+        228 |995   IF ( J .GT. JMM1 ) GOTO 9995
+        229 |      IADD=(J-1)*IM+1
+        230 |        I = 2
+        231 |990     IF ( I .GT. IMM1 ) GOTO 9990
+        232 |        IADD=IADD+1
+        233 |        IF(FH(IADD) .LE. 0.E0)  GO TO 60
+        234 |C          THIS IS AN H FCST POINT
+        235 |C          SET THE H PTS NEEDED FOR THIS FCST POINT
+        236 |        J1=J-1
+        237 |        J2=J+1
+        238 |        I1=I-1
+        239 |        I2=I+1
+        240 |        IRET=1
+        241 |        GO TO 100
+        242 |C          SET THE U PTS NEEDED FOR THIS FCST POINT
+        243 |   50   J1=J-2
+        244 |        GO TO 115
+        245 |C          SET THE V PTS NEEDED FOR THIS FCST POINT
+        246 |   55   J1=J-1
+        247 |        I1=I-2
+        248 |        GO TO 130
+        249 |   60   IF(FU(IADD) .LE. 0.E0)   GO TO 75
+        250 |C          THIS IS A U FCST POINT
+        251 |C          SET THE H PTS NEEDED FOR THIS FCST POINT
+        252 |        J1=J-1
+        253 |        J2=J+2
+        254 |        I1=I-1
+        255 |        I2=I+1
+        256 |        IRET=2
+        257 |        GO TO 100
+        258 |C          SET THE U PTS NEEDED FOR THIS FCST POINT
+        259 |   65   J1=J-2
+        260 |        GO TO 115
+        261 |C          SET THE V PTS NEEDED FOR THIS FCST POINT
+        262 |   70   J1=J-1
+        263 |        I1=I-2
+        264 |        GO TO 130
+        265 |   75   IF(FV(IADD) .LE. 0.E0)   GO TO  90
+        266 |C          THIS IS A V FCST POINT
+        267 |C          SET THE H PTS NEEDED FOR THIS FCST POINT
+        268 |        J1=J-1
+        269 |        J2=J+1
+        270 |        I1=I-1
+        271 |        I2=I+2
+        272 |        IRET=3
+        273 |        GO TO 100
+        274 |C          SET THE U PTS NEEDED FOR THIS FCST POINT
+        275 |   80   J1=J-2
+        276 |        GO TO 115
+        277 |C          SET THE V PTS NEEDED FOR THIS FCST POINT
+        278 |   85   J1=J-1
+        279 |        I1=I-2
+        280 |        GO TO 130
+        281 |CW 90   CONTINUE
+        282 |   90   I = I + 1
+        283 |        GOTO 990
+        284 |9990    CONTINUE
+        285 |CW 95 CONTINUE
+        286 |   95  J = J + 1
+        287 |       GOTO 995
+        288 |9995  CONTINUE
+        289 |      GO TO 150
+        290 |C     *****COMPUTED GO TO ROUTINES TO PUT ONES IN POINTS NEEDED TO
+        291 |C          FORECAST THE FORECAST POINTS.
+        292 |C
+        293 |C          FIRST CHECK LIMITS ON THE H POINTS
+        294 |  100 IENT=100
+        295 |      IF(I1 .LT.2) GO TO 145
+        296 |      IF(I2 .GT. IM) GO TO 145
+        297 |      IF(J1 .LT. 2) GO TO 145
+        298 |      IF(J2 .GT. JM) GO TO 145
+        299 |C          OKEH
+        300 |      DO 110 JJ=J1,J2
+        301 |      JADD=(JJ-1)*IM
+        302 |CMIC$ DO ALL VECTOR SHARED(I2, I1, JADD, CH) PRIVATE(II)
+        303 |        DO 105 II=I1,I2
+        304 |        CH(JADD+II)=CH(JADD+II)+1.E0
+        305 |  105   CONTINUE
+        306 |  110 CONTINUE
+        307 |      GO TO (50, 65, 80 ) , IRET
+        308 |C
+        309 |C          CHECK LIMITS ON U POINTS
+        310 |  115 IENT=115
+        311 |      IF(I1 .LT.2) GO TO 145
+        312 |      IF(I2 .GT. IM) GO TO 145
+        313 |      IF(J1 .LT. 1) GO TO 145
+        314 |      IF(J2 .GT. JM) GO TO 145
+        315 |C          OKEH
+        316 |      DO 125 JJ=J1,J2
+        317 |      JADD=(JJ-1)*IM
+        318 |CMIC$ DO ALL VECTOR SHARED(I2, I1, JADD, CU) PRIVATE(II)
+        319 |        DO 120 II=I1,I2
+        320 |        CU(JADD+II)=CU(JADD+II)+1.E0
+        321 |  120   CONTINUE
+        322 |  125 CONTINUE
+        323 |      GO TO ( 55, 70, 85 ), IRET
+        324 |C
+        325 |C          CHECK LIMITS ON V POINTS
+        326 |  130 IENT=130
+        327 |      IF(I1 .LT.1) GO TO 145
+        328 |      IF(I2 .GT. IM) GO TO 145
+        329 |      IF(J1 .LT. 2) GO TO 145
+        330 |      IF(J2 .GT. JM) GO TO 145
+        331 |C          OKEH
+        332 |      DO 140 JJ=J1,J2
+        333 |      JADD=(JJ-1)*IM
+        334 |CMIC$ DO ALL VECTOR SHARED(I2, I1, JADD, CV) PRIVATE(II)
+        335 |        DO 135 II=I1,I2
+        336 |        CV(JADD+II)=CV(JADD+II)+1.E0
+        337 |  135   CONTINUE
+        338 |  140 CONTINUE
+        339 |C
+        340 |      GO TO ( 60, 75, 90 ), IRET
+        341 |C
+        342 |C               A POINT IS OUT OF THE PROPER RANGE.
+        343 |  145 WRITE (IOUTUPRT, 146) IENT,I1,I2,J1,J2,I,J
+        344 |  146 FORMAT(1H0,2X,'**IN SR SHEMPRE COMP PT IS OUT OF RANGE,,IENT,I1,',
+        345 |     1 'I2,J1,J2,I,J, ARE',7I6)
+        346 |C
+        347 |      CALL ERRPRINT
+        348 |C
+        349 |      CALL EXIT(16)
+        350 |C
+        351 |C     *********************************************************
+        352 |C          THE S. HEMISPHERE BNDRY POINTS NOW HAVE A ZERO IN FX,
+        353 |C          BUT THEY ARE GREATER THAN ZERO IN CX.
+        354 |C               GET GATH-SCAT INTEGERS AND COEFFS FOR THE H POINTS,
+        355 |  150 N=0
+        356 |      NB=0
+        357 |C          ( N AND NB WILL COUNT BNDRY POINTS AND ALL POINTS, RESP.)
+        358 |CMIC$ PARALLEL SHARED(NSHEM, SHH4H, ISHEMH) PRIVATE(IQ2W6E)
+        359 |CMIC$ DO PARALLEL VECTOR
+        360 |      DO 88950 IQ2W6E=1,2*NSHEM
+        361 |         ISHEMH(IQ2W6E,1)=0
+        362 |88950 CONTINUE
+        363 |CMIC$ DO PARALLEL VECTOR
+        364 |      DO 88960 IQ2W6E=1,4*NSHEM
+        365 |         SHH4H(IQ2W6E,1)=0.E+0
+        366 |88960 CONTINUE
+        367 |CMIC$ END PARALLEL
+        368 |      ISCAT=0
+        369 |      DO 220 J=1,JM
+        370 |      DJ=FLOAT(J)
+        371 |        DO 210 I=1,IM
+        372 |        NB=NB+1
+        373 |        ISCAT=ISCAT+1
+        374 |        IF(FH(ISCAT) .GT. 0.E0) GO TO 200
+        375 |C          THIS IS NOT AN H FCST POINT
+        376 |        IF(CH(ISCAT) .LE. 0.E0)   GO TO 210
+        377 |C          THIS IS INDEED A S. HEM. H BNDRY POINT.
+        378 |        N=N+1
+        379 |C          TEST ARRAY SIZE
+        380 |      IF( N .LE. NSHEM ) GO TO 199
+        381 |      WRITE (IOUTUPRT, 198) I,J,N,NSHEM
+        382 |  198 FORMAT(1H1,2X,'*********TOO MANY H BNDRY PTS IN SHEMPRE--',
+        383 |     1 3X,'I,J,N,NSHEM=',4I12)
+        384 |C
+        385 |      CALL ERRPRINT
+        386 |C
+        387 |      CALL EXIT(16)
+        388 |C
+        389 |  199 CONTINUE
+        390 |C          INTEGER TO SCATTER BNDRY VALUE INTO THE H ARRAY.
+        391 |        ISHEMH(N,1)=ISCAT
+        392 |C          GET IMAGE POINT INFORMATION
+        393 |        DI=FLOAT(I)
+        394 |        C2=RSQE/R2H(ISCAT)
+        395 |        DIINH=XP+(DI-XP)*C2
+        396 |        DJJNH=YP+(DJ-YP)*C2
+        397 |        IINH=INT(DIINH)
+        398 |        JJNH=INT(DJJNH)
+        399 |C          INTEGER TO GATHER N. HEM. H PT TO LOWER LEFT OF IMAGE PT.
+        400 |        ISHEMH(N,2)=IINH+(JJNH-1)*IM
+        401 |C          GET LOCATION OF IMAGE POINT WITHIN THE N. HEM. GRID BOX.
+        402 |        DX=DIINH-FLOAT(IINH)
+        403 |        DY=DJJNH-FLOAT(JJNH)
+        404 |C          GET THE INTERPOLATION COEFFS( BILINEAR FORMULA)
+        405 |        DX1=1.E0-DX
+        406 |        DY1=1.E0-DY
+        407 |        SHH4H(N,1) = (DX1*DY1)
+        408 |        SHH4H(N,2) = (DX*DY1)
+        409 |        SHH4H(N,3) = (DY*DX1)
+        410 |        SHH4H(N,4) = (DX*DY)
+        411 |        GO TO 210
+        412 |C          FOR A FCST POINT, MUST CORRECT THE BIT VECTOR TO 1.
+        413 |  200   BITH(NB, 1)= .TRUE.
+        414 |  210   CONTINUE
+        415 |  220 CONTINUE
+        416 |C     RECORD THE NUMBER OF H BNDRY POINTS
+        417 |      NSHEMH=N
+        418 |C
+        419 |C          NOW GET GATH-SCAT INTEGERS AND COEFFS FOR U BNDRY POINTS.
+        420 |C
+        421 |      N=0
+        422 |      NB=0
+        423 |CMIC$ PARALLEL SHARED(NSHEM, SHU4U, SHV4U, ISHEMU) PRIVATE(IQ2W6E)
+        424 |CMIC$ DO PARALLEL VECTOR
+        425 |      DO 88970 IQ2W6E=1,3*NSHEM
+        426 |         ISHEMU(IQ2W6E,1)=0
+        427 |88970 CONTINUE
+        428 |CMIC$ DO PARALLEL VECTOR
+        429 |      DO 88980 IQ2W6E=1,4*NSHEM
+        430 |         SHU4U(IQ2W6E,1)=0.E+0
+        431 |         SHV4U(IQ2W6E,1)=0.E+0
+        432 |88980 CONTINUE
+        433 |CMIC$ END PARALLEL
+        434 |      ISCAT=0
+        435 |      DO 250 J=1,JM
+        436 |      DJ=FLOAT(J)
+        437 |        DO 240 I=1,IM
+        438 |        NB=NB+1
+        439 |        ISCAT=ISCAT+1
+        440 |        IF(FU(ISCAT) .GT. 0.E0)  GO TO 230
+        441 |C          NOT A U FCST POINT
+        442 |        IF(CU(ISCAT) .LE. 0.E0) GO TO 240
+        443 |C          THIS IS A U BNDRY POINT
+        444 |        N=N+1
+        445 |C          TEST ARRAY SIZE
+        446 |      IF( N .LE. NSHEM ) GO TO 225
+        447 |      WRITE (IOUTUPRT, 224) I,J,N,NSHEM
+        448 |  224 FORMAT(1H1,2X,'*********TOO MANY U BNDRY PTS IN SHEMPRE--',
+        449 |     1 3X,'I,J,N,NSHEM=',4I12)
+        450 |C
+        451 |      CALL ERRPRINT
+        452 |C
+        453 |      CALL EXIT(16)
+        454 |C
+        455 |  225 CONTINUE
+        456 |        ISHEMU(N,1)=ISCAT
+        457 |        DI=FLOAT(I)
+        458 |        C2=RSQE/R2U(ISCAT)
+        459 |C          GET IMAGE PT. LOCATION W/R TO I,J FOR U PTS.
+        460 |        C4=DI-XP
+        461 |        DIINH=XP+C2*C4
+        462 |        C5=DJ+.5E0-YP
+        463 |        DJJNH=YP-.5E0+C2*C5
+        464 |        IINH=INT(DIINH)
+        465 |        JJNH=INT(DJJNH)
+        466 |C          INTEGER TO GATHER U TO LOWER LEFT OF IMAGE POINT
+        467 |        ISHEMU(N,2)=IINH+(JJNH-1)*IM
+        468 |C          GET THE ROTATION ANGLES
+        469 |        C3=1.E0/(C4*C4+C5*C5)
+        470 |        SINSQ=C3*C5*C5
+        471 |C          COSINE OF TWICE THE LONGITUDE.
+        472 |        COS2L=1.E0-2.E0*SINSQ
+        473 |C          SINE OF TWICE THE LONGITUDE.
+        474 |        SIN2L=2.E0*C4*C5*C3
+        475 |C          NOW GET LOCATION OF IMAGE POINT WITHIN THE IMAGE BOX.
+        476 |        DX=DIINH-FLOAT(IINH)
+        477 |        DY=DJJNH-FLOAT(JJNH)
+        478 |        DX1=1.E0-DX
+        479 |        DY1=1.E0-DY
+        480 |        SHU4U(N,1) = (-DX1*DY1*COS2L)
+        481 |        SHU4U(N,2) = (-DX*DY1*COS2L)
+        482 |        SHU4U(N,3) = (-DY*DX1*COS2L)
+        483 |        SHU4U(N,4) = (-DX*DY*COS2L)
+        484 |C          NOW NEED IMAGE PT LOCATION WITH RESPECT TO V POINTS.
+        485 |        DIINH=DIINH-.5E0
+        486 |        DJJNH=DJJNH+.5E0
+        487 |        IINH=INT(DIINH)
+        488 |        JJNH=INT(DJJNH)
+        489 |C          INTEGER TO GATHER V TO LOWER LEFT OF IMAGE POINT.
+        490 |        ISHEMU(N,3)=IINH+(JJNH-1)*IM
+        491 |C         THE INTERPOLATION COEFFS,,
+        492 |        DX=DIINH-FLOAT(IINH)
+        493 |        DY=DJJNH-FLOAT(JJNH)
+        494 |        DX1=1.E0-DX
+        495 |        DY1=1.E0-DY
+        496 |        SHV4U(N,1) = (-DX1*DY1*SIN2L)
+        497 |        SHV4U(N,2) = (-DX*DY1*SIN2L)
+        498 |        SHV4U(N,3) = (-DY*DX1*SIN2L)
+        499 |        SHV4U(N,4) = (-DX*DY*SIN2L)
+        500 |        GO TO 240
+        501 |C          A FORECAST POINT, CORRECT THE BIT VECTOR TO A 1.
+        502 |  230   BITU(NB, 1)= .TRUE.
+        503 |  240   CONTINUE
+        504 |  250 CONTINUE
+        505 |C          RECORD THE NUMBER OF U BNDRY POINTS.
+        506 |      NSHEMU=N
+        507 |C
+        508 |C          GET GATH-SCAT INTEGERS AND COEFFS FOR V BNDRY POINTS.
+        509 |      N=0
+        510 |      NB=0
+        511 |CMIC$ PARALLEL SHARED(NSHEM, SHU4V, SHV4V, ISHEMV) PRIVATE(IQ2W6E)
+        512 |CMIC$ DO PARALLEL VECTOR
+        513 |      DO 89000 IQ2W6E=1,3*NSHEM
+        514 |         ISHEMV(IQ2W6E,1)=0
+        515 |89000 CONTINUE
+        516 |CMIC$ DO PARALLEL VECTOR
+        517 |      DO 89010 IQ2W6E=1,4*NSHEM
+        518 |         SHU4V(IQ2W6E,1)=0.E+0
+        519 |         SHV4V(IQ2W6E,1)=0.E+0
+        520 |89010 CONTINUE
+        521 |CMIC$ END PARALLEL
+        522 |      ISCAT=0
+        523 |      DO 350 J=1,JM
+        524 |      DJ=FLOAT(J)
+        525 |        DO 340 I=1,IM
+        526 |        NB=NB+1
+        527 |        ISCAT=ISCAT+1
+        528 |        IF(FV(ISCAT) .GT. 0.E0)  GO TO 330
+        529 |C          THIS IS NOT A FORECST POINT.
+        530 |        IF(CV(ISCAT) .LE. 0.E0)   GO TO 340
+        531 |C          THIS IS A S. HEM. V BNDRY POINT.
+        532 |        N=N+1
+        533 |C          TEST ARRAY SIZE
+        534 |      IF( N .LE. NSHEM ) GO TO 259
+        535 |      WRITE (IOUTUPRT, 258) I,J,N,NSHEM
+        536 |  258 FORMAT(1H1,2X,'*********TOO MANY V BNDRY PTS IN SHEMPRE--',
+        537 |     1 3X,'I,J,N,NSHEM=',4I12)
+        538 |C
+        539 |      CALL ERRPRINT
+        540 |C
+        541 |      CALL EXIT(16)
+        542 |C
+        543 |  259 CONTINUE
+        544 |        ISHEMV(N,1)=ISCAT
+        545 |        DI=FLOAT(I)
+        546 |        C2=RSQE/R2V(ISCAT)
+        547 |C          IMAGE PT LOCATION WITH RESPECT TO V PT  I AND J.
+        548 |        C4=DI+.5E0-XP
+        549 |        DIINH=XP-.5E0+C2*C4
+        550 |        C5=DJ-YP
+        551 |        DJJNH=YP+C2*C5
+        552 |        IINH=INT(DIINH)
+        553 |        JJNH=INT(DJJNH)
+        554 |C          INTEGER TO GATHER V TO LOWER LEFT OF IMAGE POINT.
+        555 |        ISHEMV(N,3)=IINH+(JJNH-1)*IM
+        556 |C          GET THE ROTATION ANGLES.
+        557 |        C3=1.E0/(C4*C4+C5*C5)
+        558 |        SINSQ=C3*C5*C5
+        559 |        COS2L=1.E0-2.E0*SINSQ
+        560 |        SIN2L=2.E0*C3*C4*C5
+        561 |C          LOCATION OF IMAGE PT IN V BOX.
+        562 |        DX=DIINH-FLOAT(IINH)
+        563 |        DY=DJJNH-FLOAT(JJNH)
+        564 |        DX1=1.E0-DX
+        565 |        DY1=1.E0-DY
+        566 |        SHV4V(N,1) = (COS2L*DX1*DY1)
+        567 |        SHV4V(N,2) = (COS2L*DX*DY1 )
+        568 |        SHV4V(N,3) = (COS2L*DY*DX1 )
+        569 |        SHV4V(N,4) = (COS2L*DX*DY  )
+        570 |C          GET LOCATION OF IMAGE POINT WITH RESPECT TO U I AND J VALS.
+        571 |        DIINH=DIINH+.5E0
+        572 |        DJJNH=DJJNH-.5E0
+        573 |        IINH=INT(DIINH)
+        574 |        JJNH=INT(DJJNH)
+        575 |C          INTEGER TO GATHER U TO LOWER LEFT OF V IMAGE PT.
+        576 |        ISHEMV(N,2)=IINH+(JJNH-1)*IM
+        577 |        DX=DIINH-FLOAT(IINH)
+        578 |        DY=DJJNH-FLOAT(JJNH)
+        579 |        DX1=1.E0-DX
+        580 |        DY1=1.E0-DY
+        581 |        SHU4V(N,1) = (-SIN2L*DX1*DY1)
+        582 |        SHU4V(N,2) = (-SIN2L*DX*DY1)
+        583 |        SHU4V(N,3) = (-SIN2L*DY*DX1)
+        584 |        SHU4V(N,4) = (-SIN2L*DX*DY)
+        585 |        GO TO 340
+        586 |C          CORRECT THE BIT VECTOR TO A 1 FOR A FCST POINT.
+        587 |  330   BITV(NB, 1)= .TRUE.
+        588 |  340   CONTINUE
+        589 |  350 CONTINUE
+        590 |C          RECORD THE NUMBER OF V BNDRY POINTS.
+        591 |      NSHEMV=N
+        592 |C          SHUFFLE THE ARRAYS TO AVOID BANK CONFLICT WHEN CONSECUTIVE
+        593 |C            IMAGE POINTS FALL IN SAME NORTH. HEMI. GRID SQUARE.
+        594 |      LS=NSHEMH-4
+        595 |CMIC$ DO ALL SHARED(LS, ISHEMH, SHH4H) PRIVATE(M, MM, ISV, I, XSV)
+        596 |      DO 352 M=1,LS,2
+        597 |      MM=M+3
+        598 |      ISV=ISHEMH(M,1)
+        599 |      ISHEMH(M,1)=ISHEMH(MM,1)
+        600 |      ISHEMH(MM,1)=ISV
+        601 |      ISV=ISHEMH(M,2)
+        602 |      ISHEMH(M,2)=ISHEMH(MM,2)
+        603 |      ISHEMH(MM,2)=ISV
+        604 |        DO 351 I=1,4
+        605 |        XSV=SHH4H(M,I)
+        606 |        SHH4H(M,I)=SHH4H(MM,I)
+        607 |        SHH4H(MM,I)=XSV
+        608 |  351   CONTINUE
+        609 |  352 CONTINUE
+        610 |C          NSHEMV AND NSHEMU SHD. BE EQUAL.
+        611 |      LS=NSHEMU-4
+        612 |CMIC$ DO ALL SHARED(LS, ISHEMU, ISHEMV, SHU4U, SHV4U, SHU4V, SHV4V)
+        613 |CMIC$1    PRIVATE(M, MM, I, ISV, XSV)
+        614 |      DO 355 M=1,LS,2
+        615 |      MM=M+3
+        616 |        DO 353 I=1,3
+        617 |        ISV=ISHEMU(M,I)
+        618 |        ISHEMU(M,I)=ISHEMU(MM,I)
+        619 |        ISHEMU(MM,I)=ISV
+        620 |        ISV=ISHEMV(M,I)
+        621 |        ISHEMV(M,I)=ISHEMV(MM,I)
+        622 |        ISHEMV(MM,I)=ISV
+        623 |  353   CONTINUE
+        624 |        DO 354 I=1,4
+        625 |        XSV=SHU4U(M,I)
+        626 |        SHU4U(M,I)=SHU4U(MM,I)
+        627 |        SHU4U(MM,I)=XSV
+        628 |        XSV=SHV4U(M,I)
+        629 |        SHV4U(M,I)=SHV4U(MM,I)
+        630 |        SHV4U(MM,I)=XSV
+        631 |        XSV=SHU4V(M,I)
+        632 |        SHU4V(M,I)=SHU4V(MM,I)
+        633 |        SHU4V(MM,I)=XSV
+        634 |        XSV=SHV4V(M,I)
+        635 |        SHV4V(M,I)=SHV4V(MM,I)
+        636 |        SHV4V(MM,I)=XSV
+        637 |  354   CONTINUE
+        638 |  355 CONTINUE
+        639 |C
+        640 |C               CHECK THE ARRAY SIZES.
+        641 |      ISIZE=0
+        642 |      IF(NSHEMH .GT. NSHEM) ISIZE=1
+        643 |      IF(NSHEMU .GT. NSHEM) ISIZE=1
+        644 |      IF(NSHEMV .GT. NSHEM) ISIZE=1
+        645 |      WRITE (IOUTUPRT, 360) NSHEM,NSHEMU,NSHEMV,NSHEMH
+        646 |  360 FORMAT(/'0', 'THE FIRST DIMENSION OF THE ARRAYS USED IN ',
+        647 |     1             'THE APPLICATION OF THE EQUATORIAL BOUNDARY ',
+        648 |     2             'CONDITIONS IS NSHEM =', I5, '.' /
+        649 |     3        ' ', 5X, 'THE ACTUAL NUMBER OF POINTS USED FOR U, V, ',
+        650 |     4             'AND H POINT FIELDS, RESPECTIVELY, IS:'/
+        651 |     5        ' ', 10X, 'NSHEMU =', I5, ',   NSHEMV =', I5,
+        652 |     6             ',   AND NSHEMH =', I5, '.' /)
+        653 |C
+        654 |      IF(ISIZE .EQ. 0) GO TO 400
+        655 |      WRITE (IOUTUPRT, 365)
+        656 |  365 FORMAT(1H0,40X,'*****S. HEM. ARRAYS NOT LARGE ENOUGH IN SR',
+        657 |     1 ' SHEMPRE.' )
+        658 |C
+        659 |      CALL ERRPRINT
+        660 |C
+        661 |      CALL EXIT(16)
+        662 |C
+        663 |C
+        664 | 400  RETURN
+        665 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-93.6$
+ 
+bitgrdh                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 43630784, Alignment: quadruple word
+                                 0-98.25$  0-105.15$  0-130.25
+ 
+bitgrdu                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44009472, Alignment: quadruple word
+                                 0-99.25$  0-105.24$  0-130.47
+ 
+bitgrdv                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44388160, Alignment: quadruple word
+                                 0-100.25$  0-105.33$  0-131.25
+ 
+bith                             Common member, Logical(4) (1:23668, 1:2), Offset: 43630784, Alignment: quadruple word
+                                 0-89.15$  0-130.20  0-146.10@  0-413.9@
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 44766848, Alignment: quadruple word
+                                 0-101.25$  0-105.42$
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 44956192, Alignment: quadruple word
+                                 0-102.25$  0-105.50$
+ 
+bitu                             Common member, Logical(4) (1:23668, 1:2), Offset: 44009472, Alignment: quadruple word
+                                 0-89.30$  0-130.42  0-147.10@  0-502.9@
+ 
+bitv                             Common member, Logical(4) (1:23668, 1:2), Offset: 44388160, Alignment: quadruple word
+                                 0-89.45$  0-131.20  0-148.10@  0-587.9@
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 45145536, Alignment: quadruple word
+                                 0-103.25$  0-105.58$
+ 
+c2                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-394.9@  0-395.26  0-396.26  0-458.9@  0-461.18  0-463.23  0-546.9@  0-549.23  0-551.18
+ 
+c3                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-469.9@  0-470.15  0-474.26  0-557.9@  0-558.15  0-560.20
+ 
+c4                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-460.9@  0-461.21  0-469.18  0-469.21  0-474.20  0-548.9@  0-549.26  0-557.18  0-557.21  0-560.23
+ 
+c5                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-462.9@  0-463.26  0-469.24  0-469.27  0-470.18  0-470.21  0-474.23  0-550.9@  0-551.21  0-557.24
+                                 0-557.27  0-558.18  0-558.21  0-560.26
+ 
+ch                               Common member, Real(4) (1:23668), Offset: 568032, Alignment: quadruple word
+                                 0-118.17$  0-127.20  0-223.10@  0-304.9@  0-304.21  0-376.12
+ 
+comshem                          Common Block, Alignment: double word
+                                 0-109.15$
+ 
+cos2l                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-472.9@  0-480.32  0-481.31  0-482.31  0-483.30  0-559.9@  0-566.23  0-567.23  0-568.23  0-569.23
+ 
+cu                               Common member, Real(4) (1:23668), Offset: 662704, Alignment: quadruple word
+                                 0-118.30$  0-127.40  0-224.10@  0-320.9@  0-320.21  0-442.12
+ 
+cv                               Common member, Real(4) (1:23668), Offset: 757376, Alignment: quadruple word
+                                 0-118.43$  0-128.20  0-225.10@  0-336.9@  0-336.21  0-530.12
+ 
+di                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-171.7@  0-174.9@  0-174.12  0-175.12  0-393.9@  0-395.19  0-457.9@  0-460.12  0-545.9@  0-548.12
+ 
+diinh                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-395.9@  0-397.18  0-402.12  0-461.9@  0-464.18  0-476.12  0-485.9@  0-485.15  0-487.18  0-492.12
+                                 0-549.9@  0-552.18  0-562.12  0-571.9@  0-571.15  0-573.18  0-577.12
+ 
+dj                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-164.7@  0-166.7@  0-166.10  0-167.10  0-370.7@  0-396.19  0-436.7@  0-462.12  0-524.7@  0-550.12
+ 
+djjnh                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-396.9@  0-398.18  0-403.12  0-463.9@  0-465.18  0-477.12  0-486.9@  0-486.15  0-488.18  0-493.12
+                                 0-551.9@  0-553.18  0-563.12  0-572.9@  0-572.15  0-574.18  0-578.12
+ 
+dnh                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-156.7@  0-157.10  0-160.12
+ 
+dx                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-402.9@  0-405.18  0-408.23  0-410.23  0-476.9@  0-478.18  0-481.24  0-483.24  0-492.9@  0-494.18
+                                 0-497.24  0-499.24  0-562.9@  0-564.18  0-567.29  0-569.29  0-577.9@  0-579.18  0-582.30  0-584.30
+ 
+dx1                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-405.9@  0-407.23  0-409.26  0-478.9@  0-480.24  0-482.27  0-494.9@  0-496.24  0-498.27  0-564.9@
+                                 0-566.29  0-568.32  0-579.9@  0-581.30  0-583.33
+ 
+dy                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-403.9@  0-406.18  0-409.23  0-410.26  0-477.9@  0-479.18  0-482.24  0-483.27  0-493.9@  0-495.18
+                                 0-498.24  0-499.27  0-563.9@  0-565.18  0-568.29  0-569.32  0-578.9@  0-580.18  0-583.30  0-584.33
+ 
+dy1                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-406.9@  0-407.27  0-408.26  0-479.9@  0-480.28  0-481.27  0-495.9@  0-496.28  0-497.27  0-565.9@
+                                 0-566.33  0-567.32  0-580.9@  0-581.34  0-582.33
+ 
+errmsg                           Static, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-91.20$
+ 
+errprint                         External Subroutine
+                                 0-347.12  0-385.12  0-451.12  0-539.12  0-659.12
+ 
+exit                             External Subroutine
+                                 0-349.12  0-387.12  0-453.12  0-541.12  0-661.12
+ 
+fh                               Common member, Real(4) (1:23668), Offset: 284016, Alignment: quadruple word
+                                 0-117.17$  0-124.41  0-187.10@  0-233.12  0-374.12
+ 
+filler                           Common member, Real(4) (1:10000), Offset: 18461040, Alignment: quadruple word
+                                 0-96.25$
+ 
+float                            Pure Intrinsic
+                                 0-156.11  0-370.10  0-393.12  0-402.18  0-403.18  0-436.10  0-457.12  0-476.18  0-477.18  0-492.18
+                                 0-493.18  0-524.10  0-545.12  0-562.18  0-563.18  0-577.18  0-578.18
+ 
+fu                               Common member, Real(4) (1:23668), Offset: 378688, Alignment: quadruple word
+                                 0-117.30$  0-125.20  0-188.10@  0-249.12  0-440.12
+ 
+fv                               Common member, Real(4) (1:23668), Offset: 473360, Alignment: quadruple word
+                                 0-117.43$  0-126.20  0-189.10@  0-265.12  0-528.12
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-172.15@  0-193.15@  0-230.9@  0-231.14  0-238.12  0-239.12  0-247.12  0-254.12  0-255.12
+                                 0-263.12  0-270.12  0-271.12  0-279.12  0-282.9@  0-282.13  0-343.46  0-371.16@  0-381.29  0-393.18
+                                 0-437.16@  0-447.29  0-457.18  0-525.16@  0-535.29  0-545.18  0-604.16@  0-605.21  0-606.17
+                                 0-606.29  0-607.18  0-616.16@  0-617.22  0-618.18  0-618.31  0-619.19  0-620.22  0-621.18  0-621.31
+                                 0-622.19  0-624.16@  0-625.21  0-626.17  0-626.29  0-627.18  0-628.21  0-629.17  0-629.29  0-630.18
+                                 0-631.21  0-632.17  0-632.29  0-633.18  0-634.21  0-635.17  0-635.29  0-636.18
+ 
+i1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-238.9@  0-247.9@  0-254.9@  0-263.9@  0-270.9@  0-279.9@  0-295.10  0-303.19  0-311.10  0-319.19
+                                 0-327.10  0-335.19  0-343.34
+ 
+i2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-239.9@  0-255.9@  0-271.9@  0-296.10  0-303.22  0-312.10  0-319.22  0-328.10  0-335.22  0-343.37
+ 
+iad                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-163.7@  0-173.9@  0-173.13  0-179.13  0-180.13  0-181.13
+ 
+iadd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-192.7@  0-194.9@  0-194.14  0-199.19  0-200.19  0-201.19  0-202.19  0-208.15  0-208.31  0-209.15
+                                 0-209.33  0-210.15  0-210.34  0-211.15  0-211.36  0-229.7@  0-232.9@  0-232.14  0-233.15  0-249.15
+                                 0-265.15
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ient                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-294.7@  0-310.7@  0-326.7@  0-343.29
+ 
+ii                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-303.16@  0-304.17  0-304.29  0-319.16@  0-320.17  0-320.29  0-335.16@  0-336.17  0-336.29
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  0-95.34  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-89.20  0-89.35  0-89.50  0-93.34  0-94.34  0-98.34  0-99.34  0-100.34  0-101.34
+                                 0-102.34  0-103.34  0-116.21  0-116.34  0-116.47  0-117.20  0-117.33  0-117.46  0-118.20  0-118.33
+                                 0-118.46  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iinh                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-397.9@  0-400.21  0-402.24  0-464.9@  0-467.21  0-476.24  0-487.9@  0-490.21  0-492.24  0-552.9@
+                                 0-555.21  0-562.24  0-573.9@  0-576.21  0-577.24
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ijm                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-153.7@  0-186.25  0-222.25
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+im                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-151.7@  0-152.10  0-153.11  0-154.12  0-172.19  0-192.18  0-201.24  0-202.24  0-210.20  0-210.39
+                                 0-211.20  0-211.41  0-229.18  0-296.18  0-301.19  0-312.18  0-317.19  0-328.18  0-333.19  0-371.20
+                                 0-400.35  0-437.20  0-467.35  0-490.35  0-525.20  0-555.35  0-576.35
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+imm1                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-154.7@  0-193.19  0-231.21
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  0-96.34  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-98.45  0-99.45  0-100.45  0-101.42  0-102.42  0-103.42
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  0-93.43  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  0-95.43  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  0-94.43  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$  0-110.32  0-110.51  0-111.32  0-112.32  0-112.51  0-113.32  0-113.51  0-114.32  0-138.15
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+int                              Pure Intrinsic
+                                 0-397.14  0-398.14  0-464.14  0-465.14  0-487.14  0-488.14  0-552.14  0-553.14  0-573.14  0-574.14
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$  0-97.34
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-141.7@  0-343.14  0-381.14  0-447.14  0-535.14  0-645.14  0-655.14
+ 
+iq2                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-145.15@  0-146.15  0-147.15  0-148.15
+ 
+iq2w6e                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-186.16@  0-187.13  0-188.13  0-189.13  0-222.16@  0-223.13  0-224.13  0-225.13  0-360.16@
+                                 0-361.17  0-364.16@  0-365.16  0-425.16@  0-426.17  0-429.16@  0-430.16  0-431.16  0-513.16@
+                                 0-514.17  0-517.16@  0-518.16  0-519.16
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+iret                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-240.9@  0-256.9@  0-272.9@  0-307.29  0-323.29  0-340.29
+ 
+iscat                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-368.7@  0-373.9@  0-373.15  0-374.15  0-376.15  0-391.21  0-394.21  0-434.7@  0-439.9@  0-439.15
+                                 0-440.15  0-442.15  0-456.21  0-458.21  0-522.7@  0-527.9@  0-527.15  0-528.15  0-530.15  0-544.21
+                                 0-546.21
+ 
+ishemh                           Common member, Integer(4) (1:868, 1:2), Offset: 16, Alignment: quadruple word
+                                 0-110.25$  0-361.10@  0-391.9@  0-400.9@  0-598.11  0-599.7@  0-599.19  0-600.7@  0-601.11
+                                 0-602.7@  0-602.19  0-603.7@
+ 
+ishemu                           Common member, Integer(4) (1:868, 1:3), Offset: 6960, Alignment: quadruple word
+                                 0-110.44$  0-426.10@  0-456.9@  0-467.9@  0-490.9@  0-617.13  0-618.9@  0-618.21  0-619.9@
+ 
+ishemv                           Common member, Integer(4) (1:868, 1:3), Offset: 17376, Alignment: quadruple word
+                                 0-111.25$  0-514.10@  0-544.9@  0-555.9@  0-576.9@  0-620.13  0-621.9@  0-621.21  0-622.9@
+ 
+isize                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-641.7@  0-642.29@  0-643.29@  0-644.29@  0-654.10
+ 
+isv                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-598.7@  0-600.20  0-601.7@  0-603.20  0-617.9@  0-619.22  0-620.9@  0-622.22
+ 
+iv                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-197.17@  0-198.15  0-199.24  0-200.26  0-201.27  0-202.29
+ 
+iv3                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-198.11@  0-208.20  0-208.36  0-209.22  0-209.40  0-210.23  0-210.42  0-211.25  0-211.46
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-165.13@  0-191.13@  0-192.13  0-227.7@  0-228.12  0-229.13  0-236.12  0-237.12  0-243.12
+                                 0-246.12  0-252.12  0-253.12  0-259.12  0-262.12  0-268.12  0-269.12  0-275.12  0-278.12  0-286.8@
+                                 0-286.12  0-343.48  0-369.14@  0-370.16  0-381.31  0-435.14@  0-436.16  0-447.31  0-523.14@
+                                 0-524.16  0-535.31
+ 
+j1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-236.9@  0-243.9@  0-246.9@  0-252.9@  0-259.9@  0-262.9@  0-268.9@  0-275.9@  0-278.9@  0-297.10
+                                 0-300.17  0-313.10  0-316.17  0-329.10  0-332.17  0-343.40
+ 
+j2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-237.9@  0-253.9@  0-269.9@  0-298.10  0-300.20  0-314.10  0-316.20  0-330.10  0-332.20  0-343.43
+ 
+jadd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-301.7@  0-304.12  0-304.24  0-317.7@  0-320.12  0-320.24  0-333.7@  0-336.12  0-336.24
+ 
+jj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-300.14@  0-301.13  0-316.14@  0-317.13  0-332.14@  0-333.13
+ 
+jjnh                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-398.9@  0-400.27  0-403.24  0-465.9@  0-467.27  0-477.24  0-488.9@  0-490.27  0-493.24  0-553.9@
+                                 0-555.27  0-563.24  0-574.9@  0-576.27  0-578.24
+ 
+jm                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-152.7@  0-153.14  0-155.12  0-165.17  0-298.18  0-314.18  0-330.18  0-369.18  0-435.18  0-523.18
+ 
+jmm1                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-155.7@  0-191.17  0-228.19
+ 
+ls                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-594.7@  0-596.18  0-611.7@  0-614.18
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-596.14@  0-597.10  0-598.18  0-599.14  0-601.18  0-602.14  0-605.19  0-606.15  0-614.14@
+                                 0-615.10  0-617.20  0-618.16  0-620.20  0-621.16  0-625.19  0-626.15  0-628.19  0-629.15  0-631.19
+                                 0-632.15  0-634.19  0-635.15
+ 
+mm                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-597.7@  0-599.26  0-600.14  0-602.26  0-603.14  0-606.26  0-607.15  0-615.7@  0-618.28  0-619.16
+                                 0-621.28  0-622.16  0-626.26  0-627.15  0-629.26  0-630.15  0-632.26  0-633.15  0-635.26  0-636.15
+ 
+n                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-355.7@  0-378.9@  0-378.11  0-380.11  0-381.33  0-391.16  0-400.16  0-407.15  0-408.15  0-409.15
+                                 0-410.15  0-417.14  0-421.7@  0-444.9@  0-444.11  0-446.11  0-447.33  0-456.16  0-467.16  0-480.15
+                                 0-481.15  0-482.15  0-483.15  0-490.16  0-496.15  0-497.15  0-498.15  0-499.15  0-506.14  0-509.7@
+                                 0-532.9@  0-532.11  0-534.11  0-535.33  0-544.16  0-555.16  0-566.15  0-567.15  0-568.15  0-569.15
+                                 0-576.16  0-581.15  0-582.15  0-583.15  0-584.15  0-591.14
+ 
+nb                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-356.7@  0-372.9@  0-372.12  0-413.14  0-422.7@  0-438.9@  0-438.12  0-502.14  0-510.7@  0-526.9@
+                                 0-526.12  0-587.14
+ 
+nh                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-151.12  0-156.17
+ 
+nshem                            Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-109.25$  0-138.7@  0-360.27  0-364.27  0-380.18  0-381.35  0-425.27  0-429.27  0-446.18  0-447.35
+                                 0-513.27  0-517.27  0-534.18  0-535.35  0-642.22  0-643.22  0-644.22  0-645.29
+ 
+nshemh                           Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-109.32$  0-417.7@  0-594.10  0-642.10  0-645.49
+ 
+nshemu                           Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-109.40$  0-506.7@  0-611.10  0-643.10  0-645.35
+ 
+nshemv                           Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-109.48$  0-591.7@  0-644.10  0-645.42
+ 
+one                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-133.12*  0-208.43  0-209.47  0-210.49  0-211.53
+ 
+r2h                              Common member, Real(4) (1:23668), Offset: 0, Alignment: quadruple word
+                                 0-116.17$  0-123.20  0-179.9@  0-394.17
+ 
+r2u                              Common member, Real(4) (1:23668), Offset: 94672, Alignment: quadruple word
+                                 0-116.30$  0-123.41  0-181.9@  0-458.17
+ 
+r2v                              Common member, Real(4) (1:23668), Offset: 189344, Alignment: quadruple word
+                                 0-116.43$  0-124.20  0-180.9@  0-546.17
+ 
+rsqe                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-160.7@  0-161.7@  0-161.12  0-161.17  0-199.33  0-200.35  0-201.36  0-202.38  0-394.12  0-458.12
+                                 0-546.12
+ 
+scr                              Common member, Real(4) (1:23668, 1:23), Offset: 0, Alignment: quadruple word
+                                 0-93.25$  0-123.28  0-123.49  0-124.28  0-124.49  0-125.28  0-126.27  0-127.27  0-127.47  0-128.27
+                                 0-199.15  0-200.15  0-201.15  0-202.15  0-208.11@  0-208.27  0-209.11@  0-209.29  0-210.11@
+                                 0-210.30  0-211.11@  0-211.32
+ 
+scr3                             Common member, Real(4) (1:378688, 1:10), Offset: 3313520, Alignment: quadruple word
+                                 0-95.25$
+ 
+scrgeog                          Common member, Real(4) (1:23668, 1:12), Offset: 2177456, Alignment: quadruple word
+                                 0-94.25$
+ 
+shempre                          Subroutine
+                                 0-1.18$
+ 
+shh4h                            Common member, Real(4) (1:868, 1:4), Offset: 27792, Alignment: quadruple word
+                                 0-112.25$  0-365.10@  0-407.9@  0-408.9@  0-409.9@  0-410.9@  0-605.13  0-606.9@  0-606.20
+                                 0-607.9@
+ 
+shu4u                            Common member, Real(4) (1:868, 1:4), Offset: 41680, Alignment: quadruple word
+                                 0-112.44$  0-430.10@  0-480.9@  0-481.9@  0-482.9@  0-483.9@  0-625.13  0-626.9@  0-626.20
+                                 0-627.9@
+ 
+shu4v                            Common member, Real(4) (1:868, 1:4), Offset: 69456, Alignment: quadruple word
+                                 0-113.44$  0-518.10@  0-581.9@  0-582.9@  0-583.9@  0-584.9@  0-631.13  0-632.9@  0-632.20
+                                 0-633.9@
+ 
+shv4u                            Common member, Real(4) (1:868, 1:4), Offset: 55568, Alignment: quadruple word
+                                 0-113.25$  0-431.10@  0-496.9@  0-497.9@  0-498.9@  0-499.9@  0-628.13  0-629.9@  0-629.20
+                                 0-630.9@
+ 
+shv4v                            Common member, Real(4) (1:868, 1:4), Offset: 83344, Alignment: quadruple word
+                                 0-114.25$  0-519.10@  0-566.9@  0-567.9@  0-568.9@  0-569.9@  0-634.13  0-635.9@  0-635.20
+                                 0-636.9@
+ 
+sin2l                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-474.9@  0-496.32  0-497.31  0-498.31  0-499.30  0-560.9@  0-581.24  0-582.24  0-583.24  0-584.24
+ 
+sinsq                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-470.9@  0-472.25  0-558.9@  0-559.25
+ 
+vbl                              Common member, Real(4) (1:6282436), Offset: 18501040, Alignment: quadruple word
+                                 0-97.25$
+ 
+x1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-175.9@  0-176.12  0-176.15  0-177.9@  0-177.12  0-178.12  0-178.15
+ 
+xh                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-176.9@  0-179.18  0-181.18
+ 
+xp                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-157.7@  0-158.10  0-175.15  0-395.15  0-395.22  0-460.15  0-461.15  0-548.20  0-549.15
+ 
+xsv                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-605.9@  0-607.21  0-625.9@  0-627.21  0-628.9@  0-630.21  0-631.9@  0-633.21  0-634.9@  0-636.21
+ 
+xv                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-178.9@  0-180.18
+ 
+y1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-167.7@  0-168.10  0-168.13  0-169.7@  0-169.10  0-170.10  0-170.13
+ 
+yh                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-168.7@  0-179.21  0-180.21
+ 
+yp                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-158.7@  0-167.13  0-396.15  0-396.22  0-462.20  0-463.15  0-550.15  0-551.15
+ 
+yu                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-170.7@  0-181.21
+ 
+** shempre   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    SHEMPRE.f                   10/09/02   12:45:08
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      0      82
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     727
+1501-510  Compilation successful for file SHEMPRE.f.
+1501-543  Object file created.

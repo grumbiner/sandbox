@@ -1,0 +1,380 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/STATS.f 09/30/06 19:44:08
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE STATS (FIELDIN, ILOW, IHIGH, IMAX, JLOW, JHIGH, JMAX,
+          2 |     1                  KLOW, KHIGH, KMAX, LABEL)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    STATS       COMPUTES AND PRINTS DIAGNOSTICS
+          6 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          7 |C
+          8 |C ABSTRACT: CALCULATES AND PRINT OUT SOME DIAGNOSTICS
+          9 |C   FOR THE SPECIFIED FIELD AND PRINT PART OF A REPRESENTATIVE
+         10 |C   ROW.  TO REDUCE THE POSSIBILITY OF TRUNCATION ERROR, A
+         11 |C   REPRESENTATIVE VALUE IS SUBTRACTED FROM THE FIELD.
+         12 |C
+         13 |C PROGRAM HISTORY LOG:
+         14 |C   85-03-27  JIM HOKE
+         15 |C   88-08-03  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         16 |C
+         17 |C USAGE:    CALL STATS (FIELDIN, ILOW, IHIGH, IMAX, JLOW, JHIGH,
+         18 |C                       JMAX, KLOW, KHIGH, KMAX, LABEL)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     FIELDIN  - FIELD FROM WHICH SOME STATS ARE GENERATED
+         21 |C     ILOW     - LOWER BOUND OF FIRST INDICE TO BE USED WHEN
+         22 |C                GENERATING STATISTICS
+         23 |C     IHIGH    - UPPER BOUND OF FIRST INDICE TO BE USED WHEN
+         24 |C                GENERATING STATISTICS
+         25 |C     IMAX     - FIRST DIMENSION OF ARRAY FIELDIN
+         26 |C     JLOW     - LOWER BOUND OF SECOND INDICE TO BE USED WHEN
+         27 |C                GENERATING STATISTICS
+         28 |C     JHIGH    - UPPER BOUND OF SECOND INDICE TO BE USED WHEN
+         29 |C                GENERATING STATISTICS
+         30 |C     JMAX     - SECOND DIMENSION OF ARRAY FIELDIN
+         31 |C     KLOW     - LOWER BOUND OF THIRD INDICE TO BE USED WHEN
+         32 |C                GENERATING STATISTICS
+         33 |C     KHIGH    - UPPER BOUND OF THIRD INDICE TO BE USED WHEN
+         34 |C                GENERATING STATISTICS
+         35 |C     KMAX     - THIRD DIMENSION OF ARRAY FIELDIN
+         36 |C     LABEL    - CHARACTER DESCRIPTION OF ARRAY FIELDIN
+         37 |C
+         38 |C   OUTPUT FILES:
+         39 |C     FT06F001 - FOR PRINTOUT
+         40 |C
+         41 |C ATTRIBUTES:
+         42 |C   LANGUAGE: CYBER FORTRAN 200
+         43 |C   MACHINE:  CYBER 205
+         44 |C
+         45 |C$$$
+         46 |C
+         47 |      REAL FIELDIN
+         48 |C
+         49 |      CHARACTER*16 LABEL
+         50 |C
+         51 |      DIMENSION FIELDIN(IMAX, JMAX, KMAX)
+         52 |C
+         53 |      DATA IACCUM /0/
+         54 |C
+         55 |      IPRINT = MIN(32,IHIGH-ILOW+1)
+         56 |      JPRINT = (JLOW + JHIGH) / 2
+         57 |      POINTS = REAL((IHIGH-ILOW+1) * (JHIGH-JLOW+1))
+         58 |C
+         59 |      WRITE (6, 50) LABEL
+         60 |   50 FORMAT(/'0', 'STATISTICS AND REPRESENTATIVE VALUES OF ',
+         61 |     1            '------------------', A16,
+         62 |     2            '  ------------------')
+         63 |C
+         64 |      DO 500 K=KLOW,KHIGH
+         65 |         REF = REAL (FIELDIN(IPRINT,JPRINT,K))
+         66 |         SUM1 =  0.0E0
+         67 |         SUM2 =  0.0E0
+         68 |         AMIN =  1.0E+20
+         69 |         AMAX = -1.0E+20
+         70 |C
+         71 |         DO 200 J=JLOW,JHIGH
+         72 |         DO 200 I=ILOW,IHIGH
+         73 |C
+         74 |            A    = REAL (FIELDIN(I,J,K))
+         75 |            SUM1 = SUM1 + (A - REF)
+         76 |            SUM2 = SUM2 + (A - REF)*(A - REF)
+         77 |C
+         78 |C     LOOK FOR THE MAXIMUM VALUE.
+         79 |            IF(A .GT. AMAX) THEN
+         80 |               AMAX = A
+         81 |               MAXI = I
+         82 |               MAXJ = J
+         83 |            END IF
+         84 |C
+         85 |C
+         86 |C     LOOK FOR THE MINIMUM VALUE.
+         87 |            IF (A .LT. AMIN) THEN
+         88 |               AMIN = A
+         89 |               MINI = I
+         90 |               MINJ = J
+         91 |            END IF
+         92 |C
+         93 |  200    CONTINUE
+         94 |C
+         95 |            AMEAN = (SUM1 / POINTS) + REF
+         96 |            RMS2 =  (SUM2 / POINTS)
+         97 |     1             + REF * (2.0E0 * AMEAN - REF)
+         98 |            AMEAN2 = AMEAN * AMEAN
+         99 |            SD2    = RMS2 - AMEAN2
+        100 |C
+        101 |            IF (SD2 .LT. 0.0E0) THEN
+        102 |               WRITE (6, 210) K, AMEAN, AMEAN2, SD2, RMS2
+        103 |  210          FORMAT ('0', 'LAYER=', I2, ', ********** ',
+        104 |     1                      'IN SR STATS, AMEAN, AMEAN2, SD2, RMS2 =',
+        105 |     2                      4(1PE15.6))
+        106 |C
+        107 |               SD  = 0.0E0
+        108 |               RMS = ABS(AMEAN)
+        109 |C
+        110 |            ELSE
+        111 |C
+        112 |               IF (RMS2 .LT. 0.0E0) THEN
+        113 |                  WRITE (6, 210) K, AMEAN, AMEAN2, SD2, RMS2
+        114 |                  SD   = 0.0E0
+        115 |                  RMS  = 0.0E0
+        116 |               ELSE
+        117 |C
+        118 |                  SD    = SQRT(SD2)
+        119 |                  RMS   = SQRT(RMS2)
+        120 |               END IF
+        121 |C
+        122 |            END IF
+        123 |C
+        124 |C     UPDATE THE PARITY CHECK.
+        125 |C     THE STANDARD DEVIATION IS NORMALIZED TO OBTAIN A VALUE BETWEEN
+        126 |C     1 AND 10, WHICH IS THEN MULTIPLIED BY 1,000,000 TO OBTAIN
+        127 |C     A 7 DIGIT INTEGER.  THE 7 DIGITS ARE SUMMED AND ADDED TO
+        128 |C     THE ACCUMULATION SO FAR FOR THIS JOB.
+        129 |C     NOTHING IS DONE IF THE STANDARD DEVIATION IS ZERO.
+        130 |C
+        131 |            IF (SD .LE. 0.0E0) GO TO 290
+        132 |C
+        133 |            EXPON = LOG10(SD)
+        134 |            IF (EXPON .LT. 0.0E0) GO TO 220
+        135 |C     THE SD IS GREATER THAN OR EQUAL TO 1.
+        136 |            FACTOR = 10.0E+0 ** REAL(INT(EXPON))
+        137 |      GO TO 240
+        138 |C
+        139 |  220 CONTINUE
+        140 |C     THE SD IS LESS THAN 1 (AND GREATER THAN ZERO.)
+        141 |      FACTOR = 10.0E+0 ** REAL(INT( EXPON  - 1.0E+0))
+        142 |C
+        143 |  240 CONTINUE
+        144 |      NORMAL = INT( (SD / FACTOR) * 1.0E+6)
+        145 |C
+        146 |  260 CONTINUE
+        147 |C
+        148 |      IQUOT1 = NORMAL
+        149 |      DO 280 N=1,7
+        150 |      IQUOT2 = IQUOT1 / 10
+        151 |      IREM   = IQUOT1 - 10 * IQUOT2
+        152 |      IACCUM = IACCUM + IREM
+        153 |      IQUOT1 = IQUOT2
+        154 |C
+        155 |C**** WRITE (6, 270) N, NORMAL, IQUOT2, IREM, IACCUM, IQUOT1
+        156 |C*270 FORMAT (' ', 'STATS=', 6I10)
+        157 |C
+        158 |  280 CONTINUE
+        159 |C
+        160 |  290 CONTINUE
+        161 |C
+        162 |      PRINT 300, K, AMEAN, SD, RMS, AMIN, MINI, MINJ, AMAX, MAXI,
+        163 |     1           MAXJ, IACCUM
+        164 |  300 FORMAT ('0', 'LAYER=', I2, ', MEAN=', 1PE13.6,
+        165 |     1             ', SD=',   1PE13.6, ', RMS=', 1PE13.6,
+        166 |     2             ', MIN=',  1PE13.6, '(', I3, ',', I3, ')',
+        167 |     3             ', MAX=',  1PE13.6, '(', I3, ',', I3, ')',
+        168 |     4             ',PC=',   I6)
+        169 |C
+        170 |C     PRINT 400, JPRINT, (FIELDIN(I,JPRINT,K), I=1,IPRINT)
+        171 |C 400 FORMAT (' ', 'ROW=', I3, ':', 8(1PE15.6)/
+        172 |C    1       (' ', 8X, 8(1PE15.6)))
+        173 |C
+        174 |  500 CONTINUE
+        175 |C
+        176 |      RETURN
+        177 |C
+        178 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-74.13@  0-75.28  0-76.28  0-76.38  0-79.16  0-80.23  0-87.17  0-88.23
+ 
+abs                              Pure Intrinsic
+                                 0-108.22
+ 
+amax                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-69.10@  0-79.23  0-80.16@  0-162.55
+ 
+amean                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-95.13@  0-97.37  0-98.22  0-98.30  0-102.34  0-108.26  0-113.37  0-162.21
+ 
+amean2                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-98.13@  0-99.29  0-102.41  0-113.44
+ 
+amin                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-68.10@  0-87.24  0-88.16@  0-162.37
+ 
+expon                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-133.13@  0-134.17  0-136.42  0-141.37
+ 
+factor                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-136.13@  0-141.7@  0-144.27
+ 
+fieldin                          Reference argument, Real(4) (1:?, 1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-47.12$  0-1.25  0-51.17$  0-65.22  0-74.26
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.17@  0-74.34  0-81.23  0-89.23
+ 
+iaccum                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-53.12*  0-152.7@  0-152.16  0-163.24
+ 
+ihigh                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-55.23  0-57.22  0-72.24
+ 
+ilow                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.34  0-55.29  0-57.28  0-72.19
+ 
+imax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.47  0-51.25  0-51.25
+ 
+int                              Pure Intrinsic
+                                 0-136.38  0-141.32  0-144.16
+ 
+iprint                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-55.7@  0-65.30
+ 
+iquot1                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-148.7@  0-150.16  0-151.16  0-153.7@
+ 
+iquot2                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-150.7@  0-151.30  0-153.16
+ 
+irem                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-151.7@  0-152.25
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.17@  0-74.36  0-82.23  0-90.23
+ 
+jhigh                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.59  0-56.24  0-57.39  0-71.24
+ 
+jlow                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.53  0-56.17  0-57.45  0-71.19
+ 
+jmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.66  0-51.31  0-51.31
+ 
+jprint                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-56.7@  0-65.37
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.14@  0-65.44  0-74.38  0-102.31  0-113.34  0-162.18
+ 
+khigh                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.31  0-64.21
+ 
+klow                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.25  0-64.16
+ 
+kmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.38  0-51.37  0-51.37
+ 
+label                            Reference argument, Character(16), Offset: 0, Alignment: byte
+                                 0-49.20$  0-2.44  0-59.21
+ 
+log10                            Pure Intrinsic
+                                 0-133.21
+ 
+maxi                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-81.16@  0-162.61
+ 
+maxj                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-82.16@  0-163.18
+ 
+min                              Pure Intrinsic
+                                 0-55.16
+ 
+mini                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-89.16@  0-162.43
+ 
+minj                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-90.16@  0-162.49
+ 
+n                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-149.14@
+ 
+normal                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-144.7@  0-148.16
+ 
+points                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-95.29  0-96.29
+ 
+real                             Pure Intrinsic
+                                 0-57.16  0-65.16  0-74.20  0-136.33  0-141.27
+ 
+ref                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-65.10@  0-75.32  0-76.32  0-76.42  0-95.39  0-97.22  0-97.45
+ 
+rms                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-108.16@  0-115.19@  0-119.19@  0-162.32
+ 
+rms2                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-96.13@  0-99.22  0-102.54  0-112.20  0-113.57  0-119.32
+ 
+sd                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-107.16@  0-114.19@  0-118.19@  0-131.17  0-133.27  0-144.22  0-162.28
+ 
+sd2                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-99.13@  0-101.17  0-102.49  0-113.52  0-118.32
+ 
+sqrt                             Pure Intrinsic
+                                 0-118.27  0-119.27
+ 
+stats                            Subroutine
+                                 0-1.18$
+ 
+sum1                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-66.10@  0-75.13@  0-75.20  0-95.22
+ 
+sum2                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-67.10@  0-76.13@  0-76.20  0-96.22
+ 
+** stats   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    STATS.f                     10/09/02   12:46:06
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     178
+1501-510  Compilation successful for file STATS.f.
+1501-543  Object file created.

@@ -1,0 +1,162 @@
+
+#QSUB -lM 48Mw -lT 10800 -eo -x -s /bin/sh
+# This script makes a global analysis and subsequent guess.
+# Imported variable CDATE in yymmddhh format determines date to process.
+set -xS
+export FILENV NCPUS
+export CDATE GDATE FDATE
+export DIRDAT SNOANL SSTANL PREPQC ODDEDM EVNEDM
+export DIRPRX SIGGES SFCGES OLDANL
+export SIGANL SFCANL PGBANL FLXANL ZNLANL SIGFCS SFCFCS PGBFCS FLXFCS ZNLFCS KENFCS
+export DIRRUN
+GDATE=`/wd2/wd20/wd20mi/bin/ndate -6 $CDATE`
+FDATE=`/wd2/wd20/wd20mi/bin/ndate +6 $CDATE`
+DIRDAT=${DIRDAT:-/ptmp1/datpro}
+SNOANL=${SNOANL:-$DIRDAT/snoanl.$CDATE}
+SSTANL=${SSTANL:-$DIRDAT/sstanl.$CDATE}
+ICEGRB=${ICEGRB:-$DIRDAT/icegrb.$CDATE}
+SNOGRB=${SNOGRB:-$DIRDAT/snogrb.$CDATE}
+SSTGRB=${SSTGRB:-$DIRDAT/sstgrb.$CDATE}
+PREPQC=${PREPQC:-$DIRDAT/prepqc.$CDATE}
+DIRPRX=${DIRPRX:-/ptmp2/datprx}
+SIGGES=${SIGGES:-$DIRPRX/sigf06.$GDATE}
+SFCGES=${SFCGES:-$DIRPRX/sfcf06.$GDATE}
+OLDANL=${OLDANL:-$DIRPRX/siganl.$GDATE}
+SIGANL=${SIGANL:-$DIRPRX/siganl.$CDATE}
+SFCANL=${SFCANL:-$DIRPRX/sfcanl.$CDATE}
+PGBANL=${PGBANL:-$DIRPRX/pgbanl.$CDATE}
+PGBANL2=${PGBANL2:-$DIRPRX/pgbf00.$CDATE}
+FLXANL=${FLXANL:-$DIRPRX/flxanl.$CDATE}
+ZNLANL=${ZNLANL:-$DIRPRX/znlanl.$CDATE}
+SIGFCS=${SIGFCS:-$DIRPRX/sigf06.$CDATE}
+SFCFCS=${SFCFCS:-$DIRPRX/sfcf06.$CDATE}
+PGBFCS=${PGBFCS:-$DIRPRX/pgbf06.$CDATE}
+FLXFCS=${FLXFCS:-$DIRPRX/flxf06.$CDATE}
+ZNLFCS=${ZNLFCS:-$DIRPRX/znlf06.$CDATE}
+KENFCS=${KENFCS:-$DIRPRX/kenf06.$CDATE}
+GBIAS=${GBIAS:-$DIRPRX/biascr.$GDATE}
+ABIAS=${ABIAS:-$DIRPRX/biascr.$CDATE}
+O3GES=${O3GES:-$DIRPRX/o3file.$GDATE}
+O3ANL=${O3ANL:-$DIRPRX/o3file.$CDATE}
+O3GRIB=${O3GRIB:-$DIRPRX/o3grib.$CDATE}
+SKINT=${SKINT:-$DIRPRX/skint.$CDATE}
+DIRRUN=${DIRRUN:-/tmp/datprx.$CDATE}
+
+mkdir -p $DIRRUN
+cd $DIRRUN
+
+FILENV=ssiasgn
+ssiexec=/nwprod/oi12628/exec.oi12628/ssianl3.xc
+ssiparm=/nwprod/oi12628/ucl.oi12628/ssiparm_fnl126
+divterrs=/nwprod/oi12628/ucl.oi12628/divterrs
+satv=/nwprod/oi12628/ucl.oi12628/satv28
+eofs=/nwprod/oi12628/ucl.oi12628/eofs12628
+nesdispr=/nwprod/oi12628/ucl.oi12628/nesdispr
+hirtau=/nwprod/oi12628/ucl.oi12628/hirtau
+msutau=/nwprod/oi12628/ucl.oi12628/msutau
+taucofm=/nwprod/oi12628/ucl.oi12628/taucofm
+taucofw=/nwprod/oi12628/ucl.oi12628/taucofw
+tableb=/nwprod/oi12628/ucl.oi12628/tableb.rad
+tabled=/nwprod/oi12628/ucl.oi12628/tabled.rad
+
+assign -a $nesdispr      -sbin               fort.1
+#assign -a $ODDEDM        -sunblocked         fort.11
+assign -a $EVNEDM        -sunblocked         fort.12
+assign -a $hirtau        -sunblocked         fort.13
+assign -a $msutau        -sunblocked         fort.14
+assign -a $taucofm       -sunblocked         fort.15
+assign -a $taucofw       -sunblocked         fort.16
+assign -a $O3GES         -Fcos -Cascii -Nibm fort.17
+assign -a $GBIAS                             fort.21
+assign -a $tableb                            fort.23
+assign -a $tabled                            fort.24
+assign -a $PREPQC        -Fcos               fort.30
+assign -a $SIGGES        -Fcos -Cascii -Nibm fort.35
+assign -a $OLDANL        -Fcos -Cascii -Nibm fort.36
+# assign -a sfcges         -Fcos -Cascii -Nibm fort.37
+assign -a $divterrs      -Fcos -Cascii -Nibm fort.47
+assign -a $satv                              fort.48
+assign -a $eofs          -Fcos -Cascii -Nibm fort.49
+assign -a $SIGANL        -Fcos -Cascii -Nibm fort.51
+assign -a $ABIAS                             fort.52
+assign -a $O3ANL         -Fcos -Cascii -Nibm fort.71
+assign -a $O3GRIB        -sunblocked         fort.72
+assign -a $SKINT         -sunblocked         fort.75
+assign -a wrk                                fort.90
+assign -a sfc2                               fort.91
+assign -a sfc3                               fort.92
+assign -a satvar.wrk     -su                 fort.94
+assign -a anal.wrk                           fort.97
+
+cp $SFCGES sfcges
+cp $ICEGRB icegrb
+cp $SNOGRB snogrb
+cp $SSTGRB sstgrb
+/nwprod/util/grbindex/exec.grbindex/grbindex icegrb icegrb.index
+/nwprod/util/grbindex/exec.grbindex/grbindex snogrb snogrb.index
+/nwprod/util/grbindex/exec.grbindex/grbindex sstgrb sstgrb.index
+
+NCPUS=6 $ssiexec <$ssiparm;ssierr=$?
+if test $ssierr -ne 0;then exit $ssierr;fi
+
+cp sfcanl $SFCANL
+
+rm wrk sfc2 sfc3 satvar.wrk anal.wrk fort.98
+
+FILENV=fcstasgn
+fcstexec=/nwprod/sm12628/exec.sm12628/fcst28.xc
+fcstparm=/nwprod/sm12628/ucl.sm12628/avnfcst.parm
+fcstcpus=4
+co2const=/nwprod/sm12628/fix.sm12628/co2const.28
+mtnvar=/nwprod/sm12628/fix.sm12628/mtnvar.126
+tune1=/nwprod/sm12628/fix.sm12628/tune1.season
+assign -a $SIGANL        -Fcos -Cascii -Nibm fort.11
+assign -a $SFCANL        -Fcos -Cascii -Nibm fort.14
+assign -a $co2const      -Fcos -Cascii -Nibm fort.15
+assign -a $mtnvar        -Fcos -Cascii -Nibm fort.24
+assign -a $tune1         -Fcos -Cascii -Nibm fort.43
+assign -a sigm1          -Fcos -Cascii -Nibm fort.51
+assign -a $SIGFCS        -Fcos -Cascii -Nibm fort.52
+assign -a $SFCFCS        -Fcos -Cascii -Nibm fort.53
+assign -a sfcfa          -Fcos -Cascii -Nibm fort.54
+assign -a sigfa          -Fcos -Cascii -Nibm fort.56
+assign -a $ZNLANL        -Fcos -Cascii -Nibm fort.61
+assign -a $FLXANL        -s unblocked        fort.62
+assign -a $FLXFCS        -s unblocked        fort.63
+assign -a $ZNLFCS        -Fcos -Cascii -Nibm fort.64
+assign -a $KENFCS        -Fcos -Cascii -Nibm fort.67
+NCPUS=$fcstcpus $fcstexec <$fcstparm;fcsterr=$?
+if test $fcsterr -ne 0;then exit $fcsterr;fi
+
+FILENV=pgbasgn
+pgbexec=/nwprod/sm12628/exec.sm12628/postgp.xc
+pgbparm=/dev/null
+assign -a $SIGANL        -Fcos -Cascii -Nibm fort.11
+assign -a $SIGFCS        -Fcos -Cascii -Nibm fort.12
+assign -a /dev/null      -Fcos -Cascii -Nibm fort.13
+assign -a $PGBANL        -s unblocked        fort.51
+assign -a $PGBFCS        -s unblocked        fort.52
+NCPUS=1 $pgbexec <$pgbparm;pgberr=$?
+ln -f $PGBANL $PGBANL2
+
+FILENV=fluxterpasgn
+fluxterpexec=/nwprod/sm12628/exec.sm12628/fluxcnv.xc
+fluxterpparm=/dev/null
+/nwprod/grbindex/exec.grbindex/grbindex $FLXANL flxi.ix1
+assign -a $FLXANL        -s unblocked        fort.11
+assign -a flxi.ix1       -s unblocked        fort.31
+assign -a flx1i          -s unblocked        fort.51
+NCPUS=1 $fluxterpexec <$fluxterpparm;fluxterperr=$?
+cat flx1i >>$PGBANL
+
+FILENV=fluxterpasgn
+fluxterpexec=/nwprod/sm12628/exec.sm12628/fluxcnv.xc
+fluxterpparm=/dev/null
+/nwprod/grbindex/exec.grbindex/grbindex $FLXFCS flxf.ix1
+assign -a $FLXFCS        -s unblocked        fort.11
+assign -a flxf.ix1       -s unblocked        fort.31
+assign -a flx1f          -s unblocked        fort.51
+NCPUS=1 $fluxterpexec <$fluxterpparm;fluxterperr=$?
+cat flx1f >>$PGBFCS
+
+exit 0

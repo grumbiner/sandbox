@@ -1,0 +1,51 @@
+       SUBROUTINE M1IPQR(PE,QE,RO,SLAT,CLAT,NLATH,JCAP)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    M1IPQR     INITIALIZE LEGENDRE RECURSIONS
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 90-09-21
+C
+C ABSTRACT: INITIALIZE LEGENDRE RECURSIONS.
+C
+C PROGRAM HISTORY LOG:
+C   90-09-21  PARRISH
+C
+C USAGE:    CALL M1IPQR(PE,QE,RO,SLAT,CLAT,NLATH,JCAP)
+C   INPUT ARGUMENT LIST:
+C     SLAT     - SIN OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+C     CLAT     - COS OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+C     NLATH    - NUMBER OF LATITUDES WHERE FUNCTIONS ARE EVALUATED
+C     JCAP     - TRIANGULAR TRUNCATION
+C
+C   OUTPUT ARGUMENT LIST:
+C     PE       - P(L,L) FOR 0 LE L LE JCAP
+C     QE       - Q(L,L)
+C     RO       - R(L,L)
+C
+C ATTRIBUTES:
+C   LANGUAGE: CFT77
+C   MACHINE:  CRAY YMP
+C
+C$$$
+         implicit double precision (a-h,o-z)
+         DIMENSION PE(NLATH,0:JCAP),QE(NLATH,0:JCAP),RO(NLATH,0:JCAP)
+         DIMENSION SLAT(NLATH),CLAT(NLATH)
+         real*4 conmc
+C--------
+         RERTH=CONMC('RERTH$')
+         DO 60 J=1,NLATH
+           PE(J,0)=1.d0/SQRT(2.d0)
+           QE(J,0)=0.d0
+           QE(J,1)=RERTH*SQRT(3.d0/16.d0)
+           DO 30 L=1,JCAP
+             PE(J,L)=SQRT((2.d0*L+1.d0)/(2.d0*L))*CLAT(J)*PE(J,L-1)
+30         CONTINUE
+           DO 40 L=2,JCAP
+             QE(J,L)=SQRT((2.d0*L+1.d0)/(2.d0*L))*(L/(L+1.d0))*CLAT(J)
+     *                        *QE(J,L-1)
+ 40        CONTINUE
+           DO 50 L=0,JCAP
+             RO(J,L)=-QE(J,L)*SLAT(J)
+ 50        CONTINUE
+60       CONTINUE
+       RETURN
+       END

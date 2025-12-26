@@ -1,0 +1,5 @@
+      SUBROUTINE DIABH(N1,ND,NSTEP,INI,NANL)
+      PRINT 200
+  200 FORMAT ( ' HELLO FROM STUB DIABH ............... ')
+      RETURN
+      END

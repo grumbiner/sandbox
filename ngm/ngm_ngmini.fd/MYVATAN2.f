@@ -1,0 +1,49 @@
+       SUBROUTINE MYVATAN2(ALPHA,Y,X,N)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    MYVATAN2    SPECIAL ATAN2 ROUTINE TO FIX X=Y=0 CASE
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+C
+C ABSTRACT: FORTRAN SUBROUTINE ATAN2(X,Y) OBTAINS THE ATAN(Y/X),
+C   BUT GIVES AN ERROR MESSAGE FOR X=Y=0.  THIS IS SILLY.  THIS ROUTINE
+C   PATCHES AROUND THAT POSSIBILITY.
+C
+C PROGRAM HISTORY LOG:
+C   88-08-08  PARRISH
+C
+C USAGE:    CALL MYVATAN2(ALPHA,Y,X,N)
+C   INPUT ARGUMENT LIST:
+C     Y        - Y-VALUES
+C     X        - X-VALUES
+C     N        - NUMBER TO DO
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     ALPHA    - ATAN(Y/X)
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         REAL ALPHA(1),Y(1),X(1)
+C--------
+         XMAX=-1.E30
+         XMIN=1.E30
+         YMAX=-1.E30
+         YMIN=1.E30
+         DO 100 I=1,N
+           XMAX=MAX(X(I),XMAX)
+           XMIN=MIN(X(I),XMIN)
+           YMAX=MAX(Y(I),YMAX)
+           YMIN=MIN(Y(I),YMIN)
+100      CONTINUE
+         XYMAX=MAX(ABS(XMAX),ABS(XMIN),ABS(YMAX),ABS(YMIN))
+         EPS=1.E-10*XYMAX
+         DO 200 I=1,N
+           IF(X(I).EQ.0.) X(I)=EPS
+           ALPHA(I)=ATAN2(Y(I),X(I))
+200      CONTINUE
+       RETURN
+       END

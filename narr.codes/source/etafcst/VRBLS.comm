@@ -1,0 +1,8 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /VRBLS/
+     & PD(IDIM1:IDIM2,JDIM1:JDIM2)
+C
+     &,T(IDIM1:IDIM2,JDIM1:JDIM2,LM),U(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,V(IDIM1:IDIM2,JDIM1:JDIM2,LM),Q(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,FIS(IDIM1:IDIM2,JDIM1:JDIM2),RES(IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

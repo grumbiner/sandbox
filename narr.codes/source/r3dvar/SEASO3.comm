@@ -1,0 +1,7 @@
+!---------------------------------------------------------------------
+       COMMON/SEASO3/XDUO3N(37,NL)   ! winter
+       common/seaso3/XDO3N2(37,NL)   ! spring
+       common/seaso3/XDO3N3(37,NL)   ! summer
+       common/seaso3/XDO3N4(37,NL)   ! fall
+       common/seaso3/PRGFDL(NL)
+!---------------------------------------------------------------------

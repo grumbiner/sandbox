@@ -1,0 +1,57 @@
+SHELL=/bin/sh
+F77=f90
+#
+SRCS=   RSTUPT.f
+
+OBJS=   RSTUPT.o
+
+# Tunable parameters
+#
+# FC		Name of the fortran compiling system to use
+# LDFLAGS	Flags to the loader
+# LIBS		List of libraries
+# CMD		Name of the executable
+# PROFLIB	Library needed for profiling
+#
+FC =		f90
+# LDFLAGS = -bD:2000000000 -bmap:map  -bmaxstack:2000000000 -bnoquiet
+LDFLAGS = 
+
+LIBS =         /groupB/users/pshaf/lib/w3lib.a
+
+CMD =		rstupt.x
+PROFLIB =	-lprof
+
+# To perform the default compilation, use the first line
+# To compile with flowtracing turned on, use the second line
+# To compile giving profile additonal information, use the third line
+# WARNING:  SIMULTANEOUSLY PROFILING AND FLOWTRACING IS NOT RECOMMENDED 
+# FFLAGS = -O2 -qarch=604 -qstrict -qrealsize=4 -qmaxmem=-1 -qsource -qxref=full -qattr -q nosave -qspillsize=548 -bloadmap:lm
+
+FFLAGS = -O2 -OPT:Olimit=0
+#FFLAGS =	 -F
+#FFLAGS =	 -Wf"-ez"
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+all:		$(CMD)
+
+$(CMD):		$(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+
+$(OBJS):        $(SRCS)
+	$(FC) $(FFLAGS) -c $(SRCS)
+# Make the profiled version of the command and call it a.out.prof
+#
+$(CMD).prof:	$(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
+
+clean:
+	-rm -f $(OBJS) *.lst
+
+clobber:	clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:	clobber
+	-rm -f $(SRCS) makefile

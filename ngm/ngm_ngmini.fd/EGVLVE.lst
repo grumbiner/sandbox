@@ -1,0 +1,326 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/EGVLVE.f 09/30/06 19:43:51
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE EGVLVE(A,RR,RI,EVECTR,EVECTI,N,IVECT,LWORK,
+          2 |     *                     AWORK,EVWORK,IERROR)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    EGVLVE      COMPUTE EIGENVALUES OR ONE EIGENVECTOR.
+          6 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-08
+          7 |C
+          8 |C ABSTRACT: MATRIX MULTIPLY.  MUST HAVE NA=MB, MA=MC, NB=NC.
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   88-09-08  PARRISH
+         12 |C
+         13 |C USAGE:    CALL EGVLVE(A,RR,RI,EVECTR,EVECTI,N,IVECT,LWORK,
+         14 |C    *                     AWORK,EVWORK,IERROR)
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     A        - INPUT MATRIX (PRESERVED)
+         17 |C     RR       - REAL PART OF EIGENVALUES
+         18 |C     RI       - IMAG PART OF EIGENVALUES
+         19 |C     N        - ORDER OF MATRIX A
+         20 |C     IVECT    - =0, THEN OBTAIN EIGENVALUES,
+         21 |C              - >0, THEN OBTAIN THE IVECT EIGENVECTOR
+         22 |C
+         23 |C   OUTPUT ARGUMENT LIST:
+         24 |C     RR       - REAL PART OF EIGENVALUES
+         25 |C     RI       - IMAG PART OF EIGENVALUES
+         26 |C     EVECTR   - REAL PART OF EIGENVECTOR
+         27 |C     EVECTI   - IMAG PART OF EIGENVECTOR
+         28 |C     LWORK    - TEMP INTEGER STORAGE OF LENGTH 2*N
+         29 |C     AWORK    - TEMP REAL STORAGE OF LENGTH N*N
+         30 |C     EVWORK   - TEMP REAL STORAGE OF LENGTH 4*N
+         31 |C     IERROR   - RETURNED WHEN COMPUTING EIGENVECTOR, =0 MEANS OK.
+         32 |C
+         33 |C ATTRIBUTES:
+         34 |C   LANGUAGE: FORTRAN200
+         35 |C   MACHINE:  CYBER
+         36 |C
+         37 |C$$$
+         38 |         REAL A(N,N)
+         39 |         REAL RR(N),RI(N),EVECTR(N),EVECTI(N),AWORK(N,N)
+         40 |         REAL EVWORK(N,4)
+         41 |         INTEGER LWORK(N,2)
+         42 |         NA=N
+         43 |C--------
+         44 |         IF(IVECT.GT.0) GO TO 500
+         45 |C--------
+         46 |C----------COMPUTE ALL EIGENVALUES.
+         47 |C----------
+         48 |           DO 100 J=1,N
+         49 |             DO 90 I=1,NA
+         50 |               AWORK(I,J)=A(I,J)
+         51 |90           CONTINUE
+         52 |100        CONTINUE
+         53 |           CALL HSBG(N,AWORK,NA)
+         54 |           CALL ATEIG(N,AWORK,RR,RI,LWORK,NA)
+         55 |C----------
+         56 |C----------ORDER EIGENVALUES FROM SMALLEST TO LARGEST IN ABS VALUE.
+         57 |C----------
+         58 |           DO 300 J=1,N
+         59 |             DO 200 I=J,N
+         60 |               ABSJ=RR(J)**2+RI(J)**2
+         61 |               ABSI=RR(I)**2+RI(I)**2
+         62 |               IF(ABSI.GE.ABSJ) GO TO 200
+         63 |                 RRT=RR(J)
+         64 |                 RR(J)=RR(I)
+         65 |                 RR(I)=RRT
+         66 |                 RIT=RI(J)
+         67 |                 RI(J)=RI(I)
+         68 |                 RI(I)=RIT
+         69 |200          CONTINUE
+         70 |300        CONTINUE
+         71 |           RETURN
+         72 |500      CONTINUE
+         73 |         IERROR=1
+         74 |C--------
+         75 |C--------USE INVERSE ITERATION TO COMPUTE EIGENVECTOR CORRESPONDING
+         76 |C--------TO EIGENVALUE (RR(IVECT)+I*RI(IVECT)).
+         77 |C--------FIRST OBTAIN PERTURBED EIGENVALUE.
+         78 |C--------
+         79 |         EMAX2=0.
+         80 |         DO 600 I=1,N
+         81 |           EMAX2=AMAX1(EMAX2,RR(I)**2+RI(I)**2)
+         82 |600      CONTINUE
+         83 |         IP=MIN0(IVECT+1,N)
+         84 |         IM=MAX0(1,IVECT-1)
+         85 |         DELTA=AMAX1(1.E-18*EMAX2,AMIN1((RR(IP)-RR(IVECT))**2+(RI(IP)-
+         86 |     *      RI(IVECT))**2,(RR(IM)-RR(IVECT))**2+(RI(IM)-RI(IVECT))**2))
+         87 |         DELTA=SQRT(DELTA)*.001
+         88 |         ALPHA=RR(IVECT)+DELTA
+         89 |         BETA=RI(IVECT)+DELTA
+         90 |         DO 700 I=1,N
+         91 |           EVECTR(I)=1.
+         92 |           EVECTI(I)=1.
+         93 |700      CONTINUE
+         94 |C----------COMPUTE C=(A-ALPHA*I)**2+BETA**2
+         95 |           DO 1100 J=1,N
+         96 |             DO 1000 I=1,N
+         97 |               AWORK(I,J)=-2.*ALPHA*A(I,J)
+         98 |               IF(I.EQ.J) AWORK(I,J)=AWORK(I,J)+ALPHA**2+BETA**2
+         99 |               DO 900 K=1,N
+        100 |                 AWORK(I,J)=AWORK(I,J)+A(I,K)*A(K,J)
+        101 |900            CONTINUE
+        102 |1000         CONTINUE
+        103 |1100       CONTINUE
+        104 |         CALL MINV(AWORK,N,DETA,LWORK,LWORK(1,2))
+        105 |         DO 2000 ITER=1,5
+        106 |C----------COMPUTE RIGHTHAND SIDE
+        107 |           DO 710 I=1,N
+        108 |             EVWORK(I,3)=-ALPHA*EVECTR(I)-BETA*EVECTI(I)
+        109 |             EVWORK(I,4)=BETA*EVECTR(I)-ALPHA*EVECTI(I)
+        110 |710        CONTINUE
+        111 |           DO 800 I=1,N
+        112 |             DO 750 J=1,N
+        113 |               EVWORK(J,3)=EVWORK(J,3)+A(J,I)*EVECTR(I)
+        114 |               EVWORK(J,4)=EVWORK(J,4)+A(J,I)*EVECTI(I)
+        115 |750          CONTINUE
+        116 |800        CONTINUE
+        117 |C----------SOLVE FOR NEW ESTIMATE OF EIGENVECTOR
+        118 |           DO 850 I=1,N
+        119 |             EVWORK(I,1)=0.
+        120 |             EVWORK(I,2)=0.
+        121 |             DO 840 J=1,N
+        122 |               EVWORK(I,1)=EVWORK(I,1)+AWORK(I,J)*EVWORK(J,3)
+        123 |               EVWORK(I,2)=EVWORK(I,2)+AWORK(I,J)*EVWORK(J,4)
+        124 |840          CONTINUE
+        125 |850        CONTINUE
+        126 |C----------NORMALIZE
+        127 |           EVMAX=0.
+        128 |           DO 1200 I=1,N
+        129 |             EVMAX=AMAX1(EVMAX,ABS(EVWORK(I,1)),ABS(EVWORK(I,2)))
+        130 |1200       CONTINUE
+        131 |           DO 1300 I=1,N
+        132 |             EVECTR(I)=EVWORK(I,1)/EVMAX
+        133 |             EVECTI(I)=EVWORK(I,2)/EVMAX
+        134 |1300       CONTINUE
+        135 |2000     CONTINUE
+        136 |         IERROR=0
+        137 |       RETURN
+        138 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-38.15$  0-1.26  0-50.27  0-97.37  0-100.40  0-100.47  0-113.40  0-114.40
+ 
+abs                              Pure Intrinsic
+                                 0-129.32  0-129.49
+ 
+absi                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-61.16@  0-62.19
+ 
+absj                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-60.16@  0-62.27
+ 
+alpha                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-88.10@  0-97.31  0-98.49  0-108.27  0-109.41
+ 
+amax1                            Pure Intrinsic Real(4)
+                                 0-81.18  0-85.16  0-129.20
+ 
+amin1                            Pure Intrinsic Real(4)
+                                 0-85.35
+ 
+ateig                            External Subroutine
+                                 0-54.17
+ 
+awork                            Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-39.47$  0-2.28  0-50.16@  0-53.24  0-54.25  0-97.16@  0-98.27@  0-98.38  0-100.18@  0-100.29
+                                 0-104.20  0-122.40  0-123.40
+ 
+beta                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-89.10@  0-98.58  0-108.43  0-109.26
+ 
+delta                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-85.10@  0-87.10@  0-87.21  0-88.26  0-89.25
+ 
+deta                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-104.28
+ 
+egvlve                           Subroutine
+                                 0-1.19$
+ 
+emax2                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-79.10@  0-81.12@  0-81.24  0-85.29
+ 
+evecti                           Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-39.37$  0-1.41  0-92.12@  0-108.48  0-109.47  0-114.47  0-133.14@
+ 
+evectr                           Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-39.27$  0-1.34  0-91.12@  0-108.33  0-109.31  0-113.47  0-132.14@
+ 
+evmax                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-127.12@  0-129.14@  0-129.26  0-132.36  0-133.36
+ 
+evwork                           Reference argument, Real(4) (1:?, 1:4), Offset: 0, Alignment: full word
+                                 0-40.15$  0-2.34  0-108.14@  0-109.14@  0-113.16@  0-113.28  0-114.16@  0-114.28  0-119.14@
+                                 0-120.14@  0-122.16@  0-122.28  0-122.51  0-123.16@  0-123.28  0-123.51  0-129.36  0-129.53
+                                 0-132.24  0-133.24
+ 
+hsbg                             External Subroutine
+                                 0-53.17
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.20@  0-50.22  0-50.29  0-59.21@  0-61.24  0-61.33  0-64.27  0-65.21  0-67.27  0-68.21
+                                 0-80.17@  0-81.33  0-81.42  0-90.17@  0-91.19  0-92.19  0-96.22@  0-97.22  0-97.39  0-98.19
+                                 0-98.33  0-98.44  0-100.24  0-100.35  0-100.42  0-107.19@  0-108.21  0-108.40  0-108.55  0-109.21
+                                 0-109.38  0-109.54  0-111.19@  0-113.44  0-113.54  0-114.44  0-114.54  0-118.19@  0-119.21
+                                 0-120.21  0-122.23  0-122.35  0-122.46  0-123.23  0-123.35  0-123.46  0-128.20@  0-129.43  0-129.60
+                                 0-131.20@  0-132.21  0-132.31  0-133.21  0-133.31
+ 
+ierror                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.41  0-73.10@  0-136.10@
+ 
+im                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-84.10@  0-86.31  0-86.53
+ 
+ip                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-83.10@  0-85.45  0-85.67
+ 
+iter                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-105.18@
+ 
+ivect                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.50  0-44.13  0-83.18  0-84.20  0-85.52  0-86.16  0-86.38  0-86.60  0-88.19  0-89.18
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.19@  0-50.24  0-50.31  0-58.19@  0-59.23  0-60.24  0-60.33  0-63.25  0-64.21  0-66.25  0-67.21
+                                 0-95.20@  0-97.24  0-97.41  0-98.24  0-98.35  0-98.46  0-100.26  0-100.37  0-100.51  0-112.21@
+                                 0-113.23  0-113.35  0-113.42  0-114.23  0-114.35  0-114.42  0-121.21@  0-122.48  0-122.58  0-123.48
+                                 0-123.58
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-99.23@  0-100.44  0-100.49
+ 
+lwork                            Reference argument, Integer(4) (1:?, 1:2), Offset: 0, Alignment: full word
+                                 0-41.18$  0-1.56  0-54.37  0-104.33  0-104.39
+ 
+max0                             Pure Intrinsic
+                                 0-84.13
+ 
+min0                             Pure Intrinsic
+                                 0-83.13
+ 
+minv                             External Subroutine
+                                 0-104.15
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.48  0-38.17  0-38.17  0-38.19  0-38.19  0-39.18  0-39.18  0-39.24  0-39.24  0-39.34  0-39.34
+                                 0-39.44  0-39.44  0-39.53  0-39.53  0-39.55  0-39.55  0-40.22  0-40.22  0-41.24  0-41.24  0-42.13
+                                 0-48.23  0-53.22  0-54.23  0-58.23  0-59.25  0-80.21  0-83.26  0-90.21  0-95.24  0-96.26  0-99.27
+                                 0-104.26  0-107.23  0-111.23  0-112.25  0-118.23  0-121.25  0-128.24  0-131.24
+ 
+na                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-42.10@  0-49.24  0-53.30  0-54.43
+ 
+ri                               Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-39.21$  0-1.31  0-54.34  0-60.30  0-61.30  0-66.22  0-67.18@  0-67.24  0-68.18@  0-81.39  0-85.64
+                                 0-86.13  0-86.50  0-86.57  0-89.15
+ 
+rit                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-66.18@  0-68.24
+ 
+rr                               Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-39.15$  0-1.28  0-54.31  0-60.21  0-61.21  0-63.22  0-64.18@  0-64.24  0-65.18@  0-81.30  0-85.42
+                                 0-85.49  0-86.28  0-86.35  0-88.16
+ 
+rrt                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-63.18@  0-65.24
+ 
+sqrt                             Pure Intrinsic
+                                 0-87.16
+ 
+** egvlve   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    EGVLVE.f                    10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     138
+1501-510  Compilation successful for file EGVLVE.f.
+1501-543  Object file created.

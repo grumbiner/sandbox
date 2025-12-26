@@ -1,0 +1,40 @@
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FPVS)
+C-----------------------------------------------------------------------
+      SUBROUTINE LRGSCL(IM,IX,KM,DT,PS,T,Q,SL,DEL,SLK,RN,LAT)
+      %INCLUDE DBLRGSCL;
+      DIMENSION DEL(KM),SL(KM),PS(IM),
+     &          Q(IX,KM),T(IX,KM),RN(IM)
+C  PHYSICAL PARAMETERS
+      PARAMETER(G=#G,RD=#RD,RV=#RV,
+     &          CP=#CP,HVAP=#HVAP)
+      PARAMETER(ELOCP=HVAP/CP,EL2ORC=HVAP*HVAP/(RV*CP),
+     &          EPS=RD/RV,EPSM1=RD/RV-1.)
+C-----------------------------------------------------------------------
+C  CONDENSE RAIN TO WETBULB TEMPERATURE IF SUPERSATURATED
+C  OR EVAPORATE RAIN USING KESSLER PARAMETERIZATION.
+      DO I=1,IM
+        RN(I)=0.
+      ENDDO
+      DO K=KM,1,-1
+        DO I=1,IM
+          DPOVG=DEL(K)/G*PS(I)
+          ES=FPVS(T(I,K))
+          QS=EPS*ES/(SL(K)*PS(I)+EPSM1*ES)
+          QCOND=(Q(I,K)-QS)/(1.+EL2ORC*QS/T(I,K)**2)
+          IF(QCOND.GT.0.) THEN
+            Q(I,K)=Q(I,K)-QCOND
+            T(I,K)=T(I,K)+QCOND*ELOCP
+            RN(I)=RN(I)+QCOND*DPOVG
+          ELSEIF(RN(I).GT.0.) THEN
+            QEVAP=-QCOND*(1.-EXP(-0.32*SQRT(2.*DT*RN(I))))
+            RNEVAP=MIN(QEVAP*DPOVG,RN(I))
+            Q(I,K)=Q(I,K)+RNEVAP/DPOVG
+            T(I,K)=T(I,K)-RNEVAP/DPOVG*ELOCP
+            RN(I)=RN(I)-RNEVAP
+          ENDIF
+        ENDDO
+      ENDDO
+C-----------------------------------------------------------------------
+      RETURN
+      END

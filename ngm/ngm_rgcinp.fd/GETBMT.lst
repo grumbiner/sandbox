@@ -1,0 +1,125 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/GETBMT.f 09/30/06 19:45:31
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |            SUBROUTINE GETBMT(LM,PSTAR,P,KMAX)
+          2 |      IMPLICIT REAL (A-H, O-Z)
+          3 |      DIMENSION P(KMAX)
+          4 |C
+          5 |      DPK = P(2) - PSTAR
+          6 |      DPK1 = P(1) - PSTAR
+          7 |      DPK2 = DPK*DPK
+          8 |      DPK12 = DPK1*DPK1
+          9 |        IF ( DPK2 .GT. DPK12 ) THEN
+         10 |           LM = 1
+         11 |        ELSE
+         12 |           LM = KMAX
+         13 |        ENDIF
+         14 |C
+         15 |        DO 10 K=2,KMAX
+         16 |        DPK = P(K) - PSTAR
+         17 |        DPK1 = P(K-1) - PSTAR
+         18 |        DPCK = DPK * DPK1
+         19 |        IF( DPCK .LE. 0.0E0 ) THEN
+         20 |           DPK2 = DPK*DPK
+         21 |           DPK12 = DPK1*DPK1
+         22 |           IF( DPK2 .LE. DPK12 ) THEN
+         23 |              LM = K
+         24 |           ELSE
+         25 |              LM = K - 1
+         26 |           ENDIF
+         27 |           GO TO 100
+         28 |        ENDIF
+         29 | 10     CONTINUE
+         30 | 100    CONTINUE
+         31 |C
+         32 |        RETURN
+         33 |        END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+dpck                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-18.9@  0-19.13
+ 
+dpk                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-5.7@  0-7.14  0-7.18  0-16.9@  0-18.16  0-20.19  0-20.23
+ 
+dpk1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-6.7@  0-8.15  0-8.20  0-17.9@  0-18.22  0-21.20  0-21.25
+ 
+dpk12                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-8.7@  0-9.24  0-21.12@  0-22.26
+ 
+dpk2                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-7.7@  0-9.14  0-20.12@  0-22.16
+ 
+getbmt                           Subroutine
+                                 0-1.24$
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-15.15@  0-16.17  0-17.18  0-23.20  0-25.20
+ 
+kmax                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.42  0-3.19  0-3.19  0-12.17  0-15.19
+ 
+lm                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.31  0-10.12@  0-12.12@  0-23.15@  0-25.15@
+ 
+p                                Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-3.17$  0-1.40  0-5.13  0-6.14  0-16.15  0-17.16
+ 
+pstar                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.34  0-5.20  0-6.21  0-16.22  0-17.25
+ 
+** getbmt   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    GETBMT.f                    10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      33
+1501-510  Compilation successful for file GETBMT.f.
+1501-543  Object file created.

@@ -1,0 +1,11 @@
+    %DCL #TYP      CHAR;    % #TYP     = 'E'  ;
+    %DCL #EXPON    CHAR;    % #EXPON   = 'EXP' ;
+    %DCL #ABSOL    CHAR;    % #ABSOL   = 'ABS' ;
+    %DCL #WSIZE    CHAR;    % #WSIZE   = 'REAL' ;
+    %DCL #PRECIS   CHAR;    % #PRECIS  = 'DOUBLE PRECISION' ;
+    %DCL #TYD      CHAR;    % #TYD     = 'D' ;
+    %DCL #DXPON    CHAR;    % #DXPON   = 'DEXP' ;
+    %DCL #E        CHAR;    % #E       = 'E' ;
+    %DCL #SIN      CHAR;    % #SIN     = 'SIN' ;
+    %DCL #COS      CHAR;    % #COS     = 'COS' ;
+    %DCL #SROOT    CHAR;    % #SROOT   = 'SQRT' ;

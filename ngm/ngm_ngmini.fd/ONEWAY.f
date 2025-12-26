@@ -1,0 +1,501 @@
+      SUBROUTINE ONEWAY( IUPDATE )
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    ONEWAY         UPDATING BOUNDARY VALUES FOR THE NGM
+C   PRGMMR: J TUCCILLO          ORG: W/NMC4      DATE: 90-06-21
+C
+C ABSTRACT: UPDATE THE LATERAL BOUNADRY VALUES FOR SELECTED
+C   .       GRID, E.G. C GRID, FROM THE DATA OF GLOBAL MODEL
+C   .       OUTPUT PREPARED IN MAININPT IN THE NESTED GRID
+C   .       MODEL (NGM).
+C   .
+C   READ IN PREVIOUS LATERAL BOUNDARY (LATBND) DATA AND NEXT
+C   LATBND DATA IN 6 HOUR INTERVAL INITIALLY, UPDATE CURRENT
+C   LATBND DATA FROM PREVIOUS AND NEXT READ IN DATA BY LINEAR
+C   INTERPOLATION. SCATTERING IS USED TO GIVE COMPRESSED LATBND
+C   DATA TO VBL.
+C
+C PROGRAM HISTORY LOG:
+C   90-06-21  J TUCCILLO
+C
+C USAGE:  CALL ONEWAY( IUPDATE )
+C   INPUT ARGUMENT LIST:
+C     IUPDATE  - 1 FOR ADDING LATBND TENDENCY AND UPDATEING.
+C                0 FOR UPDATING LATBND ONLY.
+C
+C   OUTPUT FILES:
+C     IOUTUPRT - FOR ERROR MESSAGE PRINTOUTS
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - ERRPRINT
+C     LIBRARY:
+C       COMMON   - COMCONST
+C                  COMBLANK
+C
+C REMARKS: ALSO SEE COMMENTS AFTER DOCBLOCK
+C   .
+C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C   .
+C   NAMES      MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----      ----------------------------------        ---------
+C   VBL        ARRAY CONTAINING ALL VBLS FOR ALL GRIDS   COMMON
+C   .
+C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C   .
+C   NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----       ----------------------------------        ---------
+C   VBL         ARRAY OF ALL VBLS NOW HAS BNDRY VALUES    COMMON
+C   .           ADDED FOR GRIDS NC AND NC+1.
+C
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+C
+      include 'parmodel'
+C...TRANSLATED BY FPP 3.00Z36 11/09/90  15:08:12
+C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+C
+C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+C          AND A FEW OTHER COMMON CONSTANTS.
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+C
+      COMMON /COM1WAY/ ITIMSTEP, ITBOUND, INGLB
+      CHARACTER*35 ERRMSG(4)
+C
+C PERMENENT STORAGE
+      PARAMETER(IJLB = 2000)
+      DIMENSION HUTND(IJLB,IKM),HVTND(IJLB,IKM),HTTND(IJLB,IKM)
+     1         ,HQTND(IJLB,IKM),HTND(IJLB)
+      DIMENSION HUNXT(IJLB,IKM),HVNXT(IJLB,IKM),HTNXT(IJLB,IKM)
+     1         ,HQNXT(IJLB,IKM),HNXT(IJLB)
+      DIMENSION HUNOW(IJLB,IKM),HVNOW(IJLB,IKM),HTNOW(IJLB,IKM)
+     1         ,HQNOW(IJLB,IKM),HNOW(IJLB)
+      DIMENSION LSCRU(IJLB),LSCRV(IJLB),LSCRH(IJLB)
+C
+C
+C              SPECIFY THE UNIT NUMBER OF THE PRINTER.
+      INTEGER I1X,I2X,I3X,I4X,I5X,I6X,I7X,I8X,I9X,I10X
+      IOUTUPRT = 6
+C
+C              INITIAL LTB TENDENCY FOR FIRST TIME
+
+      DATA ICALL/0/
+      IF( ICALL .NE. 0 ) GO TO 200
+      ICALL = ICALL + 1
+      PRINT *,' ** INTO ONEWAY FOR INITIATING.'
+C
+C ******************************************************************
+C          PREPARATION FOR ONEWAY LATBND
+C ******************************************************************
+       LBIO = 20
+C
+C          GET INITIAL VALUES
+       READ(LBIO, END=9900) NGLB,LTBN,IJULB,IJVLB,IJHLB,KMLB,KHLB
+       PRINT *,' ** ECHO - NGLB LTBN IJULB IJVLB IJHLB KMLB KHLB '
+     1                 ,NGLB,LTBN,IJULB,IJVLB,IJHLB,KMLB,KHLB
+C
+C          PREPARE SCATTER INTEGER VECTOR FOR VBL
+C          CHECK  2 <= NGLB =< NGRDUSE
+C
+       IF( NGLB.GT.INGRDUSE .OR. NGLB.LT.2 ) GO TO 9900
+       IF( NGLB .NE. INGLB ) THEN
+         PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGGGG *********'
+         PRINT *,' **    IN SUBROUTINE ONEWAY.                 **'
+         PRINT *,' **  '
+         PRINT *,' **    PRESET ONEWAY GRID IS ',INGLB
+         PRINT *,' **    READ IN ONEWAY GRID IS ',NGLB
+         PRINT *,' **  '
+         INGLB = NGLB
+         PRINT *,' **---MODEL RESET TO BE ONEWAY GRID AT ',INGLB
+       ENDIF
+C
+       IM = IMG(NGLB)
+       JM = JMG(NGLB)
+       IJ = IM * JM
+C
+       READ(LBIO, END=9900) (LSCRU(I),I=1,IJULB)
+       READ(LBIO, END=9900) (LSCRV(I),I=1,IJVLB)
+       READ(LBIO, END=9900) (LSCRH(I),I=1,IJHLB)
+C
+       IS = IM + 10
+C
+C                   READ FIRST LATBND DATA
+       READ(LBIO, END=9910) ITPRV,((HUTND(I,K),I=1,IJULB),K=1,KMLB)
+     1                           ,((HVTND(I,K),I=1,IJVLB),K=1,KMLB)
+     2                           ,((HTTND(I,K),I=1,IJHLB),K=1,KMLB)
+     3                           ,((HQTND(I,K),I=1,IJHLB),K=1,KMLB)
+     4                           ,(  HTND(I)  ,I=1,IJHLB          )
+C                  PARTIAL ECHO PRINT
+       PRINT *,' ** READ LATERAL BOUNDARY DATA AT ',ITPRV
+C
+C                   CONTINUE READING FOR RESTART
+ 5     READ(LBIO, END=9910) ITNXT,((HUNXT(I,K),I=1,IJULB),K=1,KMLB)
+     1                           ,((HVNXT(I,K),I=1,IJVLB),K=1,KMLB)
+     2                           ,((HTNXT(I,K),I=1,IJHLB),K=1,KMLB)
+     3                           ,((HQNXT(I,K),I=1,IJHLB),K=1,KMLB)
+     4                           ,(  HNXT(I)  ,I=1,IJHLB          )
+C                  PARTIAL ECHO PRINT
+       PRINT *,' ** READ LATERAL BOUNDARY DATA AT ',ITNXT
+C
+C           CONSIDER RESTART
+C
+       PRINT *,' ** ITBOUND ITNXT ',ITBOUND,ITNXT
+       IF( ITBOUND .GE. ITNXT )THEN
+         ITPRV = ITNXT
+CMIC$ PARALLEL SHARED(IJHLB, HNXT, HTND, KMLB, IJULB, IJVLB, HUNXT,
+CMIC$1   HUTND, HVNXT, HVTND, HTNXT, HTTND, HQNXT, HQTND) PRIVATE(IQ2, K
+CMIC$2   )
+CMIC$ DO PARALLEL
+         DO 10 K=1,KMLB
+      DO 88890 IQ2=1,IJULB
+         HUTND(IQ2,K)=HUNXT(IQ2,K)
+88890 CONTINUE
+      DO 88900 IQ2=1,IJVLB
+         HVTND(IQ2,K)=HVNXT(IQ2,K)
+88900 CONTINUE
+      DO 88910 IQ2=1,IJHLB
+         HTTND(IQ2,K)=HTNXT(IQ2,K)
+         HQTND(IQ2,K)=HQNXT(IQ2,K)
+88910 CONTINUE
+ 10      CONTINUE
+CMIC$ DO PARALLEL VECTOR
+      DO 88930 IQ2=1,IJHLB
+         HTND(IQ2)=HNXT(IQ2)
+88930 CONTINUE
+CMIC$ END PARALLEL
+         GO TO 5
+       ENDIF
+C
+       PRINT *,' ** ITPRV ITNXT ',ITPRV,ITNXT
+       IF( ITPRV .EQ. ITNXT ) GO TO 9920
+C
+C
+C           COMPUTE TENDENCY
+C
+C           DELTAT FOR EACH UPDATE LATBND
+C           NGLB=1 (B GRID) DTLB =ITIMSTEP
+C           NGLB=2          DTLB =ITIMSTEP/2
+       DTLB = ITIMSTEP / ( 2 ** (NGLB-1) )
+C
+C
+C   ------ FIRST UPDATE THE VALUES INITIALLY ---
+      IADU=IADDRG(1,NGLB) - IJ
+      IADV=IADDRG(2,NGLB) - IJ
+      IADT=IADDRG(3,NGLB) - IJ
+      IADQ=IADDRG(4,NGLB) - IJ
+C
+CMIC$ DO ALL SHARED(KMLB, IADU, IJ, IADV, IADT, IADQ, IJULB, IJVLB,
+CMIC$1   IJHLB, LSCRU, VBL, HUNOW, LSCRV, HVNOW, LSCRH, HTNOW, HQNOW)
+CMIC$2    PRIVATE(K, I1X, I2X, I3X, I4X)
+      DO 410 K = 1, KMLB
+         DO 77011 I1X = 1, IJULB
+            HUNOW(I1X,K) = VBL(LSCRU(I1X)+IADU-1+K*IJ)
+77011    CONTINUE
+         DO 77012 I2X = 1, IJVLB
+            HVNOW(I2X,K) = VBL(LSCRV(I2X)+IADV-1+K*IJ)
+77012    CONTINUE
+         DO 77013 I3X = 1, IJHLB
+            HTNOW(I3X,K) = VBL(LSCRH(I3X)+IADT-1+K*IJ)
+            HQNOW(I3X,K) = VBL(LSCRH(I3X)+IADQ-1+K*IJ)
+77013    CONTINUE
+  410 CONTINUE
+      IADH=IADDRG(5,NGLB)
+C*****  Code Expanded From Routine:  RDHGATHR
+CMIC$ DO ALL VECTOR SHARED(IJHLB, IADH, LSCRH, VBL, HNOW) PRIVATE(I5X)
+      DO 77005 I5X = 1, IJHLB
+         HNOW(I5X) = VBL(LSCRH(I5X)+IADH-1)
+77005 CONTINUE
+C*****  End of Code Expanded From Routine:  RDHGATHR
+C
+       ITNOW = ITBOUND
+C ------------------------------------------------
+C           ONE UPDATE TIME STEP TENDENCY
+       RDT =  DTLB / FLOAT( ITNXT - ITPRV )
+       PRINT *,' ** RDT DTLB ',RDT,DTLB
+C           COMPUTE CHANGE FOR ONE UPDATE TIME STEP
+CMIC$ PARALLEL SHARED(IJHLB, RDT, HNXT, HTND, KMLB, IJULB, IJVLB, HUNXT
+CMIC$1   , HUTND, HVNXT, HVTND, HTNXT, HTTND, HQNXT, HQTND) PRIVATE(IQ2
+CMIC$2   , K)
+CMIC$ DO PARALLEL
+       DO 30 K=1,KMLB
+      DO 88940 IQ2=1,IJULB
+         HUTND(IQ2,K)=(HUNXT(IQ2,K)-HUTND(IQ2,K))*RDT
+88940 CONTINUE
+      DO 88950 IQ2=1,IJVLB
+         HVTND(IQ2,K)=(HVNXT(IQ2,K)-HVTND(IQ2,K))*RDT
+88950 CONTINUE
+      DO 88960 IQ2=1,IJHLB
+         HTTND(IQ2,K)=(HTNXT(IQ2,K)-HTTND(IQ2,K))*RDT
+         HQTND(IQ2,K)=(HQNXT(IQ2,K)-HQTND(IQ2,K))*RDT
+88960 CONTINUE
+ 30    CONTINUE
+CMIC$ DO PARALLEL VECTOR
+      DO 88980 IQ2=1,IJHLB
+         HTND(IQ2)=(HNXT(IQ2)-HTND(IQ2))*RDT
+88980 CONTINUE
+CMIC$ END PARALLEL
+C
+C -----  IBLEND = 1 WITH BLEND; = 0 WITHOUT BLEND
+       IBLEND = 1
+C
+C
+       RETURN
+C
+C *******************************************************************
+C             DONE WITH PREPARATION, DO NEXT FOR NGIN NOT = 0
+C *******************************************************************
+C
+C              IUPDATE = 1 WITHIN ALLGRID
+C              IUPDATE = 0 FOR PHYPREP AND SMOOTH
+C
+ 200  CONTINUE
+      IF( IUPDATE .EQ. 1 ) ITNOW = ITNOW + DTLB
+C
+C          UPDATE TENDENCY FOR CONTINUED FORECAST
+      IF( ITNOW .LE. ITNXT ) GO TO 234
+C
+C
+CMIC$ PARALLEL SHARED(IJHLB, HNXT, HTND, KMLB, IJULB, IJVLB, HUNXT,
+CMIC$1   HUTND, HVNXT, HVTND, HTNXT, HTTND, HQNXT, HQTND) PRIVATE(IQ2, K
+CMIC$2   )
+CMIC$ DO PARALLEL
+       DO 210 K=1,KMLB
+      DO 88990 IQ2=1,IJULB
+         HUTND(IQ2,K)=HUNXT(IQ2,K)
+88990 CONTINUE
+      DO 89000 IQ2=1,IJVLB
+         HVTND(IQ2,K)=HVNXT(IQ2,K)
+89000 CONTINUE
+      DO 89010 IQ2=1,IJHLB
+         HTTND(IQ2,K)=HTNXT(IQ2,K)
+         HQTND(IQ2,K)=HQNXT(IQ2,K)
+89010 CONTINUE
+ 210   CONTINUE
+CMIC$ DO PARALLEL VECTOR
+      DO 89030 IQ2=1,IJHLB
+         HTND(IQ2)=HNXT(IQ2)
+89030 CONTINUE
+CMIC$ END PARALLEL
+       ITPRV = ITNXT
+C
+       READ(LBIO, END=9950) ITNXT,((HUNXT(I,K),I=1,IJULB),K=1,KMLB)
+     1                           ,((HVNXT(I,K),I=1,IJVLB),K=1,KMLB)
+     2                           ,((HTNXT(I,K),I=1,IJHLB),K=1,KMLB)
+     3                           ,((HQNXT(I,K),I=1,IJHLB),K=1,KMLB)
+     4                           ,(  HNXT(I)  ,I=1,IJHLB          )
+C                  PARTIAL ECHO PRINT
+       PRINT *,' ** READ LATERAL BOUNDARY DATA AT ',ITNXT
+C
+       IF( ITPRV .EQ. ITNXT ) GO TO 9940
+       RDT = DTLB / ( ITNXT - ITPRV )
+CMIC$ PARALLEL SHARED(IJHLB, RDT, HNXT, HTND, KMLB, IJULB, IJVLB, HUNXT
+CMIC$1   , HUTND, HVNXT, HVTND, HTNXT, HTTND, HQNXT, HQTND) PRIVATE(IQ2
+CMIC$2   , K)
+CMIC$ DO PARALLEL
+       DO 230 K=1,KMLB
+      DO 89040 IQ2=1,IJULB
+         HUTND(IQ2,K)=(HUNXT(IQ2,K)-HUTND(IQ2,K))*RDT
+89040 CONTINUE
+      DO 89050 IQ2=1,IJVLB
+         HVTND(IQ2,K)=(HVNXT(IQ2,K)-HVTND(IQ2,K))*RDT
+89050 CONTINUE
+      DO 89060 IQ2=1,IJHLB
+         HTTND(IQ2,K)=(HTNXT(IQ2,K)-HTTND(IQ2,K))*RDT
+         HQTND(IQ2,K)=(HQNXT(IQ2,K)-HQTND(IQ2,K))*RDT
+89060 CONTINUE
+ 230   CONTINUE
+CMIC$ DO PARALLEL VECTOR
+      DO 89080 IQ2=1,IJHLB
+         HTND(IQ2)=(HNXT(IQ2)-HTND(IQ2))*RDT
+89080 CONTINUE
+CMIC$ END PARALLEL
+C
+ 234  CONTINUE
+C
+C           UPDATE VALUES TO GLOBAL ONES.
+      IF( IUPDATE .EQ. 1 ) THEN
+CMIC$ PARALLEL SHARED(IJHLB, HNOW, HTND, KMLB, IJULB, IJVLB, HUNOW,
+CMIC$1   HUTND, HVNOW, HVTND, HTNOW, HTTND, HQNOW, HQTND) PRIVATE(IQ2, K
+CMIC$2   )
+CMIC$ DO PARALLEL
+        DO 235 K=1,KMLB
+      DO 89090 IQ2=1,IJULB
+         HUNOW(IQ2,K)=HUNOW(IQ2,K)+HUTND(IQ2,K)
+89090 CONTINUE
+      DO 89100 IQ2=1,IJVLB
+         HVNOW(IQ2,K)=HVNOW(IQ2,K)+HVTND(IQ2,K)
+89100 CONTINUE
+      DO 89110 IQ2=1,IJHLB
+         HTNOW(IQ2,K)=HTNOW(IQ2,K)+HTTND(IQ2,K)
+         HQNOW(IQ2,K)=HQNOW(IQ2,K)+HQTND(IQ2,K)
+89110 CONTINUE
+ 235    CONTINUE
+CMIC$ DO PARALLEL VECTOR
+      DO 89130 IQ2=1,IJHLB
+         HNOW(IQ2)=HNOW(IQ2)+HTND(IQ2)
+89130 CONTINUE
+CMIC$ END PARALLEL
+      ENDIF
+C
+C *******************************************************************
+C          UPDATE LATBND TO VBL
+C *******************************************************************
+C
+C
+      IM=IMG(NGLB)
+      JM=JMG(NGLB)
+      IJ=IM*JM
+C
+C UVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUVUV
+C          FIRST UPDATE THE HU AND HV VALUES.
+C
+      IADU=IADDRG(1,NGLB) - IJ
+      IADV=IADDRG(2,NGLB) - IJ
+      IADT=IADDRG(3,NGLB) - IJ
+      IADQ=IADDRG(4,NGLB) - IJ
+C
+      DO 510 K=1,KMLB
+C
+      IADU=IADU+IJ
+      IADV=IADV+IJ
+      IADT=IADT+IJ
+      IADQ=IADQ+IJ
+C*****  Code Expanded From Routine:  RDHSCATR
+      DO 77006 I6X = 1, IJULB
+         VBL(LSCRU(I6X)+IADU-1) = HUNOW(I6X,K)
+77006 CONTINUE
+      DO 77007 I7X = 1, IJVLB
+         VBL(LSCRV(I7X)+IADV-1) = HVNOW(I7X,K)
+77007 CONTINUE
+      DO 77008 I8X = 1, IJHLB
+         VBL(LSCRH(I8X)+IADT-1) = HTNOW(I8X,K)
+77008 CONTINUE
+      DO 77009 I9X = 1, IJHLB
+         VBL(LSCRH(I9X)+IADQ-1) = HQNOW(I9X,K)
+77009 CONTINUE
+C*****  End of Code Expanded From Routine:  RDHSCATR
+C
+C           BLEND U V T AND Q
+      IF( IBLEND .EQ. 1 ) THEN
+        CALL BLEND(VBL(IADU),IM,JM,LTBN)
+        CALL BLEND(VBL(IADV),IM,JM,LTBN)
+        CALL BLEND(VBL(IADT),IM,JM,LTBN)
+        CALL BLEND(VBL(IADQ),IM,JM,LTBN)
+      ENDIF
+C
+  510 CONTINUE
+C
+C
+C HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+C          UPDATE H
+C
+C
+      IADH=IADDRG(5,NGLB)
+C*****  Code Expanded From Routine:  RDHSCATR
+      DO 77010 I10X = 1, IJHLB
+         VBL(LSCRH(I10X)+IADH-1) = HNOW(I10X)
+77010 CONTINUE
+C*****  End of Code Expanded From Routine:  RDHSCATR
+      IF( IBLEND .EQ. 1 ) THEN
+        CALL BLEND(VBL(IADH),IM,JM,LTBN)
+      ENDIF
+C
+C --------------------------DONE------------------------
+C
+      RETURN
+C
+C
+ 9900 CONTINUE
+      PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGGG  *********'
+      PRINT *,' **    IN SUBROUTINE ONEWAY ERROR 9900.      **'
+      PRINT *,' **    END OF FILE ENCOUNTER FOR INPUT       **'
+      PRINT *,' **    DATA FROM AVN FOR NGM BOUNDARY.       **'
+      PRINT *,' **                                          **'
+      PRINT *,' **---MODEL RESET TO BE ORIGINAL TWOWAY NGM. **'
+      INGLB = 0
+      RETURN
+C
+C ====================================================================
+C
+ 9910 CONTINUE
+      PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGG   *********'
+      PRINT *,' **    IN SUBROUTINE ONEWAY ERROR 9910.      **'
+      PRINT *,' **    END OF FILE ENCOUNTER FOR READING     **'
+      PRINT *,' **    ITPRV, HUTND, ETC. AT INITIAL CALL.   **'
+      PRINT *,' **                                          **'
+      PRINT *,' **---MODEL RESET TO BE ORIGINAL TWOWAY NGM. **'
+      INGLB = 0
+      RETURN
+C
+C ====================================================================
+C
+ 9920 CONTINUE
+      PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGG   *********'
+      PRINT *,' **    IN SUBROUTINE ONEWAY ERROR 9920.      **'
+      PRINT *,' **    CHECK THE CONDITION OF ITPRV = ITNXT  **'
+      PRINT *,' **    AT INITIAL CALL.                      **'
+      PRINT *,' **                                          **'
+      PRINT *,' **---MODEL RESET TO BE ORIGINAL TWOWAY NGM. **'
+      INGLB = 0
+      RETURN
+C
+C ====================================================================
+C
+ 9940 CONTINUE
+      PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGG   *********'
+      PRINT *,' **    IN SUBROUTINE ONEWAY ERROR 9940.      **'
+      PRINT *,' **    CHECK THE CONDITION OF ITPRV = ITNXT  **'
+      PRINT *,' **    DURING NEXT CALLS.                    **'
+      PRINT *,' **                                          **'
+      PRINT *,' **--MODEL RESET TO BE ONEWAY BY NGM ITSELF--**'
+      INGLB = -1
+      RETURN
+C
+C ====================================================================
+C
+ 9950 CONTINUE
+      PRINT *,' ***** WARNINGGGGGGG  WARNINGGGGGGG   *********'
+      PRINT *,' **    IN SUBROUTINE ONEWAY ERROR 9950.      **'
+      PRINT *,' **    END OF FILE ENCOUNTER FOR READING     **'
+      PRINT *,' **    ITNXT, HUNXT, HVNXT, AND HSTND FOR    **'
+      PRINT *,' **    NEXT CALLS.                           **'
+      PRINT *,' **                                          **'
+      PRINT *,' **--MODEL RESET TO BE ONEWAY BY NGM ITSELF--**'
+      INGLB = -1
+      RETURN
+C
+      END

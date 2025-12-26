@@ -1,0 +1,41 @@
+(ld): halt 4
+(ld): savename /gpfsuser/g01/wx20ps/exec/prepfits.x
+(ld): filelist 11 1
+(ld): i /lib/crt0.o
+(ld): i /nfstmp/F8DU13ib0
+(ld): i prep.a
+(ld): i /nwprod/w3lib90/w3lib_4_604
+(ld): i /nwprod/bufrlib90/bufrlib_4_604
+(ld): i /nwprod/w3lib90/bacio_4_604
+(ld): lib /usr/lib/libxlf90.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlomp_ser.a
+(ld): lib /usr/lib/libm.a
+(ld): lib /usr/lib/libc.a
+LIBRARY: Shared object libxlf90.a[io.o]: 70 symbols imported.
+LIBRARY: Shared object libxlf90.a[math.o]: 344 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys.o]: 34 symbols imported.
+LIBRARY: Shared object libxlf90.a[_xlf_posix_xpg5.o]: 85 symbols imported.
+LIBRARY: Symbols imported from import file /usr/lib/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf.a[shr.o]: 135 symbols imported.
+LIBRARY: Shared object libxlomp_ser.a[omp_ser.o]: 10 symbols imported.
+LIBRARY: Shared object libc.a[shr.o]: 2138 symbols imported.
+LIBRARY: Shared object libc.a[meth.o]: 2 symbols imported.
+LIBRARY: Shared object libc.a[aio.o]: 10 symbols imported.
+LIBRARY: Shared object libc.a[pse.o]: 78 symbols imported.
+LIBRARY: Shared object libc.a[dl.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[pty.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 11
+(ld): resolve
+RESOLVE: 697 of 8557 symbols were kept.
+(ld): addgl /usr/lib/glink.o
+ADDGL: Glink code added for 34 symbols.
+(ld): er full
+ld: 0711-318 ERROR: Undefined symbols were found.
+	The following symbols are in error:
+ Symbol                    Inpndx  TY CL Source-File(Object-File) OR Import-File{Shared-object}
+                              RLD: Address  Section  Rld-type Referencing Symbol
+ ----------------------------------------------------------------------------------------------
+ .readmm                   [59]    ER PR ireadmg.f(/nwprod/bufrlib90/bufrlib_4_604[ireadmg.o])
+                                   0000003c .text    R_RBR    [13]    .ireadmg
+ER: The return code is 8.

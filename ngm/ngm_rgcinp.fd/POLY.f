@@ -1,0 +1,39 @@
+C
+      SUBROUTINE POLY(N,RAD,P)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    POLY        USED BY GLATS ( FROM SELA )
+C   PRGMMR: TUCCILLO         ORG: W/NMC22    DATE: 86-10-21
+C
+C ABSTRACT: USED BY GLATS
+C
+C PROGRAM HISTORY LOG:
+C   86-10-21  JIM TUCCILLO
+C   88-08-02  BRIAN SCHMIDT ADDED THE DOCBLOCK
+C
+C USAGE:    CALL POLY ( N, RAD, P )
+C   INPUT ARGUMENT LIST:
+C     RAD      - ANGLE IN RADIANS
+C     N        - LOOP INDICE
+C
+C   OUTPUT ARGUMENT LIST:
+C     P        - RESULT OF COMPUTATION
+C
+C ATTRIBUTES:
+C   LANGUAGE: CDC FORTRAN 200
+C   MACHINE:  CYBER 205
+C
+C$$$
+C
+      X=  COS(RAD)
+      Y1=1.
+      Y2=X
+      DO 1 I=2,N
+      G=X*Y2
+      Y3=G-Y1+G-(G-Y1)/REAL(I)
+      Y1=Y2
+      Y2=Y3
+1     CONTINUE
+      P=Y3
+      RETURN
+      END

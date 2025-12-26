@@ -1,0 +1,238 @@
+'open qc.ctl'
+
+'set t 1 last'
+
+* Get the dimension environment
+'q dim'
+diminfo = result
+line5 = sublin(diminfo,5)
+time1 = subwrd(line5,11)
+time2 = subwrd(line5,13)
+
+'enable print qcplot.gmf'
+
+vpheight=0.83
+*'vpheight' is the only variable maybe need to be changed
+*here vpheight=(11-2*0.5)/12~=0.83
+
+vpheightfst=vpheight+0.5
+vplow=0
+vptop=vplow+vpheightfst
+plotlow=0.5
+plottop=vpheightfst-0.2
+str=vpheightfst-0.1
+
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 'plotlow' 8 'plotlow''
+'draw line 1 'plotlow' 1 'vpheightfst''
+'set strsiz 0.09'
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set grid off'
+'set vrange 0 80'
+'set ylint 20'
+'set ccolor 4'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WTQPsfc'
+
+vplow=vptop
+vptop=vplow+vpheight
+plotlow=0.05
+plottop=vpheight-0.2
+str=vpheight-0.1
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.8 'str' total counts of adpsfc obs available for W+T+H summed over 00,03,..21'
+'set grads off'
+*'set frame off'
+*'set xlab off'
+*'set vrange 70000 100000'
+'set vrange 50000 100000'
+'set ylint 10000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WTQCsfc'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set frame off'
+'set vrange 0 50'
+'set ylint 10'
+'set ccolor 4'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d TPair'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.8 'str' total counts of aircft obs available for TEMPERATURE summed over 00,03,..21'
+'set grads off'
+*'set frame off'
+'set vrange 0 4000'
+'set ylint 1000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d TCair'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set frame off'
+'set vrange 0 50'
+'set ylint 10'
+'set ccolor 4'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WPair'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.9 'str' total counts of aircft obs available for WIND summed over 00,03,..21'
+'set grads off'
+*'set frame off'
+'set vrange 0 4000'
+'set ylint 1000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WCair'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set frame off'
+'set vrange 0 50'
+'set ylint 10'
+'set ccolor 4'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d QPadp'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.9 'str' total counts of adpupa obs available for SPECIFIC HUMIDITY at 00+12hr'
+'set grads off'
+*'set frame off'
+*'set vrange 4000 7000'
+'set vrange 4000 10000'
+*'set ylint 1000'
+'set ylint 2000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d QCadp'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set frame off'
+'set vrange 0 50'
+'set ylint 10'
+'set ccolor 4'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'SET CMARK 0'
+'d TPadp'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 2 'str' total counts of adpupa obs available for TEMPERATURE at 00+12hr'
+'set grads off'
+*'set frame off'
+*'set vrange 8000 14000'
+'set vrange 8000 20000'
+*'set ylint 1000'
+'set ylint 2000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d TCadp'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3.3 'str' percentage rejected (all causes)'
+'set grads off'
+*'set frame off'
+'set vrange 0 50'
+'set ylint 10'
+'set cthick 6'
+'set ccolor 4'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WPadp'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 2 'str' total counts of adpupa obs available for WIND at 00+12hr'
+'set grads off'
+*'set frame off'
+*'set vrange 10000 16000'
+'set vrange 10000 20000'
+*'set ylint 1000'
+'set ylint 2000'
+'set ccolor 2'
+'set cthick 6'
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d WCadp'
+
+'print'
+
+'disable print qcplot.gmf'
+'printim qcplot.png'
+'reinit'
+
+'quit'

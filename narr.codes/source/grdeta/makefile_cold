@@ -1,0 +1,59 @@
+SHELL=/bin/sh
+F77=f90
+#
+OBJS=   CNSTS_cold.o ECONVK.o ETALL.o FLIP.o INTERP.o GRIBST.o W3FI63.o \
+        GETVEG.o ROTLLE.o SNOHIRES.o SPLINE.o SSTHIRES.o TABLE.o TABLEQ.o \
+        INTERPS.o ETA2ETA.o GRD2ETA.o GRDETA.o SST14K.o ZTERPG.o C2K.o SNO8GET.o \
+        SFCEDASC.o READIT.o GAULAT.o  GAUTOETA.o GAUTOICE.o BSSLZ1.o PUTEM.o \
+        PUTVEG.o INTSFC.o FRH2O.o \
+        GETSOIL.o LL2ETA.o SFCGDAS.o PRINTAF.o PRINTETA.o GETGBOPL.o SNO16GET.o \
+        PRINTIMS.o
+
+# Tunable parameters
+#
+# CF		Name of the fortran compiling system to use
+# LDFLAGS	Flags to the loader
+# LIBS		List of libraries
+# CMD		Name of the executable
+# PROFLIB	Library needed for profiling
+#
+CF =		f90
+LDFLAGS =	
+LIBS=/groupB/users/pshaf/lib/w3lib.a /groupB/users/pshaf/lib/splib.a \
+      /groupB/users/pshaf/lib/bacio.a -lcomplib.sgimath
+CMD =		grdranl_cold.x
+PROFLIB =	-lprof
+
+# To perform the default compilation, use the first line
+# To compile with flowtracing turned on, use the second line
+# To compile giving profile additonal information, use the third line
+# WARNING:  SIMULTANEOUSLY PROFILING AND FLOWTRACING IS NOT RECOMMENDED 
+FFLAGS = -O2 -OPT:Olimit=0
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+all:		$(CMD)
+
+$(CMD):		$(OBJS)
+	$(CF) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+
+
+#ETA2ETA.o: ETA2ETA.f
+#	f90 -O3 -c ETA2ETA.f
+
+
+
+# Make the profiled version of the command and call it a.out.prof
+#
+$(CMD).prof:	$(OBJS)
+	$(CF) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
+
+clean:
+	-rm -f $(OBJS)
+
+clobber:	clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:	clobber
+	-rm -f $(SRCS) makefile

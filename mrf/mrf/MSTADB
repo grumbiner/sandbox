@@ -1,0 +1,72 @@
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FPKAP,FTDP,FTLCL,FTHE,FTMA)
+C-----------------------------------------------------------------------
+      SUBROUTINE MSTADB(IM,KM,K1,K2,SL,SLK,PS,TENV,QENV,
+     &                  KLCL,KBOT,KTOP,TCLD,QCLD)
+      %INCLUDE DBMSTADB;
+      DIMENSION SL(KM),SLK(KM),PS(IM),TENV(IM,KM),QENV(IM,KM),
+     &          KLCL(IM),KBOT(IM),KTOP(IM),TCLD(IM,KM),QCLD(IM,KM)
+C  PHYSICAL PARAMETERS
+      PARAMETER(RD=#RD,RV=#RV)
+      PARAMETER(EPS=RD/RV,EPSM1=RD/RV-1.,FTV=RV/RD-1.)
+C  LOCAL ARRAYS
+      DIMENSION PSK(IM),SLKMA(IM),THEMA(IM)
+C-----------------------------------------------------------------------
+C  DETERMINE WARMEST POTENTIAL WET-BULB TEMPERATURE BETWEEN K1 AND K2.
+C  COMPUTE ITS LIFTING CONDENSATION LEVEL.
+      DO I=1,IM
+        PSK(I)=FPKAP(PS(I))
+        SLKMA(I)=0.
+        THEMA(I)=0.
+      ENDDO
+      DO K=K1,K2
+        DO I=1,IM
+          PV=SL(K)*PS(I)*QENV(I,K)/(EPS-EPSM1*QENV(I,K))
+          TDPD=TENV(I,K)-FTDP(PV)
+          IF(TDPD.GT.0.) THEN
+            TLCL=FTLCL(TENV(I,K),TDPD)
+            SLKLCL=SLK(K)*TLCL/TENV(I,K)
+          ELSE
+            TLCL=TENV(I,K)
+            SLKLCL=SLK(K)
+          ENDIF
+          THELCL=FTHE(TLCL,SLKLCL*PSK(I))
+          IF(THELCL.GT.THEMA(I)) THEN
+            SLKMA(I)=SLKLCL
+            THEMA(I)=THELCL
+          ENDIF
+        ENDDO
+      ENDDO
+C-----------------------------------------------------------------------
+C  SET CLOUD TEMPERATURES AND HUMIDITIES WHEREVER THE PARCEL LIFTED UP
+C  THE MOIST ADIABAT IS BUOYANT WITH RESPECT TO THE ENVIRONMENT.
+      DO I=1,IM
+        KLCL(I)=KM+1
+        KBOT(I)=KM+1
+        KTOP(I)=0
+      ENDDO
+      DO K=1,KM
+        DO I=1,IM
+          TCLD(I,K)=0.
+          QCLD(I,K)=0.
+        ENDDO
+      ENDDO
+      DO K=K1,KM
+        DO I=1,IM
+          IF(SLK(K).LE.SLKMA(I)) THEN
+            KLCL(I)=MIN(KLCL(I),K)
+            TMA=FTMA(THEMA(I),SLK(K)*PSK(I),QMA)
+            TVCLD=TMA*(1.+FTV*QMA)
+            TVENV=TENV(I,K)*(1.+FTV*QENV(I,K))
+            IF(TVCLD.GT.TVENV) THEN
+              KBOT(I)=MIN(KBOT(I),K)
+              KTOP(I)=MAX(KTOP(I),K)
+              TCLD(I,K)=TMA-TENV(I,K)
+              QCLD(I,K)=QMA-QENV(I,K)
+            ENDIF
+          ENDIF
+        ENDDO
+      ENDDO
+C-----------------------------------------------------------------------
+      RETURN
+      END

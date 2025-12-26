@@ -1,0 +1,104 @@
+c      SUBROUTINE SSTBAJA(GLAT,GLON,SM,SST,IM,JM,IDAT)
+c      subroutine sstbaja(glat,glon,sm,sst,idim1,idim2,jdim1,jdim2,idat)
+       subroutine sstbaja(idat)
+C***********************************************************************
+C**  SIMPLE SUBROUTINE THAT ALTERS SEA SURFACE TEMPERATURES IN THE 
+C**  GULF OF CALIFORNIA TO A MEAN VALUE, VALID NEAR GUAYMAS, MEXICO,
+C**  FOR THE ENTIRE GULF REGION.  WHILE THE ASSUMPTION OF A CONSTANT
+C**  GULF TEMPERATURE IS UNDOUBTABLY INCORRECT, THE SST DATA USED TO
+C**  INITIALIZE MANY MODELS IS AT 1.0 TO 2.5 DEGREE LAT/LON INTERVALS
+C**  AND DO NOT CAPTURE ANY GULF OF CALIFORNIA WARMING THAT IS OBSERVED
+C**  TO HAPPEN EACH YEAR DURING THE SUMMER.  THUS, THIS SUBROUTINE 
+C**  AT LEAST MOVES THE SST DATA IN THE CORRECT DIRECTION.
+C
+C**  SUBROUTINE DEVELOPED BY DAVID STENSRUD, NOAA/NSSL   
+C**  FOR USE WITH THE PENN STATE/NCAR MESOSCALE MODEL:  6/93
+C**  MODIFIED FOR ETA MODEL (T. BLACK): 5/94
+C
+C**   INPUT:  GLAT - ARRAY OF LATITUDE VALUES FOR THE MODEL GRID PTS
+C**           GLON - ARRAY OF LONGITUDE VALUES FOR THE MODEL GRID PTS
+C**           SM   - SEA MASK (0.=LAND; 1.=SEA)
+C**           SST  - SEA SURFACE TEMPERATURE (K)
+C**           IMJM - DIMENSION OF THE HORIZONTAL ARRAYS
+C**           IDAT - DATE (1 IS MNTH; 2 IS DAY; 3 IS FULL YEAR)
+C**
+C**  OUTPUT:  SST  - ALTERED IN REGIONS OVER THE GULF OF CALIFORNIA WHERE
+C**                  WATER IS SPECIFIED ON THE MODEL GRID
+C**    
+C*********************************************************************
+      INCLUDE "parmeta"
+      INCLUDE "parm.tbl"
+      parameter(lp1=lm+1)
+      INCLUDE "PHYS2.comm"
+      INCLUDE "MASKS.comm"
+c     REAL GLAT(IM,JM),GLON(IM,JM),SM(IM,JM),SST(IM,JM)
+c     real glat(idim1:idim2,jdim1:jdim2),glon(idim1:idim2,jdim1:jdim2)
+c     real sst(idim1:idim2,jdim1:jdim2),sm(idim1:idim2,jdim1:jdim2)
+      REAL XDAY(12),MSST(13)
+      INTEGER IDAT(3)
+C
+C**   XDAY DEFINES THE # DAYS IN EACH MONTH, MSST DEFINES THE MEAN GULF
+C**   SST VALUES VALID AT THE BEGINNING OF EACH MONTH.  THE JANUARY 
+C**   SST VALUE IS REPEATED AFTER DECEMBER.
+C
+      DATA XDAY/31.,28.,31.,30.,31.,30.,31.,31.,30.,31.,30.,31./
+      DATA MSST/17.0,16.3,17.2,19.3,22.0,25.5,29.0,32.0,33.0,
+     1          30.5,25.8,20.5,17.0/
+      DATA R2D/57.2957795/
+C-----------------------------------------------------------------------
+c     print*,'Inside SSTBAJA'
+c     print*,'sst=',sst
+      IMO=IDAT(1)
+      IDAY=IDAT(2)
+      IYR=IDAT(3)
+c     print*,'imo,iday,iyr=',imo,iday,iyr
+C
+C**  CHECK FOR LEAP YEARS
+C
+      ILEAP=MOD(IYR,4)
+      IF(ILEAP.EQ.0) XDAY(2)=29.
+C
+C**  SET VALUE OF SSTVAL TO THE MEAN SURFACE VALUE NEAR GUAYMAS FROM
+C**  RIPA AND MARIONONE (1989, QUART. J. ROY. METEOR. SOC., 115, 
+C**  887-913) - THEIR FIGURE 4 AND TABLE 2 SHOWING TEMPERATURE CURVE
+C**  EXPLAINS 93% OF THE VARIANCE AT THE 90+% CONFIDENCE LEVEL.
+C
+C**  NOTE:  THEIR DATA SET IS NOT EXTENSIVE, AND THUS BETTER ONES MAY
+C**         BE AVAILABLE (ALTHOUGH I DON'T KNOW OF ANY!).
+C
+      SSTVAL=273.15+MSST(IMO)+ 
+     1      (REAL(IDAY-1)/XDAY(IMO))*(MSST(IMO+1)-MSST(IMO))
+C
+C**  BEGIN LOOP TO DETERMINE IF A GRID POINT IS WITHIN THE GULF OF 
+C**  CALIFORNIA
+C
+C**  XLONMIN DEFINES A LINE THAT LIES ALONG THE CENTER OF THE BAJA
+C**  CALIFORNIA PENNINSULA.  ANY WATER THAT LIES WITHIN 5 DEG LONGITUDE
+C**  TO THE EAST OF THIS LINE, BETWEEN 24 AND 32 DEG LATITUDE, IS ASSUMED
+C**  TO BE WITHIN THE GULF OF CALIFORNIA.  
+C
+C     WRITE(32)SST
+c     DO 20 K=1,IMJM
+c     print*,'idim1,idim2,jdim1,jdim2=',idim1,idim2,jdim1,jdim2
+      do 20 j=jdim1,jdim2
+      do 20 i=idim1,idim2
+c      print*,'i,j,sst(i,j)=',i,j,sst(i,j)
+c      print*,'i,j,glat(i,j),glon(i,j)=',i,j,glat(i,j),glon(i,j)
+c     GLATD=GLAT(K)*R2D
+c     GLOND=-GLON(K)*R2D
+      glatd=glat(i,j)*r2d
+      glond=-glon(i,j)*r2d
+      IF(GLATD.GE.23..AND.GLATD.LE.32.)THEN
+        XLONMIN=-109.75-(GLATD-23.)*0.75
+        XLONMAX=XLONMIN+5.
+        IF(GLOND.GE.XLONMIN.AND.GLOND.LE.XLONMAX)THEN
+          IF(SM(i,j).GT.0.9.AND.SSTVAL.GT.SST(i,j))SST(i,j)=SSTVAL
+          print*,'i,j,sstval=',i,j,sstval
+        ENDIF
+      ENDIF
+  20  CONTINUE
+C     WRITE(33)SST
+c     print*,'End of SSTBAJA'
+C
+      RETURN
+      END

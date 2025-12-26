@@ -1,0 +1,381 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/SIGCON.f 09/30/06 19:45:35
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |C
+          2 |      SUBROUTINE SIGCON (DELSIG, KM, POVH, PIOVHK)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    SIGCON      COMPUTE THE LAYER PRESSUER AND EXNER FCN
+          6 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          7 |C
+          8 |C ABSTRACT: CALCULATES THE LAYER PRESSURE NORMALIZED
+          9 |C   BY SURFACE PRESSURE AND THE LAYER EXNER FUNCTION AS
+         10 |C   NORMALIZED BY SURFACE PRESSURE TO THE KAPPA POWER,
+         11 |C   GIVEN THE THICKNESSES OF THE SIGMA LAYERS AND THE
+         12 |C   NUMBER OF LAYERS.
+         13 |C
+         14 |C PROGRAM HISTORY LOG:
+         15 |C   85-03-27  JIM HOKE
+         16 |C   88-08-03  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         17 |C
+         18 |C USAGE:    CALL SIGCON (DELSIG, KM, POVH, PIOVHK)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     DELSIG   - THICKNESSES OF SIGMA LAYERS
+         21 |C     KM       - NUMBER OF SIGMA LAYERS
+         22 |C
+         23 |C   OUTPUT ARGUMENT LIST:
+         24 |C     POVH     - LAYER PRESSURE NORMALIZED BY SURFACE PRESSURE
+         25 |C     PIOVHK   - LAYER EXNER FUNCTION NORMALIZED BY SURFACE
+         26 |C                PRESSURE TO THE KAPPA POWER
+         27 |C
+         28 |C ATTRIBUTES:
+         29 |C   LANGUAGE: CYBER FORTRAN 200
+         30 |C   MACHINE:  CYBER 205
+         31 |C
+         32 |C$$$
+         33 |C
+         34 |      IMPLICIT REAL (A-H, O-Z)
+         35 |C
+         36 |C
+         37 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         38 |C
+         39 |C
+         40 |      DIMENSION DELSIG( IKM )
+         41 |      DIMENSION PIOVHK( IKM ), POVH( IKM )
+         42 |      DIMENSION SIGHAT( IKMP1 ), SIGEXP( IKMP1 )
+         43 |C
+         44 |C
+         45 |      CKAPPA = 287.05E0 / 1005.E0
+         46 |      ONEOVK = 1.0E0 / CKAPPA
+         47 |      ONEPK  = 1.0E0 + CKAPPA
+         48 |C
+         49 |      SIGHAT(1) = 1.0E0
+         50 |      SIGEXP(1) = 1.0E0
+         51 |C
+         52 |      DO 100 K=2,KM
+         53 |         SIGHAT(K) = SIGHAT(K-1) - DELSIG(K-1)
+         54 |         SIGEXP(K) = REAL (REAL(SIGHAT(K)) ** REAL(ONEPK))
+         55 |  100 CONTINUE
+         56 |C
+         57 |      SIGHAT(KM+1) = 0.E0
+         58 |      SIGEXP(KM+1) = 0.E0
+         59 |C
+         60 |      DO 200 K=1,KM
+         61 |         PIOVHK(K) = (SIGEXP(K) - SIGEXP(K+1))
+         62 |     1              /(ONEPK * DELSIG(K))
+         63 |         POVH(K) = REAL (REAL(PIOVHK(K)) ** REAL(ONEOVK))
+         64 |  200 CONTINUE
+         65 |C
+         66 |      RETURN
+         67 |C
+         68 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+ckappa                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-46.24  0-47.24
+ 
+delsig                           Reference argument, Real(4) (1:16), Offset: 0, Alignment: full word
+                                 0-40.17$  0-2.26  0-53.36  0-62.31
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-40.25  0-41.25  0-41.38  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$  0-42.25  0-42.42
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-52.14@  0-53.17  0-53.29  0-53.43  0-54.17  0-54.40  0-60.14@  0-61.17  0-61.30  0-61.42  0-62.38
+                                 0-63.15  0-63.38
+ 
+km                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.34  0-52.18  0-57.14  0-58.14  0-60.18
+ 
+oneovk                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-46.7@  0-63.50
+ 
+onepk                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-47.7@  0-54.52  0-62.23
+ 
+piovhk                           Reference argument, Real(4) (1:16), Offset: 0, Alignment: full word
+                                 0-41.17$  0-2.44  0-61.10@  0-63.31
+ 
+povh                             Reference argument, Real(4) (1:16), Offset: 0, Alignment: full word
+                                 0-41.32$  0-2.38  0-63.10@
+ 
+real                             Pure Intrinsic
+                                 0-54.22  0-54.28  0-54.47  0-63.20  0-63.26  0-63.45
+ 
+sigcon                           Subroutine
+                                 0-2.18$
+ 
+sigexp                           Static, Real(4) (1:17), Offset: 0, Alignment: full word
+                                 0-42.34$  0-50.7@  0-54.10@  0-58.7@  0-61.23  0-61.35
+ 
+sighat                           Static, Real(4) (1:17), Offset: 0, Alignment: full word
+                                 0-42.17$  0-49.7@  0-53.10@  0-53.22  0-54.33  0-57.7@
+ 
+** sigcon   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    SIGCON.f                    10/10/02   16:14:55
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/parmodel
+                                      10/10/02   16:14:55      0      37
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     130
+1501-510  Compilation successful for file SIGCON.f.
+1501-543  Object file created.

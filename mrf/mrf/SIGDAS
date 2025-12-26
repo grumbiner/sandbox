@@ -1,0 +1,39 @@
+      SUBROUTINE SETSIG(CI, SI, DEL, SL, CL, RPI, NSG)
+      %INCLUDE DBSETSIG;
+      REAL RK,RK1,RKR
+      DIMENSION CI(#LEVP1), SI(#LEVP1),
+     1 DEL(#LEVS), SL(#LEVS), CL(#LEVS), RPI(#LEVM1)
+      INTEGER IDATE(4)
+C
+      PRINT 98, NSG
+98    FORMAT (1H0, 'BEGIN SETSIG - GETTING SIGS FROM UNIT',I4)
+      REWIND NSG
+      READ(NSG)
+      READ(NSG) FHOUR,IDATE,SI,SL
+      REWIND NSG
+      DO 1 LI=1,#LEVP1
+1     CI(LI) = 1.#E0 - SI(LI)
+      DO 3 LE=1,#LEVS
+      CL(LE) = 1.#E0 - SL(LE)
+      DEL(LE) = SI(LE) - SI(LE+1)
+3     CONTINUE
+C     COMPUTE PI RATIOS FOR TEMP. MATRIX.
+      RK = #RD/#CP
+      DO 4 LE=1,#LEVM1
+      BASE = SL(LE+1)/SL(LE)
+4     RPI(LE) = BASE**RK
+      DO 5 LE=1,#LEVP1
+      PRINT 100, LE, CI(LE), SI(LE)
+100   FORMAT (1H , 'LEVEL=', I2, 2X, 'CI=', F6.3, 2X, 'SI=', F6.3)
+5     CONTINUE
+      PRINT 97
+97    FORMAT (1H0)
+      DO 6 LE=1,#LEVS
+      PRINT 101, LE, CL(LE), SL(LE), DEL(LE)
+101   FORMAT (1H , 'LAYER=', I2, 2X, 'CL=', F6.3, 2X, 'SL=', F6.3, 2X,
+     1 'DEL=', F6.3)
+6     CONTINUE
+      PRINT 102, (RPI(LE), LE=1,#LEVM1)
+102   FORMAT (1H0, 'RPI=', (18(1X,F6.3)) )
+      RETURN
+      END

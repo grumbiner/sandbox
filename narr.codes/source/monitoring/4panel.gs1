@@ -1,0 +1,229 @@
+*
+'page'
+'c'
+'setup'
+'set rbcols 48 47 46 45 44 43 42 41 81 21 22 23 24 25 26 27 28'
+'q dim'
+
+*get date
+line=sublin(result,5)
+date=subwrd(line,6)
+say date
+
+'map rr'
+
+'page q1'
+mslp2(date)
+'page q2'
+z500(date)
+'page q3'
+z300(date)
+'page q4'
+precip(date)
+*'colorps'
+*'!mv /tmp/meta.ps page1.ps'
+'printim page1.png x800 y600'
+
+* Page 2
+'page'
+'c'
+
+'page q1'
+z700(date)
+'page q2'
+sst(date)
+'page q3'
+ice(date)
+'page q4'
+tcdc(date)
+*'colorps'
+*'!mv /tmp/meta.ps page2.ps'
+'printim page2.png x800 y600'
+
+exit
+
+function precip(date)
+'set grads off'
+'set gxout shaded'
+'set cterp off'
+'set clevs 0 0.5 1 2 4 6 8 12 15 20'
+'set rbcols 99 42 43 44 45 46 47 48 49 22 23 24 25 26 27 28 29'
+'d APCPsfc.2'
+'cbarb'
+'draw title PRECIP in 3 hours (mm) ' date
+return
+
+function mslp(date)
+'set ccolor 98'
+'set grads off'
+'set lev 1000'
+'set gxout contour'
+'set csmooth on'
+'set cthick 5'
+'set ccolor 2'
+'set cint 5'
+'d MSLETmsl/100'
+'set cthick 4'
+'set ccolor 98'
+'set cint 50'
+'d HGTprs(lev=500)-HGTprs(lev=1000)'
+'set cthick 8'
+'set ccolor 59'
+'set cint 5400'
+'d HGTprs(lev=500)-HGTprs(lev=1000)'
+'draw title MSLP and 1000-500 thickness ' date
+say 'date=' date
+return
+
+function mslp2(date)
+'set ccolor 98'
+'set grads off'
+'set lev 1000'
+'set gxout shaded'
+'set cterp off'
+'set cint 50'
+'set rbcols 48 47 46 45 44 43 42 41 81 21 22 23 24 25 26 27 28'
+'d HGTprs(lev=500)-HGTprs(lev=1000)'
+'cbarb'
+'set gxout contour'
+'set csmooth on'
+'set cthick 5'
+'set ccolor 98'
+'set cint 5'
+'d MSLETmsl/100'
+'set cthick 8'
+'set ccolor 59'
+'set cint 5400'
+'d HGTprs(lev=500)-HGTprs(lev=1000)'
+'draw title MSLP and 1000-500 thickness ' date
+return
+
+function z500(date)
+'set ccolor 98'
+'set grads off'
+'set lev 500'
+'set gxout shaded'
+'set cterp off'
+'set cint 0'
+'set rbcols 48 47 46 45 44 43 42 41 81 21 22 23 24 25 26 27 28'
+'set csmooth on'
+'defint 20 0'
+'d hcurl(UGRDprs,VGRDprs)*1000000'
+'run cbar98.gs'
+'set gxout contour'
+'set cthick 5'
+'set ccolor 98'
+'d HGTprs'
+'draw title Height and Rel Vort 500 mb ' date
+return
+
+function spfh2rh(p,t,q)
+*
+* p in hP
+* t in K
+* q in kg/kg
+*  conversion as used by eta model
+'define rh2=10000*'p'*'q'/379.90516/exp(17.2693882*('t'-273.16)/('t'-35.86))'
+* set all rh < 1 to 1
+'define rh3=maskout(rh2,rh2-1)'
+'define rh3=const(rh3,1,-u)'
+* set all rh > 100 to 100
+'define rh3=maskout(rh3,100-rh3)'
+'define rh3=const(rh3,100,-u)'
+* keep domain the same
+'define rh2=rh3*rh2/rh2'
+
+return
+
+function z700(date)
+'set ccolor 98'
+'set rbcols 48 47 46 45 44 43 42 41 81 21 22 23 24 25 26 27 28'
+'set grads off'
+'set lev 700'
+'set gxout shaded'
+'set cterp off'
+'set cint 0'
+'set csmooth on'
+spfh2rh(700,TMPprs,SPFHprs)
+'d rh2'
+'run cbar98.gs'
+'set gxout contour'
+'set cthick 5'
+'set ccolor 98'
+'d HGTprs'
+'draw title Height and RH at 700 mb ' date
+return
+
+function sst(date)
+'set ccolor 98'
+'set rbcols 48 47 46 45 44 43 42 41 81 21 22 23 24 25 26 27 28'
+'set grads off'
+'set lev 700'
+'set gxout grfill'
+'set cterp off'
+'set cint 2'
+* 'd maskout(TMPsfc-273.16,0.5-LANDsfc)'
+'define land=VEGsfc/VEGsfc'
+'define water=const(land,0,-u)'
+'define water=maskout(1,0.5-water)'
+'d (TMPsfc-273.16)*water'
+'set csmooth on'
+'set gxout contour'
+'set ccolor 98'
+'set cint 2'
+* 'd maskout(tmpsfc-273.16,0.5-landsfc)'
+'d (TMPsfc-273.16)*water'
+'set gxout grfill'
+'set cint 0'
+'set csmooth on'
+'set rbcols 78 77 76 75 74 73 72 21 81 31 32 33 34 35 36 37 38'
+'set clevs 1 2 4 8 12 16 22 25 50 75 100 150 200 '
+'d maskout(WEASDsfc.2,WEASDsfc.2-0.0000001)'
+'cbarb'
+'draw title SST (C) and Snow Depth (mm H20) ' date
+return
+
+function z300(date)
+'set ccolor 98'
+'set grads off'
+'set lev 300'
+'set gxout shaded'
+'set cterp off'
+'defintplus 10'
+'d mag(UGRDprs,VGRDprs)'
+'run cbar98.gs'
+'set gxout contour'
+'set cthick 5'
+'set ccolor 98'
+'d HGTprs'
+'set ccolor 98'
+'set arrlab off'
+'d UGRDprs;skip(VGRDprs,10)'
+'draw title 300 mb height, isotachs (m/s) ' date
+return
+
+function ice(date)
+'set ccolor 98'
+'set grads off'
+'set gxout grfill'
+'set cterp off'
+'defint .5 0'
+'set clevs  10 20 30 40 50 60 70 80 90'
+'set ccols  49 48 47 46 45 43 42 41 99 99'
+'d ALBDOsfc'
+'draw title albedo ' date
+say 'date==' date
+return
+
+function tcdc(date)
+'set ccolor 98'
+'set grads off'
+'set gxout grfill'
+'set cterp off'
+'defintplus 10'
+'set ccols  99 42 43 44 45 47 49 22 26 29'
+'set clevs  10 20 30 40 50 60 70 80 90'
+'d TCDCclm.2'
+'cbarb'
+'draw title total cloud cover (%) ' date
+return

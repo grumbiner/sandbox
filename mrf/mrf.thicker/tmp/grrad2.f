@@ -1,0 +1,346 @@
+      SUBROUTINE GRRAD2(TGRS,QGRS,PGR,PPPRSA,OZONEA,ALBDOA,
+     1                  SLMSKR,COSZRO,COSZDG,TAUDAR,RLAT,TSEAR,
+     2                  ALVBR,ALNBR,ALVDR,ALNDR,
+     3                  CLDARY,CLDSA,MTOPA,MBOTA,
+     4                  LAT,LATCO,SDEC,SOLC,RSIN1,RCOS1,RCOS2,
+     5                  RADDT,DTLW,ITIMSW,ITIMLW,IPOINT,JPOINT,
+     6                  SWHR,HLWR,ZONHT,SFNSWR,SFDLWR,TSFLWR,
+     7                  GDFVDR,GDFNDR,GDFVBR,GDFNBR)
+CFPP$ NOCONCUR R
+C..     ************************************************************
+C..     *  ADDED ACCUMULATION OF CLDS AND CONVECTIVE CLOUD IN DG3  *
+C..     *                                        K.A.C SEPT 1994   *
+C..     *  F3D ADDED FOR CLOUDS..MI NEW CODE=F94/SOURCE2/DIAGNEW   *
+C..     *                               B KATZ + K.A.C OCT  1994   *
+C..     *  CHANGED KENPTS TO STORE TOTAL CLOUD AND ALL LYRS        *
+C..     *     OF CLOUD......                                       *
+C..     *                                         K.A.C. NOV94     *
+C..     *  FIX PL1 FOR OPERATIONS, WHERE DGZ IS ON AND DG3 IS OFF, *
+C..     *     ....NOTE DG IS ON IF EITHER DGZ OR DG3 IS ON         *
+C..     *                                         K.A.C. JAN94     *
+C..     ************************************************************
+C
+C        UPDATES MADE TO FIX THE H2D,H3D FILES...KAC AUG 90...
+C        UPDATES MADE TO GLOOPR - CALL WRTH2D BEFORE WRTRAD (SO CTOP OK)
+C                     TO GLOOPR - SEND WORK ARRAY TO WRTH3D
+C                     TO WRTH3D - TO WRITE PROPER LAYERS OF HEAT..
+C                                 (IN WRTRAD)
+C        UPDATES MADE TO ADD GRID POINT DIAGNOSTICS ..K.A.C...SEP 91
+C                     TO GLOOPR -
+C        UPDATES MADE TO PASS AND RECEIVE SIB DATA  ..K.A.C...MAR 92
+C                     TO GLOOPR -
+C        UPDATES MADE TO FIX SW RAD DIAGNOSTICS     ..K.A.C...JUN 92
+C                     PROPER DIURNAL WEIGHTING
+C                     TO GLOOPR AND COSZMN
+C        UPDATES MADE TO CALCULATE CLEAR-SKY "ON-THE-FLY" KAC AUG 92
+C                     TO GLOOPR,RADFS,FST,SPA,LWR,SWR
+C                     ...FOR CLOUD FORCING....
+CYH93...
+CYH94  NOT            USE FLAG IEMIS TO CONTROL CLD EMISS. SCHEME
+CYH94  NOT            (=0: ORIG. SCHEME, =1: TEMP. DEP. SCHEME.)
+C        UPDATES MADE TO CALL CLD OPTICAL PROPERTY ROUTINE (CLDPRP),
+C                     TO GIVE CLD EMISSIVITY, OPTICAL DEPTH, LAYER
+C                     REFLECTANCE AND TRANSMITANCE
+C                     TO GLOOPR AND RADFS ...Y.H.           ...FEB93
+CYH94                 CLDPRP CALLED FROM RADFS...   Y.H.    ...FEB94
+CTUNE
+C        UPDATES MADE TO CHANGE DEFINITION OF H,M,L DOMAINS..
+C          TO CLDPRP   K.A.C...DEC92 + AUG93
+CYH94      TO CLDPRP      K.A.C...JAN94
+CYH94      ..CHANGES TO CLDPRP.........Y.H...MAR94
+CTUNE
+CYH93...
+CHL95      MODIFIED TO ALLOW MORE FREQUENT COMPUTATION OF SHORTWAVE FLUX
+CHL95      ASSUME THAT DTSWAV <= DTLWAV!!!!!.....H.-L. PAN JUL95
+C---
+C     PARAMETER SETTINGS FOR THE LONGWAVE AND SHORTWAVE RADIATION CODE:
+C          IMAX   =  NO. POINTS ALONG THE LAT. CIRCLE USED IN CALCS.
+C          L      =  NO. VERTICAL LEVELS (ALSO LAYERS) IN MODEL
+C***NOTE: THE USER NORMALLY WILL MODIFY ONLY THE IMAX AND L PARAMETERS
+C          NBLW   =  NO. FREQ. BANDS FOR APPROX COMPUTATIONS. SEE
+C                      BANDTA FOR DEFINITION
+C          NBLX   =  NO. FREQ BANDS FOR APPROX CTS COMPUTATIONS
+C          NBLY   =  NO. FREQ. BANDS FOR EXACT CTS COMPUTATIONS. SEE
+C                      BDCOMB FOR DEFINITION
+C          INLTE  =  NO. LEVELS USED FOR NLTE CALCS.
+C          NNLTE  =  INDEX NO. OF FREQ. BAND IN NLTE CALCS.
+C          NB,KO2 ARE SHORTWAVE PARAMETERS; OTHER QUANTITIES ARE DERIVED
+C                    FROM THE ABOVE PARAMETERS.
+      PARAMETER (L= 28 )
+      PARAMETER (IMAX= 64 )
+      PARAMETER (IMBX=IMAX+1)
+      PARAMETER (NBLW=163,NBLX=47,NBLY=15)
+      PARAMETER (NBLM=NBLY-1)
+      PARAMETER (LP1=L+1,LP2=L+2,LP3=L+3)
+      PARAMETER (LM1=L-1,LM2=L-2,LM3=L-3)
+      PARAMETER (LL=2*L,LLP1=LL+1,LLP2=LL+2,LLP3=LL+3)
+      PARAMETER (LLM1=LL-1,LLM2=LL-2,LLM3=LL-3)
+      PARAMETER (LP1M=LP1*LP1,LP1M1=LP1M-1)
+      PARAMETER (LP1V=LP1*(1+2*L/2))
+      PARAMETER (LP121=LP1*NBLY)
+      PARAMETER (LL3P=3*L+2)
+      PARAMETER (NB=12)
+      PARAMETER (INLTE=3,INLTEP=INLTE+1,NNLTE=56)
+      PARAMETER (NB1=NB-1)
+      PARAMETER (KO2=12)
+      PARAMETER (KO21=KO2+1,KO2M=KO2-1)
+      PARAMETER (CNWATT=- 4.1855E+0 *1.E4/60.,CNPROG=1./CNWATT)
+C.....BEGIN comfver...............................................
+      COMMON/comfver/AM( 28 , 28 ),HM( 28 , 28 ),TM( 28 , 28 ),
+     O               BM( 28 , 28 ),CM( 28 , 28 ),SPDMAX( 28 ),
+     1 SI( 29 ),SL( 28 ),DEL( 28 ),RDEL2( 28 ),RMSDOT( 27 ),
+     2 CI( 29 ),CL( 28 ),TOV( 28 ),GV( 28 ),SV( 28 ),RPI( 27 ),
+     3 P1( 28 ),P2( 28 ), H1( 28 ),   H2( 28 ),RPIREC( 27 ),
+     8   THOUR,DELTIM,KDT,INISTP,SL1,Z00,FHOUR,SHOUR,LIMLOW,DTCVAV,
+     9   NFLIP,NFLOP,NR2DDA,FILTA,FILTB,DK,TK,PERCUT,DTSWAV,DTLWAV,
+     X   COWAVE,DTWAVE,N50UFL,NUMSUM,NUMMAX,NCPUS,NCPUS1,NCLDB1
+C.....sof   comfver...............................................
+      COMMON /RADIAG/ FLUXR( 256 , 31 ,26)
+C     EQUIVALENCE (FFLWUP(1,1),FLUXR(1,1,1)),(FFSWUP(1,1),FLUXR(1,1,2)),
+C    1            (FSSWUP(1,1),FLUXR(1,1,3)),(FSSWDN(1,1),FLUXR(1,1,4)),
+C    2            (CCHI  (1,1),FLUXR(1,1,5)),(CCMID (1,1),FLUXR(1,1,6)),
+C    3            (CCLO  (1,1),FLUXR(1,1,7)),(CTPH  (1,1),FLUXR(1,1,8)),
+C    4         (CTPM  (1,1),FLUXR(1,1,9)), (CTPL  (1,1),FLUXR(1,1,10)),
+C    5         (CBTH  (1,1),FLUXR(1,1,11)),(CBTM  (1,1),FLUXR(1,1,12)),
+C    6         (CBTL  (1,1),FLUXR(1,1,13)),(CTHTMP(1,1),FLUXR(1,1,14)),
+C    7         (CTMTMP(1,1),FLUXR(1,1,15)),(CTLTMP(1,1),FLUXR(1,1,16)),
+C    8         (ALBDO (1,1),FLUXR(1,1,17)),(FFSWDN(1,1),FLUXR(1,1,18)),
+C    9         (SLWDN (1,1),FLUXR(1,1,19)),(SLWUP (1,1),FLUXR(1,1,20)),
+C    1         (FLWUPC(1,1),FLUXR(1,1,21)),(FSWUPC(1,1),FLUXR(1,1,22)),
+C    2         (SSWDNC(1,1),FLUXR(1,1,23)),(SSWUPC(1,1),FLUXR(1,1,24)),
+C    3         (SLWDNC(1,1),FLUXR(1,1,25)),(TOTALC(1,1),FLUXR(1,1,26))
+      COMMON /RADIAG/ CVAVG( 384 , 47 )
+      COMMON /RADIAG/ ILEFT( 384 ),IRGHT( 384 ),WGTLON( 384 )
+      COMMON /RADIAG/ INSLAT( 47 ),WGTLAT( 47 )
+C.............................................................
+C....
+      DIMENSION TGRS( 258 , 28 ),QGRS( 258 , 28 )
+      DIMENSION PGR( 258 )
+C....
+      DIMENSION COSZER( 256 ),COSZDG( 256 )
+CSIB
+      PARAMETER(NVRKEN= 80 + 9 * 28 ,NPTKEN= 50 )
+      PARAMETER(NSTKEN= 24 )
+      COMMON/COMGPD/ SVDATA(NVRKEN,NPTKEN,NSTKEN),
+     1               IGRD(NPTKEN),JGRD(NPTKEN),
+     2               IGRDR(NPTKEN),JGRDR(NPTKEN),
+     3               ITNUM,NPOINT,ISAVE,ISSHRT,ILSHRT,IKFREQ
+C....
+      DIMENSION RLAT( 256 ),SLMSKR( 256 )
+C....   CLDARY CONTAINS MULTI LAYERS OF CLOUD
+CYH94 DIMENSION CLDARY( 256 , 28 ),CLSTR( 256 )
+      DIMENSION CLDARY( 256 , 28 )
+CYH94 DIMENSION EMIS0( 256 ,3),TAUC0( 256 ,3)
+CYH93...
+C....
+      DIMENSION FLWUP( 256 ),FSWUP( 256 ),FSWDN( 256 )
+      DIMENSION SSWUP( 256 ),SSWDN( 256 ),SLWUP( 256 ),SLWDN( 256 )
+C-CLR DIMENSION FLWUP0( 256 ),FSWUP0( 256 )
+C-CLR DIMENSION SSWUP0( 256 ),SSWDN0( 256 ),SLWDN0( 256 )
+C....
+      DIMENSION    PPPRSA( 256 , 28 ),
+     1             OZONEA( 256 , 28 ),ALBDOA( 256 ),
+CTOT 2             CLDSA( 256 ,3),MTOPA( 256 ,3),MBOTA( 256 ,3),
+     2             CLDSA( 256 ,4),MTOPA( 256 ,3),MBOTA( 256 ,3),
+     3             COSZRO( 256 ),TAUDAR( 256 ),
+CYH944             WRKEMA( 256 ),TRADA( 256 , 28 ),TSEAR( 256 ),
+     4                            TRADA( 256 , 28 ),TSEAR( 256 ),
+     5             SWHR( 256 , 28 ),HLWR( 256 , 28 ),
+     6             SFNSWR( 256 ),SFDLWR( 256 ),TSFLWR( 256 )
+      DIMENSION    ZONHT( 28 , 62 )
+CSIB
+      DIMENSION    ALVBR( 256 ),ALNBR( 256 ),
+     1             ALVDR( 256 ),ALNDR( 256 ),
+     2             GDFVBR( 256 ),GDFNBR( 256 ),
+     3             GDFVDR( 256 ),GDFNDR( 256 )
+C...... DOWNWARD SW FLUXES FROM SW RAD..FOR SIB PARAMETERIZATION
+C     ..   SAVED FOR H2D FILE....
+      COMMON/SIBSW/ DFVBR( 256 , 31 ),DFNBR( 256 , 31 ),
+     1              DFVDR( 256 , 31 ),DFNDR( 256 , 31 )
+CSIB
+C....
+CYH93...
+C     SAVE KO3,KEMIS,KALB,IVV,IBL,ICONV,IEMIS,ITHK
+CYH94 SAVE KO3,KEMIS,KALB,IEMIS
+      SAVE KO3,      KALB
+CYH93...
+CYH94 DATA KO3,KEMIS,KALB/0,0,0/
+CO3   DATA KO3,      KALB/0,  0/
+      DATA KO3,      KALB/1,  0/
+C....
+CKAC....
+C     IF(LAT .EQ. 2) CALL ERREXIT
+      CALL RADFS( 256 , 258 ,PGR(1),PPPRSA(1,1),QGRS(1,1),TGRS(1,1),
+     2           OZONEA(1,1),TSEAR(1),SLMSKR(1),
+CYH943           ALBDOA(1),RLAT(1),CLDSA(1,1),
+     3           ALBDOA(1),RLAT(1),CLDARY(1,1),
+CYH944           WRKEMA(1),MTOPA(1,1),MBOTA(1,1),
+CYH93...
+CYH944           CLDARY(1,1),IEMIS,EMIS0(1,1),TAUC0(1,1),
+CYH93...
+     5           COSZRO(1),TAUDAR(1),
+CYH946           LAT,KO3,KEMIS,KALB,IPOINT,JPOINT,
+     6           LAT,KO3,      KALB,IPOINT,JPOINT,
+     7           SI,SL,ITIMSW,ITIMLW,
+     8           SWHR(1,1),HLWR(1,1),
+CSIB 9           FLWUP,FSWUP,FSWDN,SSWDN,SSWUP,SLWDN,SLWUP)
+     9           FLWUP,FSWUP,FSWDN,SSWDN,SSWUP,SLWDN,SLWUP,
+C-CLR9           FLWUP0,FSWUP0,SSWDN0,SSWUP0,SLWDN0,
+     1           ALVBR(1),ALNBR(1),ALVDR(1),ALNDR(1),
+     1           GDFVBR(1),GDFNBR(1),GDFVDR(1),GDFNDR(1),
+     1           SOLC,RSIN1,RCOS1,RCOS2)
+CSIB
+C...  CNPROG IS CONVERSION FROM W/M**2 TO PROGTM UNITS
+      IF(ITIMSW.EQ.1) THEN
+        DO 400 I=1, 256
+          SFNSWR(I) = (SSWDN(I)-SSWUP(I))*CNPROG
+  400   CONTINUE
+      ENDIF
+      IF(ITIMLW.EQ.1) THEN
+        DO 410 I=1, 256
+          SFDLWR(I) = SLWDN(I)*CNPROG
+          TSFLWR(I) = TGRS(I,1)
+  410   CONTINUE
+      ENDIF
+CSIB...
+C....... SAVE 4 COMPONENTS OF DOWNWARD SW FLUX
+      IF(ITIMSW.EQ.1) THEN
+C.....  ACCUMULATE FOR H2D FILE..
+        DO 1889 I=1, 256
+          DFVBR(I,LAT) = DFVBR(I,LAT) + RADDT * GDFVBR(I)
+          DFNBR(I,LAT) = DFNBR(I,LAT) + RADDT * GDFNBR(I)
+          DFVDR(I,LAT) = DFVDR(I,LAT) + RADDT * GDFVDR(I)
+          DFNDR(I,LAT) = DFNDR(I,LAT) + RADDT * GDFNDR(I)
+ 1889   CONTINUE
+      ENDIF
+CSIB...
+C
+C  GRID POINT MONITOR-DATA ON RADIATION GRID
+C
+      IF(ISAVE.NE.0.AND.NPOINT.GT.0) THEN
+        DO 336 IGPT=1,NPOINT
+        IF (LAT.EQ.JGRDR(IGPT)) THEN
+         DO 335 ID=1, 256
+          IF (ID.EQ.IGRDR(IGPT)) THEN
+           SVDATA( 25,IGPT,ITNUM)= CLDSA(ID,3)
+           SVDATA( 26,IGPT,ITNUM)= CLDSA(ID,2)
+           SVDATA( 27,IGPT,ITNUM)= CLDSA(ID,1)
+           SVDATA( 38,IGPT,ITNUM)= CLDSA(ID,4)
+           IF(ISSHRT.LT.1.AND.ITIMSW.EQ.1) THEN
+            SVDATA( 41,IGPT,ITNUM)= ID
+            SVDATA( 42,IGPT,ITNUM)= LAT
+            SVDATA( 43,IGPT,ITNUM)= SLMSKR(ID)
+            SVDATA( 44,IGPT,ITNUM)= TSEAR (ID)
+            SVDATA( 45,IGPT,ITNUM)= SSWDN(ID)
+            SVDATA( 46,IGPT,ITNUM)= SSWUP(ID)
+            SVDATA( 48,IGPT,ITNUM)= FSWDN(ID)
+            SVDATA( 49,IGPT,ITNUM)= FSWUP(ID)
+            SVDATA( 51,IGPT,ITNUM)= MTOPA(ID,3)
+            SVDATA( 52,IGPT,ITNUM)= MTOPA(ID,2)
+            SVDATA( 53,IGPT,ITNUM)= MTOPA(ID,1)
+            SVDATA( 54,IGPT,ITNUM)= MBOTA(ID,3)
+            SVDATA( 55,IGPT,ITNUM)= MBOTA(ID,2)
+            SVDATA( 56,IGPT,ITNUM)= MBOTA(ID,1)
+            SVDATA( 57,IGPT,ITNUM)= COSZRO(ID)
+            SVDATA( 58,IGPT,ITNUM)= ASIN(SDEC)*180. E 0/3.14159265 E 0
+           ENDIF
+           IF(ISSHRT.LT.1.AND.ITIMLW.EQ.1) THEN
+            SVDATA( 47,IGPT,ITNUM)= SLWDN(ID)
+            SVDATA( 50,IGPT,ITNUM)= FLWUP(ID)
+           ENDIF
+           IF (ILSHRT.LT.1.AND.ITIMSW.EQ.1) THEN
+            DO 345 KC=1, 28
+             CVCL = FLOAT(INT(CLDARY(ID,KC))/10)*1. E -3
+             IF (CVCL.GT.0.0 E 0) THEN
+              SVDATA(KC+ 80 +8* 28 ,IGPT,ITNUM) = CVCL
+             ELSE
+              SVDATA(KC+ 80 +8* 28 ,IGPT,ITNUM) =
+     1              AMOD(CLDARY(ID,KC),2. E 0)
+             END IF
+345         CONTINUE
+           ENDIF
+          ENDIF
+335      CONTINUE
+        ENDIF
+336     CONTINUE
+      ENDIF
+C....... SAVE GRIDDED RADIATIVE FLUXES AND CLD DATA
+      IF(ITIMSW.EQ.1) THEN
+        DO 420 I=1, 256
+          FLUXR(I,LAT,17) = FLUXR(I,LAT,17) + RADDT * ALBDOA(I)
+          FLUXR(I,LAT,26) = FLUXR(I,LAT,26) + RADDT * CLDSA(I,4)
+  420   CONTINUE
+      ENDIF
+      IF(ITIMLW.EQ.1) THEN
+         DO I = 1,  256
+           FLUXR(I,LAT,1 ) = FLUXR(I,LAT,1 ) + DTLW * FLWUP(I)
+           FLUXR(I,LAT,19) = FLUXR(I,LAT,19) + DTLW * SLWDN(I)
+           FLUXR(I,LAT,20) = FLUXR(I,LAT,20) + DTLW * SLWUP(I)
+C-CLR      FLUXR(I,LAT,21) = FLUXR(I,LAT,21) + DTLW * FLWUP0(I)
+C-CLR      FLUXR(I,LAT,25) = FLUXR(I,LAT,25) + DTLW * SLWDN0(I)
+         ENDDO
+      ENDIF
+CSWDG PROPER DIURNAL SW WGT..COSZRO=MEAN COSZ OVER DAYLIGHT, WHILE
+C                           COSZDG= MEAN COSZ OVER ENTIRE INTERVAL
+      DO 3420 I=1, 256
+       IF (COSZRO(I).GT.0.) THEN
+        FLUXR(I,LAT,2 ) = FLUXR(I,LAT,2 ) + RADDT * FSWUP(I)
+     1                                  * COSZDG(I)/COSZRO(I)
+        FLUXR(I,LAT,3 ) = FLUXR(I,LAT,3 ) + RADDT * SSWUP(I)
+     1                                  * COSZDG(I)/COSZRO(I)
+        FLUXR(I,LAT,4 ) = FLUXR(I,LAT,4 ) + RADDT * SSWDN(I)
+     1                                  * COSZDG(I)/COSZRO(I)
+        FLUXR(I,LAT,18) = FLUXR(I,LAT,18) + RADDT * FSWDN(I)
+     1                                  * COSZDG(I)/COSZRO(I)
+C-CLR   FLUXR(I,LAT,22) = FLUXR(I,LAT,22) + RADDT * FSWUP0(I)
+C-CLR1                                  * COSZDG(I)/COSZRO(I)
+C-CLR   FLUXR(I,LAT,23) = FLUXR(I,LAT,23) + RADDT * SSWDN0(I)
+C-CLR1                                  * COSZDG(I)/COSZRO(I)
+C-CLR   FLUXR(I,LAT,24) = FLUXR(I,LAT,24) + RADDT * SSWUP0(I)
+C-CLR1                                  * COSZDG(I)/COSZRO(I)
+       END IF
+ 3420 CONTINUE
+C...   SAVE CLD FRAC,TOPLYR,BOTLYR AND TOP TEMP
+C...   NOTE THAT ORDER OF HIGH, MIDDLE AND LOW CLOUDS IS
+C...   REVERSED FOR PROPER OUTPUT TO SFLUX AND H2D FILES.
+      DO 440 K=1,3
+        DO 440 I=1, 256
+        FLUXR(I,LAT,8-K) = FLUXR(I,LAT,8-K) + RADDT * CLDSA(I,K)
+CPRS ..........SAVE INTERFACE PRESSURE (CB) OF TOP/BOT,
+        ITOP = MTOPA(I,K)
+        IBTC = MBOTA(I,K)
+        FLUXR(I,LAT,11-K) = FLUXR(I,LAT,11-K) + RADDT *
+     1                       SI(ITOP+1) * PGR(I)
+     2                       * CLDSA(I,K)
+        FLUXR(I,LAT,14-K) = FLUXR(I,LAT,14-K) + RADDT *
+     1                       SI(IBTC) * PGR(I)
+     2                       * CLDSA(I,K)
+        FLUXR(I,LAT,17-K) = FLUXR(I,LAT,17-K) + RADDT *
+     1                       TGRS(I,ITOP) * CLDSA(I,K)
+CLYR ...TO SAVE TOP+BOT CLD SIG LYR (UNCOMMENT THE FOLLOWING)
+CLYR     FLUXR(I,LAT,11-K) = FLUXR(I,LAT,11-K) + RADDT *
+CLYR 1                       MTOPA(I,K) * CLDSA(I,K)
+CLYR     FLUXR(I,LAT,14-K) = FLUXR(I,LAT,14-K) + RADDT *
+CLYR 1                       MBOTA(I,K) * CLDSA(I,K)
+  440 CONTINUE
+      DO 450 K=1, 28
+        DO 450 I=1, 256
+          TRADA(I,K)= 0. E 0
+  450 CONTINUE
+      IF(ITIMSW.EQ.1) THEN
+        DO 460 K=1, 28
+          DO 460 I=1, 256
+            TRADA(I,K)= TRADA(I,K)+SWHR(I,K)
+  460   CONTINUE
+      ENDIF
+      IF(ITIMLW.EQ.1) THEN
+        DO 480 K=1, 28
+          DO 480 I=1, 256
+            TRADA(I,K)= TRADA(I,K)+HLWR(I,K)
+  480   CONTINUE
+      ENDIF
+CKAC....
+      CALL ZONGRD(TRADA(1,1),ZONHT(1,LAT  ),ZONHT(1,LATCO))
+C....
+      RETURN
+      END

@@ -1,0 +1,84 @@
+       FUNCTION CONMC(CNAME)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    CONMC       PROVIDE NMC*S VALUE FOR PHYSICAL CONST.
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-09
+C
+C ABSTRACT: RETURN NMC HANDBOOK VALUE FOR REQUESTED PHYSICAL CONST.
+C   NOTE THAT SOME VALUES HAVE BEEN MODIFIED BASED ON BILL COLLINS
+C   SUGGESTION.  (G, RD, CP)
+C
+C PROGRAM HISTORY LOG:
+C   88-09-09  PARRISH
+C
+C USAGE:    CONST=CONMC(CNAME)
+C   INPUT ARGUMENT LIST:
+C     CNAME    - CHARACTER ARRAY CONTAINING NAME OF CONSTANT AS
+C              - SUGGESTED IN NMC HANDBOOK, SEC. 3.4.2.
+C              - MUST END IN A "$" SIGN.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN77
+C   MACHINE:  CYBER
+C
+C$$$
+         CHARACTER*1 CNAME(1),DOLLAR
+         DATA DOLLAR/'$'/
+         CHARACTER*8  TABONE(15)
+         DATA  TABONE/
+     *    'RERTH   ','G       ','OMEGA   ','RD      ','CP      ',
+     *    'CV      ','RV      ','CVAP    ','CLIQ    ','HVAP    ',
+     *    'HFUS    ','PSAT    ','SBC     ','SOLR    ','PI      '/
+         CHARACTER*1 TABNAM(8,15)
+         INTEGER LNAM(15)
+         DATA LNAM/5,1,5,2,2,2,2,4,4,4,4,4,3,4,2/
+         EQUIVALENCE (TABONE,TABNAM)
+C******
+C****** VALUES FROM NMC HANDBOOK
+C******
+C        DOUBLE PRECISION CONSTS(15)
+C        DATA CONSTS/
+C    *     6.3712E6,    9.8062, 7.2921E-5,  2.8704E2,  1.0046E3,
+C    *     7.1760E2,  4.6150E2,  1.8460E3,  4.1855E3,  2.5000E6,
+C    *     3.3358E5,  6.1078E2, 5.6730E-8,  1.3533E3,    3.1416/
+C******
+C****** MODIFIED VALUES, BASED ON BILL COLLINS SUGGESTIONS.
+C******
+         DIMENSION CONSTS(15)
+         DATA CONSTS/
+     *     6.3712E6,    9.8000, 7.2921E-5,  2.8705E2,  1.0045E3,
+     *     7.1760E2,  4.6150E2,  1.8460E3,  4.1855E3,  2.5000E6,
+     *     3.3358E5,  6.1078E2, 5.6730E-8,  1.3533E3,    3.1416/
+C--------
+C-------- FIRST FIND NUMBER OF CHARACTERS IN CNAME
+C--------
+         II=0
+         DO 100 I=2,9
+           II=II+1
+           IF(CNAME(I).EQ.DOLLAR) GO TO 200
+100      CONTINUE
+         GO TO 500
+200      CONTINUE
+C--------
+C-------- NOW FIND A MATCH
+C--------
+         DO 400 K=1,15
+           JJ=LNAM(K)
+           IF(II.EQ.JJ) THEN
+             MATCH=0
+             DO 300 I=1,II
+               IF(CNAME(I).EQ.TABNAM(I,K)) MATCH=MATCH+1
+300          CONTINUE
+             IF(MATCH.EQ.II) THEN
+               CONMC=CONSTS(K)
+               RETURN
+             END IF
+           END IF
+400      CONTINUE
+500      CONTINUE
+C--------
+C-------- HERE FOR TROUBLE ONLY
+C--------
+         PRINT *,'TROUBLE IN CONMC'
+         STOP
+       END

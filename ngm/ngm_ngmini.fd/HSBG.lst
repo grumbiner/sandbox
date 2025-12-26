@@ -1,0 +1,224 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/HSBG.f 09/30/06 19:43:54
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE HSBG(N,A,IA)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    HSBG        CONVERT MATRIX TO UPPER HESSENBERG FORM
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-08
+          6 |C
+          7 |C ABSTRACT: CONVERT MATRIX TO UPPER HESSENBERG FORM.
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   88-09-08  PARRISH
+         11 |C
+         12 |C USAGE:    CALL HSBG(N,A,IA)
+         13 |C   INPUT ARGUMENT LIST:
+         14 |C     N        - ORDER OF MATRIX A
+         15 |C     A        - INPUT MATRIX
+         16 |C     IA       - FIRST DIMENSION OF A IN CALLING PROGRAM
+         17 |C
+         18 |C   OUTPUT ARGUMENT LIST:
+         19 |C     A        - OUTPUT UPPER HESSENBERG FORM OF MATRIX
+         20 |C
+         21 |C ATTRIBUTES:
+         22 |C   LANGUAGE: FORTRAN200
+         23 |C   MACHINE:  CYBER
+         24 |C
+         25 |C$$$
+         26 |      DIMENSION A(1)
+         27 |      DOUBLE PRECISION S
+         28 |      L=N
+         29 |      NIA=L*IA
+         30 |      LIA=NIA-IA
+         31 |   20 IF(L-3) 360,40,40
+         32 |   40 LIA=LIA-IA
+         33 |      L1=L-1
+         34 |      L2=L1-1
+         35 |      ISUB=LIA+L
+         36 |      IPIV=ISUB-IA
+         37 |      PIV=ABS(A(IPIV))
+         38 |      IF(L-3) 90,90,50
+         39 |   50 M=IPIV-IA
+         40 |      DO 80 I=L,M,IA
+         41 |      T=ABS(A(I))
+         42 |      IF(T-PIV) 80,80,60
+         43 |   60 IPIV=I
+         44 |      PIV=T
+         45 |   80 CONTINUE
+         46 |   90 IF(PIV) 100,320,100
+         47 |  100 IF(PIV-ABS(A(ISUB))) 180,180,120
+         48 |  120 M=IPIV-L
+         49 |      DO 140 I=1,L
+         50 |      J=M+I
+         51 |      T=A(J)
+         52 |      K=LIA+I
+         53 |      A(J)=A(K)
+         54 |  140 A(K)=T
+         55 |      M=L2-M/IA
+         56 |      DO 160 I=L1,NIA,IA
+         57 |      T=A(I)
+         58 |      J=I-M
+         59 |      A(I)=A(J)
+         60 |  160 A(J)=T
+         61 |  180 DO 200 I=L,LIA,IA
+         62 |  200 A(I)=A(I)/A(ISUB)
+         63 |      J=-IA
+         64 |      DO 240 I=1,L2
+         65 |      J=J+IA
+         66 |      LJ=L+J
+         67 |      DO 220 K=1,L1
+         68 |      KJ=K+J
+         69 |      KL=K+LIA
+         70 |  220 A(KJ)=A(KJ)-A(LJ)*A(KL)
+         71 |  240 CONTINUE
+         72 |      K=-IA
+         73 |      DO 300 I=1,N
+         74 |      K=K+IA
+         75 |      LK=K+L1
+         76 |      S=A(LK)
+         77 |      LJ=L-IA
+         78 |      DO 280 J=1,L2
+         79 |      JK=K+J
+         80 |      LJ=LJ+IA
+         81 |  280 S=S+A(LJ)*A(JK)*1.0D0
+         82 |  300 A(LK)=S
+         83 |      DO 310 I=L,LIA,IA
+         84 |  310 A(I)=0.0
+         85 |  320 L=L1
+         86 |      GO TO 20
+         87 |  360 RETURN
+         88 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-26.17$  0-1.25  0-37.15  0-41.13  0-47.18  0-51.9  0-53.7@  0-53.12  0-54.7@  0-57.9  0-59.7@
+                                 0-59.12  0-60.7@  0-62.7@  0-62.12  0-62.17  0-70.7@  0-70.13  0-70.19  0-70.25  0-76.9  0-81.11
+                                 0-81.17  0-82.7@  0-84.7@
+ 
+abs                              Pure Intrinsic
+                                 0-37.11  0-41.9  0-47.14
+ 
+hsbg                             Subroutine
+                                 0-1.18$
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-40.13@  0-41.15  0-43.12  0-49.14@  0-50.11  0-52.13  0-56.14@  0-57.11  0-58.9  0-59.9  0-61.14@
+                                 0-62.9  0-62.14  0-64.14@  0-73.14@  0-83.14@  0-84.9
+ 
+ia                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-29.13  0-30.15  0-32.15  0-36.17  0-39.14  0-40.19  0-55.14  0-56.23  0-61.22  0-63.10
+                                 0-65.11  0-72.10  0-74.11  0-77.12  0-80.13  0-83.22
+ 
+ipiv                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-36.7@  0-37.17  0-39.9  0-43.7@  0-48.9
+ 
+isub                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-35.7@  0-36.12  0-47.20  0-62.19
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-50.7@  0-51.11  0-53.9  0-58.7@  0-59.14  0-60.9  0-63.7@  0-65.7@  0-65.9  0-66.12  0-68.12
+                                 0-78.14@  0-79.12
+ 
+jk                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-79.7@  0-81.19
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-52.7@  0-53.14  0-54.9  0-67.14@  0-68.10  0-69.10  0-72.7@  0-74.7@  0-74.9  0-75.10  0-79.10
+ 
+kj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.7@  0-70.9  0-70.15
+ 
+kl                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.7@  0-70.27
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-28.7@  0-29.11  0-31.10  0-33.10  0-35.16  0-38.10  0-40.15  0-48.14  0-49.18  0-61.16  0-66.10
+                                 0-77.10  0-83.16  0-85.7@
+ 
+l1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-33.7@  0-34.10  0-56.16  0-67.18  0-75.12  0-85.9
+ 
+l2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-34.7@  0-55.9  0-64.18  0-78.18
+ 
+lia                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-30.7@  0-32.7@  0-32.11  0-35.12  0-52.9  0-61.18  0-69.12  0-83.18
+ 
+lj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-70.21  0-77.7@  0-80.7@  0-80.10  0-81.13
+ 
+lk                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-75.7@  0-76.11  0-82.9
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-39.7@  0-40.17  0-48.7@  0-50.9  0-55.7@  0-55.12  0-58.11
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.23  0-28.9  0-73.18
+ 
+nia                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-29.7@  0-30.11  0-56.19
+ 
+piv                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.7@  0-42.12  0-44.7@  0-46.10  0-47.10
+ 
+s                                Static, Real(8), Offset: 0, Alignment: double word
+                                 0-27.24$  0-76.7@  0-81.7@  0-81.9  0-82.13
+ 
+t                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-41.7@  0-42.10  0-44.11  0-51.7@  0-54.12  0-57.7@  0-60.12
+ 
+** hsbg   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    HSBG.f                      10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      88
+1501-510  Compilation successful for file HSBG.f.
+1501-543  Object file created.

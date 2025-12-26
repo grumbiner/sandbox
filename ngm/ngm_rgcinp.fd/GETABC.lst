@@ -1,0 +1,161 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/GETABC.f 09/30/06 19:45:30
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |            SUBROUTINE GETABC(A,B,C,ZB,ZM,ZT,PB,PM,PT)
+          2 |        REAL A,B,C,ZB,ZM,ZT,PB,PM,PT
+          3 |C
+          4 |        XB = PB
+          5 |        XM = PM
+          6 |        XT = PT
+          7 |        XB = ALOG(XB)
+          8 |        XM = ALOG(XM)
+          9 |        XT = ALOG(XT)
+         10 |        X2B = XB * XB
+         11 |        X2M = XM * XM
+         12 |        X2T = XT * XT
+         13 |C
+         14 |      ATM = X2T - X2M
+         15 |      BTM = XT - XM
+         16 |      CTM = ZT - ZM
+         17 |C
+         18 |      ABM = X2B - X2M
+         19 |      BBM = XB - XM
+         20 |      CBM = ZB - ZM
+         21 |C
+         22 |      BOT =  ATM * BBM - ABM * BTM
+         23 |C
+         24 |      A = (CTM*BBM - CBM*BTM)/BOT
+         25 |      B = (ATM*CBM - ABM*CTM)/BOT
+         26 |C
+         27 |      C = ZM - A * X2M - B * XM
+         28 |C
+         29 |      RETURN
+         30 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.14$  0-1.31  0-24.7@  0-27.16
+ 
+abm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-18.7@  0-22.26  0-25.22
+ 
+alog                             Pure Intrinsic Real(4)
+                                 0-7.14  0-8.14  0-9.14
+ 
+atm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-14.7@  0-22.14  0-25.12
+ 
+b                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.16$  0-1.33  0-25.7@  0-27.26
+ 
+bbm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-19.7@  0-22.20  0-24.16
+ 
+bot                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-22.7@  0-24.31  0-25.31
+ 
+btm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-15.7@  0-22.32  0-24.26
+ 
+c                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.18$  0-1.35  0-27.7@
+ 
+cbm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-20.7@  0-24.22  0-25.16
+ 
+ctm                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-16.7@  0-24.12  0-25.26
+ 
+getabc                           Subroutine
+                                 0-1.24$
+ 
+pb                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.29$  0-1.46  0-4.14
+ 
+pm                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.32$  0-1.49  0-5.14
+ 
+pt                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.35$  0-1.52  0-6.14
+ 
+x2b                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-10.9@  0-18.13
+ 
+x2m                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-11.9@  0-14.19  0-18.19  0-27.20
+ 
+x2t                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-12.9@  0-14.13
+ 
+xb                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-4.9@  0-7.9@  0-7.19  0-10.15  0-10.20  0-19.13
+ 
+xm                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-5.9@  0-8.9@  0-8.19  0-11.15  0-11.20  0-15.18  0-19.18  0-27.30
+ 
+xt                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-6.9@  0-9.9@  0-9.19  0-12.15  0-12.20  0-15.13
+ 
+zb                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.20$  0-1.37  0-20.13
+ 
+zm                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.23$  0-1.40  0-16.18  0-20.18  0-27.11
+ 
+zt                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-2.26$  0-1.43  0-16.13
+ 
+** getabc   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    GETABC.f                    10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      30
+1501-510  Compilation successful for file GETABC.f.
+1501-543  Object file created.

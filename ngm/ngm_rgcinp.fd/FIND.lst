@@ -1,0 +1,269 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/FIND.f 09/30/06 19:45:35
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE FIND (X, A, IDIM, M0)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    FIND        LOCATES RELATIVE POSITION OF A VALUE
+          5 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          6 |C
+          7 |C ABSTRACT: LOCATES THE RELATIVE POSITION OF THE VALUE
+          8 |C   X WITH RESPECT TO THE ARRAY A OF DIMENSION IDIM.
+          9 |C   THE QUANTITY M0 IS THE FIRST-GUESS LOCATION AND ULTIMATE
+         10 |C   LOCATION.  THE ULTIMATE VALUE OF M0 IS SUCH THAT X IS
+         11 |C   .GE. A(M0) AND X IS .LT. A(M0 + 1).
+         12 |C   THE ARRAY A IS ASSUMED TO BE ORDERED BY INCREASING VALUE.
+         13 |C
+         14 |C PROGRAM HISTORY LOG:
+         15 |C   85-03-27  JIM HOKE
+         16 |C   88-08-02  BRIAN SCHMIDT ADDED DOCBLOCK
+         17 |C
+         18 |C USAGE:    CALL FIND (X, A, IDIM, M0)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     X        - VALUE WHOSE LOCATION IN THE ARRAY IS TO BE FOUND
+         21 |C     A        - ARRAY IN WHICH THE RELATIVE POSITION OF X IS TO
+         22 |C                BE FOUND
+         23 |C     IDIM     - FIRST DIMENSION OF THE ARRAY A
+         24 |C
+         25 |C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+         26 |C     M0       - LOCATION OF THE VALUE X IN THE ARRAY A
+         27 |C
+         28 |C   OUTPUT FILES:
+         29 |C     FT06F001 - FOR PRINTOUT
+         30 |C
+         31 |C   SUBPROGRAMS CALLED:
+         32 |C     UNIQUE:    - ERRSTOP
+         33 |C
+         34 |C ATTRIBUTES:
+         35 |C   LANGUAGE: CYBER FORTRAN 200
+         36 |C   MACHINE:  CYBER 205
+         37 |C
+         38 |C$$$
+         39 |C
+         40 |C
+         41 |      IMPLICIT REAL (A-H, O-Z)
+         42 |C
+         43 |      CHARACTER*35 ERRMSG(4)
+         44 |C
+         45 |      DIMENSION A(IDIM)
+         46 |C
+         47 |C     SPECIFY THE PRINTER UNIT NUMBER.
+         48 |      IOUTUPRT = 6
+         49 |C
+         50 |C     SPECIFY COUNTERS FOR MAXIMUM AMOUNT OF PRINTING.
+         51 |      DATA KOUNTMIN /0/
+         52 |      DATA KOUNTMAX /0/
+         53 |C
+         54 |C     ENSURE THAT M0 IS A REASONABLE VALUE.
+         55 |      M0 = MIN(M0, IDIM)
+         56 |      M0 = MAX(M0, 1)
+         57 |C
+         58 |C     CHECK WHETHER X IS WITHIN RANGE.
+         59 |      IF (X - A(IDIM)) 200, 50, 100
+         60 |C
+         61 |   50 M0 = IDIM - 1
+         62 |      GO TO 500
+         63 |C
+         64 |  100 CONTINUE
+         65 |C     X IS ABOVE RANGE OF A.  IT IS SET EQUAL TO A(IDIM).
+         66 |      M0 = IDIM - 1
+         67 |      X = A(IDIM)
+         68 |      KOUNTMAX = KOUNTMAX + 1
+         69 |C
+         70 |      IF (KOUNTMAX .LE. 10) THEN
+         71 |         WRITE (IOUTUPRT, 150) X, A(IDIM)
+         72 |  150    FORMAT(' ', 'IN SUBROUTINE FIND, X=', 1PE13.5,
+         73 |     1        ' IS LARGER THAN A(IDIM)=', 1PE13.5, '  .  IT IS SET ',
+         74 |     2        'EQUAL TO A(IDIM).')
+         75 |C
+         76 |      ELSE IF (KOUNTMAX .EQ. 11) THEN
+         77 |         WRITE (IOUTUPRT, 175)
+         78 |  175    FORMAT (' ', 'IN SUBROUTINE FIND, THERE WERE MORE THAN ',
+         79 |     1                '10 CASES WHERE X WAS LARGER THAN A(IDIM).',
+         80 |     2                '     ********************'/)
+         81 |      END IF
+         82 |C
+         83 |      GO TO 500
+         84 |C
+         85 |  200 IF (X - A(1)) 250, 225, 290
+         86 |C
+         87 |  225 M0 = 1
+         88 |      GO TO 500
+         89 |C
+         90 |  250 CONTINUE
+         91 |C     X IS LESS THAN THE RANGE OF A.  IT IS SET TO A(1).
+         92 |      M0 = 1
+         93 |      X = A(1)
+         94 |      KOUNTMIN = KOUNTMIN + 1
+         95 |      IF (KOUNTMIN .LE. 10) THEN
+         96 |         WRITE (IOUTUPRT, 275) X, A(1)
+         97 |  275    FORMAT(' ', 'IN SUBROUTINE FIND, X=', 1PE13.5,
+         98 |     1        ' IS SMALLER THAN A(1)=', 1PE13.5, '  .  IT IS SET ',
+         99 |     2        'EQUAL TO A(1).')
+        100 |C
+        101 |      ELSE IF (KOUNTMIN .EQ. 11) THEN
+        102 |         WRITE (IOUTUPRT, 285)
+        103 |  285    FORMAT (' ', 'IN SUBROUTINE FIND, THERE WERE MORE THAN ',
+        104 |     1                '10 CASES WHERE X WAS SMALLER THAN A(1).',
+        105 |     2                '     ********************')
+        106 |      END IF
+        107 |C
+        108 |      GO TO 500
+        109 |C
+        110 |  290 CONTINUE
+        111 |C
+        112 |C     X IS WITHIN THE RANGE OF A.
+        113 |      IF (X .LT. A(M0)) GO TO 350
+        114 |C
+        115 |C     SEARCH BY STEPPING UPWARD THROUGH A.
+        116 |      MP1 = M0 + 1
+        117 |      DO 300 M=MP1,IDIM
+        118 |      IF (X .GE. A(M)) GO TO 300
+        119 |      M0 = M - 1
+        120 |      GO TO 500
+        121 |  300 CONTINUE
+        122 |      WRITE (IOUTUPRT, 325) X, M0
+        123 |  325 FORMAT('0', 'ERROR IN ARRAY SEARCH IN SUBROUTINE FIND.  X, M0 =',
+        124 |     1            1PE13.5, I5, ' .  JOB TERMINATED.')
+        125 |C
+        126 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+        127 |      ERRMSG(1) = 'IN SUBROUTINE FIND     NEAR STATEME'
+        128 |      ERRMSG(2) = 'NT NUMBER 325:                     '
+        129 |      ERRMSG(3) = 'THERE IS AN ERROR IN THE SEARCHING '
+        130 |      ERRMSG(4) = 'PROCESS THROUGH THE ARRAY.         '
+        131 |C
+        132 |      CALL ERRSTOP (IOUTUPRT, ERRMSG)
+        133 |C
+        134 |C     SEARCH BY STEPPING DOWNWARD THROUGH A.
+        135 |  350 CONTINUE
+        136 |      MM1 = M0 - 1
+        137 |      DO 400 M=1,MM1
+        138 |      MM = MM1 - M + 1
+        139 |      IF(X .LT. A(MM)) GO TO 400
+        140 |      M0 = MM
+        141 |      GO TO 500
+        142 |  400 CONTINUE
+        143 |C
+        144 |      WRITE (IOUTUPRT, 325) X, M0
+        145 |C
+        146 |C              TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+        147 |      ERRMSG(1) = 'IN SUBROUTINE FIND     NEAR STATEME'
+        148 |      ERRMSG(2) = 'NT NUMBER 400:                     '
+        149 |      ERRMSG(3) = 'THERE IS AN ERROR IN THE SEARCHING '
+        150 |      ERRMSG(4) = 'PROCESS THROUGH THE ARRAY.         '
+        151 |C
+        152 |      CALL ERRSTOP (IOUTUPRT, ERRMSG)
+        153 |C
+        154 |  500 CONTINUE
+        155 |C
+        156 |      RETURN
+        157 |C
+        158 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-45.17$  0-1.27  0-59.15  0-67.11  0-71.35  0-85.15  0-93.11  0-96.35  0-113.18  0-118.18
+                                 0-139.17
+ 
+errmsg                           Static, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-43.20$  0-127.7@  0-128.7@  0-129.7@  0-130.7@  0-132.31  0-147.7@  0-148.7@  0-149.7@  0-150.7@
+                                 0-152.31
+ 
+errstop                          External Subroutine
+                                 0-132.12  0-152.12
+ 
+find                             Subroutine
+                                 0-1.18$
+ 
+idim                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-45.19  0-45.19  0-55.20  0-59.17  0-61.12  0-66.12  0-67.13  0-71.37  0-117.20
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.7@  0-71.17  0-77.17  0-96.17  0-102.17  0-122.14  0-132.21  0-144.14  0-152.21
+ 
+kountmax                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-52.12*  0-68.7@  0-68.18  0-70.11  0-76.16
+ 
+kountmin                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-51.12*  0-94.7@  0-94.18  0-95.11  0-101.16
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-117.14@  0-118.20  0-119.12  0-137.14@  0-138.18
+ 
+m0                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.36  0-55.7@  0-55.16  0-56.7@  0-56.16  0-61.7@  0-66.7@  0-87.7@  0-92.7@  0-113.20  0-116.13
+                                 0-119.7@  0-122.32  0-136.13  0-140.7@  0-144.32
+ 
+max                              Pure Intrinsic
+                                 0-56.12
+ 
+min                              Pure Intrinsic
+                                 0-55.12
+ 
+mm                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-138.7@  0-139.19  0-140.12
+ 
+mm1                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-136.7@  0-137.18  0-138.12
+ 
+mp1                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-116.7@  0-117.16
+ 
+x                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.24  0-59.11  0-67.7@  0-71.32  0-85.11  0-93.7@  0-96.32  0-113.11  0-118.11  0-122.29
+                                 0-139.10  0-144.29
+ 
+** find   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    FIND.f                      10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     158
+1501-510  Compilation successful for file FIND.f.
+1501-543  Object file created.

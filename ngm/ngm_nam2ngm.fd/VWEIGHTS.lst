@@ -1,0 +1,799 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/VWEIGHTS.f 09/30/06 19:44:11
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE VWEIGHTS
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .
+          4 |C SUBPROGRAM:    VWEIGHTS    COMPUTE INTERP WEIGHTS FOR WINDS
+          5 |C   PRGRMMR: ROGERS          ORG: W/NP22     DATE: 99-09-24
+          6 |C
+          7 |C ABSTRACT:  COMPUTE WEIGHTS FOR INTERPOLATION OF WINDS ON
+          8 |C            THE ETA GRID 104 ANALYSIS (WHICH ARE AT H-POINTS)
+          9 |C            TO THE LOCATION OF THE U AND V WIND POINTS IN
+         10 |C            THE NGM
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   99-09-24  ERIC ROGERS
+         14 |C
+         15 |C USAGE:    CALL VWEIGHTS
+         16 |C   INPUT ARGUMENT LIST:
+         17 |C     NONE
+         18 |C
+         19 |C   OUTPUT ARGUMENT LIST:
+         20 |C     NONE : INTERPOLATION WEIGHTS PASSED TO MAIN CODE VIA
+         21 |C            COMMON BLOCK VWGTS
+         22 |C
+         23 |C   OUTPUT FILES:
+         24 |C     NONE
+         25 |C
+         26 |C   SUBPROGRAMS CALLED:
+         27 |C     UTILITIES:
+         28 |C       NONE
+         29 |C     LIBRARY:
+         30 |C       W3LIB   - W3FB10
+         31 |C
+         32 |C   ATTRIBUTES:
+         33 |C     LANGUAGE: FORTRAN-90
+         34 |C     MACHINE : CRAY C-90
+         35 |C$$$
+         36 |C
+         37 |      INCLUDE "parmg104"
+  1       1 |      PARAMETER(ILIM=147,JLIM=110,MAXLEV=39)
+         38 |      PARAMETER(IGOUT=ILIM,JGOUT=JLIM+1)
+         39 |      REAL GLAT(IGOUT,JGOUT,3),GLON(IGOUT,JGOUT,3)
+         40 |      REAL POLEII(3),POLEJJ(3)
+         41 |      REAL D(6)
+         42 |      REAL LAM1,LAM2
+         43 |C
+         44 |      COMMON /VWGTS/ WU(IGOUT,JGOUT,6),WV(IGOUT,JGOUT,6)
+         45 |C
+         46 |      COMMON /IPOINT/ IPT,JPT
+         47 |C
+         48 |      DATA POLEII/ 75.5, 75.5, 75.0/
+         49 |      DATA POLEJJ/109.5,109.0,109.5/
+         50 |      DATA EARTHR / 6371.2 /
+         51 |C
+         52 |C*********************************************************************
+         53 |C
+         54 |C     SET CONSTANTS.
+         55 |      XMESHL = 90.75464
+         56 |      ALONVT = 105.000000
+         57 |      RE     = (EARTHR * 1.86603) / XMESHL
+         58 |      PI     = ACOS(-1.)
+         59 |      HALFPI = PI/2.
+         60 |      TWOPI  = 2.*PI
+         61 |      DTR    = PI/180.
+         62 |      R2D    = 1./DTR
+         63 |      GI2    = RE * RE
+         64 |C
+         65 |      DO K = 1, 3
+         66 |        CALL GENLL(POLEII(K),POLEJJ(K),ALONVT,XMESHL,
+         67 |     1    GLAT(1,1,K),GLON(1,1,K))
+         68 |c       IOUT=50+K
+         69 |        do j = 1,jgout
+         70 |         do i = 1,igout
+         71 |           elon = 360.0 - GLON(I,J,K)
+         72 |           if(i.eq.ipt.and.j.eq.jpt) then
+         73 |           WRITE(6,10000) i,j,GLAT(I,J,K),GLON(I,J,K),elon
+         74 |10000      FORMAT(2x,2i8,2x,f12.5,1x,f12.5,1x,f12.5)
+         75 |           endif
+         76 |         end do
+         77 |        end do
+         78 |      ENDDO
+         79 |c
+         80 |C do internal u-points
+         81 |c
+         82 |      do jt = 1, jgout-1
+         83 |      do it = 2, igout-1
+         84 |       sumdel=0.0
+         85 |       xmax=-99999.0
+         86 |       xmin=99999.0
+         87 |       tlat=glat(it,jt,2)
+         88 |       tlon=glon(it,jt,2)
+         89 |       if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+         90 |         write(6,10)it,jt,tlat,tlon
+         91 |10       format(1x,2i4,2(1x,e12.5))
+         92 |       endif
+         93 |       do kupt = 1, 6
+         94 |        if(kupt.eq.1) then
+         95 |          inc=-1
+         96 |          jnc=0
+         97 |        elseif(kupt.eq.2) then
+         98 |          inc=0
+         99 |          jnc=0
+        100 |        elseif(kupt.eq.3) then
+        101 |          inc=1
+        102 |          jnc=0
+        103 |        elseif(kupt.eq.4) then
+        104 |          inc=-1
+        105 |          jnc=1
+        106 |        elseif(kupt.eq.5) then
+        107 |          inc=0
+        108 |          jnc=1
+        109 |        elseif(kupt.eq.6) then
+        110 |          inc=1
+        111 |          jnc=1
+        112 |        endif
+        113 |        slat=glat(it+inc,jt+jnc,1)
+        114 |        slon=glon(it+inc,jt+jnc,1)
+        115 |        call w3fb10(tlat,tlon,slat,slon,beard,d(kupt))
+        116 |        if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+        117 |         write(6,2000)kupt,it+inc,jt+jnc,slat,slon,
+        118 |     &    d(kupt)
+        119 |        endif
+        120 |        sumdel = sumdel + d(kupt)
+        121 |        xmax=amax1(d(kupt),xmax)
+        122 |        xmin=amin1(d(kupt),xmin)
+        123 |      enddo
+        124 |      bwgt=(xmax-xmin)/(xmax*2.)
+        125 |      ydiff=1.-(bwgt*2.)
+        126 |      swgt=ydiff*0.25
+        127 |      sum = 2.*bwgt+4.*swgt
+        128 |      do kupt = 1, 6
+        129 |        if(kupt.eq.2 .or. kupt.eq.5) then
+        130 |          wu(it,jt,kupt) = bwgt
+        131 |        else
+        132 |          wu(it,jt,kupt) = swgt
+        133 |        endif
+        134 |      enddo
+        135 |       if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+        136 |        write(6,2100)it,jt,(d(k),k=1,6),
+        137 |     &         (wu(it,jt,k),k=1,6),sum
+        138 |2000    format(1x,3i6,3(e12.5,1x))
+        139 |2100    format(1x,2i4,6(1x,e12.5),/,9x,7(1x,E12.5))
+        140 |       endif
+        141 |      enddo
+        142 |      enddo
+        143 |C
+        144 |C done with internal u-points, do u-points at it=1
+        145 |c
+        146 |      it=1
+        147 |      do jt = 1, jgout
+        148 |       if(jt.lt.jgout) then
+        149 |       wu(it,jt,1)=0.0
+        150 |       wu(it,jt,4)=0.0
+        151 |       sumdel=0.0
+        152 |       xmax=-99999.0
+        153 |       xmin=99999.0
+        154 |       tlat=glat(it,jt,2)
+        155 |       tlon=glon(it,jt,2)
+        156 |       if(mod(jt,10).eq.0) then
+        157 |         write(6,10)it,jt,tlat,tlon
+        158 |       endif
+        159 |       do kupt = 2, 6
+        160 |        if(kupt.eq.2) then
+        161 |          inc=0
+        162 |          jnc=0
+        163 |        elseif(kupt.eq.3) then
+        164 |          inc=1
+        165 |          jnc=0
+        166 |        elseif(kupt.eq.5) then
+        167 |          inc=0
+        168 |          jnc=1
+        169 |        elseif(kupt.eq.6) then
+        170 |          inc=1
+        171 |          jnc=1
+        172 |        endif
+        173 |        if(kupt.ne.4) then
+        174 |         slat=glat(it+inc,jt+jnc,1)
+        175 |         slon=glon(it+inc,jt+jnc,1)
+        176 |         call w3fb10(tlat,tlon,slat,slon,beard,d(kupt))
+        177 |         if(mod(jt,10).eq.0) then
+        178 |          write(6,2000)kupt,it+inc,jt+jnc,slat,slon,
+        179 |     &     d(kupt)
+        180 |         endif
+        181 |         sumdel = sumdel + d(kupt)
+        182 |         xmax=amax1(d(kupt),xmax)
+        183 |         xmin=amin1(d(kupt),xmin)
+        184 |        endif
+        185 |       enddo
+        186 |      bwgt=(2.*(xmax-xmin))/(xmax*3.)
+        187 |      ydiff=1.-(bwgt*2.)
+        188 |      swgt=ydiff*0.5
+        189 |      do kupt = 2, 6
+        190 |        if(kupt.eq.2 .or. kupt.eq.5) then
+        191 |          wu(it,jt,kupt) = bwgt
+        192 |        elseif(kupt.eq.3.or.kupt.eq.6) then
+        193 |          wu(it,jt,kupt) = swgt
+        194 |        endif
+        195 |      enddo
+        196 |       if(mod(jt,10).eq.0) then
+        197 |        write(6,2100)it,jt,(d(k),k=1,6),
+        198 |     &         (wu(it,jt,k),k=1,6),sum
+        199 |       endif
+        200 |      else
+        201 |       wu(it,jt,1) = 0.0
+        202 |       wu(it,jt,2) = 1.0
+        203 |       wu(it,jt,3) = 0.0
+        204 |       wu(it,jt,4) = 0.0
+        205 |       wu(it,jt,5) = 0.0
+        206 |       wu(it,jt,6) = 0.0
+        207 |      endif
+        208 |      enddo
+        209 |c
+        210 |C done with u-points at it=1, do u-points at it=igout
+        211 |c
+        212 |      it=igout
+        213 |      do jt = 1, jgout
+        214 |       if(jt.lt.jgout) then
+        215 |       wu(it,jt,3)=0.0
+        216 |       wu(it,jt,6)=0.0
+        217 |       sumdel=0.0
+        218 |       xmax=-99999.0
+        219 |       xmin=99999.0
+        220 |       tlat=glat(it,jt,2)
+        221 |       tlon=glon(it,jt,2)
+        222 |       if(mod(jt,10).eq.0) then
+        223 |         write(6,10)it,jt,tlat,tlon
+        224 |       endif
+        225 |       do kupt = 1, 5
+        226 |        if(kupt.eq.1) then
+        227 |          inc=-1
+        228 |          jnc=0
+        229 |        elseif(kupt.eq.2) then
+        230 |          inc=0
+        231 |          jnc=0
+        232 |        elseif(kupt.eq.4) then
+        233 |          inc=-1
+        234 |          jnc=1
+        235 |        elseif(kupt.eq.5) then
+        236 |          inc=0
+        237 |          jnc=1
+        238 |        endif
+        239 |        if(kupt.ne.3) then
+        240 |         slat=glat(it+inc,jt+jnc,1)
+        241 |         slon=glon(it+inc,jt+jnc,1)
+        242 |         call w3fb10(tlat,tlon,slat,slon,beard,d(kupt))
+        243 |         if(mod(jt,10).eq.0) then
+        244 |          write(6,2000)kupt,it+inc,jt+jnc,slat,slon,
+        245 |     &     d(kupt)
+        246 |         endif
+        247 |         sumdel = sumdel + d(kupt)
+        248 |         xmax=amax1(d(kupt),xmax)
+        249 |         xmin=amin1(d(kupt),xmin)
+        250 |        endif
+        251 |       enddo
+        252 |      bwgt=(2.*(xmax-xmin))/(xmax*3.)
+        253 |      ydiff=1.-(bwgt*2.)
+        254 |      swgt=ydiff*0.5
+        255 |      do kupt = 1, 5
+        256 |        if(kupt.eq.2 .or. kupt.eq.5) then
+        257 |          wu(it,jt,kupt) = bwgt
+        258 |        elseif(kupt.eq.1.or.kupt.eq.4) then
+        259 |          wu(it,jt,kupt) = swgt
+        260 |        endif
+        261 |      enddo
+        262 |       if(mod(jt,10).eq.0) then
+        263 |        write(6,2100)it,jt,(d(k),k=1,6),
+        264 |     &         (wu(it,jt,k),k=1,6),sum
+        265 |       endif
+        266 |      else
+        267 |       wu(it,jt,1) = 0.0
+        268 |       wu(it,jt,2) = 1.0
+        269 |       wu(it,jt,3) = 0.0
+        270 |       wu(it,jt,4) = 0.0
+        271 |       wu(it,jt,5) = 0.0
+        272 |       wu(it,jt,6) = 0.0
+        273 |      endif
+        274 |      enddo
+        275 |C
+        276 |c  end of u-points at it=igout, do u-points at jt=jgout
+        277 |C
+        278 |      jt=jgout
+        279 |      do it = 1, igout
+        280 |        wu(it,jt,1) = 0.0
+        281 |        wu(it,jt,2) = 1.0
+        282 |        wu(it,jt,1) = 0.0
+        283 |        wu(it,jt,1) = 0.0
+        284 |        wu(it,jt,1) = 0.0
+        285 |        wu(it,jt,1) = 0.0
+        286 |      enddo
+        287 |C
+        288 |C  end of u-points at jt=jgout, do internal v-points
+        289 |C
+        290 |      do jt = 2, jgout-1
+        291 |      do it = 1, igout-1
+        292 |       sumdel=0.0
+        293 |       xmax=-99999.0
+        294 |       xmin=99999.0
+        295 |       tlat=glat(it,jt,3)
+        296 |       tlon=glon(it,jt,3)
+        297 |       if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+        298 |         write(6,10)it,jt,tlat,tlon
+        299 |       endif
+        300 |       do kvpt = 1, 6
+        301 |        if(kvpt.eq.1) then
+        302 |          inc=0
+        303 |          jnc=-1
+        304 |        elseif(kvpt.eq.2) then
+        305 |          inc=1
+        306 |          jnc=-1
+        307 |        elseif(kvpt.eq.3) then
+        308 |          inc=0
+        309 |          jnc=0
+        310 |        elseif(kvpt.eq.4) then
+        311 |          inc=1
+        312 |          jnc=0
+        313 |        elseif(kvpt.eq.5) then
+        314 |          inc=0
+        315 |          jnc=1
+        316 |        elseif(kvpt.eq.6) then
+        317 |          inc=1
+        318 |          jnc=1
+        319 |        endif
+        320 |        slat=glat(it+inc,jt+jnc,1)
+        321 |        slon=glon(it+inc,jt+jnc,1)
+        322 |        call w3fb10(tlat,tlon,slat,slon,beard,d(kvpt))
+        323 |        if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+        324 |         write(6,2000)kvpt,it+inc,jt+jnc,slat,slon,
+        325 |     &    d(kvpt)
+        326 |        endif
+        327 |        sumdel = sumdel + d(kvpt)
+        328 |        xmax=amax1(d(kvpt),xmax)
+        329 |        xmin=amin1(d(kvpt),xmin)
+        330 |      enddo
+        331 |      bwgt=(xmax-xmin)/(xmax*2.)
+        332 |      ydiff=1.-(bwgt*2.)
+        333 |      swgt=ydiff*0.25
+        334 |      sum = 2.*bwgt+4.*swgt
+        335 |      do kvpt = 1, 6
+        336 |        if(kvpt.eq.3 .or. kvpt.eq.4) then
+        337 |          wv(it,jt,kvpt) = bwgt
+        338 |        else
+        339 |          wv(it,jt,kvpt) = swgt
+        340 |        endif
+        341 |      enddo
+        342 |       if(mod(it,10).eq.0 .and. mod(jt,10).eq.0) then
+        343 |        write(6,2100)it,jt,(d(k),k=1,6),
+        344 |     &         (wv(it,jt,k),k=1,6),sum
+        345 |       endif
+        346 |      enddo
+        347 |      enddo
+        348 |C
+        349 |C  Done with internal v-points, do v-points at jt=1
+        350 |C
+        351 |      jt = 1
+        352 |      do it = 1, igout
+        353 |       if(it.lt.igout) then
+        354 |        wv(it,jt,1) = 0.0
+        355 |        wv(it,jt,2) = 0.0
+        356 |        xmax=-99999.0
+        357 |        xmin=99999.0
+        358 |        sumdel=0.0
+        359 |        tlat=glat(it,jt,3)
+        360 |        tlon=glon(it,jt,3)
+        361 |        if(mod(it,10).eq.0) then
+        362 |         write(6,10)it,jt,tlat,tlon
+        363 |        endif
+        364 |        do kvpt = 3, 6
+        365 |         if(kvpt.eq.3) then
+        366 |          inc=0
+        367 |          jnc=0
+        368 |         elseif(kvpt.eq.4) then
+        369 |          inc=1
+        370 |          jnc=0
+        371 |         elseif(kvpt.eq.5) then
+        372 |          inc=0
+        373 |          jnc=1
+        374 |         elseif(kvpt.eq.6) then
+        375 |          inc=1
+        376 |          jnc=1
+        377 |         endif
+        378 |         slat=glat(it+inc,jt+jnc,1)
+        379 |         slon=glon(it+inc,jt+jnc,1)
+        380 |         call w3fb10(tlat,tlon,slat,slon,beard,d(kvpt))
+        381 |         if(mod(it,10).eq.0) then
+        382 |           write(6,2000)kvpt,it+inc,jt+jnc,slat,slon,
+        383 |     &        d(kvpt)
+        384 |         endif
+        385 |         sumdel = sumdel + d(kvpt)
+        386 |         xmax=amax1(d(kvpt),xmax)
+        387 |         xmin=amin1(d(kvpt),xmin)
+        388 |        enddo
+        389 |        bwgt=(2.*(xmax-xmin))/(3.*xmax)
+        390 |        ydiff=1.-(bwgt*2.)
+        391 |        swgt=ydiff*.5
+        392 |        do kvpt = 3, 6
+        393 |          if(kvpt.eq.3 .or. kvpt.eq.4) then
+        394 |            wv(it,jt,kvpt) = bwgt
+        395 |          else
+        396 |            wv(it,jt,kvpt) = swgt
+        397 |          endif
+        398 |        enddo
+        399 |        if(mod(it,10).eq.0) then
+        400 |         write(6,2100)it,jt,(d(k),k=1,6),
+        401 |     &         (wv(it,jt,k),k=1,6),sum
+        402 |        endif
+        403 |       else
+        404 |        wv(it,jt,1)=0.0
+        405 |        wv(it,jt,2)=0.0
+        406 |        wv(it,jt,3)=1.0
+        407 |        wv(it,jt,4)=0.0
+        408 |        wv(it,jt,5)=0.0
+        409 |        wv(it,jt,6)=0.0
+        410 |       endif
+        411 |      enddo
+        412 |C
+        413 |C  Done with v-points at jt=1, do v-points at jt=jgout
+        414 |C
+        415 |      jt = jgout
+        416 |      do it = 1, igout
+        417 |       if(it.lt.igout) then
+        418 |        wv(it,jt,5) = 0.0
+        419 |        wv(it,jt,6) = 0.0
+        420 |        xmax=-99999.0
+        421 |        xmin=99999.0
+        422 |        sumdel=0.0
+        423 |        tlat=glat(it,jt,3)
+        424 |        tlon=glon(it,jt,3)
+        425 |        if(mod(it,10).eq.0) then
+        426 |         write(6,10)it,jt,tlat,tlon
+        427 |        endif
+        428 |        do kvpt = 1, 4
+        429 |         if(kvpt.eq.1) then
+        430 |          inc=0
+        431 |          jnc=-1
+        432 |         elseif(kvpt.eq.2) then
+        433 |          inc=1
+        434 |          jnc=-1
+        435 |         elseif(kvpt.eq.3) then
+        436 |          inc=0
+        437 |          jnc=0
+        438 |         elseif(kvpt.eq.4) then
+        439 |          inc=1
+        440 |          jnc=0
+        441 |         endif
+        442 |         slat=glat(it+inc,jt+jnc,1)
+        443 |         slon=glon(it+inc,jt+jnc,1)
+        444 |         call w3fb10(tlat,tlon,slat,slon,beard,d(kvpt))
+        445 |         if(mod(it,10).eq.0) then
+        446 |           write(6,2000)kvpt,it+inc,jt+jnc,slat,slon,
+        447 |     &        d(kvpt)
+        448 |         endif
+        449 |         sumdel = sumdel + d(kvpt)
+        450 |         xmax=amax1(d(kvpt),xmax)
+        451 |         xmin=amin1(d(kvpt),xmin)
+        452 |        enddo
+        453 |        bwgt=(2.*(xmax-xmin))/(3.*xmax)
+        454 |        ydiff=1.-(bwgt*2.)
+        455 |        swgt=ydiff*.5
+        456 |        do kvpt = 1, 4
+        457 |          if(kvpt.eq.3 .or. kvpt.eq.4) then
+        458 |            wv(it,jt,kvpt) = bwgt
+        459 |          else
+        460 |            wv(it,jt,kvpt) = swgt
+        461 |          endif
+        462 |        enddo
+        463 |        if(mod(it,10).eq.0) then
+        464 |         write(6,2100)it,jt,(d(k),k=1,6),
+        465 |     &         (wv(it,jt,k),k=1,6),sum
+        466 |        endif
+        467 |       else
+        468 |        wv(it,jt,1)=0.0
+        469 |        wv(it,jt,2)=0.0
+        470 |        wv(it,jt,3)=1.0
+        471 |        wv(it,jt,4)=0.0
+        472 |        wv(it,jt,5)=0.0
+        473 |        wv(it,jt,6)=0.0
+        474 |       endif
+        475 |      enddo
+        476 |C
+        477 |C Done with v-points at jt=jgout, do v-points at i=igout
+        478 |C
+        479 |      it=igout
+        480 |      do jt=1,jgout
+        481 |        wv(it,jt,1) = 0.0
+        482 |        wv(it,jt,2) = 0.0
+        483 |        wv(it,jt,3) = 1.0
+        484 |        wv(it,jt,4) = 0.0
+        485 |        wv(it,jt,5) = 0.0
+        486 |        wv(it,jt,6) = 0.0
+        487 |      enddo
+        488 |C
+        489 |C Finally finished
+        490 |C
+        491 |      RETURN
+        492 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+acos                             Pure Intrinsic
+                                 0-58.16
+ 
+alonvt                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-56.7@  0-66.40
+ 
+amax1                            Pure Intrinsic Real(4)
+                                 0-121.14  0-182.15  0-248.15  0-328.14  0-386.15  0-450.15
+ 
+amin1                            Pure Intrinsic Real(4)
+                                 0-122.14  0-183.15  0-249.15  0-329.14  0-387.15  0-451.15
+ 
+beard                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-115.41  0-176.42  0-242.42  0-322.41  0-380.42  0-444.42
+ 
+bwgt                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-124.7@  0-125.17  0-127.16  0-130.28  0-186.7@  0-187.17  0-191.28  0-252.7@  0-253.17  0-257.28
+                                 0-331.7@  0-332.17  0-334.16  0-337.28  0-389.9@  0-390.19  0-394.30  0-453.9@  0-454.19  0-458.30
+ 
+d                                Automatic, Real(4) (1:6), Offset: 0, Alignment: full word
+                                 0-41.12$  0-115.47  0-118.11  0-120.27  0-121.20  0-122.20  0-136.29  0-176.48  0-179.12  0-181.28
+                                 0-182.21  0-183.21  0-197.29  0-242.48  0-245.12  0-247.28  0-248.21  0-249.21  0-263.29  0-322.47
+                                 0-325.11  0-327.27  0-328.20  0-329.20  0-343.29  0-380.48  0-383.15  0-385.28  0-386.21  0-387.21
+                                 0-400.30  0-444.48  0-447.15  0-449.28  0-450.21  0-451.21  0-464.30
+ 
+dtr                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-61.7@  0-62.19
+ 
+earthr                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-50.12*  0-57.17
+ 
+elon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-71.12@  0-73.55
+ 
+genll                            External Subroutine
+                                 0-66.14
+ 
+gi2                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-63.7@
+ 
+glat                             Automatic, Real(4) (1:147, 1:111, 1:3), Offset: 0, Alignment: full word
+                                 0-39.12$  0-67.11  0-73.31  0-87.13  0-113.14  0-154.13  0-174.15  0-220.13  0-240.15  0-295.13
+                                 0-320.14  0-359.14  0-378.15  0-423.14  0-442.15
+ 
+glon                             Automatic, Real(4) (1:147, 1:111, 1:3), Offset: 0, Alignment: full word
+                                 0-39.32$  0-67.23  0-71.27  0-73.43  0-88.13  0-114.14  0-155.13  0-175.15  0-221.13  0-241.15
+                                 0-296.13  0-321.14  0-360.14  0-379.15  0-424.14  0-443.15
+ 
+halfpi                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-59.7@
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.13@  0-71.32  0-72.15  0-73.27  0-73.36  0-73.48
+ 
+igout                            Parameter, Integer(4)
+                                 0-38.17$  0-39.17  0-39.37  0-44.25  0-44.43  0-70.19  0-83.18  0-212.10  0-279.18  0-291.18
+                                 0-352.18  0-353.17  0-416.18  0-417.17  0-479.10
+ 
+ilim                             Parameter, Integer(4)
+                                 1-1.17$  0-38.23
+ 
+inc                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-95.11@  0-98.11@  0-101.11@  0-104.11@  0-107.11@  0-110.11@  0-113.22  0-114.22  0-117.31
+                                 0-161.11@  0-164.11@  0-167.11@  0-170.11@  0-174.23  0-175.23  0-178.32  0-227.11@  0-230.11@
+                                 0-233.11@  0-236.11@  0-240.23  0-241.23  0-244.32  0-302.11@  0-305.11@  0-308.11@  0-311.11@
+                                 0-314.11@  0-317.11@  0-320.22  0-321.22  0-324.31  0-366.11@  0-369.11@  0-372.11@  0-375.11@
+                                 0-378.23  0-379.23  0-382.33  0-430.11@  0-433.11@  0-436.11@  0-439.11@  0-442.23  0-443.23
+                                 0-446.33
+ 
+ipoint                           Common Block, Alignment: double word
+                                 0-46.15$
+ 
+ipt                              Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-46.23$  0-72.20
+ 
+it                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-83.10@  0-87.18  0-88.18  0-89.15  0-90.21  0-113.19  0-114.19  0-116.16  0-117.28  0-130.14
+                                 0-132.14  0-135.15  0-136.22  0-137.20  0-146.7@  0-149.11  0-150.11  0-154.18  0-155.18  0-157.21
+                                 0-174.20  0-175.20  0-178.29  0-191.14  0-193.14  0-197.22  0-198.20  0-201.11  0-202.11  0-203.11
+                                 0-204.11  0-205.11  0-206.11  0-212.7@  0-215.11  0-216.11  0-220.18  0-221.18  0-223.21  0-240.20
+                                 0-241.20  0-244.29  0-257.14  0-259.14  0-263.22  0-264.20  0-267.11  0-268.11  0-269.11  0-270.11
+                                 0-271.11  0-272.11  0-279.10@  0-280.12  0-281.12  0-282.12  0-283.12  0-284.12  0-285.12
+                                 0-291.10@  0-295.18  0-296.18  0-297.15  0-298.21  0-320.19  0-321.19  0-323.16  0-324.28  0-337.14
+                                 0-339.14  0-342.15  0-343.22  0-344.20  0-352.10@  0-353.11  0-354.12  0-355.12  0-359.19  0-360.19
+                                 0-361.16  0-362.21  0-378.20  0-379.20  0-381.17  0-382.30  0-394.16  0-396.16  0-399.16  0-400.23
+                                 0-401.20  0-404.12  0-405.12  0-406.12  0-407.12  0-408.12  0-409.12  0-416.10@  0-417.11  0-418.12
+                                 0-419.12  0-423.19  0-424.19  0-425.16  0-426.21  0-442.20  0-443.20  0-445.17  0-446.30  0-458.16
+                                 0-460.16  0-463.16  0-464.23  0-465.20  0-468.12  0-469.12  0-470.12  0-471.12  0-472.12  0-473.12
+                                 0-479.7@  0-481.12  0-482.12  0-483.12  0-484.12  0-485.12  0-486.12
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.12@  0-71.34  0-72.28  0-73.29  0-73.38  0-73.50
+ 
+jgout                            Parameter, Integer(4)
+                                 0-38.28$  0-39.23  0-39.43  0-44.31  0-44.49  0-69.18  0-82.18  0-147.18  0-148.17  0-213.18
+                                 0-214.17  0-278.10  0-290.18  0-415.12  0-480.15
+ 
+jlim                             Parameter, Integer(4)
+                                 1-1.26$  0-38.34
+ 
+jnc                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-96.11@  0-99.11@  0-102.11@  0-105.11@  0-108.11@  0-111.11@  0-113.29  0-114.29  0-117.38
+                                 0-162.11@  0-165.11@  0-168.11@  0-171.11@  0-174.30  0-175.30  0-178.39  0-228.11@  0-231.11@
+                                 0-234.11@  0-237.11@  0-240.30  0-241.30  0-244.39  0-303.11@  0-306.11@  0-309.11@  0-312.11@
+                                 0-315.11@  0-318.11@  0-320.29  0-321.29  0-324.38  0-367.11@  0-370.11@  0-373.11@  0-376.11@
+                                 0-378.30  0-379.30  0-382.40  0-431.11@  0-434.11@  0-437.11@  0-440.11@  0-442.30  0-443.30
+                                 0-446.40
+ 
+jpt                              Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-46.27$  0-72.33
+ 
+jt                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-82.10@  0-87.21  0-88.21  0-89.37  0-90.24  0-113.26  0-114.26  0-116.38  0-117.35  0-130.17
+                                 0-132.17  0-135.37  0-136.25  0-137.23  0-147.10@  0-148.11  0-149.14  0-150.14  0-154.21  0-155.21
+                                 0-156.15  0-157.24  0-174.27  0-175.27  0-177.17  0-178.36  0-191.17  0-193.17  0-196.15  0-197.25
+                                 0-198.23  0-201.14  0-202.14  0-203.14  0-204.14  0-205.14  0-206.14  0-213.10@  0-214.11  0-215.14
+                                 0-216.14  0-220.21  0-221.21  0-222.15  0-223.24  0-240.27  0-241.27  0-243.17  0-244.36  0-257.17
+                                 0-259.17  0-262.15  0-263.25  0-264.23  0-267.14  0-268.14  0-269.14  0-270.14  0-271.14  0-272.14
+                                 0-278.7@  0-280.15  0-281.15  0-282.15  0-283.15  0-284.15  0-285.15  0-290.10@  0-295.21  0-296.21
+                                 0-297.37  0-298.24  0-320.26  0-321.26  0-323.38  0-324.35  0-337.17  0-339.17  0-342.37  0-343.25
+                                 0-344.23  0-351.7@  0-354.15  0-355.15  0-359.22  0-360.22  0-362.24  0-378.27  0-379.27  0-382.37
+                                 0-394.19  0-396.19  0-400.26  0-401.23  0-404.15  0-405.15  0-406.15  0-407.15  0-408.15  0-409.15
+                                 0-415.7@  0-418.15  0-419.15  0-423.22  0-424.22  0-426.24  0-442.27  0-443.27  0-446.37  0-458.19
+                                 0-460.19  0-464.26  0-465.23  0-468.15  0-469.15  0-470.15  0-471.15  0-472.15  0-473.15  0-480.10@
+                                 0-481.15  0-482.15  0-483.15  0-484.15  0-485.15  0-486.15
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.10@  0-66.27  0-66.37  0-67.20  0-67.32  0-71.36  0-73.40  0-73.52  0-136.31  0-136.34@
+                                 0-137.26  0-137.29@  0-197.31  0-197.34@  0-198.26  0-198.29@  0-263.31  0-263.34@  0-264.26
+                                 0-264.29@  0-343.31  0-343.34@  0-344.26  0-344.29@  0-400.32  0-400.35@  0-401.26  0-401.29@
+                                 0-464.32  0-464.35@  0-465.26  0-465.29@
+ 
+kupt                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-93.11@  0-94.12  0-97.16  0-100.16  0-103.16  0-106.16  0-109.16  0-115.49  0-117.23  0-118.13
+                                 0-120.29  0-121.22  0-122.22  0-128.10@  0-129.12  0-129.27  0-130.20  0-132.20  0-159.11@
+                                 0-160.12  0-163.16  0-166.16  0-169.16  0-173.12  0-176.50  0-178.24  0-179.14  0-181.30  0-182.23
+                                 0-183.23  0-189.10@  0-190.12  0-190.27  0-191.20  0-192.16  0-192.29  0-193.20  0-225.11@
+                                 0-226.12  0-229.16  0-232.16  0-235.16  0-239.12  0-242.50  0-244.24  0-245.14  0-247.30  0-248.23
+                                 0-249.23  0-255.10@  0-256.12  0-256.27  0-257.20  0-258.16  0-258.29  0-259.20
+ 
+kvpt                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-300.11@  0-301.12  0-304.16  0-307.16  0-310.16  0-313.16  0-316.16  0-322.49  0-324.23  0-325.13
+                                 0-327.29  0-328.22  0-329.22  0-335.10@  0-336.12  0-336.27  0-337.20  0-339.20  0-364.12@
+                                 0-365.13  0-368.17  0-371.17  0-374.17  0-380.50  0-382.25  0-383.17  0-385.30  0-386.23  0-387.23
+                                 0-392.12@  0-393.14  0-393.29  0-394.22  0-396.22  0-428.12@  0-429.13  0-432.17  0-435.17
+                                 0-438.17  0-444.50  0-446.25  0-447.17  0-449.30  0-450.23  0-451.23  0-456.12@  0-457.14  0-457.29
+                                 0-458.22  0-460.22
+ 
+lam1                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-42.12$
+ 
+lam2                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-42.17$
+ 
+maxlev                           Parameter, Integer(4)
+                                 1-1.35$
+ 
+mod                              Pure Intrinsic
+                                 0-89.11  0-89.33  0-116.12  0-116.34  0-135.11  0-135.33  0-156.11  0-177.13  0-196.11  0-222.11
+                                 0-243.13  0-262.11  0-297.11  0-297.33  0-323.12  0-323.34  0-342.11  0-342.33  0-361.12  0-381.13
+                                 0-399.12  0-425.12  0-445.13  0-463.12
+ 
+pi                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-59.16  0-60.19  0-61.16
+ 
+poleii                           Static, Real(4) (1:3), Offset: 0, Alignment: full word
+                                 0-40.12$  0-48.12*  0-66.20
+ 
+polejj                           Static, Real(4) (1:3), Offset: 0, Alignment: full word
+                                 0-40.22$  0-49.12*  0-66.30
+ 
+r2d                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-62.7@
+ 
+re                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-63.16  0-63.21
+ 
+slat                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-113.9@  0-115.31  0-117.42  0-174.10@  0-176.32  0-178.43  0-240.10@  0-242.32  0-244.43
+                                 0-320.9@  0-322.31  0-324.42  0-378.10@  0-380.32  0-382.44  0-442.10@  0-444.32  0-446.44
+ 
+slon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-114.9@  0-115.36  0-117.47  0-175.10@  0-176.37  0-178.48  0-241.10@  0-242.37  0-244.48
+                                 0-321.9@  0-322.36  0-324.47  0-379.10@  0-380.37  0-382.49  0-443.10@  0-444.37  0-446.49
+ 
+sum                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-127.7@  0-137.36  0-198.36  0-264.36  0-334.7@  0-344.36  0-401.36  0-465.36
+ 
+sumdel                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-84.8@  0-120.9@  0-120.18  0-151.8@  0-181.10@  0-181.19  0-217.8@  0-247.10@  0-247.19  0-292.8@
+                                 0-327.9@  0-327.18  0-358.9@  0-385.10@  0-385.19  0-422.9@  0-449.10@  0-449.19
+ 
+swgt                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-126.7@  0-127.24  0-132.28  0-188.7@  0-193.28  0-254.7@  0-259.28  0-333.7@  0-334.24  0-339.28
+                                 0-391.9@  0-396.30  0-455.9@  0-460.30
+ 
+tlat                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-87.8@  0-90.27  0-115.21  0-154.8@  0-157.27  0-176.22  0-220.8@  0-223.27  0-242.22  0-295.8@
+                                 0-298.27  0-322.21  0-359.9@  0-362.27  0-380.22  0-423.9@  0-426.27  0-444.22
+ 
+tlon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-88.8@  0-90.32  0-115.26  0-155.8@  0-157.32  0-176.27  0-221.8@  0-223.32  0-242.27  0-296.8@
+                                 0-298.32  0-322.26  0-360.9@  0-362.32  0-380.27  0-424.9@  0-426.32  0-444.27
+ 
+twopi                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-60.7@
+ 
+vweights                         Subroutine
+                                 0-1.18$
+ 
+vwgts                            Common Block, Alignment: double word
+                                 0-44.15$
+ 
+w3fb10                           External Subroutine
+                                 0-115.14  0-176.15  0-242.15  0-322.14  0-380.15  0-444.15
+ 
+wu                               Common member, Real(4) (1:147, 1:111, 1:6), Offset: 0, Alignment: quadruple word
+                                 0-44.22$  0-130.11@  0-132.11@  0-137.17  0-149.8@  0-150.8@  0-191.11@  0-193.11@  0-198.17
+                                 0-201.8@  0-202.8@  0-203.8@  0-204.8@  0-205.8@  0-206.8@  0-215.8@  0-216.8@  0-257.11@
+                                 0-259.11@  0-264.17  0-267.8@  0-268.8@  0-269.8@  0-270.8@  0-271.8@  0-272.8@  0-280.9@  0-281.9@
+                                 0-282.9@  0-283.9@  0-284.9@  0-285.9@
+ 
+wv                               Common member, Real(4) (1:147, 1:111, 1:6), Offset: 391608, Alignment: double word
+                                 0-44.40$  0-337.11@  0-339.11@  0-344.17  0-354.9@  0-355.9@  0-394.13@  0-396.13@  0-401.17
+                                 0-404.9@  0-405.9@  0-406.9@  0-407.9@  0-408.9@  0-409.9@  0-418.9@  0-419.9@  0-458.13@
+                                 0-460.13@  0-465.17  0-468.9@  0-469.9@  0-470.9@  0-471.9@  0-472.9@  0-473.9@  0-481.9@  0-482.9@
+                                 0-483.9@  0-484.9@  0-485.9@  0-486.9@
+ 
+xmax                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-85.8@  0-121.9@  0-121.28  0-124.13  0-124.25  0-152.8@  0-182.10@  0-182.29  0-186.17  0-186.30
+                                 0-218.8@  0-248.10@  0-248.29  0-252.17  0-252.30  0-293.8@  0-328.9@  0-328.28  0-331.13  0-331.25
+                                 0-356.9@  0-386.10@  0-386.29  0-389.19  0-389.35  0-420.9@  0-450.10@  0-450.29  0-453.19
+                                 0-453.35
+ 
+xmeshl                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-55.7@  0-57.37  0-66.47
+ 
+xmin                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-86.8@  0-122.9@  0-122.28  0-124.18  0-153.8@  0-183.10@  0-183.29  0-186.22  0-219.8@  0-249.10@
+                                 0-249.29  0-252.22  0-294.8@  0-329.9@  0-329.28  0-331.18  0-357.9@  0-387.10@  0-387.29  0-389.24
+                                 0-421.9@  0-451.10@  0-451.29  0-453.24
+ 
+ydiff                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-125.7@  0-126.12  0-187.7@  0-188.12  0-253.7@  0-254.12  0-332.7@  0-333.12  0-390.9@  0-391.14
+                                 0-454.9@  0-455.14
+ 
+** vweights   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    VWEIGHTS.f                  10/09/02   12:46:06
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/parmg104
+                                      02/09/00   18:03:03      0      37
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     493
+1501-510  Compilation successful for file VWEIGHTS.f.
+1501-543  Object file created.

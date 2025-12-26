@@ -1,0 +1,5 @@
+!
+      real(4),pointer::sfcshx(:,:),sfclhx(:,:),subshx(:,:),snopcx(:,:)
+      real(4),pointer::sfcuvx(:,:),sfcevp(:,:),potevp(:,:),potflx(:,:)
+      COMMON/ACMSFC/TSRFC,NSRFC,ASRFC,SFCSHX,SFCLHX,SUBSHX
+      common/acmsfc/SNOPCX,SFCUVX,SFCEVP,POTEVP,POTFLX,APHTIM

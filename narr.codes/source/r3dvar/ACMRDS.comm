@@ -1,0 +1,5 @@
+!
+      real(4),pointer::rswin(:,:),rswout(:,:),rswtoa(:,:)
+      real(4),pointer::aswin(:,:),aswout(:,:),aswtoa(:,:),rswtt(:,:,:)
+      COMMON/ACMRDS/TRDSW,NRDSW,ARDSW,RSWIN,RSWOUT,RSWTOA,ASWIN
+      common/acmrds/ASWOUT,ASWTOA,RSWTT

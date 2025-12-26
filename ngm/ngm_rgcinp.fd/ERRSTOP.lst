@@ -1,0 +1,143 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/ERRSTOP.f 09/30/06 19:45:33
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE ERRSTOP (IOUTUPRT, ERRMSG2)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .
+          4 |C SUBPROGRAM:    ERRSTOP     TERMINATION OF JOB AFTER FATAL ERROR.
+          5 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-11-04
+          6 |C
+          7 |C ABSTRACT: TERMINATES THE JOB WITH A FATAL ERROR (RETURN CODE
+          8 |C   OF 8) AFTER WRITING MESSAGES TO THE PRINT FILE
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   85-11-04  JIM HOKE
+         12 |C   88-08-04  BRIAN SCHMIDT REVISED THE DOCBLOCK
+         13 |C   90-07-01  KEN MITCHELL CONVERTED TO CRAY Y-MP
+         14 |C
+         15 |C USAGE:  CALL ERRSTOP (IOUTUPRT, ERRMSG2)
+         16 |C   INPUT ARGUMENT LIST:
+         17 |C     IOUTUPRT - UNIT NUMBER OF THE PRINT FILE.
+         18 |C     ERRMSG2  - ERROR MESSAGE OF 2 LINES OF 70 CHARACTERS EACH.
+         19 |C                IN THE CALLING ROUTINE, ERRMSG2 CAN BE SET UP
+         20 |C                IN THE FOLLOWING MANNER:
+         21 |C
+         22 |C                CHARACTER*35 ERRMSG(4)
+         23 |C
+         24 |C                ERRMSG(1) = 'THIS IS A EXAMPLE OF SUBROUTINE ERR'
+         25 |C                ERRMSG(2) = 'STOP.  THE MESSAGE SHOULD BE 2 LINE'
+         26 |C                ERRMSG(3) = 'S OF 70 CHARACTERS EACH.           '
+         27 |C                ERRMSG(4) = '                                   '
+         28 |C
+         29 |C                CALL ERRSTOP (6, ERRMSG)
+         30 |C
+         31 |C ATTRIBUTES:
+         32 |C   LANGUAGE:  FORTRAN.
+         33 |C   MACHINE:   CRAY Y-MP
+         34 |C
+         35 |C$$$
+         36 |C
+         37 |C
+         38 |      IMPLICIT REAL (A-H, O-Z)
+         39 |C
+         40 |      CHARACTER*35 ERRMSG1(2)
+         41 |      CHARACTER*1  ERRMSG2(70, 2)
+         42 |C
+         43 |C
+         44 |C
+         45 |      IERRLEN2 = 70
+         46 |C
+         47 |C
+         48 |C              WRITE A MESSAGE TO THE OUTPUT FILE.
+         49 |      WRITE (IOUTUPRT,  100) ((ERRMSG2(I,J), I=1,IERRLEN2), J=1,2)
+         50 |  100 FORMAT ('0', 'THE EXECUTION OF THIS CONTROLLEE WILL BE ',
+         51 |     1             'ABORTED BECAUSE OF A FATAL ERROR.'/
+         52 |     2        ' ', 'THE ERROR MESSAGE WRITTEN TO THE DAYFILE IS:  '/
+         53 |     3        ' ', '                       ', 70A1/
+         54 |     4        ' ', '                       ', 70A1//)
+         55 |C
+         56 |C
+         57 |      call exit(8)
+         58 |Cwas  STOP 008
+         59 |C
+         60 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+errmsg1                          Static, Character(35) (1:2), Offset: 0, Alignment: full word
+                                 0-40.20$
+ 
+errmsg2                          Reference argument, Character(1) (1:70, 1:2), Offset: 0, Alignment: byte
+                                 0-41.20$  0-1.37  0-49.32
+ 
+errstop                          Subroutine
+                                 0-1.18$
+ 
+exit                             External Subroutine
+                                 0-57.12
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.40  0-49.46@
+ 
+ierrlen2                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-49.50
+ 
+ioutuprt                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.27  0-49.14
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.42  0-49.61@
+ 
+** errstop   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ERRSTOP.f                   10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      60
+1501-510  Compilation successful for file ERRSTOP.f.
+1501-543  Object file created.

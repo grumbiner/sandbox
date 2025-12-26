@@ -1,0 +1,200 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/BLEND.f 09/30/06 19:44:03
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE BLEND(A,IM,JM,LTBN)
+          2 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:45:34
+          3 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+          4 |      DIMENSION A(1)
+          5 |C
+          6 |      DATA FI/0.5E0/,FO/0.5E0/,NGO/1/,NGI/1/
+          7 |C
+          8 |      LTBNP1 = LTBN + 1
+          9 |      LTBNP2 = LTBN + 2
+         10 |C
+         11 |C          DEFINE FACTOR
+         12 |C SOUTH ROW
+         13 |      LENX= IM - 2 * LTBNP1
+         14 |      N = LTBN * IM + LTBNP2
+         15 |      NN = N + IM
+         16 |      NS = N - IM
+         17 |CMIC$ DO ALL VECTOR IF ((ABS(NN-N).GE.LENX .OR. NN-N.EQ.0) .AND. (ABS(NS
+         18 |CMIC$1   -N).GE.LENX .OR. NS-N.EQ.0)) SHARED(LENX, NN, FI, NS, FO, N, A)
+         19 |CMIC$2    PRIVATE(IQ2W6E)
+         20 |      DO 88890 IQ2W6E=1,LENX
+         21 |         A(N+IQ2W6E-1)=A(NN+IQ2W6E-1)*FI+A(NS+IQ2W6E-1)*FO
+         22 |88890 CONTINUE
+         23 |C NORTH ROW (LAST ROW IS USED, BLEND NEXT TO LAST ROW)
+         24 |      N = (JM-LTBNP1) * IM + LTBNP2
+         25 |      NN = N + IM
+         26 |      NS = N - IM
+         27 |CMIC$ DO ALL VECTOR IF ((ABS(NN-N).GE.LENX .OR. NN-N.EQ.0) .AND. (ABS(NS
+         28 |CMIC$1   -N).GE.LENX .OR. NS-N.EQ.0)) SHARED(LENX, NN, FO, NS, FI, N, A)
+         29 |CMIC$2    PRIVATE(IQ2W6E)
+         30 |      DO 88900 IQ2W6E=1,LENX
+         31 |         A(N+IQ2W6E-1)=A(NN+IQ2W6E-1)*FO+A(NS+IQ2W6E-1)*FI
+         32 |88900 CONTINUE
+         33 |C
+         34 |      IWEST = LTBNP1
+         35 |      IEAST = IM - LTBN
+         36 |C
+         37 |      DO 100 J = LTBNP2,JM-LTBNP1
+         38 |      M = (J-1) * IM
+         39 |C
+         40 |C WEST COLUMN (1ST COLUMN IS UN-USED, KEEP 2ND COLUMN, BLEND 3RD COLUMN)
+         41 |      N = M + IWEST
+         42 |      NE = N + NGI
+         43 |      NW = N - NGO
+         44 |      A(N) = A(NE)*FI + A(NW)*FO
+         45 |C
+         46 |C EAST COLUMN
+         47 |      N = M + IEAST
+         48 |      NE = N + NGO
+         49 |      NW = N - NGI
+         50 |      A(N) = A(NE)*FO + A(NW)*FI
+         51 |C
+         52 | 100  CONTINUE
+         53 |C
+         54 |C FOUR CORNERS
+         55 |C (SOUTH-WEST)
+         56 |      N = LTBN*IM + LTBNP1
+         57 |      A(N) = 0.25E0 * (A(N+1) + A(N-1) + A(N+IM) + A(N-IM))
+         58 |C (SOUTH-EAST)
+         59 |      N = LTBNP1*IM - LTBN
+         60 |      A(N) = 0.25E0 * (A(N+1) + A(N-1) + A(N+IM) + A(N-IM))
+         61 |C (NORTH-WEST)
+         62 |      N = (JM-LTBNP1)*IM + LTBNP1
+         63 |      A(N) = 0.25E0 * (A(N+1) + A(N-1) + A(N+IM) + A(N-IM))
+         64 |C (NORTH-EAST)
+         65 |      N = (JM-LTBN)*IM - LTBN
+         66 |      A(N) = 0.25E0 * (A(N+1) + A(N-1) + A(N+IM) + A(N-IM))
+         67 |C
+         68 |      RETURN
+         69 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-4.17$  0-1.24  0-21.10@  0-21.24  0-21.42  0-31.10@  0-31.24  0-31.42  0-44.7@  0-44.14  0-44.25
+                                 0-50.7@  0-50.14  0-50.25  0-57.7@  0-57.24  0-57.33  0-57.42  0-57.52  0-60.7@  0-60.24  0-60.33
+                                 0-60.42  0-60.52  0-63.7@  0-63.24  0-63.33  0-63.42  0-63.52  0-66.7@  0-66.24  0-66.33  0-66.42
+                                 0-66.52
+ 
+blend                            Subroutine
+                                 0-1.18$
+ 
+fi                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-6.12*  0-21.39  0-31.57  0-44.20  0-50.31
+ 
+fo                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-6.22*  0-21.57  0-31.39  0-44.31  0-50.20
+ 
+ieast                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-35.7@  0-47.15
+ 
+im                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.26  0-13.13  0-14.18  0-15.16  0-16.16  0-24.25  0-25.16  0-26.16  0-35.15  0-38.19  0-56.16
+                                 0-57.46  0-57.56  0-59.18  0-60.46  0-60.56  0-62.23  0-63.46  0-63.56  0-65.21  0-66.46  0-66.56
+ 
+iq2w6e                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-20.16@  0-21.14  0-21.29  0-21.47  0-30.16@  0-31.14  0-31.29  0-31.47
+ 
+iwest                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-34.7@  0-41.15
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-37.14@  0-38.12
+ 
+jm                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.29  0-24.12  0-37.25  0-62.12  0-65.12
+ 
+lenx                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-13.7@  0-20.25  0-30.25
+ 
+ltbn                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-8.16  0-9.16  0-14.11  0-35.20  0-56.11  0-59.23  0-65.15  0-65.26
+ 
+ltbnp1                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-8.7@  0-13.22  0-24.15  0-34.15  0-37.28  0-56.21  0-59.11  0-62.15  0-62.28
+ 
+ltbnp2                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-9.7@  0-14.23  0-24.30  0-37.18
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-38.7@  0-41.11  0-47.11
+ 
+n                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-14.7@  0-15.12  0-16.12  0-21.12  0-24.7@  0-25.12  0-26.12  0-31.12  0-41.7@  0-42.12  0-43.12
+                                 0-44.9  0-47.7@  0-48.12  0-49.12  0-50.9  0-56.7@  0-57.9  0-57.26  0-57.35  0-57.44  0-57.54
+                                 0-59.7@  0-60.9  0-60.26  0-60.35  0-60.44  0-60.54  0-62.7@  0-63.9  0-63.26  0-63.35  0-63.44
+                                 0-63.54  0-65.7@  0-66.9  0-66.26  0-66.35  0-66.44  0-66.54
+ 
+ne                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-42.7@  0-44.16  0-48.7@  0-50.16
+ 
+ngi                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-6.39*  0-42.16  0-49.16
+ 
+ngo                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-6.32*  0-43.16  0-48.16
+ 
+nn                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-15.7@  0-21.26  0-25.7@  0-31.26
+ 
+ns                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-16.7@  0-21.44  0-26.7@  0-31.44
+ 
+nw                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-43.7@  0-44.27  0-49.7@  0-50.27
+ 
+** blend   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    BLEND.f                     10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      69
+1501-510  Compilation successful for file BLEND.f.
+1501-543  Object file created.

@@ -1,0 +1,10 @@
+set -euax
+
+file=/gpfsuser/narr/output/output_1987/edas_1987082112/prepout.1987082100
+
+ln -sf events.cp               fort.20
+ln -sf prepbufr2.1987070112    fort.21
+ln -sf prepin                  fort.21
+ln -sf prepout                 fort.50
+rrvents.x
+

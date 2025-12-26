@@ -1,0 +1,88 @@
+      SUBROUTINE HSBG(N,A,IA)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    HSBG        CONVERT MATRIX TO UPPER HESSENBERG FORM
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-08
+C
+C ABSTRACT: CONVERT MATRIX TO UPPER HESSENBERG FORM.
+C
+C PROGRAM HISTORY LOG:
+C   88-09-08  PARRISH
+C
+C USAGE:    CALL HSBG(N,A,IA)
+C   INPUT ARGUMENT LIST:
+C     N        - ORDER OF MATRIX A
+C     A        - INPUT MATRIX
+C     IA       - FIRST DIMENSION OF A IN CALLING PROGRAM
+C
+C   OUTPUT ARGUMENT LIST:
+C     A        - OUTPUT UPPER HESSENBERG FORM OF MATRIX
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+      DIMENSION A(1)
+      DOUBLE PRECISION S
+      L=N
+      NIA=L*IA
+      LIA=NIA-IA
+   20 IF(L-3) 360,40,40
+   40 LIA=LIA-IA
+      L1=L-1
+      L2=L1-1
+      ISUB=LIA+L
+      IPIV=ISUB-IA
+      PIV=ABS(A(IPIV))
+      IF(L-3) 90,90,50
+   50 M=IPIV-IA
+      DO 80 I=L,M,IA
+      T=ABS(A(I))
+      IF(T-PIV) 80,80,60
+   60 IPIV=I
+      PIV=T
+   80 CONTINUE
+   90 IF(PIV) 100,320,100
+  100 IF(PIV-ABS(A(ISUB))) 180,180,120
+  120 M=IPIV-L
+      DO 140 I=1,L
+      J=M+I
+      T=A(J)
+      K=LIA+I
+      A(J)=A(K)
+  140 A(K)=T
+      M=L2-M/IA
+      DO 160 I=L1,NIA,IA
+      T=A(I)
+      J=I-M
+      A(I)=A(J)
+  160 A(J)=T
+  180 DO 200 I=L,LIA,IA
+  200 A(I)=A(I)/A(ISUB)
+      J=-IA
+      DO 240 I=1,L2
+      J=J+IA
+      LJ=L+J
+      DO 220 K=1,L1
+      KJ=K+J
+      KL=K+LIA
+  220 A(KJ)=A(KJ)-A(LJ)*A(KL)
+  240 CONTINUE
+      K=-IA
+      DO 300 I=1,N
+      K=K+IA
+      LK=K+L1
+      S=A(LK)
+      LJ=L-IA
+      DO 280 J=1,L2
+      JK=K+J
+      LJ=LJ+IA
+  280 S=S+A(LJ)*A(JK)*1.0D0
+  300 A(LK)=S
+      DO 310 I=L,LIA,IA
+  310 A(I)=0.0
+  320 L=L1
+      GO TO 20
+  360 RETURN
+      END

@@ -1,0 +1,13 @@
+C-----------------------------------------------------------------------
+      COMMON /CTLBLK/
+     & SIGMA,RUN,IDAT(3),IHRST,FIRST,RESTRT,NFCST,NBC,LIST,IOUT
+     &,DT,NTSD,NTSTM,NDDAMP,NPREC,IDTAD,NBOCO,NSHDE,NCP
+     &,NPHS,NRADS,NRADL
+      INTEGER NUM_PROCS, ME, JSTA, JEND,
+     &        JSTA_M, JSTA_M2, JEND_M, JEND_M2, IUP, IDN, ICNT, IDSP,
+     &        JSTA_2L, JEND_2U
+      COMMON /PARALLEL/NUM_PROCS, ME, JSTA, JEND, JSTA_M, JEND_M,
+     &                 JSTA_M2, JEND_M2, IUP, IDN, 
+     &                 ICNT(0:1023), IDSP(0:1023),
+     &                 JSTA_2L, JEND_2U
+C-----------------------------------------------------------------------

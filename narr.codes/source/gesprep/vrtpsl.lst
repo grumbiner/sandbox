@@ -1,0 +1,186 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/vrtpsl.f 08/24/05 14:24:55
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE vrtpsl(SI,SL,LVL,SIGMA)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    VRTPSL      COMPUTE LAYER SIGMA/ETA FROM INTERFACES
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 88-03-31
+          6 |C
+          7 |C ABSTRACT: COMPUTES THE SIGMA VALUES FOR LAYERS FROM THE
+          8 |C   BRACKETTING SIGMA VALUES AT INTERFACES
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   83-03-31  HOKE
+         12 |C   88-06-30  DIMEGO      DOCBLOCK HALF /  FTN200
+         13 |C   90-10-24  DIMEGO      added SIGMA argument and
+         14 |C                         logic for mean ETA in layer
+         15 |C
+         16 |C USAGE:    CALL VRTPSL(SI,SL,LVL,SIGMA)
+         17 |C   INPUT ARGUMENT LIST:
+         18 |C     SI       - ARRAY OF INTERFACE SIGMA/ETA VALUES
+         19 |C              - NORMALLY DECREASING FROM 1.0 TO 0.
+         20 |C              - IF FIRST VALUE > 1 SI CONTAINS PRESSURES
+         21 |C              - WHICH ARE TRANSFERRED DIRECTLY TO SL
+         22 |C     LVL      - NUMBER OF LAYERS CONTAINED IN SI ARRAY
+         23 |C     SIGMA    - LOGICAL switch for SIGMA vs ETA
+         24 |C
+         25 |C   OUTPUT ARGUMENT LIST:
+         26 |C     SL       - ARRAY OF LVL MID-POINT SIGMA/ETA VALUES
+         27 |C
+         28 |C REMARKS:  CANNOT USE V OPTION OF FTN200 COMPILER
+         29 |C
+         30 |C ATTRIBUTES:
+         31 |C   LANGUAGE: standard FORTRAN
+         32 |C   MACHINE:
+         33 |C
+         34 |C$$$
+         35 |      IMPLICIT REAL (A-H,O-Z)
+         36 |      LOGICAL SIGMA
+         37 |      DIMENSION PI( 99 ),PP( 99 ),PIB( 99 )
+         38 |      DIMENSION PSIG( 99 ),SL( 99 ),SI( 99 )
+         39 |C-------   FIRST WE TEST VALUE SI(1) FOR PRESSURES (MB)
+         40 |      IF( SI(1).GT.1.00 ) GO TO 10
+         41 |      IF( SIGMA ) THEN
+         42 |      LVLP1 = LVL + 1
+         43 |      CP = 1005.0
+         44 |      R = 287.05
+         45 |      ROCP = R / CP
+         46 |      CPOR = CP / R
+         47 |      PSFC = 1013.25
+         48 |      PP(LVLP1) = 0.
+         49 |      DO 1 K = 1,LVL
+         50 |      PP(K) = PSFC * SI(K)
+         51 |    1 CONTINUE
+         52 |      ONEKAP = 1.0 + ROCP
+         53 |      DO 2 K = 1,LVLP1
+         54 |      PI(K) = PP(K)**ONEKAP
+         55 |    2 CONTINUE
+         56 |      DO 3 K = 1,LVL
+         57 |      PIB(K) = (PI(K) - PI(K+1))/(ONEKAP*(PP(K) - PP(K+1)))
+         58 |    3 CONTINUE
+         59 |      DO 4 K = 1,LVL
+         60 |      PSIG(K) = PIB(K)**CPOR
+         61 |    4 CONTINUE
+         62 |      DO 5 K = 1,LVL
+         63 |      SL(K) = PSIG(K)/PSFC
+         64 |    5 CONTINUE
+         65 |      RETURN
+         66 |      ELSE
+         67 |C   simple mean value in layer for ETA
+         68 |      DO 6 K = 1,LVL
+         69 |        SL(K) = 0.5*(SI(K)+SI(K+1))
+         70 |    6 CONTINUE
+         71 |      RETURN
+         72 |      END IF
+         73 |   10 CONTINUE
+         74 |      DO 15 K = 1,LVL
+         75 |      SL(K) = SI(K)
+         76 |   15 CONTINUE
+         77 |      RETURN
+         78 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+cp                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-43.7@  0-45.18  0-46.14
+ 
+cpor                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-46.7@  0-60.25
+ 
+k                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.12@  0-50.10  0-50.25  0-53.12@  0-54.10  0-54.18  0-56.12@  0-57.11  0-57.20  0-57.28
+                                 0-57.46  0-57.54  0-59.12@  0-60.12  0-60.21  0-62.12@  0-63.10  0-63.20  0-68.12@  0-69.12
+                                 0-69.25  0-69.31  0-74.13@  0-75.10  0-75.18
+ 
+lvl                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.31  0-42.15  0-49.18  0-56.18  0-59.18  0-62.18  0-68.18  0-74.19
+ 
+lvlp1                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-42.7@  0-48.10  0-53.18
+ 
+onekap                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-52.7@  0-54.22  0-57.35
+ 
+pi                               Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-37.17$  0-54.7@  0-57.17  0-57.25
+ 
+pib                              Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-37.35$  0-57.7@  0-60.17
+ 
+pp                               Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-37.26$  0-48.7@  0-50.7@  0-54.15  0-57.43  0-57.51
+ 
+psfc                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-47.7@  0-50.15  0-63.23
+ 
+psig                             Automatic, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-38.17$  0-60.7@  0-63.15
+ 
+r                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-44.7@  0-45.14  0-46.19
+ 
+rocp                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-52.22
+ 
+si                               Reference argument, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-38.37$  0-1.25  0-40.11  0-50.22  0-69.22  0-69.28  0-75.15
+ 
+sigma                            Reference argument, Logical(4), Offset: 0, Alignment: full word
+                                 0-36.15$  0-1.35  0-41.11
+ 
+sl                               Reference argument, Real(4) (1:99), Offset: 0, Alignment: full word
+                                 0-38.28$  0-1.28  0-63.7@  0-69.9@  0-75.7@
+ 
+vrtpsl                           Subroutine
+                                 0-1.18$
+ 
+** vrtpsl   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    vrtpsl.f                    03/26/03   17:35:10
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      78
+1501-510  Compilation successful for file vrtpsl.f.
+1501-543  Object file created.

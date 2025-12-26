@@ -1,0 +1,2 @@
+       real(4),pointer::hbm1(:,:),vbm1(:,:)
+       common/mask1/hbm1,vbm1

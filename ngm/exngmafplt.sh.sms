@@ -1,0 +1,192 @@
+#!/bin/sh
+
+#####################################################################
+echo "------------------------------------------------"
+echo "JNGMAFPLT - NGM AFOS PLOT"
+echo "------------------------------------------------"
+echo "History: AUG 1996 - First implementation of this new script."
+echo "         FEB 2000 - Modified for implementation of the IBM SP"
+echo "         MAR 2007 - Make the graphics using GEMPAK tools"
+echo " "
+#####################################################################
+
+cd $DATA
+
+export XLFRTEOPTS="unit_vars=yes"
+
+##########################################
+#
+# START FLOW OF CONTROL
+#
+# 1) Get the NCEPDATE.
+#
+# 2) Dump ADPUPA data.
+#
+# 3) AIRPOLT1
+#
+# 4) MAKE 4 AIR POLLUTION GIFS/TIFFS FOR NCDC/TOC
+#
+# 5) MAKE 6 AIR POLLUTION REDBOOK GRAPHICS FOR AWIPS
+# 
+#########################################
+
+
+set -x
+
+set +x
+echo " "
+echo "######################################"
+echo " Dump ADPUPA Data"
+echo "######################################"
+echo " "
+set -x
+
+# LALO is set if doing geographic dumping
+#  AIRPOLT1 domain: 0N northward to 90N, 40W westward to 180W
+#                   (Blocks 71-78)
+export LALO=000090040180
+
+# BACK must be set to on if running background shells
+export BACK=on
+
+export dumptime=`cut -c7-16 ncepdate`
+
+set +x
+echo
+echo "CENTER DATA DUMP DATE-TIME FOR $tmmark $NET IS $dumptime"
+echo
+set -x
+
+msg="START THE $tmmark $NET DATA DUMP CENTERED ON $dumptime"
+postmsg "$jlogfile" "$msg"
+
+export COMSP=$COMOUT/$RUN.${cycle}.
+export tmmark=tm00
+export prepssmi=NO
+export prepersd=NO
+
+errdump=0
+
+   export STATUS=YES
+   export DUMP_NUMBER=1
+# Only Land Radiosonde Subtype is Dumped
+   export SKIP_002002=YES
+   export SKIP_002003=YES
+   export SKIP_002004=YES
+   export SKIP_002005=YES
+   export SKIP_004005=YES
+   $ushscript/bufr_dump_obs.sh $dumptime 1.5 1 adpupa
+   errdump=$?
+
+if [ "$errdump" -gt '5' ]; then
+   if [ "$errdump" -ne '11' -a "$errdump" -ne '22' ]; then
+
+## fatal error in dumping of BUFR obs. files
+      set +x
+      echo
+      echo " ###################################################### "
+      echo " --> > 22 RETURN CODE FROM DATA DUMP, $errdump "
+      echo " --> @@ F A T A L   E R R O R @@   --  ABNORMAL EXIT    "
+      echo " ###################################################### "
+      echo
+      set -x
+
+      err_exit
+      exit 9
+
+   else
+
+## a status code of 11 or 22 from dumping of BUFR obs. files
+## is non-fatal but still worth noting
+      set +x
+      echo
+      echo " ###################################################### "
+      echo " --> > 5 RETURN CODE FROM DATA DUMP, $errdump "
+      echo " --> NOT ALL DATA DUMP FILES ARE COMPLETE - CONTINUE    "
+      echo " ###################################################### "
+      echo
+      set -x
+   fi
+fi
+
+set +x
+echo " "
+echo "######################################"
+echo " Process AIRPOLT1"
+echo "######################################"
+echo " "
+set -x
+
+cp $COMIN/${RUN}.${cycle}.adpupa.tm00.bufr_d ADPUPA
+err=$?
+
+if test "$err" -ne 0
+then
+ msg="FAILURE TO COPY FILES FROM COM"
+ postmsg "$jlogfile" "$msg"
+ err_exit
+fi
+
+cp $FIXutil/graph_precpw.normals $DATA
+cp $UPADICT/metar.tbl $DATA
+
+export pgm=graph_airpolt1
+. prep_step
+
+export XLFUNIT_12="$DATA/ADPUPA"        # the input upper air buffer file.
+export XLFUNIT_14="$DATA/graph_precpw.normals" 
+export XLFUNIT_21="$DATA/metar.tbl" 
+export XLFUNIT_51="$DATA/airpol1.$job"   # file for next step
+export XLFUNIT_52="$DATA/table52.dat"   # file for next step
+export XLFUNIT_53="$DATA/table53.dat"   # file for next step
+export XLFUNIT_54="$DATA/table54.dat"   # file for next step
+export XLFUNIT_55="$DATA/table55.dat"   # file for next step
+export XLFUNIT_56="$DATA/table56.dat"   # file for next step
+export XLFUNIT_75="$DATA/airpolmsg.$pid" # the consol message file.
+
+
+startmsg
+
+$EXECgraph/graph_airpolt1 >> $pgmout  2>>errfile
+err=$?;export err; err_chk
+
+cp $FIXgempak/awips.tbl $DATA/awdef.tbl
+
+#
+# Make the title
+#
+
+echo 0000${PDY}${cyc} > dates
+export XLFUNIT_55="title.output"
+$EXECutil/webtitle  <  dates
+export TITLEIT=`cat title.output | cut -b 34-69`
+echo $TITLEIT
+#
+# Make 4 air pollution maps using GEMPAK tools 
+##############################################
+set -x
+
+. /nwprod/gempak/.gempak
+
+$utilscript/airplt_gempak.sh                           
+
+#
+#  Make the Redbook graphics using GEMPAK tools
+###############################################
+
+$utilscript/airplt_redbook.sh
+ 
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+set -x
+#####################################################################
+
+msg="HAS COMPLETED NORMALLY!"
+
+postmsg "$jlogfile" "$msg"
+############## END OF SCRIPT #######################

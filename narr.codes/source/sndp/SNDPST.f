@@ -1,0 +1,486 @@
+      PROGRAM SNDPST
+C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C MAIN PROGRAM: ETA_SNDP
+C   PRGMMR: ROGERS           ORG: NP22        DATE: 1999-09-24
+C
+C ABSTRACT:  THIS ROUTINE POSTS PROFILE DATA AND WRITES
+C   OUTPUT IN BUFR FORMAT.  THIS REPLACES CODE THAT USED TO
+C   RUN INSIDE OF CHKOUT IN THE ETA MODEL.
+C     
+C PROGRAM HISTORY LOG:
+C   95-07-26  MIKE BALDWIN
+C   96-05-07  MIKE BALDWIN - USE SMASK TO SET SOIL VARS TO MISSING
+C   96-11-22  MIKE BALDWIN - ADD OPTION OF DOING MONOLITHIC FILE OR
+C                            SPLIT OUT FILES OR BOTH
+C   97-12-16  MIKE BALDWIN - NEW MULTI-LEVEL PARAMETERS (SUCH
+C                            AS SOIL MOISTURE)
+C   98-07-23  ERIC ROGERS  - MADE Y2K COMPLIANT
+C   98-09-29  MIKE BALDWIN - SET ACC/AVE VARS TO MISSING AT T=0
+C   99-04-01  GEOFF MANIKIN - MAJOR CHANGES FEATURING A REMOVAL OF
+C                            THE DISTNICTION OF CLASS0 - ALL OUTPUT
+C                            IS NOW CLASS1.  ALSO, THE FIELDS OF
+C                            VISIBILITY AND CLOUD BASE PRESSURE 
+C                            ARE ADDED.
+C   99-09-03  JIM TUCCILLO - REDUCED MEMORY REQUIREMENTS BY CHANGING
+C                            THE SIZE OF PRODAT AND INTRODUCING LPRO.
+C                            ALSO, PRODAT'S STRUCTURE WAS CHANGED TO
+C                            PROVIDE STRIDE-1 ACCESS.
+C                            NOTE: THIS CODE CAN STILL BE MODIFIED TO
+C                            REDUCE MEMORY. THE CHANGES TODAY WILL
+C                            NOT AFFECT ITS FUNCTIONALITY BUT WILL
+C                            ALLOW IT TO RUN ON A WINTERHAWK NODE
+C                            WITHOUT PAGING. THE MEMORY REQUIREMENT
+C                            IS NOW AT ABOUT 260 MBs.
+C   00-03-10  GEOFF MANIKIN - CODE CHANGED TO BE READY FOR ETA EXTENSION
+C                            TO 60 HOURS
+C   00--5-15  ERIC ROGERS   - PUT NSOIL AND LM1 IN INCLUDED PARAMETER 
+C                             FILE
+C     
+C USAGE:   
+C   INPUT ARGUMENT LIST:
+C     NONE    
+C     
+C   OUTPUT FILES:
+C     NONE
+C     
+C   SUBPROGRAMS CALLED:
+C     UTILITIES:
+C       CALWXT
+C       CALHEL
+C       BFRIZE
+C     LIBRARY:
+C       BUFRLIB     
+C     
+C   ATTRIBUTES:
+C     LANGUAGE: FORTRAN
+C     MACHINE : CRAY C-90
+C$$$  
+C     
+C***
+C***   7/26/95 M. BALDWIN
+C*** 
+C***     SOUNDING POST PROCESSOR
+C***     PROGRAM TO READ THE PROFILE OUTPUT FILE ON THE CRAY
+C***     AND PRODUCE DIAGNOSTIC QUANTITIES AND PACK INTO BUFR
+C***
+C--------------------------------------------------------------------
+C
+C    PARMS FOR HOURLY PROFILER OUTPUT
+C      LM    - MAX NUMBER OF VERTICAL LEVELS
+C      NPNT  - MAX NUMBER OF OUTPUT TIMES    
+C      
+C          TO HOLD ALL VARIABLES FOR ANY CLASS OF OUTPUT
+C          (MAX NO MULTI-LAYER VARIABLES*LM + NO OF SINGLE LAYER VARS)
+C      LCL1ML - MAX NUMBER OF MULTI-LAYER VARIABLES FOR CLASS 0 OR 1
+C      LCL1SL - MAX NUMBER OF SINGLE LAYER VARIABLES FOR CLASS 0 OR 1
+C      LCL1SOIL - MAX NUMBER OF SOIL LAYER VARIABLES FOR CLASS 0 OR 1
+C      NSTAT - MAX NUMBER OF STATIONS
+C
+C        NOTE: THESE NUMBERS WILL BE LARGER THAN THE NUMBERS
+C              COMING OUT OF THE MODEL IN THE BINARY FILE SINCE
+C              WE ARE COMPUTING SOME ADDITIONAL VARIABLES TO GO INTO
+C              BUFR IN THIS PROGRAM.
+C
+C--------------------------------------------------------------------
+      INCLUDE "parmeta"
+      PARAMETER (LM=45,NPNT=61,NSTAT=2000
+     &, SPVAL=-99999.0,SMISS=1.E10
+     &, LCL1ML=13,LCL1SL=58,LCL1SOIL=2
+     &, LCL1ML1=13,LCL1SL1=50 
+     &, NWORD=(LCL1ML+1)*LM+2*LCL1SL+NSOIL*LCL1SOIL
+     &, ROG=287.04/9.8)
+      PARAMETER (SNOCON=1.4594E5,RAINCON=1.1787E4)
+C
+      LOGICAL LVLWSE,SEQFLG(8),NEED
+      CHARACTER*16 SEQNM1(8), SBSET
+      CHARACTER*80 CLIST1(8),FMTO,ASSIGN
+      CHARACTER*8 CISTAT
+cwas  DIMENSION FPACK(NWORD),PRODAT(NSTAT,NPNT,NWORD)
+      DIMENSION FPACK(NWORD)
+      REAL PRODAT(NWORD,NSTAT,NPNT)
+C
+C     THE PURPOSE OF LPRO IS TO HOLD THE VALUES OF RISTAT UNTIL
+C     THEY ARE COPIED TO FRODAT. THIS ADDITION WILL ALLOW PRODAT
+C     TO BE A REAL(4) ARRAY ( AND SAVE A CONSIDERABLE AMOUNT OF 
+C     MEMORY) . PRODAT CAN BE FURTHER REDUCED WITH SOME MORE EFFORT.
+C                    JIM TUCCILLO
+C
+      REAL(8) LPRO(NSTAT,NPNT)
+      REAL(8) RISTAT 
+cwas  REAL(8) PRODAT(NSTAT,NPNT,NWORD),RISTAT 
+      REAL(8) FRODAT(NWORD),WORKK(NWORD)
+      DIMENSION P(LM),T(LM),U(LM),V(LM),Q(LM),PINT(LM+1),ZINT(LM+1)
+      REAL CWTR(LM),IMXR(LM)
+      INTEGER IDATE(3),NP1(8),LLMH(NSTAT),NLVL(2)
+      EQUIVALENCE (CISTAT,RISTAT)
+C--------------------------------------------------------------------     
+C
+C     SET OUTPUT UNITS FOR CLASS 1 PROFILE FILE.
+C      LCLAS1 - OUTPUT UNIT FOR CLASS 1 BINARY FILE
+C      LTBCL1 - INPUT UNIT FOR CLASS 1 BUFR TABLE FILE
+C      LUNCL1 - OUTPUT UNIT FOR CLASS 1 BUFR FILE
+C
+C--------------------------------------------------------------------     
+                            I N T E G E R
+     & LCLAS1,LTBCL1,LUNCL1,STDOUT
+C--------------------------------------------------------------------     
+                            L O G I C A L
+     & MONOL,BRKOUT
+C--------------------------------------------------------------------     
+       NAMELIST /MODTOP/ ETOP
+       NAMELIST /OPTION/ MONOL,BRKOUT
+                            D A T A
+     & LCLAS1 / 76 /
+     &,LTBCL1 / 32 /
+     &,LUNCL1 / 78 /
+     &,STDOUT / 6 /
+     &,SEQNM1 /'HEADR','PROFILE','SURF','FLUX',
+     &         'HYDR','D10M','SLYR','XTRA'/
+     &,SEQFLG /.FALSE.,.TRUE.,.FALSE.,.FALSE.,.FALSE.,.FALSE.,
+     &   .TRUE.,.FALSE./
+     &,LVLWSE /.TRUE./
+      CALL W3TAGB('ETA_SNDP',1999,0267,0084,'NP22')
+
+
+      PRODAT=0.
+      FMTO='("ln -s ${DIRD}",I5.5,".",I4.4,3I2.2,'//
+     &     '"  fort.",I2.2)'
+C
+C   GET MODEL TOP PRESSURE
+C
+       PTOP=25.0*100.0
+       READ(5,MODTOP,END=12321)
+12321  CONTINUE
+       PTOP=ETOP*100.0
+C
+C   READ IN SWITCHES TO CONTROL WHETHER TO DO...
+C     MONOL=.TRUE.   DO MONOLITHIC FILE
+C     BRKOUT=.TRUE.  DO BREAKOUT FILES
+C
+       MONOL=.TRUE.
+       BRKOUT=.FALSE.
+       READ(11,OPTION,END=12322)
+12322  CONTINUE
+C
+        IFCSTL=-99
+        JHR=0
+C----------------------------------------------------------------------
+C---READ STATION DATA--------------------------------------------------
+C----------------------------------------------------------------------
+      LUNIT=66
+      LRECPR=4*(8+9+LCL1ML1*LM1+LCL1SL1)
+      OPEN(UNIT=LUNIT,ACCESS='DIRECT',RECL=LRECPR,IOSTAT=IER)
+      NREC=0
+ 33   CONTINUE
+      NREC=NREC+1
+c     READ(LUNIT,REC=NREC,END=999) IHRST,IDATE,IFCST,ISTAT,CISTAT,  
+      read(lunit,rec=nrec,err=999) IHRST,IDATE,IFCST,ISTAT,CISTAT,
+     &   (FPACK(N),N=1,9),(FPACK(N),N=10,FPACK(7))
+        IF (IFCST.GT.IFCSTL) THEN
+         INUMS=1
+         JHR=JHR+1
+         IFCSTL=IFCST
+        ELSE
+         INUMS=INUMS+1
+        ENDIF
+        IYR=IDATE(3)
+        IMON=IDATE(1)
+        IDAY=IDATE(2)
+        RLAT=FPACK(1)*DEG
+        RLON=FPACK(2)*DEG
+        ELEV=FPACK(3)
+        LLMH(INUMS)=NINT(FPACK(4))
+        LMH=NINT(FPACK(4))
+        DO 25 L=1,LMH
+C   REVERSE ORDER SO THAT P(1) IS THE TOP AND P(LMH) IS THE BOTTOM
+         LV=LMH-L+1
+         P(LV)=FPACK(L+9)
+         T(LV)=FPACK(L+9+LMH)
+         U(LV)=FPACK(L+9+LMH*2)
+         V(LV)=FPACK(L+9+LMH*3)
+         Q(LV)=FPACK(L+9+LMH*4)
+C   IF THE CLOUD WATER IS NEGATIVE, IT IS ICE
+         CWTR(LV)=FPACK(L+9+LMH*6)
+         IF (CWTR(LV).LT.0.) THEN
+           IMXR(LV)= -1. * CWTR(LV)
+           CWTR(LV)= 0. 
+           FPACK(L+9+LMH*6) = 0.
+         ELSE
+           IMXR(LV) = 0.
+         ENDIF
+ 25     CONTINUE
+
+C  USE SEA MASK TO SET SOIL/SFC VARIABLES TO MISSING VALUES
+C    (IF SEA)
+C
+         SM  =FPACK(13*LMH+54)
+         IF (SM.GT.0.5) THEN
+C   SMSTAV
+          FPACK(13*LMH+15)=SMISS
+C   SUBSHX
+          FPACK(13*LMH+21)=SMISS
+C   SNOPCX
+          FPACK(13*LMH+22)=SMISS
+C   ACSNOW, SMSTOT, SNO, ACSNOM, SSROFF, BGROFF, SOILTB
+          DO LKJ=20,26
+            FPACK(13*LMH+LKJ+9)=SMISS
+          ENDDO
+C   SFCEXC, VEGFRC, CMC, SMC(1:4), STC(1:4)
+          DO LKJ=34,44
+            FPACK(13*LMH+LKJ+9)=SMISS
+          ENDDO
+         ENDIF
+C
+C  GET PPT FOR CALWXT
+C
+         PPT  =FPACK(13*LMH+16)
+C     COMPUTE PINT,ZINT
+C
+        PINT(1)=PTOP
+        DO L=1,LMH
+          DP1=P(L)-PINT(L)
+          PINT(L+1)=P(L)+DP1
+        ENDDO
+        ZINT(LMH+1)=FPACK(3)
+        DO L=LMH,1,-1
+         TV2=T(L)*(1.0+0.608*Q(L))
+         ZZ=ROG*TV2*ALOG(PINT(L+1)/PINT(L))
+         ZINT(L)=ZINT(L+1)+ZZ
+        ENDDO
+C
+C     CALL PRECIP TYPE SUBROUTINE.
+C
+      CALL CALWXT(T,Q,P,PINT,LMH,LM,PPT,IWX)
+C     
+C     DECOMPOSE IWX
+C
+        CSNO=MOD(IWX,2)
+C
+        CICE=MOD(IWX,4)/2
+C
+        CFZR=MOD(IWX,8)/4
+C
+        CRAI=IWX/8
+C
+C
+C   COMPUTE HELICITY AND STORM MOTION
+C
+      CALL CALHEL(U,V,P,ZINT,PINT,LMH,LM,HELI,UST,VST)
+C
+C   COMPUTE VISIBILITY
+C   FIRST, EXTRACT THE SNOW RATIO AND SEA LEVEL PRESSURE
+      SR=FPACK(13*LMH+58)
+      SLP=FPACK(13*LMH+10)
+
+       if (PPT.LT.0.)then
+         PPT=0.0
+       endif
+
+       SNORATE=(SR/100.)*PPT/3600.
+       RAINRATE=(1-(SR/100.))*PPT/3600.
+       TERM1=(T(LMH)/SLP)**0.4167
+       TERM2=(T(LMH)/(P(LMH)))**0.5833
+       TERM3=RAINRATE**0.8333
+       QRAIN=RAINCON*TERM1*TERM2*TERM3
+       TERM4=(T(LMH)/SLP)**0.47
+       TERM5=(T(LMH)/(P(LMH)))**0.53
+       TERM6=SNORATE**0.94
+       QSNO=SNOCON*TERM4*TERM5*TERM6
+       TT=T(LMH)
+       QV=Q(LMH)
+       QCD=CWTR(LMH)
+       QICE=IMXR(LMH)
+       PPP=P(LMH)
+       CALL CALVIS(QV,QCD,QRAIN,QICE,QSNO,TT,PPP,HOVI)
+
+C   COMPUTE CLOUD BASE PRESSURE
+C   FIRST, EXTRACT THE CONVECTIVE CLOUD BASE
+       HBOT=FPACK(13*LMH+59)
+       CLIMIT =1.0E-06
+       NEED = .TRUE.
+       CDBP = SMISS
+       CBOT = 5000
+       DO L=LMH,1,-1
+C GSM
+C START AT THE FIRST LAYER ABOVE GROUND, AND FIND THE
+C   FIRST LAYER WITH A VALUE OF CLOUD WATER GREATER THAN
+C   THE SIGNIFICANT LIMIT (VALUE DESIGNATED BY Q. ZHAO).
+C   THIS LAYER WILL BE THE CLOUD BOTTOM UNLESS THE BOTTOM
+C   OF THE CONVECTIVE CLOUD (HBOT) IS FOUND BELOW IN WHICH
+C   CASE HBOT BECOMES THE CLOUD BASE LAYER.
+
+        IF ((CWTR(L)+IMXR(L)).GT.CLIMIT.AND.NEED) THEN
+            CBOT=L
+            IF (HBOT.GT.CBOT) THEN
+              CBOT = HBOT
+            ENDIF
+            NEED=.FALSE.
+          ENDIF
+        ENDDO
+
+
+        IF (CBOT.GT.LMH) THEN
+          CDBP=SMISS
+        ELSE
+          CDBP=P(INT(CBOT))
+        ENDIF
+         
+C
+C
+C   SET ACC/AVERAGED VARIABLES TO MISSING IF IFCST=0
+C
+      IF (IFCST.EQ.0) THEN
+          DO L=1,LMH
+           FPACK(L+9+LMH*7)=SMISS
+           FPACK(L+9+LMH*8)=SMISS
+          ENDDO
+          DO JK=16,29
+           FPACK(13*LMH+JK)=SMISS
+          ENDDO
+          DO JK=32,34
+           FPACK(13*LMH+JK)=SMISS
+          ENDDO
+      ENDIF
+C
+
+C      ADD 9 SINGLE LEVEL VARIABLES TO THE OUTPUT
+C      TACK THEM ON TO THE END;  WE DON'T NEED CONVECTIVE
+C      CLOUD BASE, THOUGH, SO WRITE OVER THAT RECORD
+C
+          NLEN = FPACK (7) 
+          FPACK(NLEN) = CSNO
+          FPACK(NLEN+1) = CICE
+          FPACK(NLEN+2) = CFZR
+          FPACK(NLEN+3) = CRAI
+          FPACK(NLEN+4) = UST
+          FPACK(NLEN+5) = VST
+          FPACK(NLEN+6) = HELI
+          FPACK(NLEN+7) = CDBP
+          FPACK(NLEN+8) = HOVI
+          FPACK(5) = FPACK(5) + 1
+          FPACK(6) = FPACK(6) + 8
+          FPACK(7) = 9 + FPACK(5)*FPACK(4) + FPACK(6)
+C
+C           PLACE DATA INTO PRODAT IN PROPER LOCATIONS
+
+          PRODAT (1,INUMS,JHR) = FLOAT(IFCST)
+          PRODAT (2,INUMS,JHR) = FLOAT(ISTAT)
+C         RISTAT is a REAL(8) variable by virtue of the fact that it 
+C         is equivalenced to CISTAT. Everything else stored in PRODAT
+C         is REAL(4). We have made PRODAT REAL(4) but need a REAL(8)
+C         array for storing RISTAT - that is what LPRO is. Farther
+C         down in the code, we will pull values out of LPRO and store
+C         in FRODAT ( a REAL(8) array ).
+cwas      PRODAT (3,INUMS,JHR) = RISTAT 
+          LPRO   (  INUMS,JHR) = RISTAT
+          PRODAT (4,INUMS,JHR) = FPACK (1)
+          PRODAT (5,INUMS,JHR) = FPACK (2)
+          PRODAT (6,INUMS,JHR) = FPACK (3)
+          PRODAT (7,INUMS,JHR) = 1 
+
+          DO IJ = 10, 13*LMH+9
+            PRODAT (IJ-2,INUMS,JHR) = FPACK (IJ)
+          ENDDO
+C    TACK ON THE ICE WATER TO THE PROFILE SECTION
+C    IT IS CURRENTLY WRITTEN IN REVERSE ORDER.
+          DO L=1,LMH
+            LV=LMH-L+1
+            PRODAT(L+7+LMH*13,INUMS,JHR)=IMXR(LV)
+          ENDDO
+          DO IJ = 13*LMH+10,NLEN+8
+            PRODAT (IJ+LMH-2,INUMS,JHR) = FPACK (IJ)
+          ENDDO
+        GOTO 33
+ 999    CONTINUE
+C
+C  WRITE OUT INDIVIDUAL FILES FOR EACH STATION
+C
+        IF (BRKOUT) THEN
+        DO I=1,INUMS
+         NLVL(1)=LLMH(I)
+         NLVL(2)=NSOIL
+C
+         DO J=1,JHR
+          DO IJ = 1, NWORD
+            FRODAT(IJ) = PRODAT (IJ,I,J)
+          ENDDO
+          FRODAT(3) = LPRO(I,J)
+          ISTAT=NINT(FRODAT(2))
+  
+C
+          IF (J.EQ.1) THEN
+C
+C     INITIALIZE BUFR LISTS SO BFRHDR WILL BE CALLED THE FIRST
+C     TIME THROUGH.
+C
+            WRITE(ASSIGN,FMTO) ISTAT,IYR,IMON,IDAY,IHRST,LCLAS1
+            CALL SYSTEM(ASSIGN)
+            CLIST1(1)=' '
+          ENDIF
+C
+C           CALL BUFR-IZING ROUTINE
+C
+           NSEQ = 8
+           SBSET = 'ETACLS1'
+          CALL BFRIZE(LTBCL1,LCLAS1,SBSET,IYR,IMON,IDAY,IHRST
+     1,               SEQNM1,SEQFLG,NSEQ,LVLWSE,FRODAT,NLVL,CLIST1,NP1
+     2,               WORKK,IER)
+          IF(IER.NE.0)WRITE(6,1080)ISTAT,IER,FRODAT(1)
+ 1080   FORMAT(' SOME SORT OF ERROR ',2I8,F9.1)
+C
+C
+         ENDDO
+C
+C   FINISHED, CLOSE UP BUFR FILES
+C
+        NSEQ = 8
+        CALL BFRIZE(0,LCLAS1,SBSET,IYR,IMON,IDAY,IHRST
+     1,             SEQNM1,SEQFLG,NSEQ,LVLWSE,FRODAT,NLVL,CLIST1,NP1
+     2,             WORKK,IER)
+         ENDDO
+         ENDIF
+         IF (MONOL) THEN
+C
+C  WRITE OUT ONE FILE FOR ALL STATIONS
+C
+C     INITIALIZE BUFR LISTS SO BFRHDR WILL BE CALLED THE FIRST
+C     TIME THROUGH.
+C
+            CLIST1(1)=' '
+        DO I=1,INUMS
+         NLVL(1)=LLMH(I)
+         NLVL(2)=NSOIL
+C
+         DO J=1,JHR
+          DO IJ = 1, NWORD
+            FRODAT(IJ) = PRODAT (IJ,I,J)
+          ENDDO
+          FRODAT(3) = LPRO(I,J)
+          ISTAT=NINT(FRODAT(2))
+C
+C           CALL BUFR-IZING ROUTINE
+C
+           NSEQ = 8
+           SBSET = 'ETACLS1'
+          CALL BFRIZE(LTBCL1,LUNCL1,SBSET,IYR,IMON,IDAY,IHRST
+     1,               SEQNM1,SEQFLG,NSEQ,LVLWSE,FRODAT,NLVL,CLIST1,NP1
+     2,               WORKK,IER)
+          IF(IER.NE.0)WRITE(6,1080)ISTAT,IER,FRODAT(1)
+C
+C
+         ENDDO
+         ENDDO
+C
+C   FINISHED, CLOSE UP BUFR FILES
+C
+        NSEQ = 8
+        CALL BFRIZE(0,LUNCL1,SBSET,IYR,IMON,IDAY,IHRST
+     1,             SEQNM1,SEQFLG,NSEQ,LVLWSE,FRODAT,NLVL,CLIST1,NP1
+     2,             WORKK,IER)
+         ENDIF
+C
+        WRITE(STDOUT,*) ' END OF SOUNDING POST '
+      CALL W3TAGE('ETA_SNDP')
+        STOP
+        END

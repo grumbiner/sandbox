@@ -1,0 +1,9 @@
+Call getenv (gfortran f77 addition)
+gncpus.f:C   GETENV       GET ENVIRONMENT VARIABLE
+gncpus.f:      INTEGER GETENV
+gncpus.f:      IRET=GETENV('NCPUS',CNCPUS)
+
+fftfax: -- ok
+
+ismin, ismax -- ?
+

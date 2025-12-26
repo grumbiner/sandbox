@@ -1,0 +1,6 @@
+!  common/PARMTBL/ contains constants from parm.tbl of eta model,
+!     but here, they are initialized from namelist input data, instead of
+!     using parameter statements.  
+
+         integer(4) itb,jtb,itbq,jtbq
+         common/PARMTBL/itb,jtb,itbq,jtbq

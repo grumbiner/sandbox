@@ -1,0 +1,12 @@
+                           PROGRAMS and SCRIPTS
+
+   In this directory are source code and scripts that were used by 
+NARR.  The files are intended for informational purposes only.  There 
+is absolutely NO support for these codes.   If you try to compile them 
+and you are missing a library or a subroutine, too bad.  If you have 
+a question about porting the code, too bad.  If you want to run a 
+regional model, I suggest that you look elsewhere.
+
+
+   The files in this directory are intended for people with technical 
+questions and who are willing to dig through the source code. 

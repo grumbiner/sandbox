@@ -1,0 +1,208 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/W3FA03.f 09/30/06 19:43:58
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE W3FA03(PRESS,HEIGHT,TEMP,THETA)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    W3FA03      COMPUTE STANDARD HEIGHT, TEMP, POT TEMP
+          5 |C   PRGMMR: MCDONELL, J.     ORG: W345       DATE: 74-07-01
+          6 |C
+          7 |C ABSTRACT: COMPUTES THE STANDARD HEIGHT, TEMPERATURE, AND POTENTIAL
+          8 |C   TEMPERATURE GIVEN THE PRESSURE IN MILLIBARS ( > 8.68 MB ).  FOR
+          9 |C   HEIGHT AND TEMPERATURE THE RESULTS DUPLICATE THE VALUES IN THE
+         10 |C   U.S. STANDARD ATMOSPHERE (L962), WHICH IS THE ICAO STANDARD
+         11 |C   ATMOSPHERE TO 54.7487 MB (20 KM) AND THE PROPOSED EXTENSION TO
+         12 |C   8.68 MB (32 KM).  FOR POTENTIAL TEMPERATURE A VALUE OF  2/7  IS
+         13 |C   USED FOR  RD/CP.
+         14 |C   FOR DETAILS OBTAIN WRITEUP FROM NMC/AD/SAB
+         15 |C
+         16 |C PROGRAM HISTORY LOG:
+         17 |C   74-07-01  MCDONELL, J.
+         18 |C   84-07-05  JONES, R.E.      UPDATE TO FORTRAN77.
+         19 |C
+         20 |C USAGE:    CALL W3FA03 (PRESS, HEIGHT, TEMP, THETA)
+         21 |C   INPUT ARGUMENT LIST:
+         22 |C     PRESS    - PRESSURE IN MILLIBARS
+         23 |C
+         24 |C   OUTPUT ARGUMENT LIST:
+         25 |C     A        - OUTPUT UPPER HESSENBERG FORM OF MATRIX
+         26 |C     HEIGHT   - HEIGHT IN METERS
+         27 |C     TEMP     - TEMPERATURE IN DEGREES KELVIN
+         28 |C     THETA    - POTENTIAL TEMPERATURE IN DEGREES KELVIN
+         29 |C
+         30 |C   REMARKS: NOT VALID FOR PRESSURES LESS THAN 8.68 MILLIBARS,
+         31 |C     DECLARE ALL PARAMETERS AS TYPE REAL*4 .
+         32 |C
+         33 |C ATTRIBUTES:
+         34 |C   LANGUAGE: IBM VS FORTRAN
+         35 |C   SOURCE STATEMENTS:  24    CORE SIZE: 6A8 (HEX) BYTES
+         36 |C
+         37 |C$$$
+         38 |C
+         39 |      REAL M0
+         40 |      DATA
+         41 |     *G     /9.80665/,
+         42 |     *RSTAR /8314.32/,
+         43 |     *M0    /28.9644/,
+         44 |     *PISO  /54.7487/,
+         45 |     *ZISO  /20000./,
+         46 |     *SALP  /-.0010/,
+         47 |     *PZERO /1013.25/,
+         48 |     *T0    /288.15/,
+         49 |     *ALP   /.0065/,
+         50 |     *PTROP /226.321/,
+         51 |     *TSTR  /216.65/
+         52 |C
+         53 |      ROVCP = 2.0 / 7.0
+         54 |      R     = RSTAR / M0
+         55 |      ROVG  = R / G
+         56 |      FKT   = ROVG * TSTR
+         57 |      AR    = ALP  * ROVG
+         58 |      PP0   = PZERO ** AR
+         59 |      IF (PRESS.LT.PISO)  GO TO 100
+         60 |      IF (PRESS.GT.PTROP) GO TO 200
+         61 |C
+         62 |C     COMPUTE ISOTHERMAL CASES
+         63 |C
+         64 |      HEIGHT = 11000.0 + FKT * ALOG(PTROP/PRESS)
+         65 |      TEMP = TSTR
+         66 |      GO TO 300
+         67 |C
+         68 |C     COMPUTE LAPSE RATE = -.0010 CASES
+         69 |C
+         70 | 100  AR     = SALP * ROVG
+         71 |      PP0    = PISO ** AR
+         72 |      HEIGHT = (TSTR/(PP0 * SALP )) * (PP0-(PRESS ** AR)) +ZISO
+         73 |      TEMP   = TSTR - (HEIGHT - ZISO) * SALP
+         74 |      GO TO 300
+         75 |C
+         76 | 200  HEIGHT = (T0/(PP0 * ALP)) * (PP0 - (PRESS ** AR))
+         77 |      TEMP   = T0-HEIGHT*ALP
+         78 |C
+         79 | 300  THETA  = TEMP * ((1000./PRESS) ** ROVCP)
+         80 |      RETURN
+         81 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+alog                             Pure Intrinsic Real(4)
+                                 0-64.32
+ 
+alp                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-49.7*  0-57.15  0-76.27  0-77.26
+ 
+ar                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-58.24  0-70.7@  0-71.24  0-72.54  0-76.52
+ 
+fkt                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-56.7@  0-64.26
+ 
+g                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-41.7*  0-55.19
+ 
+height                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-64.7@  0-72.7@  0-73.24  0-76.7@  0-77.19
+ 
+m0                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-39.12$  0-43.7*  0-54.23
+ 
+piso                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-44.7*  0-59.20  0-71.16
+ 
+pp0                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-71.7@  0-72.23  0-72.40  0-76.21  0-76.36
+ 
+press                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.26  0-59.11  0-60.11  0-64.43  0-72.45  0-76.43  0-79.31
+ 
+ptrop                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-50.7*  0-60.20  0-64.37
+ 
+pzero                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-47.7*  0-58.15
+ 
+r                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-54.7@  0-55.15
+ 
+rovcp                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-53.7@  0-79.41
+ 
+rovg                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-55.7@  0-56.15  0-57.22  0-70.23
+ 
+rstar                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-42.7*  0-54.15
+ 
+salp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-46.7*  0-70.16  0-72.29  0-73.41
+ 
+t0                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-48.7*  0-76.17  0-77.16
+ 
+temp                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.39  0-65.7@  0-73.7@  0-77.7@  0-79.16
+ 
+theta                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.44  0-79.7@
+ 
+tstr                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-51.7*  0-56.22  0-65.14  0-72.17  0-73.16
+ 
+w3fa03                           Subroutine
+                                 0-1.19$
+ 
+ziso                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-45.7*  0-72.60  0-73.33
+ 
+** w3fa03   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    W3FA03.f                    10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      81
+1501-510  Compilation successful for file W3FA03.f.
+1501-543  Object file created.

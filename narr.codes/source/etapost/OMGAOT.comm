@@ -1,0 +1,2 @@
+C
+      COMMON /OMGAOT/ OMGA(IM,JM,LM)

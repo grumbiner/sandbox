@@ -1,0 +1,71 @@
+#################################################################################
+#
+# Define the name of the executable
+#
+TARGET = ngm_ngmfcst
+#
+OPTS     = -O2
+FC       = gfortran
+CPPFLAGS = 
+LIB    = -L/Volumes/ncep/nwprod/ -lw3_4 -lbacio_4
+ESSL     = -lessl_r
+MASS     = -lmass -lmassv
+#
+# Assemble Options
+#
+FFLAGS   = $(OPTS)
+LIBS     = $(LIB) $(ESSL) $(MASS)
+#
+#
+# Non-threaded object files
+#
+OBJS=ALLGRIDS.o  OUTAREA.o   OUTSCALE.o  SHEMPRE.o  LAB2PDS.o  \
+  BIGCHG.o    HMDY.o      OUTCLOSE.o  OUTSIG2P.o  SKSKINT0.o \
+  BITHOLE.o   HQCOEF.o    OUTDAT2P.o  OUTSIGMA.o  SKSTEP1.o \
+  BITOUT.o    JULDAY.o    OUTFDTUV.o  OUTSMOO.o   SKSTEPAL.o \
+  BLEND.o     LATBND.o    OUTFIXED.o  OUTSVALU.o  SKTGRND0.o \
+  CHARNOCK.o  LL2GR.o     OUTGRWD.o   P2KAP.o     SMOOTH.o    SMOOTHA.o \
+  COSZEN.o    LWCLDSLW.o  OUTHORIZ.o  PARITY.o    RDHSCATR.o  \
+  DEWPOINT.o  OUTHYDRO.o  PHYPREP.o   RDHGATHR.o  SOUNDING.o \
+  DIAGFCST.o  LWFLUX.o    OUTLIFT.o   PHYSICS.o   STATS.o     FEQUEUE.o \
+  DIAGPRT.o   LWRADIAT.o  OUTLOLA.o   PRECIP.o    SWCLEAR.o \
+  DRYADB.o    MAIN.o      OUTMCONV.o  PRINTBIT.o  SWCLOUDY.o \
+  DUMPBIT.o   MIXDIAG.o   OUTNULAB.o  PRINTTIM.o  RDSTEP1.o   SWRADIAT.o \
+  MSTADB.o    OUTOMEGA.o  PRT.o       RDSTEPAL.o  SWSET.o     SKSBSOIL.o\
+  O3CLIMO.o   OUTOPEN.o   PRT25.o     RESTARTR.o  TEMPADJ.o   \
+  DUMPINT.o   O3INT.o     OUTPACK.o   PRTSQARE.o  RESTARTW.o  TOPRT25.o \
+  DUMPREAL.o  OUTPHYS.o   SEALDIAG.o  VAPTAB.o    OUTOPENGB.o GRIBIT.o\
+  ERRPRINT.o  ONEWAY.o    OUTPREP.o   RDCLDGEN.o  SFCEXCH.o   ZONEDIAG.o \
+  OUT2FILE.o  OUTPUT_new.o  SFCMIX.o    CONVRT.o  GRIBITN.o    GTBITS.o \
+  FILLHOLE.o  OUTABVOR.o  OUTRPAUS.o  SHEM.o      I84TGB.o    IDSDEF.o \
+  ISHELL.o ASNUNIT.o 
+#
+# Threaded object files
+#
+OBJST=	LWCRUNCH.o ONEGRID.o
+#
+# Includes
+#
+INCLUDES=parmodel
+#
+
+DEPS=$(INCLUDES)
+
+.SUFFIXES:	.F .f .o
+
+.f.o:
+	$(FC) $(FFLAGS) -c $<
+%.o : %.f
+	$(FC) $(FFLAGS) -c $<
+
+$(TARGET):	$(OBJS) $(OBJST)
+	$(FC) -o $@ $(OBJS) $(OBJST) $(LIBS)
+
+$(OBJS):
+	$(FC) $(FFLAGS) -c $<
+
+$(OBJST): $(DEPS)
+	$(FC) $(FFLAGS) -c $<
+
+clean:	
+	/bin/rm -f  *.lst *.o

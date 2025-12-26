@@ -1,0 +1,175 @@
+       SUBROUTINE DIAGPRT( NG, II, JJ, K1, K2 )
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    DIAGPRT     PRINTS HORIZONTAL ARRAYS
+C   PRGMMR: JIM TUCCILLO         ORG: W/NMC4     DATE:90-06-13
+C
+C ABSTRACT: PRINTS OUT HORIZONTAL ARRAYS OF NGM VARIABLES
+C   OF SIZE  20 X 20  FOR GRID    NG    , CENTERED ON I,J= II,JJ
+C   FOR LEVELS K=  K1 THRU K2  .
+C
+C PROGRAM HISTORY LOG:
+C   90-06-13  JIM TUCCILLO
+C
+C USAGE:    CALL DIAGPRT (NG, II, JJ, K1, K2)
+C   INPUT ARGUMENT LIST:
+C     NG       - GRID NUMBER
+C     II       - FIRST INDICE CENTER POINT FOR FIELD PRINTOUT
+C     JJ       - SECOND INDICE CENTER POINT FOR FIELD PRINTOUT
+C     K1       - LOWER VERTICAL INDICE FOR PRINTOUTS
+C     K2       - UPPER VERTICAL INDICE FOR PRINTOUTS
+C
+C   OUTPUT FILES:
+C     FT06F001 - FOR PRINTOUT OF NGM VARIABLE LABELS
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - PRT
+C     LIBRARY:
+C       COMMON   - COMBLANK
+C                  COMCONST
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+      INCLUDE 'parmodel'
+C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:54:05  
+C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL  BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+C
+C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+C          AND A FEW OTHER COMMON CONSTANTS.
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      DIMENSION X( 400 )
+C
+      NHR = ITIME/3600
+      NSEC = ITIME - NHR*3600
+      IM=IMG(NG)
+      JM=JMG(NG)
+      IJ=IM*JM
+C
+      I1=II-10
+      IF( I1 .GE. 1 ) GO TO 5
+      I1 = 1
+    5 I2 = I1 + 19
+      J1 = JJ - 10
+      IF( J1 .GE. 1 ) GO TO 10
+      J1 = 1
+   10 J2 = J1 + 19
+C        IN CHECKING OTHER EXTREMES IT IS ASSUMED THAT IM AND JM
+C        ARE BOTH .GE. 20
+      IF( I2 .LE. IM ) GO TO 11
+      I2=IM
+      I1=I2-19
+   11 IF( J2 .LE. JM ) GO TO 12
+      J2=JM
+      J1=J2-19
+   12 CONTINUE
+C
+C         FIRST THE SURFACE PRESSURE FIELD
+      PRINT 20
+   20 FORMAT(1H1,40X,'SFC PRESS FIELD  H ')
+      IAD = IADDRG(5,NG)
+      INC = I1-1+(J1-2)*IM
+      IRET = 1
+      INCK=INC+(K1-2)*IJ
+      GO TO 100
+C
+25    CONTINUE
+      K = K1
+71    IF ( K .GT. K2 ) GOTO 72
+C  25 DO 70 K = K1, K2
+      INC = INCK +IJ
+C
+C            THE FIELD OF HU
+      PRINT 30,K
+   30 FORMAT(1H1,40X,'HU FOR K=',I4)
+      IAD=IADDRG(1,NG)
+      IRET=2
+      GO TO 100
+C                THE FIELD OF HV
+   35 PRINT 40,K
+   40 FORMAT(1H1,40X,'HV FOR K=',I4)
+      IAD=IADDRG(2,NG)
+      IRET = 3
+      GO TO 100
+C         THE FIELD OF H TIMES THETA
+   45 PRINT 50,K
+   50 FORMAT(1H1,40X,'H*THETA FOR K =',I4)
+      IAD=IADDRG(3,NG)
+      IRET=4
+      GO TO 100
+C          THE FIELD OF H TIMES SPEC HUMIDITY
+   55 PRINT 60,K
+   60 FORMAT(1H1,40X,'H*SPEC HUMID FOR K=',I4)
+      IAD=IADDRG(4,NG)
+      IRET=5
+      GO TO 100
+C
+ 
+70    K = K + 1
+      GOTO 71
+72    CONTINUE
+CC 70 CONTINUE
+C
+      RETURN
+C
+C--------------------------------------------------
+C        COMPUTED GO TO ROUTINE TO ACCESS SUBROUTINE PRT
+  100 CONTINUE
+C
+      PRINT 102,NG,ITIME,NHR,NSEC
+  102 FORMAT(1H0,10X,'GRID',I4,', ITIME=',I8,' = ',I4,' HRS PLUS',
+     1  I6,'SECS')
+      PRINT 104,I1,I2,J1,J2
+  104 FORMAT(1H0,10X,'I GOES FROM',I3,' TO',I3,', J GOES FROM',
+     1  I3,' TO',I3)
+      IX=-19
+      IV=IAD+INC
+C
+CMIC$ DO ALL SHARED(IX, IV, IM, VBL, X) PRIVATE(J, IQ2W6E)
+      DO 110 J = 1, 20
+         DO 77001 IQ2W6E = 1, 20
+            X(IX+IQ2W6E-1+J*20) = VBL(IV+IM*J+IQ2W6E-1)
+77001    CONTINUE
+  110 CONTINUE
+C
+           CALL PRT(X, 20, 20 )
+C
+      GO TO (  25,  35,  45,  55,  70 ), IRET
+C
+C----------------------------------------------
+C
+      END

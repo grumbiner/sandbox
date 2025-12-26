@@ -1,0 +1,146 @@
+      SUBROUTINE CALMCVG(Q1D,U1D,V1D,IH,QCNVG)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .     
+C SUBPROGRAM:    CALMCVG     COMPUTES MOISTURE CONVERGENCE
+C   PRGRMMR: TREADON         ORG: W/NP2      DATE: 93-01-22       
+C     
+C ABSTRACT:
+C     GIVEN SPECIFIC HUMIDITY, Q, AND THE U-V WIND COMPONENTS
+C     THIS ROUTINE EVALUATES THE VECTOR OPERATION, 
+C                      DEL DOT (Q*VEC)
+C     WHERE,
+C        DEL IS THE VECTOR GRADIENT OPERATOR,
+C        DOT IS THE STANDARD DOT PRODUCT OPERATOR, AND
+C        VEC IS THE VECTOR WIND.
+C     MINUS ONE TIMES THE RESULTING SCALAR FIELD IS THE 
+C     MOISTURE CONVERGENCE WHICH IS RETURNED BY THIS ROUTINE.
+C     
+C     THE ROUTINE USES THE SAME FINITE DIFFERENCING SCHEME
+C     USED IN CALCULATING ABSOLUTE VORTICITY (SUBROUTINE 
+C     CALVOR).  THIS REQUIRES WINDS BE AT VELOCITY POINTS.
+C     IF THE U-V WIND COMPONENTS ARE AT MASS POINTS, SET 
+C     IH TO A POSITIVE INTEGER GREATER THAN ZERO.  REGARDLESS,
+C     SPECIFIC HUMIDITY IS INTERPOLATED TO VELOCITY POINTS.
+C   .     
+C     
+C PROGRAM HISTORY LOG:
+C   93-01-22  RUSS TREADON
+C   98-06-08  T BLACK - CONVERSION FROM 1-D TO 2-D
+C   00-01-04  JIM TUCCILLO - MPI VERSION              
+C     
+C USAGE:    CALL CALMCVG(Q1D,U1D,V1D,IH,QCNVG)
+C   INPUT ARGUMENT LIST:
+C     Q1D      - SPECIFIC HUMIDITY AT MASS POINTS (KG/KG)
+C     U1D      - U WIND COMPONENT (M/S)
+C     V1D      - V WIND COMPONENT (M/S)
+C     IH       - FLAG FOR MASS POINT WINDS.
+C                IH.GT.0 MEANS WINDS AT MASS POINTS.
+C
+C   OUTPUT ARGUMENT LIST: 
+C     QCNVG    - MOISTURE CONVERGENCE (1/S)
+C     
+C   OUTPUT FILES:
+C     NONE
+C     
+C   SUBPROGRAMS CALLED:
+C     UTILITIES:
+C       NONE
+C     LIBRARY:
+C       COMMON   - MASKS
+C                  DYNAM
+C                  OPTIONS
+C                  INDX
+C     
+C   ATTRIBUTES:
+C     LANGUAGE: FORTRAN 90
+C     MACHINE : CRAY C-90
+C$$$  
+C
+C     
+C     
+C     INCLUDE ETA GRID DIMENSIONS.  SET/DERIVE OTHER PARAMETERS.
+C     PARAMETER IPASS WAS THE NUMBER OF SMOOTHING PASSES TO APPLY
+C     TO THE FIELDS.  THIS IS NO LONGER DONE.
+C     
+      INCLUDE "parmeta"
+      INCLUDE "params"
+      PARAMETER (IPASS=6)
+C
+C     DECLARE VARIABLES.
+C     
+      REAL QDIV, R2DY, R2DX
+      REAL Q1D(IM,JM), U1D(IM,JM), V1D(IM,JM), QV(IM,JM)
+      REAL QCNVG(IM,JM), UWND(IM,JM), VWND(IM,JM)
+C     
+C     DECLARE COMMONS.
+      INCLUDE "DYNAM.comm"
+      INCLUDE "MASKS.comm"
+      INCLUDE "OPTIONS.comm"
+      INCLUDE "INDX.comm"
+      INCLUDE "CTLBLK.comm"
+C     
+C     
+C***************************************************************************
+C     START CALMCVG HERE.
+C     
+C     INITIALIZE MOISTURE CONVERGENCE ARRAY.  LOAD TEMPORARY WIND ARRAYS.
+C     
+!$omp  parallel do
+      DO J=JSTA,JEND
+      DO I=1,IM
+        QV(I,J) = D00
+        QCNVG(I,J) = D00
+        UWND(I,J)  = U1D(I,J)
+        VWND(I,J)  = V1D(I,J)
+        IF (UWND(I,J).EQ.SPVAL) UWND(I,J) = D00
+        IF (VWND(I,J).EQ.SPVAL) VWND(I,J) = D00
+      ENDDO
+      ENDDO
+C     
+C     FIND Q (AND U-V IF NECESSARY) AT V POINTS.
+C
+      CALL EXCH(Q1D)
+      CALL EXCH(U1D)
+      CALL EXCH(V1D)
+C
+!$omp  parallel do
+      DO J=JSTA_M,JEND_M
+      DO I=2,IM-1
+         QV(I,J) = D25*(Q1D(I,J-1)+Q1D(I+IVW(J),J)
+     1                 +Q1D(I+IVE(J),J)+Q1D(I,J+1))
+         IF (IH.GT.0) THEN
+            UWND(I,J) = D25*(U1D(I,J-1)+U1D(I+IVW(J),J)
+     1                      +U1D(I+IVE(J),J)+U1D(I,J+1))
+     2                      *VBM2(I,J)
+            VWND(I,J) = D25*(V1D(I,J-1)+V1D(I+IVW(J),J)
+     1                      +V1D(I+IVE(J),J)+V1D(I,J+1))
+     2                      *VBM2(I,J)
+         ENDIF
+      ENDDO
+      ENDDO
+C     
+C     LOOP TO COMPUTE MOISTURE CONVERGENCE.
+C
+      CALL EXCH(QV)
+      CALL EXCH(VWND)
+C
+!$omp  parallel do
+!$omp& private(iend,qdiv,qudx,qvdy,r2dx,r2dy)
+      DO J=JSTA_M2,JEND_M2
+      IEND=IM-1-MOD(J,2)
+        DO I=2,IEND
+          R2DX   = 1./(2.*DX(I,J))
+          R2DY   = 1./(2.*DY)   
+          QUDX   = (QV(I+IHE(J),J)*UWND(I+IHE(J),J)
+     1             -QV(I+IHW(J),J)*UWND(I+IHW(J),J))*R2DX
+          QVDY   = (QV(I,J+1)*VWND(I,J+1)-QV(I,J-1)*VWND(I,J-1))*R2DY
+          QDIV   = QUDX + QVDY
+          QCNVG(I,J) = -1.*QDIV*HBM2(I,J)
+        ENDDO
+      ENDDO
+C
+C     END OF ROUTINE.
+C     
+      RETURN
+      END
+

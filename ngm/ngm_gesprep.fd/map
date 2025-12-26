@@ -1,0 +1,585 @@
+ADDRESS MAP FOR ngm_gesprep
+*IE ADDRESS          LENGTH   AL CL TY Sym#  NAME                      SOURCE-FILE(OBJECT) or IMPORT-FILE{SHARED-OBJECT}
+--- ---------------- -------- -- -- -- ----- ------------------------- -------------------------------------------------
+ I                               RW ER S1    errno                     {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S2    times                     {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S3    __mod_init                {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S4    _Errno                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S5    exit                      {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S6    fprintf                   {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S7    fclose                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S8    printf                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S9    getrusage                 {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S10   __malloc_user_defined_name {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S11   __crt0v                   {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S12   __n_pthreads              {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               RW ER S13   __pthread_trace           {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               DS ER S14   pthread_init              {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               DS ER S15   _xlf_localtime_r          {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S16   _xlf_gmtime_r             {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S17   _xlf_gettimeofday         {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S18   _xlf_time_base_to_time    {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S19   _xlf_read_real_time       {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S20   _xlfWriteUfmt             {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S21   _xlfReadUfmt              {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S22   _xlfBeginIO               {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S23   _xlfWriteLDInt            {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S24   _xlfWriteLDChar           {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S25   _xlfWriteLDReal           {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S26   _xlfEndIO                 {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S27   _xlfExit                  {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S28   _xlfWriteFmt              {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S29   _xlfReadFmt               {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S30   _xlfWriteFmtArray         {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S31   _xlfIOCmd                 {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S32   _xlfWriteLDArray          {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S33   _xlfWriteUfmtArray        {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S34   _xlfReadUfmtArray         {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S35   _xlsmpParallelDoSetup_TPO {/usr/lib/libxlsmp.a[smprt_64.o]}
+ I                               DS ER S36   _xlsmpParSelf             {/usr/lib/libxlsmp.a[smprt_64.o]}
+ I                               DS ER S37   _xlipthds                 {/usr/lib/libxlsmp.a[smprt_64.o]}
+ I                               DS ER S38   dgef                      {/usr/lib/libessl.a[essl_64.o]}
+ I                               DS ER S39   dges                      {/usr/lib/libessl.a[essl_64.o]}
+ I                               DS ER S40   scrft                     {/usr/lib/libessl.a[essl_64.o]}
+ I                               DS ER S41   srcft                     {/usr/lib/libessl.a[essl_64.o]}
+ I                               DS ER S42   _xlimdlo                  {/usr/lpp/xlf/lib/libxlf90.a[math_64.o]}
+    0000000100000288 000000CD  2 PR SD S43   <.__start>                crt0_64.s(/lib/crt0_64.o)
+    0000000100000288             PR LD S44   .__start
+    0000000100000358 00000118  2 PR SD S45   <>                        ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000100000358             PR LD S46   .__threads_init
+    0000000100000470 00000058  2 PR SD S47   <>                        ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000100000470             PR LD S48   .call_pthread_init
+    00000001000004C8 00000028  2 GL SD S49   <.pthread_init>           glink64.s(/usr/lib/glink64.o)
+    00000001000004C8             GL LD S50   .pthread_init
+    00000001000004F0 00006BC8  3 PR SD S51   <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/GESPRP.f(GESPRP.o)
+    00000001000004F0             PR LD S52   .gesprp
+    00000001000004F0             PR LD S53   .main
+    00000001000070B8 00000062  2 PR SD S54   .fsav                     noname(/usr/lib/libc.a[fsavres_64.o])
+    00000001000070B8             PR LD S55   .$SAVEF14
+    00000001000070B8             PR LD S56   .Ssavef14
+    00000001000070B8             PR LD S57   ._savef14
+    00000001000070BC             PR LD S58   .$SAVEF15
+    00000001000070BC             PR LD S59   .Ssavef15
+    00000001000070BC             PR LD S60   ._savef15
+    00000001000070C0             PR LD S61   .$SAVEF16
+    00000001000070C0             PR LD S62   .Ssavef16
+    00000001000070C0             PR LD S63   ._savef16
+    00000001000070C4             PR LD S64   .$SAVEF17
+    00000001000070C4             PR LD S65   .Ssavef17
+    00000001000070C4             PR LD S66   ._savef17
+    00000001000070C8             PR LD S67   .$SAVEF18
+    00000001000070C8             PR LD S68   .Ssavef18
+    00000001000070C8             PR LD S69   ._savef18
+    00000001000070CC             PR LD S70   .$SAVEF19
+    00000001000070CC             PR LD S71   .Ssavef19
+    00000001000070CC             PR LD S72   ._savef19
+    00000001000070D0             PR LD S73   .$SAVEF20
+    00000001000070D0             PR LD S74   .Ssavef20
+    00000001000070D0             PR LD S75   ._savef20
+    00000001000070D4             PR LD S76   .$SAVEF21
+    00000001000070D4             PR LD S77   .Ssavef21
+    00000001000070D4             PR LD S78   ._savef21
+    00000001000070D8             PR LD S79   .$SAVEF22
+    00000001000070D8             PR LD S80   .Ssavef22
+    00000001000070D8             PR LD S81   ._savef22
+    00000001000070DC             PR LD S82   .$SAVEF23
+    00000001000070DC             PR LD S83   .Ssavef23
+    00000001000070DC             PR LD S84   ._savef23
+    00000001000070E0             PR LD S85   .$SAVEF24
+    00000001000070E0             PR LD S86   .Ssavef24
+    00000001000070E0             PR LD S87   ._savef24
+    00000001000070E4             PR LD S88   .$SAVEF25
+    00000001000070E4             PR LD S89   .Ssavef25
+    00000001000070E4             PR LD S90   ._savef25
+    00000001000070E8             PR LD S91   .$SAVEF26
+    00000001000070E8             PR LD S92   .Ssavef26
+    00000001000070E8             PR LD S93   ._savef26
+    00000001000070EC             PR LD S94   .$SAVEF27
+    00000001000070EC             PR LD S95   .Ssavef27
+    00000001000070EC             PR LD S96   ._savef27
+    00000001000070F0             PR LD S97   .$SAVEF28
+    00000001000070F0             PR LD S98   .Ssavef28
+    00000001000070F0             PR LD S99   ._savef28
+    00000001000070F4             PR LD S100  .$SAVEF29
+    00000001000070F4             PR LD S101  .Ssavef29
+    00000001000070F4             PR LD S102  ._savef29
+    00000001000070F8             PR LD S103  .$SAVEF30
+    00000001000070F8             PR LD S104  .Ssavef30
+    00000001000070F8             PR LD S105  ._savef30
+    00000001000070FC             PR LD S106  .$SAVEF31
+    00000001000070FC             PR LD S107  .Ssavef31
+    00000001000070FC             PR LD S108  ._savef31
+    00000001000070FC             PR LD S109  ._savef3
+    0000000100007120 000005A0  5 PR SD S110  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    0000000100007120             PR LD S111  .w3tagb
+    0000000100007440             PR LD S112  .w3tage
+    00000001000076C0 00000940  5 PR SD S113  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001000076C0             PR LD S114  .bucket
+    0000000100007780             PR LD S115  .elapse
+    00000001000077E0             PR LD S116  .cputim
+    0000000100007880             PR LD S117  .start_timer
+    0000000100007900             PR LD S118  .end_timer
+    00000001000079A0             PR LD S119  .resource
+    0000000100007C00             PR LD S120  .print_timing
+    0000000100007F40             PR LD S121  .summary
+    0000000100007FC0             PR LD S122  .start
+    0000000100008000 00000048  3 PR SD S123  <>                        rtc.f(/usr/lpp/xlf/lib/libxlf90.a[rtc_64.o])
+    0000000100008000             PR LD S124  .rtc
+    0000000100008010             PR LD S125  .rtc_
+    0000000100008048 00000080  3 PR SD S126  <>                        second_.c(/usr/lpp/xlf/lib/libxlf90.a[second__64.o])
+    0000000100008048             PR LD S127  .second_
+    00000001000080C8 00000028  2 GL SD S128  <._xlf_read_real_time>    glink64.s(/usr/lib/glink64.o)
+    00000001000080C8             GL LD S129  ._xlf_read_real_time
+    00000001000080F0 00000028  2 GL SD S130  <._xlf_time_base_to_time> glink64.s(/usr/lib/glink64.o)
+    00000001000080F0             GL LD S131  ._xlf_time_base_to_time
+    0000000100008118 00000028  2 GL SD S132  <.times>                  glink64.s(/usr/lib/glink64.o)
+    0000000100008118             GL LD S133  .times
+    0000000100008140 00000028  2 GL SD S134  <.getrusage>              glink64.s(/usr/lib/glink64.o)
+    0000000100008140             GL LD S135  .getrusage
+    0000000100008168 00000028  2 GL SD S136  <.printf>                 glink64.s(/usr/lib/glink64.o)
+    0000000100008168             GL LD S137  .printf
+    0000000100008190 00000028  2 GL SD S138  <.fprintf>                glink64.s(/usr/lib/glink64.o)
+    0000000100008190             GL LD S139  .fprintf
+    00000001000081B8 00000028  2 GL SD S140  <.fclose>                 glink64.s(/usr/lib/glink64.o)
+    00000001000081B8             GL LD S141  .fclose
+    00000001000081E0 00000028  2 GL SD S142  <._xlfBeginIO>            glink64.s(/usr/lib/glink64.o)
+    00000001000081E0             GL LD S143  ._xlfBeginIO
+    0000000100008208 00000028  2 GL SD S144  <._xlfEndIO>              glink64.s(/usr/lib/glink64.o)
+    0000000100008208             GL LD S145  ._xlfEndIO
+    0000000100008230 00000028  2 GL SD S146  <._xlfWriteFmt>           glink64.s(/usr/lib/glink64.o)
+    0000000100008230             GL LD S147  ._xlfWriteFmt
+    0000000100008260 00000160  5 PR SD S148  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    0000000100008260             PR LD S149  .w3locdat
+    00000001000083C0 00000568  3 PR SD S150  <>                        _xldtime.f(/usr/lpp/xlf/lib/libxlf90.a[_xldtime_64.o])
+    00000001000083C0             PR LD S151  ._xldtimeg
+    0000000100008798             PR LD S152  <.toascii>
+    0000000100008928 00000138  3 PR SD S153  <>                        _xldtaux.c(/usr/lpp/xlf/lib/libxlf90.a[_xldtaux_64.o])
+    0000000100008928             PR LD S154  ._xldtaux
+    0000000100008A60 00000028  2 GL SD S155  <._xlf_gettimeofday>      glink64.s(/usr/lib/glink64.o)
+    0000000100008A60             GL LD S156  ._xlf_gettimeofday
+    0000000100008A88 00000028  2 GL SD S157  <._xlf_localtime_r>       glink64.s(/usr/lib/glink64.o)
+    0000000100008A88             GL LD S158  ._xlf_localtime_r
+    0000000100008AB0 00000028  2 GL SD S159  <._xlf_gmtime_r>          glink64.s(/usr/lib/glink64.o)
+    0000000100008AB0             GL LD S160  ._xlf_gmtime_r
+    0000000100008AD8 00000028  2 GL SD S161  <._xlfReadFmt>            glink64.s(/usr/lib/glink64.o)
+    0000000100008AD8             GL LD S162  ._xlfReadFmt
+    0000000100008B00 000000A0  5 PR SD S163  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3doxdat.f(/nwprod/lib/libw3_4.a[w3doxdat.o])
+    0000000100008B00             PR LD S164  .w3doxdat
+    0000000100008BA0 000000C0  5 PR SD S165  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/iw3jdn.f(/nwprod/lib/libw3_4.a[iw3jdn.o])
+    0000000100008BA0             PR LD S166  .iw3jdn
+    0000000100008C60 00000200  5 PR SD S167  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3fs26.f(/nwprod/lib/libw3_4.a[w3fs26.o])
+    0000000100008C60             PR LD S168  .w3fs26
+    0000000100008E60 00000028  2 GL SD S169  <._xlfIOCmd>              glink64.s(/usr/lib/glink64.o)
+    0000000100008E60             GL LD S170  ._xlfIOCmd
+    0000000100008E88 00000028  2 GL SD S171  <._xlfReadUfmt>           glink64.s(/usr/lib/glink64.o)
+    0000000100008E88             GL LD S172  ._xlfReadUfmt
+    0000000100008EB0 00000028  2 GL SD S173  <._xlfReadUfmtArray>      glink64.s(/usr/lib/glink64.o)
+    0000000100008EB0             GL LD S174  ._xlfReadUfmtArray
+    0000000100008ED8 00000028  2 GL SD S175  <._xlfWriteLDReal>        glink64.s(/usr/lib/glink64.o)
+    0000000100008ED8             GL LD S176  ._xlfWriteLDReal
+    0000000100008F00 00000028  2 GL SD S177  <._xlfWriteLDArray>       glink64.s(/usr/lib/glink64.o)
+    0000000100008F00             GL LD S178  ._xlfWriteLDArray
+    0000000100008F28 00000028  2 GL SD S179  <._xlfWriteLDInt>         glink64.s(/usr/lib/glink64.o)
+    0000000100008F28             GL LD S180  ._xlfWriteLDInt
+    0000000100008F60 00000149  5 PR SD S181  <_log>                    log.s64s(/usr/lib/libmass.a[log.s645.o])
+    0000000100008F60             PR LD S182  .log
+    0000000100008F60             PR LD S183  ._log
+    00000001000090AC 00000028  2 GL SD S184  <._xlfWriteFmtArray>      glink64.s(/usr/lib/glink64.o)
+    00000001000090AC             GL LD S185  ._xlfWriteFmtArray
+    00000001000090D8 00000070  3 PR SD S186  <>                        _pxldmod.c(/usr/lpp/xlf/lib/libxlf90.a[_pxldmod_64.o])
+    00000001000090D8             PR LD S187  ._pxldmod
+    0000000100009148 00000028  2 GL SD S188  <._xlfWriteLDChar>        glink64.s(/usr/lib/glink64.o)
+    0000000100009148             GL LD S189  ._xlfWriteLDChar
+    0000000100009170 000007B8  3 PR SD S190  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/COF2GRD.f(COF2GRD.o)
+    0000000100009170             PR LD S191  .cof2grd
+    0000000100009940 000003A0  5 PR SD S192  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptran.f(/nwprod/lib/libsp_4.a[sptran.o])
+    0000000100009940             PR LD S193  .sptran
+    0000000100009CE0 00000040  5 PR SD S194  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/ncpus.f(/nwprod/lib/libsp_4.a[ncpus.o])
+    0000000100009CE0             PR LD S195  .ncpus
+    0000000100009D20 00000028  2 GL SD S196  <._xlipthds>              glink64.s(/usr/lib/glink64.o)
+    0000000100009D20             GL LD S197  ._xlipthds
+    0000000100009D60 00001520  5 PR SD S198  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf.f(/nwprod/lib/libsp_4.a[sptranf.o])
+    0000000100009D60             PR LD S199  .sptranf
+    000000010000A280             PR LD S200  <.sptranf@OL@1>
+    000000010000AA80             PR LD S201  <.sptranf@OL@2>
+    000000010000B280 00000028  2 GL SD S202  <._xlsmpParSelf>          glink64.s(/usr/lib/glink64.o)
+    000000010000B280             GL LD S203  ._xlsmpParSelf
+    000000010000B2C0 00000420  5 PR SD S204  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf0.f(/nwprod/lib/libsp_4.a[sptranf0.o])
+    000000010000B2C0             PR LD S205  .sptranf0
+    000000010000B6E0 00000040  5 PR SD S206  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spwget.f(/nwprod/lib/libsp_4.a[spwget.o])
+    000000010000B6E0             PR LD S207  .spwget
+    000000010000B720 00000A40  5 PR SD S208  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/speps.f(/nwprod/lib/libsp_4.a[speps.o])
+    000000010000B720             PR LD S209  .speps
+    000000010000C160 00000062  2 PR SD S210  .fres                     noname(/usr/lib/libc.a[fsavres_64.o])
+    000000010000C160             PR LD S211  .$RESTF14
+    000000010000C160             PR LD S212  .Srestf14
+    000000010000C160             PR LD S213  ._restf14
+    000000010000C164             PR LD S214  .$RESTF15
+    000000010000C164             PR LD S215  .Srestf15
+    000000010000C164             PR LD S216  ._restf15
+    000000010000C168             PR LD S217  .$RESTF16
+    000000010000C168             PR LD S218  .Srestf16
+    000000010000C168             PR LD S219  ._restf16
+    000000010000C16C             PR LD S220  .$RESTF17
+    000000010000C16C             PR LD S221  .Srestf17
+    000000010000C16C             PR LD S222  ._restf17
+    000000010000C170             PR LD S223  .$RESTF18
+    000000010000C170             PR LD S224  .Srestf18
+    000000010000C170             PR LD S225  ._restf18
+    000000010000C174             PR LD S226  .$RESTF19
+    000000010000C174             PR LD S227  .Srestf19
+    000000010000C174             PR LD S228  ._restf19
+    000000010000C178             PR LD S229  .$RESTF20
+    000000010000C178             PR LD S230  .Srestf20
+    000000010000C178             PR LD S231  ._restf20
+    000000010000C17C             PR LD S232  .$RESTF21
+    000000010000C17C             PR LD S233  .Srestf21
+    000000010000C17C             PR LD S234  ._restf21
+    000000010000C180             PR LD S235  .$RESTF22
+    000000010000C180             PR LD S236  .Srestf22
+    000000010000C180             PR LD S237  ._restf22
+    000000010000C184             PR LD S238  .$RESTF23
+    000000010000C184             PR LD S239  .Srestf23
+    000000010000C184             PR LD S240  ._restf23
+    000000010000C188             PR LD S241  .$RESTF24
+    000000010000C188             PR LD S242  .Srestf24
+    000000010000C188             PR LD S243  ._restf24
+    000000010000C18C             PR LD S244  .$RESTF25
+    000000010000C18C             PR LD S245  .Srestf25
+    000000010000C18C             PR LD S246  ._restf25
+    000000010000C190             PR LD S247  .$RESTF26
+    000000010000C190             PR LD S248  .Srestf26
+    000000010000C190             PR LD S249  ._restf26
+    000000010000C194             PR LD S250  .$RESTF27
+    000000010000C194             PR LD S251  .Srestf27
+    000000010000C194             PR LD S252  ._restf27
+    000000010000C198             PR LD S253  .$RESTF28
+    000000010000C198             PR LD S254  .Srestf28
+    000000010000C198             PR LD S255  ._restf28
+    000000010000C19C             PR LD S256  .$RESTF29
+    000000010000C19C             PR LD S257  .Srestf29
+    000000010000C19C             PR LD S258  ._restf29
+    000000010000C1A0             PR LD S259  .$RESTF30
+    000000010000C1A0             PR LD S260  .Srestf30
+    000000010000C1A0             PR LD S261  ._restf30
+    000000010000C1A4             PR LD S262  .$RESTF31
+    000000010000C1A4             PR LD S263  .Srestf31
+    000000010000C1A4             PR LD S264  ._restf31
+    000000010000C1A4             PR LD S265  ._restf3
+    000000010000C1E0 00000460  5 PR SD S266  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spffte.f(/nwprod/lib/libsp_4.a[spffte.o])
+    000000010000C1E0             PR LD S267  .spffte
+    000000010000C640 00000028  2 GL SD S268  <.scrft>                  glink64.s(/usr/lib/glink64.o)
+    000000010000C640             GL LD S269  .scrft
+    000000010000C668 00000028  2 GL SD S270  <.srcft>                  glink64.s(/usr/lib/glink64.o)
+    000000010000C668             GL LD S271  .srcft
+    000000010000C6A0 00002880  5 PR SD S272  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splat.f(/nwprod/lib/libsp_4.a[splat.o])
+    000000010000C6A0             PR LD S273  .splat
+    000000010000EF20 00000197  5 PR SD S274  <sincos>                  sincos_p4.s64s(/usr/lib/libmass.a[sincos_p4.s645.o])
+    000000010000EF20             PR LD S275  ._sin
+    000000010000EF20             PR LD S276  .sin
+    000000010000EFE0             PR LD S277  ._cos
+    000000010000EFE0             PR LD S278  .cos
+    000000010000F0B8 00000028  2 GL SD S279  <.dgef>                   glink64.s(/usr/lib/glink64.o)
+    000000010000F0B8             GL LD S280  .dgef
+    000000010000F0E0 00000028  2 GL SD S281  <.dges>                   glink64.s(/usr/lib/glink64.o)
+    000000010000F0E0             GL LD S282  .dges
+    000000010000F120 00001460  5 PR SD S283  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splegend.f(/nwprod/lib/libsp_4.a[splegend.o])
+    000000010000F120             PR LD S284  .splegend
+    0000000100010580 00000028  2 GL SD S285  <._xlsmpParallelDoSetup_TPO> glink64.s(/usr/lib/glink64.o)
+    0000000100010580             GL LD S286  ._xlsmpParallelDoSetup_TPO
+    00000001000105C0 00000480  5 PR SD S287  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf1.f(/nwprod/lib/libsp_4.a[sptranf1.o])
+    00000001000105C0             PR LD S288  .sptranf1
+    0000000100010A40 000013C0  5 PR SD S289  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spsynth.f(/nwprod/lib/libsp_4.a[spsynth.o])
+    0000000100010A40             PR LD S290  .spsynth
+    0000000100011E00 00000D40  5 PR SD S291  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spanaly.f(/nwprod/lib/libsp_4.a[spanaly.o])
+    0000000100011E00             PR LD S292  .spanaly
+    0000000100012B40 000004C0  5 PR SD S293  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranv.f(/nwprod/lib/libsp_4.a[sptranv.o])
+    0000000100012B40             PR LD S294  .sptranv
+    0000000100013000 00002860  5 PR SD S295  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranfv.f(/nwprod/lib/libsp_4.a[sptranfv.o])
+    0000000100013000             PR LD S296  .sptranfv
+    00000001000135E0             PR LD S297  <.sptranfv@OL@1>
+    00000001000140E0             PR LD S298  <.sptranfv@OL@2>
+    0000000100015860 00000940  5 PR SD S299  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spdz2uv.f(/nwprod/lib/libsp_4.a[spdz2uv.o])
+    0000000100015860             PR LD S300  .spdz2uv
+    00000001000161A0 00000BE0  5 PR SD S301  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spuv2dz.f(/nwprod/lib/libsp_4.a[spuv2dz.o])
+    00000001000161A0             PR LD S302  .spuv2dz
+    0000000100016D80 000000F9  5 PR SD S303  <_exp>                    exp_p4.s64s(/usr/lib/libmass.a[exp_p4.s645.o])
+    0000000100016D80             PR LD S304  .exp
+    0000000100016D80             PR LD S305  ._exp
+    0000000100016E7C 00000028  2 GL SD S306  <._xlfWriteUfmt>          glink64.s(/usr/lib/glink64.o)
+    0000000100016E7C             GL LD S307  ._xlfWriteUfmt
+    0000000100016EA4 00000028  2 GL SD S308  <._xlfWriteUfmtArray>     glink64.s(/usr/lib/glink64.o)
+    0000000100016EA4             GL LD S309  ._xlfWriteUfmtArray
+    0000000100016EE0 00000220  5 PR SD S310  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3movdat.f(/nwprod/lib/libw3_4.a[w3movdat.o])
+    0000000100016EE0             PR LD S311  .w3movdat
+    0000000100017100 00000600  5 PR SD S312  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3reddat.f(/nwprod/lib/libw3_4.a[w3reddat.o])
+    0000000100017100             PR LD S313  .w3reddat
+    0000000100017700 000000B8  3 PR SD S314  <>                        _xlirflr.f(/usr/lpp/xlf/lib/libxlf90.a[_xlirflr_64.o])
+    0000000100017700             PR LD S315  ._xlirflr
+    00000001000177B8 00000028  2 GL SD S316  <._xlimdlo>               glink64.s(/usr/lib/glink64.o)
+    00000001000177B8             GL LD S317  ._xlimdlo
+    00000001000177E0 000002E0  3 PR SD S318  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/vrtpsl.f(vrtpsl.o)
+    00000001000177E0             PR LD S319  .vrtpsl
+    0000000100017AC0 0000035D  5 PR SD S320  <pow>                     pow_p4.s64s(/usr/lib/libmass.a[pow_p4.s645.o])
+    0000000100017AC0             PR LD S321  .pow
+    0000000100017AC0             PR LD S322  ._pow
+    0000000100017E20 000000A0  3 PR SD S323  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/qfrmtp.f(qfrmtp.o)
+    0000000100017E20             PR LD S324  .qfrmtp
+    0000000100017EC0 00000848  3 PR SD S325  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ODABAT.f(ODABAT.o)
+    0000000100017EC0             PR LD S326  .odabat
+    0000000100018708 000002A8  3 PR SD S327  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/IJ2LL.f(IJ2LL.o)
+    0000000100018708             PR LD S328  .ij2ll
+    00000001000189B0 00000058  3 PR SD S329  <>                        _pxldatn2.f(/usr/lpp/xlf/lib/libxlf90.a[_pxldatn2_64.o])
+    00000001000189B0             PR LD S330  ._pxldatn2
+    0000000100018A20 00000196  5 PR SD S331  <_atan>                   atan_p4.s64s(/usr/lib/libmass.a[atan_p4.s645.o])
+    0000000100018A20             PR LD S332  ._atan
+    0000000100018A20             PR LD S333  .atan
+    0000000100018B20             PR LD S334  ._atan2
+    0000000100018B20             PR LD S335  .atan2
+    0000000100018BB8 00000280  2 PR SD S336  <>                        ../../../../../../../src/bos/usr/ccs/lib/libm/POWER/asinF.c(/usr/lib/libm.a[asinF_64.o])
+    0000000100018BB8             PR LD S337  ._asin
+    0000000100018E38 00000028  2 GL SD S338  <._Errno>                 glink64.s(/usr/lib/glink64.o)
+    0000000100018E38             GL LD S339  ._Errno
+    0000000100018E60 00000270  3 PR SD S340  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/xintrp.f(xintrp.o)
+    0000000100018E60             PR LD S341  .xintrp
+    00000001000190D0 00000360  3 PR SD S342  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/vexpnd.f(vexpnd.o)
+    00000001000190D0             PR LD S343  .vexpnd
+    0000000100019430 00000D98  3 PR SD S344  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ADABAT.f(ADABAT.o)
+    0000000100019430             PR LD S345  .adabat
+    000000010001A1C8 00000380  3 PR SD S346  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/SHLLET.f(SHLLET.o)
+    000000010001A1C8             PR LD S347  .shllet
+    000000010001A548 00000028  2 GL SD S348  <._xlfExit>               glink64.s(/usr/lib/glink64.o)
+    000000010001A548             GL LD S349  ._xlfExit
+    000000010001A570 000022B0  3 PR SD S350  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/EZSKCH.f(EZSKCH.o)
+    000000010001A570             PR LD S351  .ezskch
+    000000010001C820 00000360  3 PR SD S352  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/CONLEV.f(CONLEV.o)
+    000000010001C820             PR LD S353  .conlev
+    000000010001CB80 00000068  3 PR SD S354  <>                        _pxldfrac.c(/usr/lpp/xlf/lib/libxlf90.a[_pxldfrac_64.o])
+    000000010001CB80             PR LD S355  ._pxldfrac
+    000000010001CBE8 00000A10  3 PR SD S356  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ZSTATS.f(ZSTATS.o)
+    000000010001CBE8             PR LD S357  .zstats
+    000000010001D35C             PR LD S358  .dstats
+    000000010001D5F8 00000A00  3 PR SD S359  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/TSTATS.f(TSTATS.o)
+    000000010001D5F8             PR LD S360  .tstats
+    000000010001DD18             PR LD S361  .lstats
+    000000010001DFF8 00000028  2 GL SD S362  <.exit>                   glink64.s(/usr/lib/glink64.o)
+    000000010001DFF8             GL LD S363  .exit
+    000000010001E020 000011C0  3 RO SD S364  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/GESPRP.f(GESPRP.o)
+    000000010001F1E0 00000004  3 RO SD S365  <>                        second_.c(/usr/lpp/xlf/lib/libxlf90.a[second__64.o])
+    000000010001F1E8 00000698  3 RO SD S366  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    000000010001F880 00000718  3 RO SD S367  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    000000010001FF98 000000A5  3 RO SD S368  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    0000000100020080 00000138  7 RO SD S369  <tlog>                    log.s64s(/usr/lib/libmass.a[log.s645.o])
+    00000001000201B8 0000000C  3 RO SD S370  <>                        _pxldmod.c(/usr/lpp/xlf/lib/libxlf90.a[_pxldmod_64.o])
+    00000001000201C8 0000005C  3 RO SD S371  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/COF2GRD.f(COF2GRD.o)
+    0000000100020228 00000004  3 RO SD S372  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptran.f(/nwprod/lib/libsp_4.a[sptran.o])
+    0000000100020230 00000014  3 RO SD S373  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/speps.f(/nwprod/lib/libsp_4.a[speps.o])
+    0000000100020248 0000000C  3 RO SD S374  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf0.f(/nwprod/lib/libsp_4.a[sptranf0.o])
+    0000000100020258 00000004  3 RO SD S375  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spffte.f(/nwprod/lib/libsp_4.a[spffte.o])
+    0000000100020260 0000002C  3 RO SD S376  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splat.f(/nwprod/lib/libsp_4.a[splat.o])
+    0000000100020300 00000100  7 RO SD S377  %ttrig#                   tabtrig.s64s(/usr/lib/libmass.a[tabtrig.s645.o])
+    0000000100020400 00000020  3 RO SD S378  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splegend.f(/nwprod/lib/libsp_4.a[splegend.o])
+    0000000100020420 00000010  3 RO SD S379  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf.f(/nwprod/lib/libsp_4.a[sptranf.o])
+    0000000100020430 00000004  3 RO SD S380  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spsynth.f(/nwprod/lib/libsp_4.a[spsynth.o])
+    0000000100020438 00000004  3 RO SD S381  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranv.f(/nwprod/lib/libsp_4.a[sptranv.o])
+    0000000100020440 00000010  3 RO SD S382  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranfv.f(/nwprod/lib/libsp_4.a[sptranfv.o])
+    0000000100020450 00000008  3 RO SD S383  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spdz2uv.f(/nwprod/lib/libsp_4.a[spdz2uv.o])
+    0000000100020458 00000010  3 RO SD S384  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/sp/spuv2dz.f(/nwprod/lib/libsp_4.a[spuv2dz.o])
+    0000000100020480 00000118  7 RO SD S385  %texp#                    tabexp.s64s(/usr/lib/libmass.a[tabexp.s645.o])
+    0000000100020598 00000010  3 RO SD S386  <>                        _xlirflr.f(/usr/lpp/xlf/lib/libxlf90.a[_xlirflr_64.o])
+    00000001000205A8 00000014  3 RO SD S387  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3reddat.f(/nwprod/lib/libw3_4.a[w3reddat.o])
+    00000001000205C0 00000008  3 RO SD S388  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3movdat.f(/nwprod/lib/libw3_4.a[w3movdat.o])
+    00000001000205C8 00000014  3 RO SD S389  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/vrtpsl.f(vrtpsl.o)
+    0000000100020600 00000358  7 RO SD S390  <tpow>                    pow_p4.s64s(/usr/lib/libmass.a[pow_p4.s645.o])
+    0000000100020958 00000018  3 RO SD S391  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/qfrmtp.f(qfrmtp.o)
+    0000000100020970 00000378  3 RO SD S392  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ODABAT.f(ODABAT.o)
+    0000000100020CE8 0000001C  3 RO SD S393  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/IJ2LL.f(IJ2LL.o)
+    0000000100020D08 00000004  3 RO SD S394  <>                        _pxldatn2.f(/usr/lpp/xlf/lib/libxlf90.a[_pxldatn2_64.o])
+    0000000100020D80 000000D8  7 RO SD S395  <_atan>                   atan_p4.s64s(/usr/lib/libmass.a[atan_p4.s645.o])
+    0000000100020E58 00000010  3 RO SD S396  <>                        ../../../../../../../src/bos/usr/ccs/lib/libm/POWER/asinF.c(/usr/lib/libm.a[asinF_64.o])
+    0000000100020E68 00000008  3 RO SD S397  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/xintrp.f(xintrp.o)
+    0000000100020E70 00000008  3 RO SD S398  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/vexpnd.f(vexpnd.o)
+    0000000100020E78 00000378  3 RO SD S399  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ADABAT.f(ADABAT.o)
+    00000001000211F0 00000240  3 RO SD S400  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/SHLLET.f(SHLLET.o)
+    0000000100021430 00000458  3 RO SD S401  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/EZSKCH.f(EZSKCH.o)
+    0000000100021888 00000038  3 RO SD S402  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/CONLEV.f(CONLEV.o)
+    00000001000218C0 0000000C  3 RO SD S403  <>                        _pxldfrac.c(/usr/lpp/xlf/lib/libxlf90.a[_pxldfrac_64.o])
+    00000001000218D0 00000290  3 RO SD S404  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ZSTATS.f(ZSTATS.o)
+    0000000100021B60 00000288  3 RO SD S405  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/TSTATS.f(TSTATS.o)
+    0000000110000DE8 00000055  3 RW SD S406  <_$STATIC>                ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000110000E40 0000005A  3 RW SD S407  <_$STATIC>                ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110000EA0 00000280  3 RW SD S408  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    0000000110001120 0000000A  3 RW SD S409  <_$STATIC>                _xldtime.f(/usr/lpp/xlf/lib/libxlf90.a[_xldtime_64.o])
+    0000000110001130 00000038  3 RW SD S410  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    0000000110001168 000016F8  3 RW SD S411  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/GESPRP.f(GESPRP.o)
+    0000000110002860 00000188  3 RW SD S412  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/COF2GRD.f(COF2GRD.o)
+    00000001100029E8 000000D8  3 RW SD S413  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splat.f(/nwprod/lib/libsp_4.a[splat.o])
+    0000000110002AC0 0000003C  3 RW SD S414  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3reddat.f(/nwprod/lib/libw3_4.a[w3reddat.o])
+    0000000110002B00 000008D0  3 RW SD S415  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ODABAT.f(ODABAT.o)
+    00000001100033D0 00000008  3 RW SD S416  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/IJ2LL.f(IJ2LL.o)
+    00000001100033D8 00000122  3 RW SD S417  <_$STATIC>                ../../../../../../../src/bos/usr/ccs/lib/libm/POWER/asinF.c(/usr/lib/libm.a[asinF_64.o])
+    0000000110003500 00000200  3 RW SD S418  guesses                   ../../../../../../../src/bos/usr/ccs/lib/libm/guesses.c(/usr/lib/libm.a[guesses_64.o])
+    0000000110003700 000003C0  3 RW SD S419  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ADABAT.f(ADABAT.o)
+    0000000110003AC0 00000130  3 RW SD S420  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/SHLLET.f(SHLLET.o)
+    0000000110003BF0 00000608  3 RW SD S421  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/EZSKCH.f(EZSKCH.o)
+    00000001100041F8 00000030  3 RW SD S422  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/CONLEV.f(CONLEV.o)
+    0000000110004228 00000380  3 RW SD S423  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ZSTATS.f(ZSTATS.o)
+    00000001100045A8 00000B00  3 RW SD S424  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/TSTATS.f(TSTATS.o)
+*   00000001100050A8 00000010  2 DS SD S425  __start                   crt0_64.s(/lib/crt0_64.o)
+    00000001100050B8 00000018  3 DS SD S426  call_pthread_init         ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    00000001100050D0 00000018  3 DS SD S427  <sptranf@OL@1>            /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf.f(/nwprod/lib/libsp_4.a[sptranf.o])
+    00000001100050E8 00000018  3 DS SD S428  <sptranf@OL@2>            /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranf.f(/nwprod/lib/libsp_4.a[sptranf.o])
+    0000000110005100 00000018  3 DS SD S429  <sptranfv@OL@1>           /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranfv.f(/nwprod/lib/libsp_4.a[sptranfv.o])
+    0000000110005118 00000018  3 DS SD S430  <sptranfv@OL@2>           /gpfs/m/nco/ops/nwprod/lib/sorc/sp/sptranfv.f(/nwprod/lib/libsp_4.a[sptranfv.o])
+    0000000110005130 00000000  3 T0 SD S431  <TOC>
+    0000000110005130 00000004  2 TD CM S432  p_xargc                   crt0_64.s(/lib/crt0_64.o)
+    0000000110005138 00000008  3 TD CM S433  p_xargv                   crt0_64.s(/lib/crt0_64.o)
+    0000000110005140 00000008  3 TD CM S434  _malloc_user_defined_name ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110005148 00000008  3 TD SD S435  _pthread_init_routine     ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000110005150 00000008  3 TD CM S436  _bsd_init_routine         ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110005158 00000008  3 TD CM S437  _xti_tli_init_routine     ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110005160 00000008  3 TD CM S438  _nsl_init_routine         ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110005168 00000008  3 TD CM S439  __dce_compat_init_routine ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110005170 00000004  2 TD CM S440  p_xrcfg                   crt0_64.s(/lib/crt0_64.o)
+    0000000110005174 00000004  2 TD CM S441  p_xrc                     crt0_64.s(/lib/crt0_64.o)
+    0000000110005178 00000008  3 TC SD S442  <__C_runtime_pstartup>
+    0000000110005180 00000008  3 TC SD S443  <__crt0v>
+    0000000110005188 00000008  3 TC SD S444  <__malloc_user_defined_name>
+    0000000110005190 00000008  3 TC SD S445  <__pthread_trace>
+    0000000110005198 00000008  3 TC SD S446  <pthread_init>
+    00000001100051A0 00000008  3 TC SD S447  <_$STATIC>
+    00000001100051A8 00000008  3 TC SD S448  <_$STATIC>
+    00000001100051B0 00000008  3 TC SD S449  <__n_pthreads>
+    00000001100051B8 00000008  3 TC SD S450  <__mod_init>
+    00000001100051C0 00000008  3 TC SD S451  <errno>
+    00000001100051C8 00000008  3 TC SD S452  <>
+    00000001100051D0 00000008  3 TC SD S453  <grid>
+    00000001100051D8 00000008  3 TC SD S454  <_$STATIC_BSS>
+    00000001100051E0 00000008  3 TC SD S455  <_xlf_read_real_time>
+    00000001100051E8 00000008  3 TC SD S456  <_xlf_time_base_to_time>
+    00000001100051F0 00000008  3 TC SD S457  <>
+    00000001100051F8 00000008  3 TC SD S458  <times>
+    0000000110005200 00000008  3 TC SD S459  <>
+    0000000110005208 00000008  3 TC SD S460  <getrusage>
+    0000000110005210 00000008  3 TC SD S461  <printf>
+    0000000110005218 00000008  3 TC SD S462  <tot_wall>
+    0000000110005220 00000008  3 TC SD S463  <fp>
+    0000000110005228 00000008  3 TC SD S464  <fprintf>
+    0000000110005230 00000008  3 TC SD S465  <twall>
+    0000000110005238 00000008  3 TC SD S466  <tbytes>
+    0000000110005240 00000008  3 TC SD S467  <tcpu>
+    0000000110005248 00000008  3 TC SD S468  <final_wall>
+    0000000110005250 00000008  3 TC SD S469  <start_wall>
+    0000000110005258 00000008  3 TC SD S470  <fclose>
+    0000000110005260 00000008  3 TC SD S471  <trace_flag>
+    0000000110005268 00000008  3 TC SD S472  <profile>
+    0000000110005270 00000008  3 TC SD S473  <>
+    0000000110005278 00000008  3 TC SD S474  <_$STATIC>
+    0000000110005280 00000008  3 TC SD S475  <_xlfBeginIO>
+    0000000110005288 00000008  3 TC SD S476  <_xlfEndIO>
+    0000000110005290 00000008  3 TC SD S477  <_xlfWriteFmt>
+    0000000110005298 00000008  3 TC SD S478  <_xlf_gettimeofday>
+    00000001100052A0 00000008  3 TC SD S479  <_xlf_localtime_r>
+    00000001100052A8 00000008  3 TC SD S480  <_xlf_gmtime_r>
+    00000001100052B0 00000008  3 TC SD S481  <_$STATIC>
+    00000001100052B8 00000008  3 TC SD S482  <>
+    00000001100052C0 00000008  3 TC SD S483  <_$STATIC>
+    00000001100052C8 00000008  3 TC SD S484  <_xlfReadFmt>
+    00000001100052D0 00000008  3 TC SD S485  <_$STATIC>
+    00000001100052D8 00000008  3 TC SD S486  <_xlfIOCmd>
+    00000001100052E0 00000008  3 TC SD S487  <_xlfReadUfmt>
+    00000001100052E8 00000008  3 TC SD S488  <_xlfReadUfmtArray>
+    00000001100052F0 00000008  3 TC SD S489  <_xlfWriteLDReal>
+    00000001100052F8 00000008  3 TC SD S490  <_xlfWriteLDArray>
+    0000000110005300 00000008  3 TC SD S491  <_xlfWriteLDInt>
+    0000000110005308 00000008  3 TC SD S492  <blk3>
+    0000000110005310 00000008  3 TC SD S493  <>
+    0000000110005318 00000008  3 TC SD S494  <_xlfWriteFmtArray>
+    0000000110005320 00000008  3 TC SD S495  <>
+    0000000110005328 00000008  3 TC SD S496  <_xlfWriteLDChar>
+    0000000110005330 00000008  3 TC SD S497  <anlgrd>
+    0000000110005338 00000008  3 TC SD S498  <_$STATIC>
+    0000000110005340 00000008  3 TC SD S499  <>
+    0000000110005348 00000008  3 TC SD S500  <_xlipthds>
+    0000000110005350 00000008  3 TC SD S501  <>
+    0000000110005358 00000008  3 TC SD S502  <_xlsmpParSelf>
+    0000000110005360 00000008  3 TC SD S503  <>
+    0000000110005368 00000008  3 TC SD S504  <>
+    0000000110005370 00000008  3 TC SD S505  <>
+    0000000110005378 00000008  3 TC SD S506  <scrft>
+    0000000110005380 00000008  3 TC SD S507  <srcft>
+    0000000110005388 00000008  3 TC SD S508  <_$STATIC>
+    0000000110005390 00000008  3 TC SD S509  <>
+    0000000110005398 00000008  3 TC SD S510  <>
+    00000001100053A0 00000008  3 TC SD S511  <dgef>
+    00000001100053A8 00000008  3 TC SD S512  <_$STATIC_BSS>
+    00000001100053B0 00000008  3 TC SD S513  <dges>
+    00000001100053B8 00000008  3 TC SD S514  <>
+    00000001100053C0 00000008  3 TC SD S515  <sptranf@OL@1>
+    00000001100053C8 00000008  3 TC SD S516  <>
+    00000001100053D0 00000008  3 TC SD S517  <_xlsmpParallelDoSetup_TPO>
+    00000001100053D8 00000008  3 TC SD S518  <sptranf@OL@2>
+    00000001100053E0 00000008  3 TC SD S519  <>
+    00000001100053E8 00000008  3 TC SD S520  <>
+    00000001100053F0 00000008  3 TC SD S521  <sptranfv@OL@1>
+    00000001100053F8 00000008  3 TC SD S522  <>
+    0000000110005400 00000008  3 TC SD S523  <sptranfv@OL@2>
+    0000000110005408 00000008  3 TC SD S524  <>
+    0000000110005410 00000008  3 TC SD S525  <>
+    0000000110005418 00000008  3 TC SD S526  <>
+    0000000110005420 00000008  3 TC SD S527  <_xlfWriteUfmt>
+    0000000110005428 00000008  3 TC SD S528  <_xlfWriteUfmtArray>
+    0000000110005430 00000008  3 TC SD S529  <>
+    0000000110005438 00000008  3 TC SD S530  <_$STATIC>
+    0000000110005440 00000008  3 TC SD S531  <>
+    0000000110005448 00000008  3 TC SD S532  <_xlimdlo>
+    0000000110005450 00000008  3 TC SD S533  <>
+    0000000110005458 00000008  3 TC SD S534  <>
+    0000000110005460 00000008  3 TC SD S535  <t>
+    0000000110005468 00000008  3 TC SD S536  <>
+    0000000110005470 00000008  3 TC SD S537  <>
+    0000000110005478 00000008  3 TC SD S538  <_$STATIC>
+    0000000110005480 00000008  3 TC SD S539  <>
+    0000000110005488 00000008  3 TC SD S540  <_$STATIC>
+    0000000110005490 00000008  3 TC SD S541  <>
+    0000000110005498 00000008  3 TC SD S542  <>
+    00000001100054A0 00000008  3 TC SD S543  <_$STATIC>
+    00000001100054A8 00000008  3 TC SD S544  <>
+    00000001100054B0 00000008  3 TC SD S545  <guesses>
+    00000001100054B8 00000008  3 TC SD S546  <_Errno>
+    00000001100054C0 00000008  3 TC SD S547  <>
+    00000001100054C8 00000008  3 TC SD S548  <>
+    00000001100054D0 00000008  3 TC SD S549  <>
+    00000001100054D8 00000008  3 TC SD S550  <_$STATIC>
+    00000001100054E0 00000008  3 TC SD S551  <>
+    00000001100054E8 00000008  3 TC SD S552  <_$STATIC>
+    00000001100054F0 00000008  3 TC SD S553  <_xlfExit>
+    00000001100054F8 00000008  3 TC SD S554  <>
+    0000000110005500 00000008  3 TC SD S555  <_$STATIC>
+    0000000110005508 00000008  3 TC SD S556  <>
+    0000000110005510 00000008  3 TC SD S557  <_$STATIC>
+    0000000110005518 00000008  3 TC SD S558  <>
+    0000000110005520 00000008  3 TC SD S559  <>
+    0000000110005528 00000008  3 TC SD S560  <_$STATIC_BSS>
+    0000000110005530 00000008  3 TC SD S561  <_$STATIC>
+    0000000110005538 00000008  3 TC SD S562  <>
+    0000000110005540 00000008  3 TC SD S563  <_$STATIC_BSS>
+    0000000110005548 00000008  3 TC SD S564  <_$STATIC>
+    0000000110005550 00000008  3 TC SD S565  <exit>
+    0000000110005558 00000008  2 RW CM S566  __C_runtime_pstartup      crt0_64.s(/lib/crt0_64.o)
+    0000000110005560 0000001C  3 RW CM S567  grid                      /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/COF2GRD.f(COF2GRD.o)
+    0000000110005580 00000078  3 RW CM S568  <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    00000001100055F8 00000008  3 RW CM S569  tot_wall                  /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005600 00000008  3 RW CM S570  fp                        /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005608 00000008  3 RW CM S571  twall                     /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005610 00000008  3 RW CM S572  tbytes                    /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005618 00000008  3 RW CM S573  tcpu                      /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005620 00000008  3 RW CM S574  final_wall                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005628 00000008  3 RW CM S575  start_wall                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005630 00000004  2 RW CM S576  trace_flag                /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005634 00000004  2 RW CM S577  profile                   /gpfs/m/nco/ops/nwprod/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110005638 0000012A  3 RW CM S578  blk3                      /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/CONLEV.f(CONLEV.o)
+    0000000110005768 0007EEA0  3 RW CM S579  anlgrd                    /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/GESPRP.f(GESPRP.o)
+    0000000110084608 00000004  2 RW CM S580  <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/sp/splat.f(/nwprod/lib/libsp_4.a[splat.o])
+    0000000110084610 000003A8  3 RW CM S581  <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/ZSTATS.f(ZSTATS.o)
+    00000001100849B8 00000078  3 RW CM S582  <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/TSTATS.f(TSTATS.o)

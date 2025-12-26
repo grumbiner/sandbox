@@ -1,0 +1,65 @@
+CFPP$ NOCONCUR R
+      SUBROUTINE FLPFLM(FLP,FLM,ANL)
+C.................................................................
+C  FOR LOOPA
+C
+      PARAMETER(LOTA=3*#LEVS+1*#LEVH+1)
+C
+       DIMENSION
+     X FLP(2,#JCAP1,LOTA),FLM(2,#JCAP1,LOTA),
+     X ANL(#LONF22,LOTA)
+C
+C.................................................................
+C
+C     DO K=1,4*#LEVS+1
+      DO K=1,LOTA
+      DO  LL=1,#JCAP1
+C DO N.HEMI
+       FLP(1,LL,K)=ANL(2*(LL-1)+1,K)+
+     1             ANL(2*(LL-1)+1+#LONF,K)
+       FLP(2,LL,K)=ANL(2*(LL-1)+2,K)+
+     1             ANL(2*(LL-1)+2+#LONF,K)
+C
+C DO S.HEMI
+C
+       FLM(1,LL,K)=ANL(2*(LL-1)+1,K)-
+     1             ANL(2*(LL-1)+1+#LONF,K)
+       FLM(2,LL,K)=ANL(2*(LL-1)+2,K)-
+     1             ANL(2*(LL-1)+2+#LONF,K)
+      ENDDO
+      ENDDO
+C.................................................................
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE FBPFBM(FLP,FLM,ANL)
+C.................................................................
+C  FOR LOOPB
+C
+      PARAMETER(LOTA=3*#LEVS+1*#LEVH+0)
+C
+       DIMENSION
+     X FLP(2,#JCAP1,LOTA),FLM(2,#JCAP1,LOTA),
+     X ANL(#LONF22,LOTA)
+C
+C.................................................................
+C
+      DO K=1,LOTA
+      DO  LL=1,#JCAP1
+C DO N.HEMI
+       FLP(1,LL,K)=ANL(2*(LL-1)+1,K)+
+     1             ANL(2*(LL-1)+1+#LONF,K)
+       FLP(2,LL,K)=ANL(2*(LL-1)+2,K)+
+     1             ANL(2*(LL-1)+2+#LONF,K)
+C
+C DO S.HEMI
+C
+       FLM(1,LL,K)=ANL(2*(LL-1)+1,K)-
+     1             ANL(2*(LL-1)+1+#LONF,K)
+       FLM(2,LL,K)=ANL(2*(LL-1)+2,K)-
+     1             ANL(2*(LL-1)+2+#LONF,K)
+      ENDDO
+      ENDDO
+C.................................................................
+      RETURN
+      END

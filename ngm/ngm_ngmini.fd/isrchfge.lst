@@ -1,0 +1,506 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/isrchfge.f 09/30/06 19:44:05
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |	function isrchflt(num,a,inca,target)
+          2 |
+          3 |!	---------------------------------------------
+          4 |!
+          5 |!	Searches a real vector for the first element
+          6 |!	that is less than a real target
+          7 |!
+          8 |!	ouput :		i*4	array index of result
+          9 |!	input :	num	i*4	number of array elements
+         10 |!		a	r*4	real input array (vector)
+         11 |!		inca 	i*4	increment between data
+         12 |!				values in a (not used)
+         13 |!		target	r*4	target value
+         14 |!
+         15 |!	Steve Nieman	- May 1997
+         16 |!
+         17 |!	----------------------------------------------
+         18 |
+         19 |
+         20 |        integer(4) num,inca,isrchflt
+         21 |        real(4) a(*),target
+         22 |
+         23 |        integer(4) ianswer,i
+         24 |
+         25 |	ianswer = 0
+         26 |
+         27 |	if(num.le.0)then
+         28 |	  ianswer=0
+         29 |	  goto 200
+         30 |	endif
+         31 |
+         32 |	do i=1,num
+         33 |	  if(a(1+(i-1)*inca).lt.target)goto 100
+         34 |	enddo
+         35 |
+         36 |	ianswer = num + 1
+         37 |	goto 200
+         38 |
+         39 |100	continue
+         40 |
+         41 |	ianswer = i
+         42 |
+         43 |200	continue
+         44 |
+         45 |	isrchflt = ianswer
+         46 |
+         47 |	return
+         48 |	end
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-21.17$  0-1.24  0-33.7
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-23.28$  0-32.5@  0-33.12  0-41.12
+ 
+ianswer                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-23.20$  0-25.2@  0-28.4@  0-36.2@  0-41.2@  0-45.13
+ 
+inca                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-20.24$  0-1.26  0-33.17
+ 
+isrchflt                         Function Integer(4)
+                                 0-1.11$  0-20.29$  0-45.2@
+ 
+num                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-20.20$  0-1.20  0-27.5  0-32.9  0-36.12
+ 
+target                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-21.22$  0-1.31  0-33.26
+ 
+** isrchflt   === End of Compilation 1 ===
+ 
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+         49 |
+         50 |        function isrchfle(num,a,inca,target)
+         51 |
+         52 |!       ---------------------------------------------
+         53 |!
+         54 |!       Searches a real vector for the first element
+         55 |!       that is less than or equal to a real target
+         56 |!
+         57 |!       ouput :         i*4     array index of result
+         58 |!       input : num     i*4     number of array elements
+         59 |!               a       r*4     real input array (vector)
+         60 |!               inca    i*4     increment between data
+         61 |!                               values in a (not used)
+         62 |!               target  r*4     target value
+         63 |!
+         64 |!       Steve Nieman    - May 1997
+         65 |!
+         66 |!       ----------------------------------------------
+         67 |
+         68 |
+         69 |        integer(4) num,inca,isrchfle
+         70 |        real(4) a(*),target
+         71 |
+         72 |        integer(4) ianswer,i
+         73 |
+         74 |	ianswer = 0
+         75 |
+         76 |        if(num.le.0)then
+         77 |	  ianswer=0
+         78 |	  goto 200
+         79 |	endif
+         80 |
+         81 |        do i=1,num
+         82 |          if(a(1+(i-1)*inca).le.target)goto 100
+         83 |        enddo
+         84 |
+         85 |        ianswer = num + 1
+         86 |	goto 200
+         87 |
+         88 |100     continue
+         89 |
+         90 |        ianswer = i
+         91 |
+         92 |200	continue
+         93 |
+         94 |	isrchfle = ianswer
+         95 |
+         96 |        return
+         97 |        end
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-70.17$  0-50.31  0-82.14
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.28$  0-81.12@  0-82.19  0-90.19
+ 
+ianswer                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.20$  0-74.2@  0-77.4@  0-85.9@  0-90.9@  0-94.13
+ 
+inca                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.24$  0-50.33  0-82.24
+ 
+isrchfle                         Function Integer(4)
+                                 0-50.18$  0-69.29$  0-94.2@
+ 
+num                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-69.20$  0-50.27  0-76.12  0-81.16  0-85.19
+ 
+target                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-70.22$  0-50.38  0-82.33
+ 
+** isrchfle   === End of Compilation 2 ===
+ 
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+         98 |
+         99 |        function isrchfgt(num,a,inca,target)
+        100 |
+        101 |!       ---------------------------------------------
+        102 |!
+        103 |!       Searches a real vector for the first element
+        104 |!       that is greater than a real target
+        105 |!
+        106 |!       ouput :         i*4     array index of result
+        107 |!       input : num     i*4     number of array elements
+        108 |!               a       r*4     real input array (vector)
+        109 |!               inca    i*4     increment between data
+        110 |!                               values in a (not used)
+        111 |!               target  r*4     target value
+        112 |!
+        113 |!       Steve Nieman    - May 1997
+        114 |!
+        115 |!       ----------------------------------------------
+        116 |
+        117 |
+        118 |        integer(4) num,inca,isrchfgt
+        119 |        real(4) a(*),target
+        120 |
+        121 |        integer(4) ianswer,i
+        122 |
+        123 |	ianswer = 0
+        124 |
+        125 |        if(num.le.0)then
+        126 |	  ianswer=0
+        127 |	  goto 200
+        128 |	endif
+        129 |
+        130 |        do i=1,num
+        131 |          if(a(1+(i-1)*inca).gt.target)goto 100
+        132 |        enddo
+        133 |
+        134 |        ianswer = num + 1
+        135 |        goto 200
+        136 |
+        137 |100     continue
+        138 |
+        139 |        ianswer = i
+        140 |
+        141 |200	continue
+        142 |
+        143 |	isrchfgt = ianswer
+        144 |
+        145 |        return
+        146 |        end
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-119.17$  0-99.31  0-131.14
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.28$  0-130.12@  0-131.19  0-139.19
+ 
+ianswer                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.20$  0-123.2@  0-126.4@  0-134.9@  0-139.9@  0-143.13
+ 
+inca                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-118.24$  0-99.33  0-131.24
+ 
+isrchfgt                         Function Integer(4)
+                                 0-99.18$  0-118.29$  0-143.2@
+ 
+num                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-118.20$  0-99.27  0-125.12  0-130.16  0-134.19
+ 
+target                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-119.22$  0-99.38  0-131.33
+ 
+** isrchfgt   === End of Compilation 3 ===
+ 
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+        147 |
+        148 |        function isrchfge(num,a,inca,target)
+        149 |
+        150 |!       ---------------------------------------------
+        151 |!
+        152 |!       Searches a real vector for the first element
+        153 |!       that is greater than or equal to a real target
+        154 |!
+        155 |!       ouput :         i*4     array index of result
+        156 |!       input : num     i*4     number of array elements
+        157 |!               a       r*4     real input array (vector)
+        158 |!               inca    i*4     increment between data
+        159 |!                               values in a (not used)
+        160 |!               target  r*4     target value
+        161 |!
+        162 |!       Steve Nieman    - May 1997
+        163 |!
+        164 |!       ----------------------------------------------
+        165 |
+        166 |
+        167 |        integer(4) num,inca,isrchfge
+        168 |        real(4) a(*),target
+        169 |
+        170 |        integer(4) ianswer,i
+        171 |
+        172 |	ianswer = 0
+        173 |
+        174 |        if(num.le.0)then
+        175 |	  ianswer=0
+        176 |	  goto 200
+        177 |	endif
+        178 |
+        179 |        do i=1,num
+        180 |          if(a(1+(i-1)*inca).ge.target) go to 100
+        181 |        enddo
+        182 |
+        183 |        ianswer = num + 1
+        184 |        goto 200
+        185 |
+        186 |100     continue
+        187 |
+        188 |        ianswer = i
+        189 |
+        190 |200	continue
+        191 |
+        192 |	isrchfge = ianswer
+        193 |
+        194 |        return
+        195 |        end
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-168.17$  0-148.31  0-180.14
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-170.28$  0-179.12@  0-180.19  0-188.19
+ 
+ianswer                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-170.20$  0-172.2@  0-175.4@  0-183.9@  0-188.9@  0-192.13
+ 
+inca                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-167.24$  0-148.33  0-180.24
+ 
+isrchfge                         Function Integer(4)
+                                 0-148.18$  0-167.29$  0-192.2@
+ 
+num                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-167.20$  0-148.27  0-174.12  0-179.16  0-183.19
+ 
+target                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-168.22$  0-148.38  0-180.33
+ 
+** isrchfge   === End of Compilation 4 ===
+ 
+>>>>> COMPILATION UNIT EPILOGUE SECTION <<<<<
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(-2)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+        196 |
+        197 |
+        198 |
+        199 |
+        200 |
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    isrchfge.f                  10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     200
+1501-510  Compilation successful for file isrchfge.f.
+1501-543  Object file created.

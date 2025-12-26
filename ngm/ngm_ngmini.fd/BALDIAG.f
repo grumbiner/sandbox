@@ -1,0 +1,53 @@
+       SUBROUTINE BALDIAG(ZHAT,DHAT,HHAT,K,LOOP,ISF,JCAP)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    BALDIAG     GET BALANCE DIAGNOSTICS
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+C
+C ABSTRACT: COMPUTE BALANCE DIAGNOSTICS FOR EVENTUAL DISPLAY
+C
+C PROGRAM HISTORY LOG:
+C   88-08-08  PARRISH
+C
+C USAGE:    CALL BALDIAG(ZHAT,DHAT,HHAT,K,LOOP,ISF,JCAP)
+C   INPUT ARGUMENT LIST:
+C     ZHAT     - VORT COEFS
+C     DHAT     - DIV  COEFS
+C     HHAT     - MASS COEFS
+C     K        - VERT MODE NUMBER
+C     LOOP     - ITERATION NUMBER
+C     ISF      - FAST-SLOW INDICATOR
+C     JCAP     - TRIANGULAR TRUNCATION LIMIT
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+C--------
+         include "myparam"
+         REAL ZHAT(1),DHAT(1),HHAT(1)
+         COMMON/DIAGBAL/BALN(16,2,9,INUMVERT)
+C--------
+         II=1
+         LOOPIN=MIN(LOOP,9)
+         DO 10 I=1,16
+           BALN(I,ISF,LOOPIN,K)=0.
+10       CONTINUE
+         DO 200 M=0,JCAP
+           DO 100 L=0,JCAP-M
+             ALPHAL=.5
+             IF(L.GT.0) ALPHAL=1.
+             N=M+L
+             IIP=II+1
+             N10=N/10
+             NP1=MIN(16,N10+1)
+             BALN(NP1,ISF,LOOPIN,K)=BALN(NP1,ISF,LOOPIN,K)+ALPHAL*(
+     *            ZHAT(II)*ZHAT(II)+ZHAT(IIP)*ZHAT(IIP)
+     *           +DHAT(II)*DHAT(II)+DHAT(IIP)*DHAT(IIP)
+     *           +HHAT(II)*HHAT(II)+HHAT(IIP)*HHAT(IIP))
+             II=II+2
+100        CONTINUE
+200      CONTINUE
+       RETURN
+       END

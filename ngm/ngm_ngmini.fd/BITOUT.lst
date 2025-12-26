@@ -1,0 +1,540 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/BITOUT.f 09/30/06 19:43:58
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE BITOUT(BITH,BITU,BITV,IM,JM,NG)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C SUBPROGRAM:    BITOUT      INSERT .T. INTO BIT VECTORS FOR FCST POINTS
+          5 |C   PRGMMR:  JIM TUCCILLO        ORG: W/NMC4    DATE: 90/06/13
+          6 |C
+          7 |C ABSTRACT: INSERTS 'TRUE' INTO THE  VECTORS
+          8 |C   .       BITH,BITU, BITV FOR VALID FORECAST POINTS ON A GRID
+          9 |C   .       OTHER THAN GRID A,  HOWEVER IGNORING THE POSSIBLE
+         10 |C   .       PRESENCE OF A HOLE( FOR THIS USE SR BITHOLE).
+         11 |C   .
+         12 |C   .       ZEROS ARE TO BE PUT IN THE FOLLOWING PLACES:
+         13 |C   FOR NPAIR = 1:
+         14 |C   .    J           BITU           BITH           BITV
+         15 |C   .    -           ----           ----           ----
+         16 |C   .    JM          1-IM           1-IM           1-IM
+         17 |C   .   JM-1         1-IM       1,2 AND IM     1,2 AND (IM-1),IM
+         18 |C   3 TO (JM-2)  1,2 AND IM     1,2 AND IM     1,2 AND (IM-1),IM
+         19 |C   . 1 AND 2        1-IM           1-IM           1-IM
+         20 |C   .
+         21 |C   FOR NPAIR = 2:
+         22 |C   .    J           BITU           BITH           BITV
+         23 |C   .    -           ----           ----           ----
+         24 |C   JM-2 TO JM       1-IM           1-IM           1-IM
+         25 |C   .  JM-3          1-IM       1,2,3,4,IM-2,  1,2,3,4,IM-3,IM-2,
+         26 |C   .                              IM-1,IM        IM-1,IM
+         27 |C   5 TO (JM-4)  1,2,3,4,IM-2,  1,2,3,4,IM-2,  1,2,3,4,IM-3,IM-2,
+         28 |C   .               IM-1,IM        IM-1,IM        IM-1,IM
+         29 |C   . 1 TO 4         1-IM           1-IM           1-IM
+         30 |C   .
+         31 |C   .          ZEROS ARE ALSO PUT IN ANY BIT LOCATIONS BETWEEN
+         32 |C   .          IM*JM AND IJMAX.
+         33 |C
+         34 |C PROGRAM HISTORY LOG:
+         35 |C   90-06-13  J TUCCILLO
+         36 |C
+         37 |C USAGE: CALL BITOUT(BITH,BITU,BITV,IM,JM,NG)
+         38 |C   INPUT ARGUMENT LIST:
+         39 |C     BITH,    - CONTROL STORE BIT VECTORS
+         40 |C     BITU,
+         41 |C     BITV
+         42 |C     .
+         43 |C     IM,JM,   - DIMENSIONS OF THE I ROWS AND
+         44 |C     NG         THE J ROWS OF GRID NG
+         45 |C
+         46 |C   OUTPUT ARGUMENT LIST:
+         47 |C     BITH,    - CONTROL STORE BIT VECTORS
+         48 |C     BITU,
+         49 |C     BITV
+         50 |C
+         51 |C   OUTPUT FILES:
+         52 |C     IOUTUPRT - FOR PRINTOUT
+         53 |C
+         54 |C   SUBPROGRAMS CALLED:
+         55 |C     UNIQUE:
+         56 |C
+         57 |C ATTRIBUTES:
+         58 |C   LANGUAGE: FORTRAN
+         59 |C   MACHINE:  CRAY Y-MP
+         60 |C
+         61 |C$$$
+         62 |C
+         63 |      include 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      3,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =  10000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         64 |C
+         65 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:44:53
+         66 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+         67 |C
+         68 |C              (BITS IS A SCRATCH BIT VECTOR FOR AN I-PATTERN.)
+         69 |      LOGICAL BITH(IIJMAX,2), BITU(IIJMAX,2), BITV(IIJMAX,2)
+         70 |      LOGICAL BITSTRUH(512), BITSTRV(512), BITSZERO(512)
+         71 |C
+         72 |C              SPECIFY THE UNIT NUMBER OF THE PRINTER.
+         73 |      IOUTUPRT = 6
+         74 |C
+         75 |C              REFUSE TO DO GRID A ( DONE BY SHEMPRE)
+         76 |      IF( NG .GT. 1 ) GO TO 10
+         77 |      WRITE (IOUTUPRT, 5) NG
+         78 |    5 FORMAT(1H1,2X,'*****SUBR. BITOUT WAS ASKED TO DO GRID A.NG=',I12)
+         79 |C
+         80 |      CALL EXIT(16)
+         81 |C
+         82 |   10 CONTINUE
+         83 |C
+         84 |C              ENSURE THAT NO MORE THAN 512 POINTS, THE DIMENSION OF
+         85 |C              SEVERAL BIT STRINGS, IS NOT EXCEEDED.  IF IT IS,
+         86 |C              SIMPLY INCREASE ALL REFERENCES TO 512 IN THIS
+         87 |C              SUBROUTINE TO SOME SATISFACTORY VALUE.
+         88 |        IF (IM .LE. 512) GO TO 18
+         89 |        WRITE (IOUTUPRT, 14) IM
+         90 |   14   FORMAT ('1', 2X,'***** SUBROUTINE BITOUT WAS ASKED ',
+         91 |     1                  'TO HANDLE A FIELD OF', I4, ' POINTS IN ',
+         92 |     2      'THE I DIRECTION.'/
+         93 |     3          ' ', 8X,'THIS IS MORE THAN THE 512 LIMIT ',
+         94 |     4                  'HARDWIRED TO SAVE SPACE IN THIS SUBROUTINE.')
+         95 |C
+         96 |        CALL EXIT(16)
+         97 |C
+         98 |   18   CONTINUE
+         99 |C
+        100 |C            INITIALIZE LOGICAL VECTORS
+        101 |CMIC$ PARALLEL SHARED(BITSZERO, BITSTRUH, BITSTRV, BITH, BITU, BITV)
+        102 |CMIC$1    PRIVATE(I, J)
+        103 |C
+        104 |C            INITIALIZE LOGICAL VECTORS
+        105 |CMIC$ DO PARALLEL
+        106 |      DO 57 J = 1, 20568
+        107 |         BITH(J,1) = .FALSE.
+        108 |         BITU(J,1) = .FALSE.
+        109 |         BITV(J,1) = .FALSE.
+        110 |   57 CONTINUE
+        111 |CMIC$ DO PARALLEL VECTOR
+        112 |        DO 58 I = 1, 512
+        113 |           BITSZERO ( I ) = .FALSE.
+        114 |           BITSTRUH ( I ) = .TRUE.
+        115 |           BITSTRV ( I )  = .TRUE.
+        116 |58      CONTINUE
+        117 |CMIC$ END PARALLEL
+        118 |C
+        119 |C
+        120 |      NPAIR = 1
+        121 |C
+        122 |C              SET BIT STRINGS OF NONFORECAST POINTS FOR U/H AND V
+        123 |C              POINTS AFTER THE FIRST TIME STEP OF A PAIR.
+        124 |      BITSTRUH(1)    = .FALSE.
+        125 |      BITSTRUH(2)    = .FALSE.
+        126 |      BITSTRUH(IM)   = .FALSE.
+        127 |      BITSTRV (1)    = .FALSE.
+        128 |      BITSTRV (2)    = .FALSE.
+        129 |      BITSTRV (IM-1) = .FALSE.
+        130 |      BITSTRV (IM)   = .FALSE.
+        131 |C
+        132 |      IADD  = IM + 1
+        133 |      JM2   = JM - 2
+        134 |C
+        135 |      IF (JM2 - 2 .GT. 0) THEN
+        136 |CMIC$    DO ALL SHARED(JM2, IADD, IM, BITSTRUH, BITU, BITH, BITSTRV,
+        137 |CMIC$1      BITV) PRIVATE(J, IQ2W6E)
+        138 |         DO 200 J = 1, JM2 - 2
+        139 |            DO 77001 IQ2W6E = 1, IM
+        140 |               BITU(IADD+IQ2W6E-1+J*IM,1) = BITSTRUH(IQ2W6E)
+        141 |               BITH(IADD+IQ2W6E-1+J*IM,1) = BITSTRUH(IQ2W6E)
+        142 |               BITV(IADD+IQ2W6E-1+J*IM,1) = BITSTRV(IQ2W6E)
+        143 |77001       CONTINUE
+        144 |  200    CONTINUE
+        145 |         IADD = (JM2-2)*IM + IADD
+        146 |      ENDIF
+        147 |C
+        148 |C              NOW JM-1 ROW.
+        149 |      IADD = IADD + IM
+        150 |CMIC$ DO ALL VECTOR SHARED(IM, IADD, BITSZERO, BITU, BITSTRUH, BITH,
+        151 |CMIC$1   BITSTRV, BITV) PRIVATE(IQ2W6E)
+        152 |      DO 88920 IQ2W6E = 1, IM
+        153 |         BITU(IADD+IQ2W6E-1,1) = BITSZERO(IQ2W6E)
+        154 |         BITH(IADD+IQ2W6E-1,1) = BITSTRUH(IQ2W6E)
+        155 |         BITV(IADD+IQ2W6E-1,1) = BITSTRV(IQ2W6E)
+        156 |88920 CONTINUE
+        157 |C
+        158 |C
+        159 |      NPAIR = 2
+        160 |C
+        161 |C              ADD ADDITIONAL NONFORECAST POINTS FOR U/H AND V POINTS
+        162 |C              AFTER THE SECOND TIME STEP OF A PAIR.
+        163 |      BITSTRUH(3)    = .FALSE.
+        164 |      BITSTRUH(4)    = .FALSE.
+        165 |      BITSTRUH(IM-2) = .FALSE.
+        166 |      BITSTRUH(IM-1) = .FALSE.
+        167 |      BITSTRV (3)    = .FALSE.
+        168 |      BITSTRV (4)    = .FALSE.
+        169 |      BITSTRV (IM-3) = .FALSE.
+        170 |      BITSTRV (IM-2) = .FALSE.
+        171 |      IADD = 3 * IM + 1
+        172 |      JM4  = JM - 4
+        173 |C
+        174 |      IF (JM4 - 4 .GT. 0) THEN
+        175 |CMIC$    DO ALL SHARED(JM4, IADD, IM, BITSTRUH, BITU, BITH, BITSTRV,
+        176 |CMIC$1      BITV) PRIVATE(J, IQ2W6E)
+        177 |         DO 300 J = 1, JM4 - 4
+        178 |            DO 77002 IQ2W6E = 1, IM
+        179 |               BITU(IADD+IQ2W6E-1+J*IM,2) = BITSTRUH(IQ2W6E)
+        180 |               BITH(IADD+IQ2W6E-1+J*IM,2) = BITSTRUH(IQ2W6E)
+        181 |               BITV(IADD+IQ2W6E-1+J*IM,2) = BITSTRV(IQ2W6E)
+        182 |77002       CONTINUE
+        183 |  300    CONTINUE
+        184 |         IADD = (JM4-4)*IM + IADD
+        185 |      ENDIF
+        186 |C
+        187 |C              NOW THE JM-3 ROW.
+        188 |      IADD = IADD + IM
+        189 |CMIC$ DO ALL VECTOR SHARED(IM, IADD, BITSZERO, BITU, BITSTRUH, BITH,
+        190 |CMIC$1   BITSTRV, BITV) PRIVATE(IQ2W6E)
+        191 |      DO 88980 IQ2W6E = 1, IM
+        192 |         BITU(IADD+IQ2W6E-1,2) = BITSZERO(IQ2W6E)
+        193 |         BITH(IADD+IQ2W6E-1,2) = BITSTRUH(IQ2W6E)
+        194 |         BITV(IADD+IQ2W6E-1,2) = BITSTRV(IQ2W6E)
+        195 |88980 CONTINUE
+        196 |C
+        197 |      RETURN
+        198 |C
+        199 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bith                             Reference argument, Logical(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-69.15$  0-1.25  0-107.10@  0-141.16@  0-154.10@  0-180.16@  0-193.10@
+ 
+bitout                           Subroutine
+                                 0-1.18$
+ 
+bitstruh                         Static, Logical(4) (1:512), Offset: 0, Alignment: full word
+                                 0-70.15$  0-114.12@  0-124.7@  0-125.7@  0-126.7@  0-140.45  0-141.45  0-154.34  0-163.7@  0-164.7@
+                                 0-165.7@  0-166.7@  0-179.45  0-180.45  0-193.34
+ 
+bitstrv                          Static, Logical(4) (1:512), Offset: 0, Alignment: full word
+                                 0-70.30$  0-115.12@  0-127.7@  0-128.7@  0-129.7@  0-130.7@  0-142.45  0-155.34  0-167.7@  0-168.7@
+                                 0-169.7@  0-170.7@  0-181.45  0-194.34
+ 
+bitszero                         Static, Logical(4) (1:512), Offset: 0, Alignment: full word
+                                 0-70.44$  0-113.12@  0-153.34  0-192.34
+ 
+bitu                             Reference argument, Logical(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-69.31$  0-1.30  0-108.10@  0-140.16@  0-153.10@  0-179.16@  0-192.10@
+ 
+bitv                             Reference argument, Logical(4) (1:23668, 1:2), Offset: 0, Alignment: full word
+                                 0-69.47$  0-1.35  0-109.10@  0-142.16@  0-155.10@  0-181.16@  0-194.10@
+ 
+exit                             External Subroutine
+                                 0-80.12  0-96.14
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-112.15@  0-113.23  0-114.23  0-115.22
+ 
+iadd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-132.7@  0-140.21  0-141.21  0-142.21  0-145.10@  0-145.30  0-149.7@  0-149.14  0-153.15  0-154.15
+                                 0-155.15  0-171.7@  0-179.21  0-180.21  0-181.21  0-184.10@  0-184.30  0-188.7@  0-188.14  0-192.15
+                                 0-193.15  0-194.15
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-69.20  0-69.36  0-69.52  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+im                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-88.13  0-89.30  0-126.16  0-129.16  0-130.16  0-132.15  0-139.34  0-140.37  0-141.37
+                                 0-142.37  0-145.25  0-149.21  0-152.28  0-165.16  0-166.16  0-169.16  0-170.16  0-171.18  0-178.34
+                                 0-179.37  0-180.37  0-181.37  0-184.25  0-188.21  0-191.28
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-73.7@  0-77.14  0-89.16
+ 
+iq2w6e                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-139.22@  0-140.26  0-140.54  0-141.26  0-141.54  0-142.26  0-142.53  0-152.16@  0-153.20
+                                 0-153.43  0-154.20  0-154.43  0-155.20  0-155.42  0-178.22@  0-179.26  0-179.54  0-180.26  0-180.54
+                                 0-181.26  0-181.53  0-191.16@  0-192.20  0-192.43  0-193.20  0-193.43  0-194.20  0-194.42
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-106.13@  0-107.15  0-108.15  0-109.15  0-138.17@  0-140.35  0-141.35  0-142.35  0-177.17@
+                                 0-179.35  0-180.35  0-181.35
+ 
+jm                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.43  0-133.15  0-172.14
+ 
+jm2                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-133.7@  0-135.11  0-138.24  0-145.18
+ 
+jm4                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-172.7@  0-174.11  0-177.24  0-184.18
+ 
+ng                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.46  0-76.11  0-77.27
+ 
+npair                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.7@  0-159.7@
+ 
+** bitout   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    BITOUT.f                    10/09/02   12:45:07
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      0      63
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     261
+1501-510  Compilation successful for file BITOUT.f.
+1501-543  Object file created.

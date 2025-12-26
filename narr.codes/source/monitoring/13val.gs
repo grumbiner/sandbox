@@ -1,0 +1,417 @@
+'open vsdb.ctl'
+
+*'set t 1 365'
+*'set t 1 30'
+'set t 1 last'
+* Get the dimension environment
+'q dim'
+diminfo = result
+line5 = sublin(diminfo,5)
+time1 = subwrd(line5,11)
+time2 = subwrd(line5,13)
+
+* define new variables which need be plotted
+
+'define t8501=sqrt(t850f2-2*t850fo+t850o2)'
+'define t8502=t850f-t850o'
+'define t2001=sqrt(t200f2-2*t200fo+t200o2)'
+'define t2002=t200f-t200o'
+'define rh8501=sqrt(rh850f2-2*rh850fo+rh850o2)'
+'define rh8502=rh850f-rh850o'
+
+'define uv850=sqrt(uv850f2-2*uv850fo+uv850o2)'
+'define u850=u850f-u850o'
+'define v850=v850f-v850o'
+'define uv200=sqrt(uv200f2-2*uv200fo+uv200o2)'
+'define u200=u200f-u200o'
+'define v200=v200f-v200o'
+
+* calculate rms of defined new variables
+
+'define avet8501=ave(t8501,t=1,t=' time2 ')'
+'define sdt8501=sqrt(ave(pow((t8501-avet8501),2),t=1,t=' time2 ')))'
+
+'define avet8502=ave(t8502,t=1,t=' time2 ')'
+'define sdt8502=sqrt(ave(pow((t8502-avet8502),2),t=1,t=' time2 ')))'
+
+'define avet2001=ave(t2001,t=1,t=' time2 ')'
+'define sdt2001=sqrt(ave(pow((t2001-avet2001),2),t=1,t=' time2 ')))'
+
+'define avet2002=ave(t2002,t=1,t=' time2 ')'
+'define sdt2002=sqrt(ave(pow((t2002-avet2002),2),t=1,t=' time2 ')))'
+
+'define averh8501=ave(rh8501,t=1,t=' time2 ')'
+'define sdrh8501=sqrt(ave(pow((rh8501-averh8501),2),t=1,t=' time2 ')))'
+
+'define averh8502=ave(rh8502,t=1,t=' time2 ')'
+'define sdrh8502=sqrt(ave(pow((rh8502-averh8502),2),t=1,t=' time2 ')))'
+
+
+'define aveuv850=ave(uv850,t=1,t=' time2 ')'
+'define sduv850=sqrt(ave(pow((uv850-aveuv850),2),t=1,t=' time2 ')))'
+
+'define aveu850=ave(u850,t=1,t=' time2 ')'
+'define sdu850=sqrt(ave(pow((u850-aveu850),2),t=1,t=' time2 ')))'
+
+'define avev850=ave(v850,t=1,t=' time2 ')'
+'define sdv850=sqrt(ave(pow((v850-avev850),2),t=1,t=' time2 ')))'
+
+'define aveuv200=ave(uv200,t=1,t=' time2 ')'
+'define sduv200=sqrt(ave(pow((uv200-aveuv200),2),t=1,t=' time2 ')))'
+
+'define aveu200=ave(u200,t=1,t=' time2 ')'
+'define sdu200=sqrt(ave(pow((u200-aveu200),2),t=1,t=' time2 ')))'
+
+'define avev200=ave(v200,t=1,t=' time2 ')'
+'define sdv200=sqrt(ave(pow((v200-avev200),2),t=1,t=' time2 ')))'
+
+
+
+*'set t 1 30'
+'set t 1 last'
+'enable print 13val.gmf'
+
+vpheight=0.8
+*'vpheight' is the only variable maybe need to be changed
+*here vpheight=(11-2*0.5)/12~=0.8
+
+vpheightfst=vpheight+0.5
+vplow=0
+vptop=vplow+vpheightfst
+plotlow=0.5
+plottop=vpheightfst-0.2
+
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 'plotlow' 8 'plotlow''
+'draw line 1 'plotlow' 1 'vpheightfst''
+'draw string 2.7 'plottop' sqrt(mean(f**2)-2mean(f*o)+mean(o**2)) [T(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'q defval avet8501 1 1'
+aa=subwrd(result,3)
+'q defval sdt8501 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d avet8501+3*sdt8501'
+'set cmark 0'
+'d avet8501-3*sdt8501'
+'set cmark 0'
+'d t8501'
+'set cmark 0'
+'d avet8501'
+
+vplow=vptop
+vptop=vplow+vpheight
+plotlow=0
+plottop=vpheight-0.2
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(f)-mean(o)[T(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval avet8502 1 1'
+aa=subwrd(result,3)
+'q defval sdt8502 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d avet8502+3*sdt8502'
+'set cmark 0'
+'d avet8502-3*sdt8502'
+'set cmark 0'
+'d t8502'
+'set cmark 0'
+'d avet8502'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 2.7 'plottop' sqrt(mean(f**2)-2mean(f*o)+mean(o**2)) [T(p=200)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'q defval avet2001 1 1'
+aa=subwrd(result,3)
+'q defval sdt2001 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d t2001'
+'set cmark 0'
+'d t2001'
+'set cmark 0'
+'d avet2001'
+'set cmark 0'
+'d avet2001+3*sdt2001'
+'set cmark 0'
+'d avet2001-3*sdt2001'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(f)-mean(o)[T(p=200)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'q defval avet2002 1 1'
+aa=subwrd(result,3)
+'q defval sdt2002 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d avet2002+3*sdt2002'
+'set cmark 0'
+'d avet2002-3*sdt2002'
+'set cmark 0'
+'d t2002'
+'set cmark 0'
+'d avet2002'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 2.7 'plottop' sqrt(mean(f**2)-2mean(f*o)+mean(o**2)) [RH(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'q defval averh8501 1 1'
+aa=subwrd(result,3)
+'q defval sdrh8501 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d averh8501+3*sdrh8501'
+'set cmark 0'
+'d averh8501-3*sdrh8501'
+'set cmark 0'
+'d rh8501'
+'set cmark 0'
+'d averh8501'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(f)-mean(o)[RH(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'q defval averh8502 1 1'
+aa=subwrd(result,3)
+'q defval sdrh8502 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d averh8502+3*sdrh8502'
+'set cmark 0'
+'d averh8502-3*sdrh8502'
+'set cmark 0'
+'d rh8502'
+'set cmark 0'
+'d averh8502'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.5 'plottop' sqrt(mean(uf**2+vf**2)-2mean(uf*uo+vf*vo)+mean(uo**2+vo**2))[V(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval aveuv850 1 1'
+aa=subwrd(result,3)
+'q defval sduv850 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d uv850'
+'set cmark 0'
+'d aveuv850'
+'set cmark 0'
+'d aveuv850+3*sduv850'
+'set cmark 0'
+'d aveuv850-3*sduv850'
+
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(uf)-mean(uo)[u(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval aveu850 1 1'
+aa=subwrd(result,3)
+'q defval sdu850 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d aveu850+3*sdu850'
+'set cmark 0'
+'d aveu850-3*sdu850'
+'set cmark 0'
+'d u850'
+'set cmark 0'
+'d aveu850'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(vf)-mean(vo)[v(p=850)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval avev850 1 1'
+aa=subwrd(result,3)
+'q defval sdv850 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d avev850+3*sdv850'
+'set cmark 0'
+'d avev850-3*sdv850'
+'set cmark 0'
+'d v850'
+'set cmark 0'
+'d avev850'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 1.5 'plottop' sqrt(mean(uf**2+vf**2)-2mean(uf*uo+vf*vo)+mean(uo**2+vo**2))[V(p=200)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval aveuv200 1 1'
+aa=subwrd(result,3)
+'q defval sduv200 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d uv200'
+'set cmark 0'
+'d aveuv200'
+'set cmark 0'
+'d aveuv200+3*sduv200'
+'set cmark 0'
+'d aveuv200-3*sduv200'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(uf)-mean(uo)[u(p=200)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval aveu200 1 1'
+aa=subwrd(result,3)
+'q defval sdu200 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d aveu200+3*sdu200'
+'set cmark 0'
+'d avev200-3*sdu200'
+'set cmark 0'
+'d u200'
+'set cmark 0'
+'d aveu200'
+
+vplow=vptop
+vptop=vplow+vpheight
+'set vpage 0 8.5 'vplow' 'vptop''
+'set parea 1 8 'plotlow' 'plottop''
+'draw line 1 0 1 'vpheight''
+'draw string 3 'plottop' mean(vf)-mean(vo)[v(p=200)]'
+'set grads off'
+'set frame off'
+'set grid off'
+'set xlab off'
+'q defval avev200 1 1'
+aa=subwrd(result,3)
+'q defval sdv200 1 1'
+bb=subwrd(result,3)
+y1=aa-5*bb
+y2=aa+5*bb
+'set vrange 'y1' 'y2''
+'set ylopts 1 4 0.05'
+'set cmark 0'
+'d avev200+3*sdv200'
+'set cmark 0'
+'d avev200-3*sdv200'
+'set cmark 0'
+'d v200'
+'set cmark 0'
+'d avev200'
+
+'print'
+
+'disable print 13val.gmf'
+'printim 13val.png'
+'reinit'
+
+'quit'

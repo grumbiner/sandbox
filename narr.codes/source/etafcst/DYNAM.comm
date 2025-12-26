@@ -1,0 +1,14 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /DYNAM/
+     & DY,CPGFV,EN,ENT,R,PT,F4D,F4Q,EF4T
+     &,DETA(LM),RDETA(LM),AETA(LM),F4Q2(LM),ETA(LP1),DFL(LP1)
+C
+     &,EM    (JAM),EMT   (JAM)
+C
+     &,DX    (IDIM1:IDIM2,JDIM1:JDIM2),WPDAR (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,CPGFU (IDIM1:IDIM2,JDIM1:JDIM2),CURV  (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,FCP   (IDIM1:IDIM2,JDIM1:JDIM2),FDIV  (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,F     (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,DDMPU (IDIM1:IDIM2,JDIM1:JDIM2),DDMPV (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,FAD   (IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

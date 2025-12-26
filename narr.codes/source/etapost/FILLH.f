@@ -1,0 +1,130 @@
+      SUBROUTINE FILLH(ARR1,ARR2,IDIM,JDIM)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .     
+C SUBPROGRAM:    FILLH       FILL H POINTS ON E-GRID V FIELD
+C   PRGRMMR: BLACK           ORG: W/NP2      DATE: 92-12-23       
+C     
+C ABSTRACT:
+C     THIS ROUTINE FILLS MASS (H) POINTS ON A VELOCITY (V)
+C     POINT E-GRID.
+C   .     
+C     
+C PROGRAM HISTORY LOG:
+C   ??-??-??  BLACK - ORIGINATOR
+C   93-12-23  RUSS TREADON - ADDED COMMENTS AND VARIABLE
+C                            GRID DIMENSIONS TO 
+C                            SUBROUTINE CALL.
+C   98-06-04  BLACK - CONVERSION TO 2-D
+C     
+C USAGE:    CALL FILLH(ARR1,ARR2,IDIM,JDIM)
+C   INPUT ARGUMENT LIST:
+C     ARR2     - VELOCITY POINT DATA ON STAGGERED E-GRID.
+C     IDIM     - FIRST DIMENSION OF FILLED E-GRID.
+C     JDIM     - SECOND DIMENSION OF FILLED E-GRID.
+C
+C   OUTPUT ARGUMENT LIST: 
+C     ARR1     - VELOCITY POINT DATA ON FILLED E-GRID.
+C     
+C   OUTPUT FILES:
+C     NONE
+C     
+C   SUBPROGRAMS CALLED:
+C     UTILITIES:
+C       EFILL - FILL MISSING VALUES ON STAGGERED
+C               E-GRID WITH FIELD MEAN.
+C     LIBRARY:
+C       COMMON
+C     
+C   ATTRIBUTES:
+C     LANGUAGE: FORTRAN
+C     MACHINE : CRAY C-90
+C$$$  
+C
+C--------------------------------------------------------------------
+                        D I M E N S I O N
+     & ARR1((IDIM+1)/2,JDIM), ARR2(IDIM,JDIM)
+C     
+C********************************************************************
+C     START FILLH HERE.
+C     
+C     REPLACE MISSING VALUES ON EGRID WITH FIELD MEAN
+      IM=(IDIM+1)/2
+      CALL EFILL(ARR1,IM,JDIM)
+C
+      DO J=1,JDIM
+      DO I=1,IDIM
+        ARR2(I,J)=0.
+      ENDDO
+      ENDDO
+C***
+C***  REASSIGN VALUES OF MODEL GRID TO V POINTS ON IDIM X JDIM GRID
+C***  ON ODD ROWS.
+C***
+      DO J=1,JDIM,2
+      DO I=2,IDIM-1,2
+        II=I/2
+        ARR2(I,J)=ARR1(II,J)
+      ENDDO
+      ENDDO
+C***
+C***  REASSIGN VALUES OF MODEL GRID TO V POINTS ON IDIM X JDIM GRID
+C***  ON EVEN ROWS.
+C***
+      DO J=2,JDIM-1,2
+      DO I=1,IDIM,2
+        II=(I+1)/2
+        ARR2(I,J)=ARR1(II,J)
+      ENDDO
+      ENDDO
+C***
+C***  INTERPOLATE VALUES TO THOSE CORRESPONDING TO H POINTS ON THE
+C***  IDIM X JDIM GRID ON THE BOTTOM AND TOP ROWS.
+C***
+      DO I=3,IDIM-2,2
+        II=I/2
+        ARR2(I,1)=(ARR1(II,1)+ARR1(II+1,1))*0.5
+        ARR2(I,JDIM)=(ARR1(II,JDIM)+ARR1(II+1,JDIM))*0.5
+      ENDDO
+C***
+C***  INTERPOLATE VALUES TO THOSE CORRESPONDING TO H POINTS ON THE
+C***  IDIM X JDIM GRID ON THE WEST AND EAST SIDES.
+C***
+      DO J=3,JDIM-2,2
+        ARR2(1,J)=(ARR1(1,J+1)+ARR1(1,J-1))*0.5
+        ARR2(IDIM,J)=(ARR1(IM,J+1)+ARR1(IM,J-1))*0.5
+      ENDDO
+C***
+C***  INTERPOLATE TO CORRESPONDING H POINTS ON ODD ROWS
+C***  EXCLUDING THE SIDES.
+C***
+      DO J=3,JDIM-2,2
+      DO I=3,IDIM-2,2
+        II=I/2
+        ARR2(I,J)=0.25*(ARR1(II,J)+ARR1(II+1,J)+ARR1(II+1,J+1)+
+     1                  ARR1(II+1,J-1))
+      ENDDO
+      ENDDO
+C***
+C***  INTERPOLATE TO CORRESPONDING H POINTS ON EVEN ROWS
+C***  EXCLUDING THE SIDES.
+C***
+      DO J=2,JDIM-1,2
+      DO I=2,IDIM-1,2
+        II=I/2
+        ARR2(I,J)=0.25*(ARR1(II,J)+ARR1(II+1,J)+ARR1(II,J+1)+
+     1                  ARR1(II,J-1))
+      ENDDO
+      ENDDO
+C***
+C***  EXTRAPOLATE TO THE FOUR CORNER H POINTS.
+C***
+      ARR2(1,1)=0.5*(1.5*(ARR1(1,1)+ARR1(1,2))
+     1              -0.5*(ARR1(2,1)+ARR1(1,4)))
+      ARR2(IDIM,1)=0.5*(1.5*(ARR1(IM-1,1)+ARR1(IM,2))
+     1              -0.5*(ARR1(IM-2,1)+ARR1(IM,4)))
+      ARR2(1,JDIM)=0.5*(1.5*(ARR1(1,JDIM)+ARR1(1,JDIM-1))
+     1              -0.5*(ARR1(2,JDIM)+ARR1(1,JDIM-3)))
+      ARR2(IDIM,JDIM)=0.5*(1.5*(ARR1(IM-1,JDIM)+ARR1(IM,JDIM-1))
+     1              -0.5*(ARR1(IM-2,JDIM)+ARR1(IM,JDIM-3)))
+      RETURN
+      END

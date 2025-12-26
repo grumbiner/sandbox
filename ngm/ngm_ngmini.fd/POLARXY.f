@@ -1,0 +1,51 @@
+       SUBROUTINE POLARXY(XOBS,YOBS,MC,NC,XPOLET,YPOLET,DX,DY)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    POLARXY     GET TWO-D FIELDS OF X AND Y ON POLAGRID
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+C
+C ABSTRACT: OBTAIN TWO-DIM FIELDS OF X AND Y ON POLA GRID.
+C
+C PROGRAM HISTORY LOG:
+C   88-08-08  PARRISH
+C
+C USAGE:    CALL POLARXY(XOBS,YOBS,MC,NC,XPOLET,YPOLET,DX,DY)
+C   INPUT ARGUMENT LIST:
+C     MC       - NUMBER OF X-POINTS ON POLA GRID
+C     NC       - NUMBER OF Y-POINTS ON POLA GRID
+C     XPOLET   - X-COORDINATE OF POLE
+C     YPOLET   - Y-COORDINATE OF POLE
+C     DX       - X-INCREMENT
+C     DY       - Y-INCREMENT
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     XOBS     - X-COORDINATES OF POINTS ON POLA GRID
+C     YOBS     - Y-COORDINATES OF POINTS ON POLA GRID
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         REAL XOBS(1),YOBS(1)
+C--------
+             MNC=MC*NC
+             DO 100 I=1,MC
+               XOBS(I)=I
+               YOBS(I)=1.
+100          CONTINUE
+             DO 210 J=2,NC
+               J0=(J-1)*MC
+               DO 207 I=1,MC
+                 XOBS(J0+I)=XOBS(I)
+                 YOBS(J0+I)=YOBS(J0-MC+I)+1.
+207            CONTINUE
+210          CONTINUE
+             DO 220 I=1,MNC
+               XOBS(I)=DX*(XOBS(I)-XPOLET)
+               YOBS(I)=DY*(YOBS(I)-YPOLET)
+220          CONTINUE
+       RETURN
+       END

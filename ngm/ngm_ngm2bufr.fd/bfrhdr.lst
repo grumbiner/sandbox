@@ -1,0 +1,295 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrhdr.f 05/28/08 12:37:18
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              INLGLUE         NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |	SUBROUTINE BFRHDR ( luntbl, cseqn, prfflg, clist, np, iret )
+          2 |C************************************************************************
+          3 |C* BFRHDR								*
+          4 |C*									*
+          5 |C* This subroutine reads a Jack Woollen BUFR encoding table file to	*
+          6 |C* get the string of parameters to be written.  This subroutine is	*
+          7 |C* given the sequence nmemonic and returns the list associated with it. *
+          8 |C* This list is a character string and is used as the last input to 	*
+          9 |C* UFBINT.								*
+         10 |C*									*
+         11 |C*									*
+         12 |C* BFRHDR ( LUNTBL, CSEQN, PRFFLG, CLIST, NP, IRET )			*
+         13 |C*									*
+         14 |C* Input parameters:							*
+         15 |C*	LUNTBL		INTEGER		Unit number of BUFR Table file	*
+         16 |C*	CSEQN		CHAR*		Sequence mnemonic		*
+         17 |C*	PRFFLG		LOGICAL		Flag for profile parms		*
+         18 |C*					  = .true. for multi-level parms*
+         19 |C*									*
+         20 |C* Output parameters:							*
+         21 |C*	CLIST		CHAR*		String of parm names		*
+         22 |C*	NP		INTEGER		Number of parm names in string  *
+         23 |C*	IRET		INTEGER		Return code			*
+         24 |C*					  0 = normal return		*
+         25 |C*					 -1 = Improper table file	*
+         26 |C*					 -2 = Sequence not found	*
+         27 |C*					 -3 = CLIST too short		*
+         28 |C**									*
+         29 |C* Log:									*
+         30 |C* K. Brill/NMC		05/94						*
+         31 |C* K. BRill/EMC		 2/99	Sequence continuation line parsing	*
+         32 |C************************************************************************
+         33 |C*
+         34 |	CHARACTER*(*)		cseqn, clist
+         35 |	LOGICAL			prfflg
+         36 |C*
+         37 |	LOGICAL			found, done
+         38 |	CHARACTER*256		sbuf
+         39 |C
+         40 |C*	Set starting column number of parameter list in the table.
+         41 |C
+         42 |C-----------------------------------------------------------------------
+         43 |	iret = 0
+         44 |	istart = 14
+         45 |	lenmax = LEN ( clist )
+         46 |C
+         47 |C*	Count the number of lines to end of file (used to reposition
+         48 |C*	pointer to original line at the end).
+         49 |C
+         50 |	found = .true.
+         51 |	lcnt = 1
+         52 |	DO WHILE ( found )
+         53 |	    READ ( luntbl, 1000, IOSTAT=ios ) sbuf
+         54 |1000	    FORMAT (A)
+         55 |	    IF ( ios .ne. 0 ) THEN
+         56 |		found = .false.
+         57 |	    ELSE
+         58 |		lcnt = lcnt + 1
+         59 |	    END IF
+         60 |	END DO
+         61 |C
+         62 |C*	Read from the file for positioning.
+         63 |C
+         64 |	REWIND luntbl
+         65 |	found = .false.
+         66 |	DO WHILE ( .not. found )
+         67 |	    READ (luntbl, 1000, IOSTAT=ios ) sbuf
+         68 |	    IF ( ios .ne. 0 ) THEN
+         69 |		iret = -1
+         70 |		RETURN
+         71 |	    END IF
+         72 |	    iq1 = INDEX ( sbuf, '| SEQUENCE' )
+         73 |	    iq2 = INDEX ( sbuf, '| MNEMONIC' )
+         74 |	    iq = iq1 * iq2
+         75 |	    IF ( iq .ne. 0 ) found = .true.
+         76 |	END DO
+         77 |C
+         78 |C*	Get length of sequence mnemonic string.
+         79 |C
+         80 |	lc = LEN ( cseqn )
+         81 |	DO WHILE ( cseqn ( lc:lc ) .eq. ' ' )
+         82 |	    lc = lc-1
+         83 |	END DO
+         84 |C
+         85 |C*	Start searching foreward for the sequence mnemonic.
+         86 |C
+         87 |	clist = ' '
+         88 |	found = .false.
+         89 |	done = .false.
+         90 |	ib = 1
+         91 |	lenc = 0
+         92 |	DO WHILE ( .not. done )
+         93 |	    READ ( luntbl, 1000, IOSTAT=ios ) sbuf
+         94 |	    IF ( ios .ne. 0 ) THEN
+         95 |		iret = -2
+         96 |		RETURN
+         97 |	    END IF
+         98 |	    iq = INDEX ( sbuf ( 1:14 ), cseqn ( 1:lc ) )
+         99 |	    IF ( iq .ne. 0 ) THEN
+        100 |		found = .true.
+        101 |C
+        102 |C*		Find the last character of last parameter.
+        103 |C
+        104 |		i = 79
+        105 |		DO WHILE ( sbuf ( i:i ) .eq. ' ' )
+        106 |		    i = i - 1
+        107 |		END DO
+        108 |		IF ( lenc .gt. 0 ) THEN
+        109 |		    lenc = lenc + 1
+        110 |		    IF ( lenc .gt. lenmax ) THEN
+        111 |			iret = -3
+        112 |			RETURN
+        113 |		    END IF
+        114 |		    clist (lenc:lenc) = ' '
+        115 |		    ib = ib + 1
+        116 |		END IF
+        117 |		lenc = lenc + i - istart + 1
+        118 |		IF ( lenc .gt. lenmax ) THEN
+        119 |		    iret = -3
+        120 |		    RETURN
+        121 |		END IF
+        122 |		clist (ib: ) = sbuf ( istart:i )
+        123 |		ib = lenc + 1
+        124 |	    ELSE IF ( found ) THEN
+        125 |		done = .true.
+        126 |	    END IF
+        127 |	END DO
+        128 |C
+        129 |C*	Count the number of entries in CLIST.
+        130 |C
+        131 |	np = 0
+        132 |	nspcs = 0
+        133 |	DO j = 1, lenc
+        134 |	    IF ( clist ( j:j ) .eq. ' ' ) nspcs = nspcs + 1
+        135 |	END DO
+        136 |	IF ( nspcs .gt. 0 ) np = nspcs + 1
+        137 |C
+        138 |C*	Handle profile sequence.
+        139 |C
+        140 |	IF ( prfflg .and. found ) THEN
+        141 |	    sbuf = cseqn ( 1:lc ) // '^ ' // clist ( 1:lenc )
+        142 |	    clist = sbuf
+        143 |	END IF
+        144 |C
+        145 |C*	Reposition file to original record.
+        146 |C
+        147 |	found = .true.
+        148 |	DO WHILE ( found )
+        149 |	    READ ( luntbl, 1000, IOSTAT=ios ) sbuf
+        150 |	    IF ( ios .ne. 0 ) found = .false.
+        151 |	END DO
+        152 |	DO k = 1, lcnt
+        153 |	    BACKSPACE luntbl
+        154 |	END DO
+        155 |C*
+        156 |	RETURN
+        157 |	END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bfrhdr                           Subroutine
+                                 0-1.13$
+ 
+clist                            Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-34.24$  0-1.45  0-45.17  0-87.2@  0-114.7@  0-122.3@  0-134.11  0-141.39  0-142.6@
+ 
+cseqn                            Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-34.17$  0-1.30  0-80.13  0-81.13  0-98.34  0-141.13
+ 
+done                             Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-37.19$  0-89.4@  0-92.19  0-125.5@
+ 
+found                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-37.12$  0-50.2@  0-52.13  0-56.3@  0-65.2@  0-66.19  0-75.23@  0-88.2@  0-100.3@  0-124.16
+                                 0-140.20  0-147.2@  0-148.13  0-150.24@
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-104.3@  0-105.21  0-105.23  0-106.7@  0-106.11  0-117.17  0-122.32
+ 
+ib                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-90.2@  0-115.7@  0-115.12  0-122.10  0-123.3@
+ 
+index                            Pure Intrinsic
+                                 0-72.12  0-73.12  0-98.11
+ 
+ios                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-53.34  0-55.11  0-67.33  0-68.11  0-93.34  0-94.11  0-149.34  0-150.11
+ 
+iq                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-74.6@  0-75.11  0-98.6@  0-99.11
+ 
+iq1                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.6@  0-74.11
+ 
+iq2                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-73.6@  0-74.17
+ 
+iret                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.56  0-43.2@  0-69.3@  0-95.3@  0-111.4@  0-119.7@
+ 
+istart                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-44.2@  0-117.21  0-122.25
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-133.5@  0-134.19  0-134.21
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-152.5@
+ 
+lc                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-80.2@  0-81.21  0-81.24  0-82.6@  0-82.11  0-98.44  0-141.23
+ 
+lcnt                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-51.2@  0-58.3@  0-58.10  0-152.12
+ 
+len                              Pure Intrinsic
+                                 0-45.11  0-80.7
+ 
+lenc                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-91.2@  0-108.8  0-109.7@  0-109.14  0-110.12  0-114.14  0-114.19  0-117.3@  0-117.10  0-118.8
+                                 0-123.8  0-133.12  0-141.49
+ 
+lenmax                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-45.2@  0-110.22  0-118.18
+ 
+luntbl                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.22  0-53.13  0-64.9  0-67.12  0-93.13  0-149.13  0-153.16
+ 
+np                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.52  0-131.2@  0-136.22@
+ 
+nspcs                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-132.2@  0-134.36@  0-134.44  0-136.7  0-136.27
+ 
+prfflg                           Reference argument, Logical(4), Offset: 0, Alignment: full word
+                                 0-35.12$  0-1.37  0-140.7
+ 
+sbuf                             Static, Character(256), Offset: 0, Alignment: full word
+                                 0-38.17$  0-53.40@  0-67.39@  0-72.20  0-73.20  0-93.40@  0-98.19  0-105.14  0-122.18  0-141.6@
+                                 0-142.14  0-149.40@
+ 
+** bfrhdr   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    bfrhdr.f                    10/09/02   12:47:47
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     157
+1501-510  Compilation successful for file bfrhdr.f.
+1501-543  Object file created.

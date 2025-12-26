@@ -1,0 +1,22 @@
+       COMMON /PPTASM/
+     & PHOUR(IDIM1:IDIM2,JDIM1:JDIM2),TLAT(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,PPTDAT(IDIM1:IDIM2,JDIM1:JDIM2,3),APREC(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,ITSTLOC,JTSTLOC,MTSTPE
+     &,VAPINC(IDIM1:IDIM2,JDIM1:JDIM2),VAPINC7(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,CLDINC(IDIM1:IDIM2,JDIM1:JDIM2),CLDINC7(IDIM1:IDIM2,JDIM1:JDIM2)
+C
+C   APREC - grid-scale precip, calculated in PRECPD.  Didn't seem to serve
+C   any particular purpose.  I'm just going to include it in the common
+C   block and use it to figure out how much of the precip at each timestep
+C   is convective.
+C  
+C   ITSTLOC, JTSTLOC, MTSTPE: local (itest,jtest) point, and the node it
+C   belongs to.  Calculate (ITSTLOC,JTSTLOC) using T. BlaCK'S glb2loc.f
+C   before running the job.
+C 
+C   Water increment arrays:
+C    Vapor increment, entire atmos:  vapinc
+C    Vapor increment, sfc-700mb:     vapinc7
+C    Cloud increment, entire atmos:  cldinc
+C    Cloud increment, sfc-700mb:     cldinc7
+

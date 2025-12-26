@@ -1,0 +1,13 @@
+# QSUB -r mkgsp -lT 1000 -lM 4Mw 
+# QSUB -eo -o mkgsp.out
+# QSUB -s /bin/sh
+# QSUB
+
+set -x
+
+mkdir -p /tmp/wd20er/gesprep
+cd /tmp/wd20er/gesprep
+rm *
+cp /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/* .
+make
+cp gsp12628.xc /dm/wd20er/exec.ngm/gsp12628.x

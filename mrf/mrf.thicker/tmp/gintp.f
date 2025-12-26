@@ -1,0 +1,87 @@
+      SUBROUTINE GINTP(IIN,JTWIDL,JIN,IOUT,
+     1                 ILEFT,IRGHT,INSLAT,WGTLAT,
+     2                 CTT,CLDT,TT,SUM,NN,LTWIDL,LATRD1)
+      DIMENSION CTT(IIN,JTWIDL)
+      DIMENSION CLDT(IOUT)
+      DIMENSION ILEFT(IOUT),IRGHT(IOUT)
+      DIMENSION TT(IOUT,4),SUM(IOUT)
+      DIMENSION NN(IOUT)
+C....    FOR TOP TEMP JUST TAKE AVERAGE OF SURROUNDING
+C..       NON-ZERO POINTS (THESE ARE THE CLOUD-FILLED ONES)....
+C..       NN WILL BE NUMBER OF SURROUNDING PTS WITH CLD (GT ZERO)
+      IF (INSLAT.LT.0) GO TO 600
+      INTH = MOD(LTWIDL + INSLAT - LATRD1 - 1,JTWIDL) + 1
+      INTH1 = MOD(INTH,JTWIDL) + 1
+      IF (INSLAT.EQ.JIN) GO TO 105
+      DO 100 I=1,IOUT
+        TT(I,1) = CTT(ILEFT(I),INTH)
+        TT(I,2) = CTT(ILEFT(I),INTH1)
+        TT(I,3) = CTT(IRGHT(I),INTH)
+        TT(I,4) = CTT(IRGHT(I),INTH1)
+  100 CONTINUE
+      GO TO 130
+  105 DO 110 I=1,IOUT
+        TT(I,1) = CTT(ILEFT(I),INTH)
+        TT(I,3) = CTT(IRGHT(I),INTH)
+  110 CONTINUE
+      IOUT2 = IOUT / 2
+      DO 120 I=1,IOUT2
+        TT(I,2) = CTT(ILEFT(I+IOUT2),INTH)
+        TT(I+IOUT2,2) = CTT(ILEFT(I),INTH)
+        TT(I,4) = CTT(IRGHT(I+IOUT2),INTH)
+        TT(I+IOUT2,4) = CTT(IRGHT(I),INTH)
+  120 CONTINUE
+C---      NN WILL BE NUMBER OF SURROUNDING PTS WITH CLD (GT ZERO)
+  130 DO 10 I=1,IOUT
+        NN(I) = 0
+   10 CONTINUE
+      DO 12 I=1,IOUT
+        SUM(I) = 0. E 0
+   12 CONTINUE
+      DO 150 KPT=1,4
+       DO 14 I=1,IOUT
+        IF (TT(I,KPT).GT.0. E 0) THEN
+          NN(I) = NN(I) + 1
+          SUM(I) = SUM(I) + TT(I,KPT)
+        ENDIF
+   14  CONTINUE
+  150  CONTINUE
+      DO 16 I=1,IOUT
+        IF (NN(I).LT.1) THEN
+          CLDT(I) = 0. E 0
+        ELSE
+          CLDT(I) = SUM(I) / NN(I)
+        END IF
+   16 CONTINUE
+      RETURN
+C--- POLAR REGION
+  600 CONTINUE
+      JA = IABS(INSLAT)
+      DO 200 I=1,IOUT
+        TT(I,1) = CTT(ILEFT(I),JA)
+        TT(I,2) = CTT(IRGHT(I),JA)
+  200 CONTINUE
+C---      NN WILL BE NUMBER OF SURROUNDING PTS WITH CLD (GT ZERO)
+      DO 20 I=1,IOUT
+        NN(I) = 0
+   20 CONTINUE
+      DO 22 I=1,IOUT
+       SUM(I) = 0. E 0
+   22 CONTINUE
+      DO 202 KPT=1,2
+        DO 24 I=1,IOUT
+          IF (TT(I,KPT).GT.0. E 0) THEN
+            NN(I) = NN(I) + 1
+            SUM(I) = SUM(I) + TT(I,KPT)
+          ENDIF
+   24   CONTINUE
+  202 CONTINUE
+      DO 26 I=1,IOUT
+        IF (NN(I).LT.1) THEN
+          CLDT(I) = 0. E 0
+        ELSE
+          CLDT(I) = SUM(I) / NN(I)
+        END IF
+   26 CONTINUE
+      RETURN
+      END

@@ -1,0 +1,96 @@
+FT40F001XTRN
+      name of mos forecast file could go here
+      name of mos constant file could go here
+NGM MOS GUIDANCE FOR                                                
+   6                                                                
+JSMT41 KWBC                                                          
+BDL     BDR     DXR     GON     HVN     DOV     ILG     AUG     BGR                                                    
+CAR     HUL     LIZ     NHZ     PWM     3B1     ADW     BWI     DVD     
+FME     MTN     NHK     SBY     ACK     AYE     BAF     BOS     CEF     
+FMH     NZW     ORH     CON     LEB     PSM     ACY     EWR     MIV     
+NEL     TEB     WRI     ALB     ART     BGM     BUF     ELM     FOK     
+GFL     GTB     HPN     IAG     ISP     ITH     JFK     JHW     LGA     
+MSS     PBG     POU     RME     ROC     SWF     SYR     UCA     CAK            
+CLE     CMH     DAY     FDY     FFO     LCK     MFD     TOL     YNG     
+ZZV     ABE     AGC     AOO     AVP     BFD     CXY     DUJ     ERI     
+IPT     JST     MDT     NXX     PHL     PIT     PNE     PSB     UNV     
+BID     NCO     PVD     BTV     MPV     1V4     CHO     DAA     DAN     
+DCA     IAD     LFI     LYH     NGU     NTU     NYG     ORF     RIC     
+ROA     WAL     BKW     BLF     CKB     CRW     EKN     HTS     MGW     
+MRB     PKB     BLHM    FAF     MUI     STNV    T01     ZZZZZZZZ
+JSMT42 KWBC                                                          
+AGR     AQQ     COF     CTY     DAB     EYW     FLL     FMY     GNV     
+HRT     HST     JAX     LAL     MCF     MCO     MIA     MLB     NIP     
+NPA     NQX     NRB     NSE     NZC     PAM     PBI     PFN     PNS     
+SRQ     TLH     TPA     VPS     VRB     X68     ABY     AGS     AHN     
+AMG     ATL     AYS     CSG     LHW     LSF     MCN     MGE     RMG     
+SAV     SSI     SVN     VAD     VLD     WRB     AVL     CLT     ECG     
+EWN     FAY     GSB     GSO     HAT     HKY     ILM     INT     NCA     
+NKT     POB     RDU     AND     CAE     CHS     FLO     GSP     MMT     
+MYR     NAO     NBC     SSC     DP1     T02     T03     T04     2DP     
+2PJ     ZZZZZZZZ
+JSMT43 KWBC                                                             
+BLV     CIR     CMI     DEC     MDH     MDW     MLI     MMO     MTO     
+MWA     NBU     ORD     PIA     RFD     SPI     UIN     EVV     FWA     
+GUS     HUF     IND     LAF     SBN     ALO     BRL     CID     DBQ     
+DSM     FOD     MCW     OTM     SUX     3OI     3SE     CNK     CNU     
+DDC     EHA     EMP     FOE     FRI     GCK     GLD     HLC     IAB     
+ICT     MHK     P28     RSL     SLN     TOP     BWG     CVG     FTK     
+HOP     JKL     LEX     LOZ     PAH     SDF     5I3     APN     AZO     
+BTL     CIU     CMX     DTW     FNT     GRR     HTL     IMT     IWD     
+JXN     LAN     MBL     MBS     MKG     MQT     MTC     OSC     PLN     
+P58     P59     P75     SAW     TVC     Y62     AXN     BJI     BRD     
+DLH     D45     HIB     INL     MSP     OTG     P39     P61     RST     
+RWF     STC     CGI     COU     GVW     IRK     JLN     MCI     MKC     
+P02     P35     SGF     STJ     STL     SUS     SZL     TBN     VIH     
+BFF     BUB     CDR     GRI     LBF     LNK     MCK     OFF     OFK     
+OMA     OVN     SNY     VTN     BIS     DIK     FAR     GFK     ISN     
+JMS     MIB     MOT     P11     P24     P67     RDR     ABR     ATY     
+FSD     HON     PIR     RAP     RCA     REJ     Y22     Y26     0V1     
+9V9     ATW     AUW     EAU     GRB     LSE     MKE     MSN     AT2     
+FLV     T05     3RN     ZZZZZZZZ
+JSMT44 KWBC                                                          
+ANB     BHM     CKL     DHN     HSV     MGM     MOB     MSL     MXF     
+OZR     SEM     TCL     BYH     ELD     FSM     FYV     HOT     HRO     
+JBR     LIT     LRF     PBF     TXK     AEX     BAD     BTR     BVE     
+ESF     LCH     LFT     MLU     MSY     NBG     POE     SHV     BIX     
+CBM     GLH     GPT     GWO     JAN     MCB     MEI     NMM     PIB     
+TUP     ADM     CSM     END     FSI     GAG     HBR     LTS     MLC     
+OKC     PNC     TIK     TUL     BNA     CHA     CSV     DYR     MEM     
+MKL     NQA     TRI     TYS     ABI     ACT     ALI     AMA     AUS     
+BGS     BPT     BRO     BSM     CDS     CLL     COT     CRP     DAL     
+DFW     DHT     DLF     DRT     DYS     EFD     ELP     FWH     GDP     
+GGG     GLS     GRK     HDO     HOU     IAH     JCT     LBB     LFK     
+LRD     MAF     MFE     MRF     NBE     NGP     NIR     NQI     PSX     
+P07     REE     RND     SAT     SEP     SJT     SKF     SPS     TYR     
+VCT     T06     01R     ZZZZZZZZ
+JSMT45 KWBC                                                          
+DMA     DUG     E74     FHU     FLG     GBN     IGM     INW     IWA     
+LUF     PGA     PHX     PRC     TUS     YUM     AFF     AKO     ALS     
+BKF     CAG     CEZ     COS     DEN     EGE     FCS     GJT     LHX     
+LIC     PUB     TAD     1V1     4LJ     BOI     BYI     IDA     LWS     
+MLD     MUO     MYL     PIH     P69     SUN     TWF     U15     BIL     
+BTM     BZN     CTB     FCA     GFA     GGW     GSG     GTF     HLN     
+HVR     JDN     LWT     MLS     MSO     DRA     EKO     ELY     LAS     
+LOL     LSV     NFL     P38     P68     RNO     TPH     WMC     ABQ     
+CAO     CNM     CVN     CVS     DMN     FMN     GUP     HMN     HOB     
+LVS     ROW     SAF     TCC     TCS     ZUN     BCE     CDC     ENV     
+HIF     LGU     MLF     OGD     PUC     PVU     SLC     U28     VEL     
+BPI     COD     CPR     CYS     GCC     JAC     LAR     LND     P60     
+RIW     RKS     RWL     SHR     WRL     4DG     T08     UCC     1V5B    
+4MR     DPG     FEW     INS     MC2     MI1     QOS     TNX     T07     
+ZZZZZZZZ
+JSMT46 KWBC                                                          
+ACV     BAB     BFL     BIH     BLH     BLU     BUR     DAG     EDW     
+EED     EKA     FAT     IPL     LAX     LGB     MCC     MER     MHR     
+MHS     MRY     NFG     NGZ     NID     NKX     NLC     NRC     NRS     
+NSI     NTD     NTK     NUC     NUQ     NWF     NZJ     NZY     OAK     
+OAR     ONT     POM     PRB     PSP     RBL     RDD     RIV     SAC     
+SAN     SBA     SBD     SBP     SCK     SFO     SJC     SMX     SNA     
+SNS     STS     SUU     TRK     TRM     TVL     UKI     VBG     VCV     
+VNY     WJF     AST     BKE     BNO     DLS     EUG     LMT     MFR     
+OTH     PDT     PDX     P88     RDM     SLE     SXT     TTD     ALW     
+BLI     EAT     EPH     GEG     GRF     HMS     HQM     MWH     NUW     
+OLM     PAE     PSC     SEA     SKA     SMP     TCM     UIL     YKM     
+4OM     NC1     ZZZZZZZZ                               
+

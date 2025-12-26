@@ -1,0 +1,29 @@
+# Replacement found:
+  "_getenv_", referenced from:
+      _gncpus_ in gncpus.o
+  "_rfftmlt_", referenced from:
+      _fti128_ in fti128.o
+      _fti192_ in fti192.o
+
+  "_sgemvx1_", referenced from:
+      _sums2i_ in sums2i.o
+      _sums2r_ in sums2r.o
+  "_sgerx1_", referenced from:
+      _fl2i_ in fl2i.o
+  "_timef_", referenced from:
+      _MAIN__ in f6228.o
+  "_w3log_", referenced from:
+      _MAIN__ in f6228.o
+
+
+# No replacement found:
+  "_ismax_", referenced from:
+      _gbphys_ in gbphys.o
+  "_ismin_", referenced from:
+      _gbphys_ in gbphys.o
+  "_isrchne_", referenced from:
+      _gtbits_ in gtbits.o
+  "_minv_", referenced from:
+      _gsicdf_ in gsicdf.o
+  "_ratch_", referenced from:
+      _gpkap_ in gpkap.o

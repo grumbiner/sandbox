@@ -1,0 +1,12 @@
+
+#QSUB -lM 4Mw -lT 1800 -eo -o /dm/wd20mi/f95/source2/qmake.out
+dirx=/dm/wd20mi/f95/source2
+dirs=/wd2/wd20/wd20mi/f95/source2
+mkdir -p $dirx;cd $dirx
+for r in f12628 f6228 f6228d f6228t;do
+rm $r.f
+make -f $dirs/makefile $r.x||continue
+#for s in f o l x;do
+#ln -sf $dirx/$r.$s $dirs/$r.$s
+#done
+done
