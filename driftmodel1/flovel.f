@@ -1,10 +1,10 @@
       SUBROUTINE flovel(ui, vi, nlong, nlat, 
      1                  uf, vf, eta, lambda, ig, jg, npts)
+C     Given the atmospheric velocity (uf), compute the air velocity
+C       at the virtual floe points.
+C     Bob Grumbine 4 April 1994.
 
       IMPLICIT none
-
-C     Compute the velocity of the ice floes
-C     3 September 1993
 
 C     Declare the arguments
       INTEGER npts, nlat, nlong

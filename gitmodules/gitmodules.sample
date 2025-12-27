@@ -1,0 +1,42 @@
+[submodule "drift_grumbine"]
+	path = drift_grumbine
+	url = https://github.com/NOAA-EMC/drift_grumbine
+[submodule "seaice-concentration"]
+	path = seaice-concentration
+	url = https://github.com/rgrumbine/seaice-concentration/
+[submodule "evo_mos"]
+	path = evo_mos
+	url = https://github.com/rgrumbine/evo_mos
+[submodule "mmablib"]
+	path = mmablib
+	url = https://github.com/rgrumbine/mmablib
+[submodule "ice_scoring"]
+	path = ice_scoring
+	url = https://github.com/rgrumbine/ice_scoring
+[submodule "toolbox"]
+	path = toolbox
+	url = https://github.com/rgrumbine/toolbox
+[submodule "SIDFEx"]
+	path = SIDFEx
+	url = https://github.com/rgrumbine/SIDFEx
+[submodule "newsys"]
+	path = newsys
+	url = https://github.com/rgrumbine/newsys
+[submodule "newdrift"]
+	path = newdrift
+	url = https://github.com/rgrumbine/newdrift
+[submodule "ENIAC"]
+	path = ENIAC
+	url = https://github.com/rgrumbine/ENIAC
+[submodule "libraries/hdf5"]
+	path = libraries/hdf5
+	url = https://github.com/HDFGroup/hdf5/
+[submodule "libraries/netcdf-c"]
+	path = libraries/netcdf-c
+	url = https://github.com/Unidata/netcdf-c
+[submodule "libraries/netcdf-fortran"]
+	path = libraries/netcdf-fortran
+	url = https://github.com/Unidata/netcdf-fortran
+[submodule "libraries/netcdf4-python"]
+	path = libraries/netcdf4-python
+	url = https://github.com/Unidata/netcdf4-python
