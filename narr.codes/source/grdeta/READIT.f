@@ -1,0 +1,5 @@
+        SUBROUTINE READIT(NUNIT)
+        COMMON /SSTUFF/ I1D(360,180)
+        READ(NUNIT) I1D
+        RETURN
+        END

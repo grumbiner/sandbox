@@ -1,0 +1,509 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/RESTARTW.f 09/30/06 19:45:34
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE RESTARTW (IOUTURST, IOUTUPRT, DATANAME, SPECS, VBL,
+          2 |     1                     BITSEA, BITSNO, BITWVL)
+          3 |C
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C
+          6 |C SUBPROGRAM:    RESTARTW    WRITES RESTART FILE
+          7 |C   PRGMMR: J TUCCILLO       ORG: W/NMC4     DATE: 90-06-19
+          8 |C
+          9 |C ABSTRACT:    WRITES RESTART FILE WITH A MAXIMUM RECORD LENGTH OF
+         10 |C              INUMREC ELEMENTS
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   90-06-19  J TUCCILLO
+         14 |C   98-11-19  E ROGERS REPLACED CALL TO OUTOPN WITH ONE TO WRTDAT,
+         15 |C             WHICH WILL WRITE A NCEP BINARY DATE WORD IN THE
+         16 |C             FIRST RECORD OF THE RESTART FILE INSTEAD OF AN ON85
+         17 |C             DATE LABEL
+         18 |C
+         19 |C USAGE: CALL RESTARTW (IOUTURST, IOUTUPRT, DATANAME, SPECS, VBL,
+         20 |C                       BITSEA, BITSNO, BITWVL)
+         21 |C   INPUT ARGUMENTS:
+         22 |C     IOUTURST  -  UNIT NUMBER OF RESTART FILE
+         23 |C     IOUTUPRT  -  UNIT NUMBER OF OUTPUT FILE
+         24 |C     SPECS     -  SPECIFICATION FILE
+         25 |C     VBL       -  CONTAINS NGM MODEL FIELDS
+         26 |C     BITSEA    -  CONTAINS UNFROZEN WATER LOGICAL MAP
+         27 |C     BITSNO    -  CONTAINS SNOW COVER LOGICAL MAP
+         28 |C     BITWVL    -  CONTAINS WATER VS. LAND LOGICAL MAP
+         29 |C
+         30 |C   SUBROUTINES CALLED:
+         31 |C     UNIQUE    -  WRTDAT
+         32 |C
+         33 |C ATTRIBUTES:
+         34 |C   LANGUAGE: FORTRAN
+         35 |C   MACHINE:  CRAY Y-MP
+         36 |C
+         37 |C$$$
+         38 |C
+         39 |C
+         40 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         41 |C
+         42 |C
+         43 |      DIMENSION VBL    ( INVBL ),
+         44 |     *          SPECS  ( INSPECS ),
+         45 |     *          BITSEA ( IIJMAX * INGRDUSE ),
+         46 |     *          BITSNO ( IIJMAX * INGRDUSE ),
+         47 |     *          BITWVL ( IIJMAX * INGRDUSE )
+         48 |C
+         49 |      LOGICAL BITSEA, BITSNO, BITWVL
+         50 |C
+         51 |      CHARACTER*6 DATANAME
+         52 |C
+         53 |C================================================================
+         54 |C
+         55 |      GMT0     = SPECS(2)
+         56 |      DAY0     = SPECS(3)
+         57 |      AMONTH0  = SPECS(4)
+         58 |      CENYEAR0 = SPECS(5)
+         59 |C     IRUNMARK = NINT(SPECS(235))
+         60 |C     IOUTUPRT = NINT(SPECS(271))
+         61 |C     IVERSION = NINT(SPECS(231))
+         62 |      IRUNMARK = 2
+         63 |      IOUTUPRT = 6
+         64 |      IVERSION = 1
+         65 |      ITIME    = NINT(SPECS(233))
+         66 |      NSTEPS   = NINT(SPECS(234))
+         67 |C
+         68 |      CALL WRTDAT(DATANAME, CENYEAR0, AMONTH0, DAY0, GMT0, IRUNMARK,
+         69 |     *             IVERSION, IOUTUPRT, IOUTURST, ITIME, NSTEPS)
+         70 |C
+         71 |      ILEFT = MOD ( INSPECS, INUMREC )
+         72 |      ILOOP = INSPECS / INUMREC
+         73 |      IST   = 1
+         74 |      ISP   = INUMREC
+         75 |      DO 1 II = 1, ILOOP
+         76 |         WRITE ( IOUTURST ) (SPECS(I),I=IST,ISP)
+         77 |         IST = ISP + 1
+         78 |         ISP = ISP + INUMREC
+         79 |1     CONTINUE
+         80 |      IF ( ILEFT .GT. 0 ) THEN
+         81 |         ISP = INSPECS
+         82 |         WRITE ( IOUTURST ) (SPECS(I),I=IST,ISP)
+         83 |      END IF
+         84 |C
+         85 |      ILEFT = MOD ( INVBL, INUMREC )
+         86 |      ILOOP = INVBL / INUMREC
+         87 |      IST   =     1
+         88 |      ISP   = INUMREC
+         89 |      DO 2 II = 1, ILOOP
+         90 |        WRITE ( IOUTURST ) (VBL(I), I=IST, ISP)
+         91 |        IST = ISP + 1
+         92 |        ISP = ISP + INUMREC
+         93 |2     CONTINUE
+         94 |      IF( ILEFT .NE. 0) THEN
+         95 |        ISP = INVBL
+         96 |        WRITE ( IOUTURST ) (VBL(I), I=IST, ISP)
+         97 |      END IF
+         98 |C
+         99 |C     SAME VALUES FOR ALL LOGICAL MASKS
+        100 |C
+        101 |      ILEN = IIJMAX * INGRDUSE
+        102 |      ILEFT = MOD ( ILEN, INUMREC )
+        103 |      ILOOP = ILEN / INUMREC
+        104 |C
+        105 |C
+        106 |      IST   =     1
+        107 |      ISP   = INUMREC
+        108 |      DO 3 II = 1, ILOOP
+        109 |        WRITE ( IOUTURST ) (BITSEA(I), I=IST, ISP)
+        110 |        IST = ISP + 1
+        111 |        ISP = ISP + INUMREC
+        112 |3     CONTINUE
+        113 |      IF( ILEFT .NE. 0) THEN
+        114 |        ISP = ILEN
+        115 |        WRITE ( IOUTURST ) (BITSEA(I), I=IST, ISP)
+        116 |      END IF
+        117 |C
+        118 |      IST   =     1
+        119 |      ISP   = INUMREC
+        120 |      DO 4 II = 1, ILOOP
+        121 |        WRITE ( IOUTURST ) (BITSNO(I), I=IST, ISP)
+        122 |        IST = ISP + 1
+        123 |        ISP = ISP + INUMREC
+        124 |4     CONTINUE
+        125 |      IF( ILEFT .NE. 0) THEN
+        126 |        ISP = ILEN
+        127 |        WRITE ( IOUTURST ) (BITSNO(I), I=IST, ISP)
+        128 |      END IF
+        129 |C
+        130 |      IST   =     1
+        131 |      ISP   = INUMREC
+        132 |      DO 5 II = 1, ILOOP
+        133 |        WRITE ( IOUTURST ) (BITWVL(I), I=IST, ISP)
+        134 |        IST = ISP + 1
+        135 |        ISP = ISP + INUMREC
+        136 |5     CONTINUE
+        137 |      IF( ILEFT .NE. 0) THEN
+        138 |        ISP = ILEN
+        139 |        WRITE ( IOUTURST ) (BITWVL(I), I=IST, ISP)
+        140 |      END IF
+        141 |C
+        142 |C
+        143 |      RETURN
+        144 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+amonth0                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-68.39
+ 
+bitsea                           Reference argument, Logical(4) (1:47336), Offset: 0, Alignment: full word
+                                 0-45.17$  0-2.28  0-49.15$  0-109.29  0-115.29
+ 
+bitsno                           Reference argument, Logical(4) (1:47336), Offset: 0, Alignment: full word
+                                 0-46.17$  0-2.36  0-49.23$  0-121.29  0-127.29
+ 
+bitwvl                           Reference argument, Logical(4) (1:47336), Offset: 0, Alignment: full word
+                                 0-47.17$  0-2.44  0-49.31$  0-133.29  0-139.29
+ 
+cenyear0                         Static, Real(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-68.29
+ 
+dataname                         Reference argument, Character(6), Offset: 0, Alignment: byte
+                                 0-51.19$  0-1.48  0-68.19
+ 
+day0                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-56.7@  0-68.48
+ 
+gmt0                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-55.7@  0-68.54
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-76.36  0-76.39@  0-82.36  0-82.39@  0-90.33  0-90.37@  0-96.33  0-96.37@  0-109.36  0-109.40@
+                                 0-115.36  0-115.40@  0-121.36  0-121.40@  0-127.36  0-127.40@  0-133.36  0-133.40@  0-139.36
+                                 0-139.40@
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ii                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-75.12@  0-89.12@  0-108.12@  0-120.12@  0-132.12@
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-45.26  0-46.26  0-47.26  0-101.14  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ileft                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-80.12  0-85.7@  0-94.11  0-102.7@  0-113.11  0-125.11  0-137.11
+ 
+ilen                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-101.7@  0-102.21  0-103.15  0-114.15  0-126.15  0-138.15
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+iloop                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.7@  0-75.20  0-86.7@  0-89.20  0-103.7@  0-108.20  0-120.20  0-132.20
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-45.35  0-46.35  0-47.35  0-101.23
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$  0-44.26  0-71.21  0-72.15  0-81.16
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$  0-71.30  0-72.25  0-74.15  0-78.22  0-85.28  0-86.23  0-88.15  0-92.21  0-102.27
+                                 0-103.22  0-107.15  0-111.21  0-119.15  0-123.21  0-131.15  0-135.21
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$  0-43.26  0-85.21  0-86.15  0-95.15
+ 
+ioutuprt                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.38  0-63.7@  0-69.30
+ 
+iouturst                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.28  0-69.40  0-76.18  0-82.18  0-90.17  0-96.17  0-109.17  0-115.17  0-121.17  0-127.17
+                                 0-133.17  0-139.17
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+irunmark                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-62.7@  0-68.60
+ 
+isp                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-74.7@  0-76.45  0-77.16  0-78.10@  0-78.16  0-81.10@  0-82.45  0-88.7@  0-90.44  0-91.15  0-92.9@
+                                 0-92.15  0-95.9@  0-96.44  0-107.7@  0-109.47  0-110.15  0-111.9@  0-111.15  0-114.9@  0-115.47
+                                 0-119.7@  0-121.47  0-122.15  0-123.9@  0-123.15  0-126.9@  0-127.47  0-131.7@  0-133.47  0-134.15
+                                 0-135.9@  0-135.15  0-138.9@  0-139.47
+ 
+ist                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-73.7@  0-76.41  0-77.10@  0-82.41  0-87.7@  0-90.39  0-91.9@  0-96.39  0-106.7@  0-109.42
+                                 0-110.9@  0-115.42  0-118.7@  0-121.42  0-122.9@  0-127.42  0-130.7@  0-133.42  0-134.9@  0-139.42
+ 
+itime                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-69.50
+ 
+iversion                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.7@  0-69.20
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+mod                              Pure Intrinsic
+                                 0-71.15  0-85.15  0-102.15
+ 
+nint                             Pure Intrinsic
+                                 0-65.18  0-66.18
+ 
+nsteps                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-69.57
+ 
+restartw                         Subroutine
+                                 0-1.18$
+ 
+specs                            Reference argument, Real(4) (1:700), Offset: 0, Alignment: full word
+                                 0-44.17$  0-1.58  0-55.18  0-56.18  0-57.18  0-58.18  0-65.23  0-66.23  0-76.30  0-82.30
+ 
+vbl                              Reference argument, Real(4) (1:6282436), Offset: 0, Alignment: full word
+                                 0-43.17$  0-1.65  0-90.29  0-96.29
+ 
+wrtdat                           External Subroutine
+                                 0-68.12
+ 
+** restartw   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    RESTARTW.f                  10/10/02   16:14:55
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/parmodel
+                                      10/10/02   16:14:55      0      40
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     206
+1501-510  Compilation successful for file RESTARTW.f.
+1501-543  Object file created.

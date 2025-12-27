@@ -1,0 +1,169 @@
+(ld): setopt 64
+(ld): halt 4
+(ld): lrgpage 0
+(ld): savename etapost.x
+(ld): filelist 113 1
+(ld): i /lib/crt0_64.o
+(ld): i BLOSFC2.o
+(ld): i BNDLYR2.o
+(ld): i BOUND.o
+(ld): i BOUNDL.o
+(ld): i CALCAPE.o
+(ld): i CALDRG.o
+(ld): i CALDWP2.o
+(ld): i CALEKM.o
+(ld): i CALEKM2.o
+(ld): i CALHEL.o
+(ld): i CALLCL.o
+(ld): i CALMCVG.o
+(ld): i CALMXW.o
+(ld): i CALPOT2.o
+(ld): i CALPW.o
+(ld): i CALRCH.o
+(ld): i CALRH2.o
+(ld): i CALSTRM.o
+(ld): i CALTAU.o
+(ld): i CALTHTE.o
+(ld): i CALVIS.o
+(ld): i CALVOR.o
+(ld): i CALWXT.o
+(ld): i CETLIH4.o
+(ld): i CHR2INT.o
+(ld): i CLDRAD.o
+(ld): i CLMAX.o
+(ld): i COEFI.o
+(ld): i COEFJ.o
+(ld): i COLLECT.o
+(ld): i DEWPOINT.o
+(ld): i DIST.o
+(ld): i DIR.o
+(ld): i E2OUT.o
+(ld): i E2TLL.o
+(ld): i EFILL.o
+(ld): i EFILT.o
+(ld): i ETA2P.o
+(ld): i ETAFLD2.o
+(ld): i ETAPOST.o
+(ld): i EUVGUV.o
+(ld): i EXCH.o
+(ld): i EXCH2.o
+(ld): i EXTEND.o
+(ld): i EXTRACT.o
+(ld): i FDLVL.o
+(ld): i FILLH.o
+(ld): i FILLV.o
+(ld): i FILTER.o
+(ld): i FIXED.o
+(ld): i FRZLVL.o
+(ld): i FRZLVL2.o
+(ld): i GD2EG.o
+(ld): i GD2EGK.o
+(ld): i GD2TLL.o
+(ld): i GENBIL.o
+(ld): i GENEUV.o
+(ld): i GENLL.o
+(ld): i GET_BITS.o
+(ld): i GRIBIT.o
+(ld): i H2V.o
+(ld): i INITPOST.o
+(ld): i INTERP3.o
+(ld): i LFMFLD.o
+(ld): i LL2EG.o
+(ld): i MINMAX.o
+(ld): i MISCLN.o
+(ld): i MIXLEN.o
+(ld): i MPI_FIRST.o
+(ld): i MPI_LAST.o
+(ld): i NETAL.o
+(ld): i NGMFLD2.o
+(ld): i NGMSLP2.o
+(ld): i NOPACK.o
+(ld): i OTLIFT2.o
+(ld): i OTLFT2.o
+(ld): i OUTPUT.o
+(ld): i PARA_RANGE.o
+(ld): i P2FILT.o
+(ld): i P2FLTV.o
+(ld): i POSTDATA.o
+(ld): i PROCESS.o
+(ld): i RDRST2D.o
+(ld): i READCNTRL2.o
+(ld): i SCLFLD.o
+(ld): i STAT.o
+(ld): i SURFCE2.o
+(ld): i TRNSEG.o
+(ld): i TRNSGD.o
+(ld): i TRPAUS.o
+(ld): i TTBLEX.o
+(ld): i WDIR.o
+(ld): i WETBULB.o
+(ld): i P2FILTF.o
+(ld): i P2FLTVF.o
+(ld): i CANRES.o
+(ld): i ETCALC.o
+(ld): i HPBLCAL.o
+(ld): i SNFRAC.o
+(ld): lib /nwprod/lib/libw3_4.a
+(ld): lib /nwprod/lib/libbacio_4.a
+(ld): lib /usr/lib/libessl.a
+(ld): lib /usr/lib/libmass.a
+(ld): lib /usr/lib/liblapi_r.a
+(ld): lib /usr/lpp/ppe.poe/lib/libmpi_r.a
+(ld): lib /lib/threads/libxlf90.a
+(ld): lib /usr/lib/libxlopt.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlomp_ser.a
+(ld): lib /usr/lib/libpthreads.a
+(ld): lib /usr/lib/libm_r.a
+(ld): lib /usr/lpp/ppe.poe/lib/libc_r.a
+LIBRARY: Shared object libessl.a[essl_64.o]: 1608 symbols imported.
+LIBRARY: Shared object liblapi_r.a[liblapi64_r.o]: 347 symbols imported.
+LIBRARY: Shared object liblapi_r.a[liblapishm64_r.o]: 6 symbols imported.
+LIBRARY: Shared object liblapi_r.a[liblapiudp64_r.o]: 4 symbols imported.
+LIBRARY: Shared object libmpi_r.a[mpci64_r.o]: 43 symbols imported.
+LIBRARY: Shared object libmpi_r.a[mpicore64_r.o]: 646 symbols imported.
+LIBRARY: Shared object libmpi_r.a[mpifort64_r.o]: 1580 symbols imported.
+LIBRARY: Shared object libmpi_r.a[mpipoe64_r.o]: 110 symbols imported.
+LIBRARY: Shared object libmpi_r.a[mpicpp64_r.o]: 24 symbols imported.
+LIBRARY: Shared object libmpi_r.a[dynamic64_r.o]: 22 symbols imported.
+LIBRARY: Shared object libmpi_r.a[pm_chkrst64_r.o]: 3 symbols imported.
+LIBRARY: Shared object libxlf90.a[io_64.o]: 69 symbols imported.
+LIBRARY: Shared object libxlf90.a[math_64.o]: 344 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys_64.o]: 33 symbols imported.
+LIBRARY: Symbols imported from import file /lib/threads/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf90.a[_xlf_posix_64.o]: 85 symbols imported.
+LIBRARY: Shared object libxlomp_ser.a[omp_ser_64.o]: 61 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_xpg5_64.o]: 278 symbols imported.
+LIBRARY: Shared object libc_r.a[shr_64.o]: 2357 symbols imported.
+LIBRARY: Shared object libc_r.a[posix_aio_64.o]: 17 symbols imported.
+LIBRARY: Shared object libc_r.a[aio_64.o]: 11 symbols imported.
+LIBRARY: Shared object libc_r.a[pse_64.o]: 5 symbols imported.
+LIBRARY: Shared object libc_r.a[dl_64.o]: 4 symbols imported.
+LIBRARY: Shared object libc_r.a[pty_64.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 113
+(ld): initfini poe_remote_main 
+(ld): resolve
+RESOLVE: 865 of 14820 symbols were kept.
+(ld): addgl /usr/lib/glink64.o
+ADDGL: Glink code added for 59 symbols.
+(ld): er full
+ER: There are no unresolved symbols.
+(ld): mismatch
+MISMATCH: No type mismatches exist.
+(ld): comprld
+COMPRLD: Kept 6277 of 6277 relocation entries.
+(ld): origin page 0x100000000 0x110000000
+(ld): maxstack 0x10000000
+MAXSTACK: The stack size limit field in the auxiliary header of the
+	output object file will be set to: 268435456 (0x10000000) bytes
+(ld): maxdata 0x80000000
+MAXDATA: The maximum .data section size field in the auxiliary header of the
+	output object file will be set to: 2147483648 (0x80000000) bytes
+(ld): libpath /nwprod/lib:/usr/lpp/ppe.poe/lib/threads:/usr/lpp/ppe.poe/lib:/usr/lpp/ppe.poe/lib/ip:/lib/threads:/usr/lib:/lib
+LIBPATH: Library path set to /nwprod/lib:/usr/lpp/ppe.poe/lib/threads:/usr/lpp/ppe.poe/lib:/usr/lpp/ppe.poe/lib/ip:/lib/threads:/usr/lib:/lib
+(ld): save 1L .
+SAVE: Section sizes = 413728+89776+589227668 (0x65020+0x15EB0+0x231EE694 hex)
+SAVE: Size of TOC: 2728 (0xAA8 hex)
+(ld): gen map map
+(ld): rc
+RC: Highest return code was 0.

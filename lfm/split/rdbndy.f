@@ -1,0 +1,126 @@
+      SUBROUTINE RDBNDY
+C$$$  SUBPROGRAM  DOCUMENTATION  BLOCK
+C
+C SUBPROGRAM: RDBNDY         READ BOUNDARY CONDITIONS FOR VLFM
+C   AUTHOR: STACKPOLE/DEAVEN ORG: W/NMC23    DATE: 30 MAR 83
+C
+C ABSTRACT: READS BOUNDARY CONDITIONS INFORMATION FROM FILE
+C   CREATED FROM LARGE-SCALE MODEL RUN 12 HOURS AGO.
+C   ADJUSTS FOR INCONSISTENT TIME STEPS.
+C   ALSO CAN SET BOUNDARY VALUES TO CONSTANTS (ZERO TENDENCY)
+C   IF TROUBLE WITH INPUT FILE, (VIA ENTRY ZRBNDY).
+C
+C
+C USAGE:  CALL RDBNDY    (OR CALL ZRBNDY)
+C
+C
+C  - - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     LUNBND      UNIT NUMBER OF BOUND COND.FILE            /FORTAP/
+C     AA,BB       BOUNDARY VALUE TENDENCIES                 LUNBND
+C     DT          TIME STEP (SEC)                           /CNST/
+C
+C - - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     AA,BB       BOUNDARY TEND. ADJ. FOR MODEL TIMESTEP    /PBNDRY/
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C
+C ATTRIBUTES:
+C   LANGUAGE: SiliconGraphics 3.5 FORTRAN 77
+C   MACHINE:  SiliconGraphics IRIS-4D/25, 35, INDIGO
+C
+C$$$
+C
+      IMPLICIT    REAL (A-H,O-Z)
+      REAL        HOUR1
+      REAL        CC( 53 ,23, 12), DD( 12, 23, 33 )
+      CHARACTER*4 LABSIN,LABBND,LABS00,LABS06,LABS12,LABV06,LABV12
+      COMMON /CNST/ BTHICK,BTHIK1,BTHK3,DT,RDELX,
+     1              DTDS0,DTDS1,DTDS2,DTDX,DS1DX,DS2DX,
+     2              CP,R,ROCP,TSTRAT,CPTS,SATRH,RSAT60,
+     3              RDT,BTHICH,BTHK3H,BTK398,RBT,A1BRN,
+     4              A2BRN,TDTDX4,RPK,VVCNST
+      COMMON /DIAG/ SUMK(8),SUMP1(8),SUMP2(8),SUMS(8),SUMF(8),SUMFD(8),
+     1     SUMVOR(8),SUMDIV(8),DP(8),SUMP(8),SUMTS(8),SUMZ(8),
+     2     SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+      COMMON /FASTER/ PIE(1100),AX(120)
+      COMMON /INDEX/ LI,LJ,LK,LI1,LJ1,LK1,LI2,NIJ,LOLD,LMID,LNEW,
+     1     K7OLD,K7MID,K7NEW,K3OLD,K3MID,K3NEW,K2OLD,K2MID,K2NEW,
+     2     K,K1,K2,K3,KL,KH
+      COMMON /FDATE/  IYEAR, IMO, IDAYMO, IZTIME, IHR1, IOUT
+      COMMON /SVHOUR/ NWDS, IHOUR1( 1205 ), HOUR1(8)
+      COMMON /TTME/   MNSTEP,IODD,IHOUR,IMONTH,ITSW,IVEL,NPHOUR,
+     1                SSLDC,CSLDC,SSLHR,CSLHR,SHR,CHR,
+     2                ALP,XDAYMO
+      COMMON /FORTAP/ LUNBND,LUNSIN,LUNS00,LUNS06,LUNS12,LUNV06,LUNV12,
+     A                LABSIN(8),LABBND(8),LABS00(8),LABS06(8),LABS12(8),
+     B                LABV06(8),LABV12(8),PARM(25)
+      COMMON /PBNDPE/ ALARGE( 53, 12, 23 ), BLARGE( 12, 33, 23 )
+      COMMON /PBNDRY/ AA( 53, 12, 23 ), BB( 12, 33, 23 )
+      COMMON /VTEMP/  SIGDOT( 53 , 45 ,5 ), VT( 53, 45, 25 )
+      SAVE
+C---------------------------------------------------------------------
+C  INPUT IS FULL PRECISION STORED IN CC AND DD
+      DO 27 J = 1,6
+        J1 = 2  * J - 1
+        J2 = J1 + 1
+        READ (LUNBND,END=35) (((CC(II,KK,JJ),II=1,53),
+     1                              KK=1,23),JJ=J1,J2)
+   27 CONTINUE
+         READ (LUNBND,END=35) (((DD(II,KK,JJ),II=1,12),KK=1,23),
+     1                                     JJ=1,       33 )
+C     BOUNDARY TAPE IS WRITTEN ASSUMING 6 MIN TIMESTEPS.
+C     DT CORRECTS FOR DIFFERENT ACTUAL TIMESTEP IN MODEL.
+C---------------------------------------------------------------------
+      XX = DT / 360.0E0
+      DO 1034 J = 1,33
+      DO 1034 K = 1,23
+      DO 1034 I = 1,12
+        DD(I,K,J) = DD(I,K,J) * XX
+ 1034 CONTINUE
+      DO 2034 J = 1,12
+      DO 2034 K = 1,23
+      DO 2034 I = 1, 53
+        CC(I,K,J) = CC(I,K,J) * XX
+ 2034 CONTINUE
+      GO TO 3000
+C
+      ENTRY ZRBNDY
+C
+C   TAPE POSITIONED WRONG. TENDENCIES SET TO ZERO.
+C
+   35 CONTINUE
+      REWIND LUNBND
+      PRINT 900
+  900 FORMAT(//' BNDRY TAPE POSITIONED WRONG. TENDENCIES SET TO ZERO.')
+      DO 32 J = 1,12
+      DO 32 K = 1,23
+      DO 32 I = 1,53
+        CC(I,K,J) = 0.0
+   32 CONTINUE
+      DO 33 J = 1,33
+      DO 33 K = 1,23
+      DO 33 I = 1,12
+        DD(I,K,J)=0.0
+   33 CONTINUE
+3000  CONTINUE
+C
+C  MOVE CC AND DD TO AA AND BB CONVERTING HALF TO FULL PRECISION
+C
+      DO 40 K = 1,23
+      DO 40 J = 1,12
+      DO 40 I = 1,53
+        AA(I,J,K) = CC(I,K,J)
+40    CONTINUE
+      DO 50 K = 1,23
+      DO 50 J = 1,33
+      DO 50 I = 1,12
+        BB(I,J,K) = DD(I,K,J)
+50    CONTINUE
+      RETURN
+      END

@@ -1,0 +1,9 @@
+!-----------------------------------------------------------------------
+      real(4),pointer::deta(:),rdeta(:),aeta(:),f4q2(:),eta(:),dfl(:)
+      real(4),pointer::em(:),emt(:),dx(:,:),wpdar(:,:),cpgfu(:,:)
+      real(4),pointer::curv(:,:),fcp(:,:),fdiv(:,:),f(:,:)
+      real(4),pointer::ddmpu(:,:),ddmpv(:,:),fad(:,:)
+      COMMON/DYNAM/DY,CPGFV,EN,ENT,R,PT,F4D,F4Q,EF4T,DETA,RDETA
+      common/dynam/AETA,F4Q2,ETA,DFL,EM,EMT,DX,WPDAR,CPGFU,CURV  
+      common/dynam/FCP,FDIV,F,DDMPU,DDMPV,FAD   
+!-----------------------------------------------------------------------

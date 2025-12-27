@@ -1,0 +1,202 @@
+       SUBROUTINE STATS
+C$$$   SUBPROGRAM  DOCUMENTATION  BLOCK
+C
+C SUBPROGRAM: STATS          COMPUTES INTEGRATION STATISTICS
+C   AUTHOR: DENNIS DEAVEN    ORG: W/NMC23    DATE: 20 JUN 83
+C
+C ABSTRACT: COMPUTES INTEGRATION STATISTICS FOR MONITORING THE
+C   LFM FORECAST.  SIGDOT AND PSIG RMS VALUES ARE COMPUTED EVERY
+C   TIME STEP, THE REMAINING QUANTITIES ARE COMPUTED ON THE HOUR
+C
+C USAGE:  CALL STATS
+C
+C - - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     ROCP        R/CP                                      /CNST/
+C     PSIG        DP/DSIGMA (MB)                            /DEABLK/
+C     ZSTAR       TERRAIN HEIGHT  (METERS)                  /DEABLK/
+C     PHI         GEOPOTENTIAL (M**2/SEC**2) LAYER VALUES   /GEOPOT/
+C     PI          EXNER FUNCTION (P/1000)**R/CP  DITTO      /GEOPOT/
+C                 HAS PIBAR(BROWN-PHILLIPS INCLUDED)
+C     TS          POTENTIAL TEMPERATURE (K)                 /DEABLK/
+C     US,VS       WIND COMPONENTS  (M/SEC)                  /DEABLK/
+C     SIGDOT      D(SIGMA)/DT INTERFACE VALUES              /VTEMP/
+C
+C - - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     SUMZ        GEOPOTENTIAL SUMMED OVER GRID DOMAIN      /DIAG/
+C     SUMP        PRESSURE                  DITTO           /DIAG/
+C     SUMTS       POT. TEMP.                DITTO           /DIAG/
+C     SUMF        MAP SCALE                 DITTO           /DIAG/
+C     SUMK        KIN. ENERGY               DITTO           /DIAG/
+C     SUMP2       POTENTIAL ENERGY          DITTO           /DIAG/
+C     SUMS        STATIC STABILITY          DITTO           /DIAG/
+C     SUMVOR      SQUARED VORTICITY         DITTO           /DIAG/
+C     SUMDIV       DITTO  DIVERGENCE        DITTO           /DIAG/
+C     RMSSFC      RMS SURFACE PRESSURE CHANGE / TIME STEP   /DIAG/
+C     RMSTRP      RMS TROP               DITTO              /DIAG/
+C     SIGB1       RMS D(SIGMA)/DT TOP OF BOUNDARY LAYER     /DIAG/
+C     SIGT1-T2    RMS    DITTO    TROPOSPHERE               /DIAG/
+C     SIGS1-S2    RMS    DITTO    STRATOSPHERE              /DIAG/
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C
+C ATTRIBUTES:
+C   LANGUAGE: SiliconGraphics 3.5 FORTRAN 77
+C   MACHINE:  SiliconGraphics IRIS-4D/25, 35, INDIGO
+C
+C$$$
+C
+      IMPLICIT    REAL (A-H,O-Z)
+      REAL        HOUR1
+      REAL        ICE, MF
+      REAL        PHIL(8),DPP(8)
+      CHARACTER*4 LABSIN,LABBND,LABS00,LABS06,LABS12,LABV06,LABV12
+      COMMON /DEABLK/ US( 53 , 45 , 21 ),
+     A     VS( 53 , 45 , 21 ),
+     1     TS( 53 , 45 , 21 ), PSIG( 53 , 45 , 6 ),
+     2     ST( 53 , 45 ),ICE( 53 , 45 ),
+     3     COSZEN( 53 , 45 ),XM( 53 , 45 ),
+     4     F( 53 , 45 ),CD( 53 , 45 ),
+     5     SATW( 53 , 45 ,3),WS( 53 , 45 , 9 ),
+     6     PREC( 53 , 45 ),ZSTAR( 53 , 45 ),
+     7     ALON( 53 , 45 ),ALAT( 53 , 45 ),
+     8     MF( 53 , 45 ),H2( 53 , 45 , 3 )
+      COMMON /VERTV/ IVVEL( 53 , 45 , 8 )
+      COMMON /INDEX/ LI,LJ,LK,LI1,LJ1,LK1,LI2,NIJ,LOLD,LMID,LNEW,
+     1     K7OLD,K7MID,K7NEW,K3OLD,K3MID,K3NEW,K2OLD,K2MID,K2NEW,
+     2     K,K1,K2,K3,KL,KH
+      COMMON /FDATE/  IYEAR, IMO, IDAYMO, IZTIME, IHR1, IOUT
+      COMMON /SVHOUR/ NWDS, IHOUR1( 1205 ), HOUR1(8)
+      COMMON /TTME/   MNSTEP,IODD,IHOUR,IMONTH,ITSW,IVEL,NPHOUR,
+     1                SSLDC,CSLDC,SSLHR,CSLHR,SHR,CHR,
+     2                ALP,XDAYMO
+      COMMON /FORTAP/ LUNBND,LUNSIN,LUNS00,LUNS06,LUNS12,LUNV06,LUNV12,
+     A                LABSIN(8),LABBND(8),LABS00(8),LABS06(8),LABS12(8),
+     B                LABV06(8),LABV12(8),PARM(25)
+      COMMON /PBNDPE/ ALARGE( 53 ,12,23), BLARGE( 12, 33 ,23 )
+      COMMON /PBNDRY/ AA( 53 ,12, 23 ), BB( 12, 33 ,23 )
+      COMMON /VTEMP/  SIGDOT( 53 , 45 ,5), VT( 53 , 45 ,25)
+      COMMON /CNST/ BTHICK,BTHIK1,BTHK3,DT,RDELX,
+     1              DTDS0,DTDS1,DTDS2,DTDX,DS1DX,DS2DX,
+     2              CP,R,ROCP,TSTRAT,CPTS,SATRH,RSAT60,
+     3              RDT,BTHICH,BTHK3H,BTK398,RBT,A1BRN,
+     4              A2BRN,TDTDX4,RPK,VVCNST
+      COMMON /DIAG/ SUMK(8),SUMP1(8),SUMP2(8),SUMS(8),SUMF(8),SUMFD(8),
+     1     SUMVOR(8),SUMDIV(8),DP(8),SUMP(8),SUMTS(8),SUMZ(8),
+     2     SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+      COMMON /FASTER/ PIE(1100),AX(120)
+      COMMON /GEOPOT/ PHI( 53, 45, 7 ), PI( 53, 45, 7 )
+      SAVE
+C
+C     DO SUMS FOR ENERGY STATISTIC COMPUTATIONS
+      IF (MNSTEP.NE.NPHOUR) GO TO 33
+C
+      THING = 1.E0/(1.E0+ROCP)
+      A = PSIG(I,J,K2MID+1) * 0.1E0
+      B = PSIG(I,J,K2MID  ) * 0.1E0
+      C = 1.E0/ MF(I,J)
+      DO 88890 IQ2W6E=1,NIJ
+         VT(IQ2W6E,1,20)=PSIG(IQ2W6E,1,K2MID+1)*0.1E0
+         VT(IQ2W6E,1,21)=PSIG(IQ2W6E,1,K2MID)*0.1E0
+         VT(IQ2W6E,1,22)=1.E0/MF(IQ2W6E,1)
+         VT(IQ2W6E,1,12)=5.E0
+         VT(IQ2W6E,1,11)=VT(IQ2W6E,1,12)+VT(IQ2W6E,1,20)
+         VT(IQ2W6E,1,10)=VT(IQ2W6E,1,11)+VT(IQ2W6E,1,20)
+         VT(IQ2W6E,1,9)=VT(IQ2W6E,1,10)+VT(IQ2W6E,1,20)
+         VT(IQ2W6E,1,8)=VT(IQ2W6E,1,9)+VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,7)=VT(IQ2W6E,1,8)+VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,6)=VT(IQ2W6E,1,7)+VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,5)=VT(IQ2W6E,1,6)+BTHICK*0.1E0
+         VT(IQ2W6E,1,13)=BTHICK*0.1E0
+         VT(IQ2W6E,1,14)=VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,15)=VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,16)=VT(IQ2W6E,1,21)
+         VT(IQ2W6E,1,17)=VT(IQ2W6E,1,20)
+         VT(IQ2W6E,1,18)=VT(IQ2W6E,1,20)
+         VT(IQ2W6E,1,19)=VT(IQ2W6E,1,20)
+88890 CONTINUE
+      DO 5 J = 2,44
+      DO 5 I = 2,52
+      PHIL(1) = ZSTAR(I,J)*9.8E0
+      DO 3 K = 2, 8
+      PHIL(K) = PHI(I,J,K-1 )*2.E0- PHIL(K-1)
+    3 CONTINUE
+      DO 6 K = 1, 6
+      DPP(K) = (PI(I,J,K )*VT(I,J,K+4) - PI(I,J,K+1 )*VT(I,J,K+5))
+     A      * THING
+    6 CONTINUE
+      DPP(7) = PI(I,J,7 )*VT(I,J,11) * THING
+      DO 2 K = 1,  7
+      L7 = K + LMID * 7
+      SUMZ(K) = SUMZ(K) + PHIL(K)*VT(I,J,22)
+      SUMP(K) = SUMP(K) + VT(I,J,K+4) * VT(I,J,22)
+      SUMTS(K) = SUMTS(K)+TS(I,J,L7)*VT(I,J,22)
+      SUMF(K) = SUMF(K) + VT(I,J,22)
+      SUMK(K) = (US(I,J,L7)*US(I,J,L7) + VS(I,J,L7)*VS(I,J,L7))
+     A  *VT(I,J,K+12) + SUMK(K)
+      SUMP1(K) = VT(I,J,K+4)*PHIL(K)*VT(I,J,22) +SUMP1(K)
+      SUMP2(K) = TS(I,J,L7)*DPP(K)*VT(I,J,22) + SUMP2(K)
+      DIFF = PI(I,J,1 )-PI(I,J,K )
+      TS2 = TS(I,J,L7)
+      TDIFF=TS2-TS(I,J,L7-1)
+      SUMS(K) = DIFF*VT(I,J,K+4)*TDIFF*VT(I,J,22) + SUMS(K)
+    2 CONTINUE
+    5 CONTINUE
+      DO 4 K = 1,  7
+      L7 = K + LMID * 7
+      LGT =  53 * 44
+C-----------------------------------------------------------------------
+C   THE CONSTANT 2.E0 IN THE TWO STATEMENTS BELOW IS ACTUALLY
+C   0.5 X 4.0  (.5 FOR THE DERIVATIVES) AND 4.0 TO REMOVE THE
+C   BARXY WHEN TENXY IS CALLED.  THIS IS TO INTRODUCE AN ERROR
+C   THAT WAS IN THE ORIGINAL VERSION OF THE MODEL CAUSING THE
+C   MEAN SQUARED DIVERGENCE AND VORTICITY STATISTICS TO CONFORM
+C   TO THE ORIGINAL VERSION
+C-----------------------------------------------------------------------
+      DO 89070 IQ2W6E=1,LGT
+         VT(IQ2W6E,1,1)=2.E0*(US(IQ2W6E+1,1,L7)-US(IQ2W6E,1,L7)+U
+     *   S(IQ2W6E+1,2,L7)-US(IQ2W6E,2,L7)+VS(IQ2W6E+1,2,L7)-VS(IQ2W6E+
+     *   1,1,L7)+VS(IQ2W6E,2,L7)-VS(IQ2W6E,1,L7))*RDELX
+         VT(IQ2W6E,1,2)=2.E0*(VS(IQ2W6E+1,1,L7)-VS(IQ2W6E,1,L7)+V
+     *   S(IQ2W6E+1,2,L7)-VS(IQ2W6E,2,L7)+US(IQ2W6E+1,2,L7)-US(IQ2W6E+
+     *   1,1,L7)+US(IQ2W6E,2,L7)-US(IQ2W6E,1,L7))*RDELX
+89070 CONTINUE
+44    CONTINUE
+      CALL TENXY(VT(1,1,3),VT(1,1,1))
+      CALL TENXY(VT(1,1,4),VT(1,1,2))
+      DO 45 J = 2,       44
+      DO 45 I = 2,       52
+      SUMVOR(K) = SUMVOR(K)+VT(I,J,K+12)*MF(I,J)*VT(I,J,4)*VT(I,J,4)
+     1 /VT(I,J,5)
+      SUMDIV(K) = SUMDIV(K)+VT(I,J,K+12)*MF(I,J)*VT(I,J,3)*VT(I,J,3)
+     1 /VT(I,J,5)
+      SUMFD(K) = SUMFD(K)+ VT(I,J,22)
+ 45   CONTINUE
+    4 CONTINUE
+   33 CONTINUE
+C     ACCUMULATE RMS STATISTICS OF SFC/TROPOPAUSE PRESSURE CHANGE
+C
+      DO 50 J = 2, 44
+      DO 50 I = 2, 52
+        PSTRP  = 3.E0*(PSIG(I,J,K2NEW+1) - PSIG(I,J,K2MID+1))
+        PSFC   = PSTRP+3.E0*(PSIG(I,J,K2NEW)-PSIG(I,J,K2MID))
+        RMSSFC = RMSSFC + PSFC*PSFC
+        RMSTRP = RMSTRP + PSTRP*PSTRP
+50    CONTINUE
+C     RMS SIGMA DOT OVER THE GRID
+C      FOR RUNNING DTAGNOSTICS OF THE MOTION
+      DO 40 J = 1,44
+      DO 40 I = 1,52
+        SIGB1 = SIGB1 + SIGDOT(I,J,1) * SIGDOT(I,J,1)
+        SIGT1 = SIGT1 + SIGDOT(I,J,2) * SIGDOT(I,J,2)
+        SIGT2 = SIGT2 + SIGDOT(I,J,3) * SIGDOT(I,J,3)
+        SIGS1 = SIGS1 + SIGDOT(I,J,4) * SIGDOT(I,J,4)
+        SIGS2 = SIGS2 + SIGDOT(I,J,5) * SIGDOT(I,J,5)
+ 40   CONTINUE
+      RETURN
+      END

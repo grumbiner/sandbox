@@ -1,0 +1,32 @@
+C   INPUT FILES:
+C     UNIT20   -   BOUNDARY VALUES FROM SPECTRAL MODEL
+C     UNIT21   -   INITIAL  VALUES FROM LFMINI
+C     UNIT30   -   INITIAL  VALUE OF A 12 HOUR FORECAST SEGMENT
+
+C   OUTPUT FILES:
+C     UNIT53   -    6,18,30,42 HR HISTORY FILE
+C     UNIT54   -   12,24,36,48 HR HISTORY FILE
+C     UNIT51   -    6,18,30,42 HR VERTICAL VELOCITIES
+C     UNIT52   -   12,24,36,48 HR VERTICAL VELOCITIES
+C     OUTPUT   -   PRINT OUTPUT
+
+Reading:
+  iclfm4.f
+LUNBND --> labbnd
+then, reading every 6 hours:
+BNDATE
+
+  intbnd.f
+LABSIN
+XLAB
+BUFF*45
+
+  rdbndy.f
+      DO 27 J = 1,6
+        J1 = 2  * J - 1
+        J2 = J1 + 1
+        READ (LUNBND,END=35) (((CC(II,KK,JJ),II=1,53),
+     1                              KK=1,23),JJ=J1,J2)
+   27 CONTINUE
+         READ (LUNBND,END=35) (((DD(II,KK,JJ),II=1,12),KK=1,23),
+     1                                     JJ=1,       33 )

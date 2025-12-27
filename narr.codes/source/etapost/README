@@ -1,0 +1,9 @@
+
+
+      The version of the Eta post-processor that can only generate
+    output on the native horizontal grid includes modifications
+    in files BOUND.f, CLDRAD.f, E2OUT.f, EFILL.f, MINMAX.f, MISCLN.f,
+    OUTPUT.f, SCLFLD.f, and parmout.  The requirement in parmout is
+    that IMX and JMX must equal the global dimensions IM and JM
+    whereas in the general post-processor IMX and JMX can be any
+    integers greater than or equal to IM and JMM, respectively.

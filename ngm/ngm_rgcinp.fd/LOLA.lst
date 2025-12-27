@@ -1,0 +1,591 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/LOLA.f 09/30/06 19:45:31
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE LOLA (SPECS, LATG2, INULOLA)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    LOLA        PUTS VERT LAT STRIPS & CREATES LAT ARRAY
+          5 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          6 |C
+          7 |C ABSTRACT: PERFORMS THE FOLLOWING PROCESSES
+          8 |C   1)  INPUTS FIELDS IN VERTICAL LATITUDINAL STRIPS
+          9 |C   .   ON A LATITUDE-LONGITUDE GRID FROM A
+         10 |C   .   SEQUENTIAL FILE,
+         11 |C   2)  PLACES THE STRIPS IN A LARGE ARRAY IN THE CENTRAL MEMORY,
+         12 |C   3)  FILLS IN SYMMETRIC FIELDS SOUTH OF THE EQUATOR FOR AS
+         13 |C   .   FAR SOUTH AS THE NGM WILL EVER REASONABLY REACH
+         14 |C   .   (FOR NH = 10, THIS IS 9.94 S.),
+         15 |C   4)  CREATES AN ARRAY GIVING THE LATITUDE OF EACH LATITUDINAL
+         16 |C   .   STRIP.
+         17 |C
+         18 |C PROGRAM HISTORY LOG:
+         19 |C   85-03-27  JIM HOKE
+         20 |C   88-08-02  BRIAN SCHMIDT ADDED DOCBLOCKS
+         21 |C   90-07-01  KEN MITCHELL CONVERTED TO CRAY Y-MP
+         22 |C   98-11-25  ERIC ROGERS CHANGED READ OF ON85 LABEL AT BEGINNING
+         23 |C             OF SELA RECORD WITH READ OF BINARY NCEP DATE RECORD
+         24 |C
+         25 |C USAGE:    CALL LOLA (SPECS, LATG2, INULOLA)
+         26 |C   INPUT ARGUMENT LIST:
+         27 |C     SPECS    - ARRAY CONTAINING LATITUDE INFORMATION
+         28 |C     LATG2    - NORTHERNMOST LATITUDE OF INPUT FIELD
+         29 |C     INULOLA  - UNIT NUMBER OF SEQUENTIAL DATA SET TO BE READ IN
+         30 |C
+         31 |C   OUTPUT ARGUMENT LIST:
+         32 |C     NONE
+         33 |C
+         34 |C   INPUT FILES:
+         35 |C     INULOLA  - FILE CONTAINING VERTICAL LATITUDINAL STRIPS
+         36 |C
+         37 |C   OUTPUT FILES:
+         38 |C     FT06F001 - FOR PRINTOUT
+         39 |C
+         40 |C   SUBPROGRAMS CALLED:
+         41 |C     LIBRARY:
+         42 |C       COMMON   - CONSTS
+         43 |C
+         44 |C ATTRIBUTES:
+         45 |C   LANGUAGE: CYBER FORTRAN 200
+         46 |C   MACHINE:  CYBER 205
+         47 |C
+         48 |C$$$
+         49 |C
+         50 |C
+         51 |      IMPLICIT REAL (A-H, O-Z)
+         52 |C
+         53 |C
+         54 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         55 |C
+         56 |C
+         57 |      DIMENSION INPDAT(8)
+         58 |      REAL         DUM1, DUM2( IKMP1 ), DUM3( IKM )
+         59 |C
+         60 |      COMMON /CONSTS/ IH, IQ, IT, IU, IV, IZ,
+         61 |     1                NLAT, LEVH, LEVS, LONF, NSIGSTP,
+         62 |     2                SLAT( INLAT ), STRIPARA( INSIGSTP ,  INLAT )
+         63 |C
+         64 |C       *****   END OF INCLUDED COMMON BLK CONSTS   *****
+         65 |C
+         66 |C
+         67 |      DIMENSION SPECS( INSPECS )
+         68 |      DIMENSION IDUM (4)
+         69 |C
+         70 |      NLATSH = NLAT - LATG2 - 1
+         71 |C
+         72 |C              FIRST, READ IN THE OFFICE NOTE 85 LABEL.
+         73 |      READ (INULOLA) INPDAT
+         74 |C
+         75 |C     PRINT THE DATE WORD LABEL.
+         76 |      IYEAR     = INPDAT(1)
+         77 |C
+         78 |      IMONTH    = INPDAT(2)
+         79 |C
+         80 |      IDAY      = INPDAT(3)
+         81 |C
+         82 |      IHOUR     = INPDAT(5)
+         83 |C
+         84 |      WRITE (6, 100) INULOLA,
+         85 |     1               IYEAR, IMONTH, IDAY, IHOUR
+         86 |C
+         87 |  100 FORMAT ('0', 'THE NCEP DATE RECORD FOR THE EXTRA-FINE-',
+         88 |     1             'RESOLUTION LOLA GRID WAS READ ',
+         89 |     2             'FROM THE DISK WITH UNIT NUMBER ', I2, '.'/
+         90 |     3             ' THE VALID DATE IS :' /
+         91 |     5             'Y/M/D/H = ', I4, ' / ', I2, ' / ', I2,
+         92 |     6             ' / ', I2)
+         93 |C
+         94 |C     NOW READ IN SELA'S FILE LABEL, BUT IGNORE IT.
+         95 |      READ (INULOLA) DUM1, IDUM, DUM2, DUM3
+         96 |C
+         97 |C     THE LATITUDINAL STRIPS CAN NOW BE PROCESSED.
+         98 |C
+         99 |C     FIRST, THE N.H. LATITUDINAL STRIPS ARE READ IN AND PLACED
+        100 |C     IN A LARGE ARRAY BY LATITUDINAL STRIP.
+        101 |C
+        102 |      LBLOCK = NLATSH
+        103 |C
+        104 |      DO 500 LAT=1, LATG2
+        105 |         LBLOCK = LBLOCK + 1
+        106 |         READ (INULOLA) (STRIPARA(I, LBLOCK), I=1, NSIGSTP)
+        107 |         SLAT(LBLOCK) = SPECS(500 + LAT)
+        108 |C
+        109 |  500 CONTINUE
+        110 |C
+        111 |C
+        112 |C     THE POLAR LATITUDE IS GIVEN THE SAME VALUES AS THE
+        113 |C     NORTHERNMOST GAUSSIAN LATITUDE.  THE POLAR VALUES WILL BE
+        114 |C     MORE CORRECTLY SPECIFIED LATER IN THE PROGRAM.
+        115 |      SLAT(LBLOCK+1) = 90.
+        116 |      DO 510  I=1,NSIGSTP
+        117 |      STRIPARA(I,LBLOCK+1) = STRIPARA(I,LBLOCK)
+        118 |  510 CONTINUE
+        119 |C
+        120 |C
+        121 |C     FOR LATITUDES SOUTH OF THE EQUATOR,  ALL FIELDS DERIVED
+        122 |C     FROM THE SPECTRAL COEFFICIENT FILE ARE SET EQUAL TO THEIR
+        123 |C     NORTHERN HEMISPHERIC COUNTERPARTS (EVEN SYMMETRY), EXCEPT
+        124 |C     FOR THE MERIDIONAL WIND FIELD (ODD SYMMETRY).
+        125 |C
+        126 |      IVMAX = IT - 1
+        127 |C
+        128 |      DO 600 LAT=1,NLATSH
+        129 |C
+        130 |         LBLKN = NLATSH + LAT
+        131 |         LBLKS = NLATSH - LAT + 1
+        132 |         SLAT(LBLKS) = -SLAT(LBLKN)
+        133 |C
+        134 |C     EVEN SYMMETRY IS IMPOSED ON ALL FIELDS (EXCEPT FOR
+        135 |C     ODD SYMMETRY ON THE MERIDIONAL VELOCITY FIELD).
+        136 |         DO 525 I=1, NSIGSTP
+        137 |            STRIPARA(I, LBLKS) = STRIPARA(I, LBLKN)
+        138 |  525    CONTINUE
+        139 |C
+        140 |         DO 550 I=IV,IVMAX
+        141 |            STRIPARA(I, LBLKS) = - STRIPARA(I, LBLKN)
+        142 |  550    CONTINUE
+        143 |C
+        144 |  600 CONTINUE
+        145 |C
+        146 |C
+        147 |C     PRINT THE U AND V WIND COMPONENTS IN LAYERS 13 AND 14
+        148 |C     OVER THE UNITED STATES.
+        149 |C
+        150 |      LAT1  = 20
+        151 |      LAT2  = 60
+        152 |      LONG1 = 205
+        153 |      LONG2 = 264
+        154 |      LEV1  = 12
+        155 |      LEV2  = 14
+        156 |C
+        157 |c     DO 800 LEV = LEV1, LEV2
+        158 |C
+        159 |c     WRITE (6, 725) LEV
+        160 |c 725 FORMAT ('0', 'U AT LEVEL', I3, ':'/)
+        161 |C
+        162 |c     DO 800 LAT = LAT2, LAT1, -1
+        163 |C
+        164 |c        WRITE (6, 730)  LAT
+        165 |c 730    FORMAT (' ', 'LAT=', I3, ':')
+        166 |C
+        167 |c        WRITE (6, 750)
+        168 |c    1               (STRIPARA(IU-1+ (LEV-1)*LONF + I, LAT+NLATSH),
+        169 |c    2                I=LONG1,LONG2)
+        170 |c 750    FORMAT (' ', 8X, 20F6.1)
+        171 |C
+        172 |C
+        173 |C
+        174 |c 800 CONTINUE
+        175 |C
+        176 |c     DO 1000 LEV = LEV1, LEV2
+        177 |C
+        178 |c     WRITE (6, 925) LEV
+        179 |c 925 FORMAT ('0', 'V AT LEVEL', I3, ':'/)
+        180 |C
+        181 |c     DO 1000 LAT = LAT2, LAT1, -1
+        182 |C
+        183 |c        WRITE (6, 730)  LAT
+        184 |C
+        185 |c        WRITE (6, 950)
+        186 |c    1               (STRIPARA(IV-1+ (LEV-1)*LONF + I, LAT+NLATSH),
+        187 |c    2                I=LONG1,LONG2)
+        188 |c 950    FORMAT (' ', 8X, 20F6.1)
+        189 |C
+        190 |c1000 CONTINUE
+        191 |C
+        192 |      RETURN
+        193 |C
+        194 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+consts                           Common Block, Alignment: double word
+                                 0-60.15$
+ 
+dum1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-58.20$  0-95.22@
+ 
+dum2                             Static, Real(4) (1:17), Offset: 0, Alignment: full word
+                                 0-58.26$  0-95.34@
+ 
+dum3                             Static, Real(4) (1:16), Offset: 0, Alignment: full word
+                                 0-58.41$  0-95.40@
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-106.35  0-106.47@  0-116.15@  0-117.16  0-117.39  0-136.17@  0-137.22  0-137.43  0-140.17@
+                                 0-141.22  0-141.45
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+iday                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-80.7@  0-85.37
+ 
+idum                             Static, Integer(4) (1:4), Offset: 0, Alignment: full word
+                                 0-68.17$  0-95.28@
+ 
+ih                               Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-60.23$
+ 
+ihour                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-82.7@  0-85.43
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-58.47  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$  0-58.32
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+imonth                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-78.7@  0-85.29
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$  0-62.29  0-62.60
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inpdat                           Static, Integer(4) (1:8), Offset: 0, Alignment: full word
+                                 0-57.17$  0-73.22@  0-76.19  0-78.19  0-80.19  0-82.19
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$  0-62.48
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$  0-67.24
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inulola                          Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.38  0-73.13  0-84.22  0-95.13  0-106.16
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$
+ 
+iq                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-60.27$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+it                               Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-60.31$  0-126.15
+ 
+iu                               Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-60.35$
+ 
+iv                               Common member, Integer(4), Offset: 16, Alignment: quadruple word
+                                 0-60.39$  0-140.19
+ 
+ivmax                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-126.7@  0-140.22
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+iyear                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-76.7@  0-85.22
+ 
+iz                               Common member, Integer(4), Offset: 20, Alignment: full word
+                                 0-60.43$
+ 
+lat                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-104.14@  0-107.37  0-128.14@  0-130.27  0-131.27
+ 
+lat1                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-150.7@
+ 
+lat2                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-151.7@
+ 
+latg2                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.31  0-70.23  0-104.21
+ 
+lblkn                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-130.10@  0-132.30  0-137.46  0-141.48
+ 
+lblks                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-131.10@  0-132.15  0-137.25  0-141.25
+ 
+lblock                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-102.7@  0-105.10@  0-105.19  0-106.38  0-107.15  0-115.12  0-117.18  0-117.41
+ 
+lev1                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-154.7@
+ 
+lev2                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-155.7@
+ 
+levh                             Common member, Integer(4), Offset: 28, Alignment: full word
+                                 0-61.29$
+ 
+levs                             Common member, Integer(4), Offset: 32, Alignment: quadruple word
+                                 0-61.35$
+ 
+lola                             Subroutine
+                                 0-1.18$
+ 
+lonf                             Common member, Integer(4), Offset: 36, Alignment: full word
+                                 0-61.41$
+ 
+long1                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-152.7@
+ 
+long2                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-153.7@
+ 
+nlat                             Common member, Integer(4), Offset: 24, Alignment: double word
+                                 0-61.23$  0-70.16
+ 
+nlatsh                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.7@  0-102.16  0-128.20  0-130.18  0-131.18
+ 
+nsigstp                          Common member, Integer(4), Offset: 40, Alignment: double word
+                                 0-61.47$  0-106.52  0-116.19  0-136.22
+ 
+slat                             Common member, Real(4) (1:126), Offset: 44, Alignment: full word
+                                 0-62.23$  0-107.10@  0-115.7@  0-132.10@  0-132.25
+ 
+specs                            Reference argument, Real(4) (1:700), Offset: 0, Alignment: full word
+                                 0-67.17$  0-1.24  0-107.25
+ 
+stripara                         Common member, Real(4) (1:22320, 1:126), Offset: 548, Alignment: full word
+                                 0-62.38$  0-106.26@  0-117.7@  0-117.30  0-137.13@  0-137.34  0-141.13@  0-141.36
+ 
+** lola   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    LOLA.f                      10/10/02   16:14:55
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/parmodel
+                                      10/10/02   16:14:55      0      54
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     256
+1501-510  Compilation successful for file LOLA.f.
+1501-543  Object file created.

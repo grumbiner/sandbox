@@ -1,0 +1,26 @@
+!-----------------------------------------------------------------------
+         type halo_info
+
+           sequence
+           integer(4) numnorth_out
+           integer(4) numsouth_out
+           integer(4) numeast_out
+           integer(4) numwest_out
+           integer(4) numnorth_in
+           integer(4) numsouth_in
+           integer(4) numeast_in
+           integer(4) numwest_in
+           integer(4),pointer::kx1_out(:,:)
+           integer(4),pointer::kx10_out(:,:)
+           integer(4),pointer::ky1_out(:,:)
+           integer(4),pointer::ky10_out(:,:)
+           integer(4),pointer::kx4_in(:,:)
+           integer(4),pointer::kx7_in(:,:)
+           integer(4),pointer::ky4_in(:,:)
+           integer(4),pointer::ky7_in(:,:)
+
+         end type halo_info
+!-----------------------------------------------------------------------
+
+         type(halo_info)halo_ops(1000)
+         common/r3dv_halo_ops/halo_ops

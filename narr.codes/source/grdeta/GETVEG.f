@@ -1,0 +1,27 @@
+      SUBROUTINE GETVEG(MON1,MON2,WGHT1,WGHT2)
+      DIMENSION KPDS(25), KGDS(22), JPDS(25), JGDS(22)
+      LOGICAL*1 BITMAP(2500,1250)
+      COMMON /VEGGIE/ FPAR1(2500,1250),FPAR2(2500,1250)
+C     DIMENSION FPAR2(2500,1250)
+C
+       print *,'begin getveg'
+       CALL BAOPENR(40,'fort.40',IRETO)
+       JPDS = -1
+       CALL GETGB(40,0,2500*1250,MON1-1,JPDS,JGDS,KF,KNUM,
+     &    KPDS,KGDS,BITMAP,FPAR1,IRET)
+       WRITE(6,*) 'AFTER GETGB FOR MONTH ', MON1,' IRET=', IRET
+C
+       JPDS = -1
+       CALL GETGB(40,0,2500*1250,MON2-1,JPDS,JGDS,KF,KNUM,
+     &    KPDS,KGDS,BITMAP,FPAR2,IRET)
+       WRITE(6,*) 'AFTER GETGB FOR MONTH ', MON2,' IRET=', IRET
+C
+       DO J=1,1250
+        DO I=1,2500
+         FSVE=WGHT1*FPAR1(I,J)+WGHT2*FPAR2(I,J)
+         FPAR1(I,J)=FSVE
+        END DO
+       END DO
+       print *,'done with getveg'
+       return
+       end

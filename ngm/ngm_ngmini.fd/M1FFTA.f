@@ -1,0 +1,73 @@
+      SUBROUTINE M1FFTA(A,WORK,TRIGS,INC,JUMP,N,LOT)
+C     SUBROUTINE M1FFTA - PREPROCESSING STEP FOR FFT99, ISIGN=+1
+C     (SPECTRAL TO GRIDPOINT TRANSFORM)
+C
+      DIMENSION A(N),WORK(N),TRIGS(N)
+      NH=N/2
+      NX=N
+      INK=INC+INC
+C
+C     A(0)   A(N/2)
+      IA=1
+      IB=N*INC+1
+      JA=1
+      JB=2
+CDIR$ IVDEP
+      DO 10 L=1,LOT
+      WORK(JA)=A(IA)
+      WORK(JB)=A(IA)
+      IA=IA+JUMP
+      IB=IB+JUMP
+      JA=JA+NX
+      JB=JB+NX
+   10 CONTINUE
+C
+C     REMAINING WAVENUMBERS
+      IABASE=2*INC+1
+      IBBASE=(N-2)*INC+1
+      JABASE=3
+      JBBASE=N-1
+C
+      DO 30 K=3,NH,2
+      IA=IABASE
+      IB=IBBASE
+      JA=JABASE
+      JB=JBBASE
+      C=TRIGS(N+K)
+      S=TRIGS(N+K+1)
+CDIR$ IVDEP
+      DO 20 L=1,LOT
+      WORK(JA)=(A(IA)+A(IB))-
+     *    (S*(A(IA)-A(IB))+C*(A(IA+INC)+A(IB+INC)))
+      WORK(JB)=(A(IA)+A(IB))+
+     *    (S*(A(IA)-A(IB))+C*(A(IA+INC)+A(IB+INC)))
+      WORK(JA+1)=(C*(A(IA)-A(IB))-S*(A(IA+INC)+A(IB+INC)))+
+     *    (A(IA+INC)-A(IB+INC))
+      WORK(JB+1)=(C*(A(IA)-A(IB))-S*(A(IA+INC)+A(IB+INC)))-
+     *    (A(IA+INC)-A(IB+INC))
+      IA=IA+JUMP
+      IB=IB+JUMP
+      JA=JA+NX
+      JB=JB+NX
+   20 CONTINUE
+      IABASE=IABASE+INK
+      IBBASE=IBBASE-INK
+      JABASE=JABASE+2
+      JBBASE=JBBASE-2
+   30 CONTINUE
+C
+      IF (IABASE.NE.IBBASE) GO TO 50
+C     WAVENUMBER N/4 (IF IT EXISTS)
+      IA=IABASE
+      JA=JABASE
+CDIR$ IVDEP
+      DO 40 L=1,LOT
+      WORK(JA)=2.0 E0*A(IA)
+      WORK(JA+1)=-2.0 E0*A(IA+INC)
+      IA=IA+JUMP
+      JA=JA+NX
+   40 CONTINUE
+C
+   50 CONTINUE
+      RETURN
+      END

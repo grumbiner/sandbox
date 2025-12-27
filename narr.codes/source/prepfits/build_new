@@ -1,0 +1,8 @@
+rm prep.a
+xlf -qsave -qcheck -qfixed -qinitauto  -c *.f
+/bin/rm prepfits.o
+ar rv prep.a *.o
+xlf -qcheck -qfixed -qinitauto -qsave -g -o /emcsrc3/wx22gd/prepfits/exec/prepfits_avn1.x prepfits.f prep.a \
+      /nwprod/w3lib90/w3lib_4_604 /emcsrc3/wx22gd/prepfits/bufrlib/bufrlib_4_604 \
+      /nwprod/w3lib90/bacio_4_604 -bmaxdata:2000000000 -bmaxstack:256000000
+rm *.o

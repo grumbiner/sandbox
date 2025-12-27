@@ -1,0 +1,258 @@
+#QSUB -lM 36Mw -lT 2400 -eo -x -s /bin/sh
+# This script prepares the data for the global analysis system.
+# Imported variable CDATE in yymmddhh format determines date to process.
+set -xS
+export NCPUS FILENV
+export GDATE DIRDAT DIRRUN SIGGES OLDANL PREPQC ODDEDM EVNEDM
+GDATE=`/wd2/wd20/wd20mi/bin/ndate -6 $CDATE`
+DIRDAT=${DIRDAT:-/ptmp1/datpro}
+DIRRUN=${DIRRUN:-/tmp/datpro.$CDATE}
+SIGGES=${SIGGES:-$DIRDAT/sigf06.$GDATE}
+OLDANL=${OLDANL:-$DIRDAT/siganl.$GDATE}
+ODDEDM=${ODDEDM:-$DIRDAT/oddedm.$CDATE}
+EVNEDM=${EVNEDM:-$DIRDAT/evnedm.$CDATE}
+ERS1WV=${ERS1WV:-$DIRDAT/ers1wv.$CDATE}
+PREPQC=${PREPQC:-$DIRDAT/prepqc.$CDATE}
+
+mkdir -p $DIRRUN;cd $DIRRUN
+dlist="nmcdate"
+dlist="$dlist oddede evnede oddedr evnedr oddeda evneda oddedf evnedf"
+dlist="$dlist oddrbi evnrbi oddcov evncov iadcty"
+dlist="$dlist adpupa aircar aircft satwnd proflr adpsfc sfcshp sfcbog spssmi"
+dlist="$dlist tcvits ers1vw ers1dt"
+for d in $dlist;do
+eval $d=$DIRDAT/$d.$CDATE
+done
+cp /dm/datpro/IBMCDB .
+tableb=/dm/datpro/tableb
+tabled=/dm/datpro/tabled
+landsea=/dm/datpro/landsea
+
+################################################################################
+# Prepare the satellite BUFR data (no more interactive retrievals)
+
+FILENV=satmasgn
+satmexec=/nwprod/iaret/exec.iaret/satmerge.x
+satmparm=/dm/datpro/satmerge.parm
+assign -a $nmcdate                       fort.11
+assign -a $iadcty                        fort.12
+assign -a $oddedr           -s unblocked fort.13
+assign -a $evnedr           -s unblocked fort.14
+assign -a $oddeda           -s unblocked fort.15
+assign -a $evneda           -s unblocked fort.16
+assign -a $oddedf           -s unblocked fort.17
+assign -a $evnedf           -s unblocked fort.18
+assign -a $oddede           -s unblocked fort.19
+assign -a $evnede           -s unblocked fort.20
+assign -a $ODDEDM           -s unblocked fort.51
+assign -a $EVNEDM           -s unblocked fort.52
+NCPUS=1 $satmexec <$satmparm;satmerr=$?
+
+################################################################################
+# Prepare the BUFR dataset
+
+FILENV=prepasgn
+prepexec=/nwprod/prepobs/exec.prepobs/prepdata.xc
+prepparm=/nwprod/prepobs/ucl.prepobs/prepbufr.fnl.parm
+bufrtable=/nwprod/prepobs/ucl.prepobs/prep.bufrtable
+assign -a $tableb                       fort.11
+assign -a $tabled                       fort.12
+assign -a $nmcdate                      fort.13
+assign -a $landsea -Fcos -Nibm -Cascii  fort.14
+assign -a $adpupa  -Fcos -Nibm -Cebcdic fort.15
+assign -a $aircar  -Fcos -Nibm -Cebcdic fort.16
+assign -a $aircft  -Fcos -Nibm -Cebcdic fort.17
+assign -a $satwnd  -Fcos -Nibm -Cebcdic fort.18
+assign -a $proflr  -Fcos -Nibm -Cascii  fort.20
+assign -a $adpsfc  -Fcos -Nibm -Cebcdic fort.23
+assign -a $sfcshp  -Fcos -Nibm -Cebcdic fort.24
+assign -a $sfcbog  -Fcos -Nibm -Cebcdic fort.25
+assign -a $spssmi  -Fcos -Nibm -Cebcdic fort.26
+assign -a $bufrtable                    fort.27
+#assign -a evnmrg   -s unblocked         fort.32
+#assign -a oddmrg   -s unblocked         fort.33
+assign -a prepda   -Fcos                fort.52
+NCPUS=1 $prepexec <$prepparm;preperr=$?
+if test $preperr -ne 0;then exit $preperr;fi
+
+################################################################################
+# Include ERS1 vector wind data
+
+FILENV=ers1qc.asgn
+assign -a $ers1dt -Fcos -Nibm fort.11
+assign -a ers1.94             fort.51
+assign -a datefile            fort.90
+assign -a ers1.9998           fort.94
+assign -a iang8               fort.95
+assign -a err8x               fort.96
+/nwprod/wave/exec.wave/dataqc.xc
+
+FILENV=ers1sort.asgn
+dblut=/nwprod/wave/ucl.wave/CMOD_DBLUT
+lnblut=/nwprod/wave/ucl.wave/CMOD_LNBLUT
+qslut=/nwprod/wave/ucl.wave/CMOD_QSLUT
+etableb=/nwprod/prepobs/ucl.prepobs/ers1.tableb
+etabled=/nwprod/prepobs/ucl.prepobs/ers1.tabled
+assign -a ers1.94             fort.12
+assign -a $dblut              fort.40
+assign -a $lnblut             fort.41
+assign -a $qslut              fort.42
+assign -a $etableb            fort.45
+assign -a $etabled            fort.46
+assign -a $ERS1WV -Fcos       fort.59
+assign -a ers1.so             fort.91
+assign -a ers1.in             fort.92
+assign -a ers1.94er           fort.93
+/nwprod/wave/exec.wave/datasort.xc >/dev/null
+
+FILENV=cpscatr.asgn
+etableb=/nwprod/prepobs/ucl.prepobs/ers1.tableb
+etabled=/nwprod/prepobs/ucl.prepobs/ers1.tabled
+assign -a $ERS1WV  -Fcos      fort.11
+assign -a $nmcdate            fort.19
+assign -a $etableb            fort.45
+assign -a $etabled            fort.46
+assign -a ers1data            fort.59
+/nwprod/prepobs/exec.prepobs/cpscatr.xc
+
+FILENV=ers1prp.asgn
+ers1tab=/nwprod/prepobs/ucl.prepobs/ers1prp.tab
+assign -a ers1data            fort.11
+assign -a prepda   -Fcos      fort.12
+assign -a $ers1tab            fort.13
+assign -a prepew   -Fcos      fort.51
+/nwprod/prepobs/exec.prepobs/ers1prp.xc || cp prepda prepew
+
+################################################################################
+# Prepare the synthetic tropical cyclone data
+cp prepew preptc
+FILENV=pgrbasgn
+pgrbexec=/nwprod/sm12628/exec.sm12628/postgp.xc
+pgrbparm=/dev/null
+assign -a $SIGGES -Fcos -Cascii -Nibm fort.11
+assign -a gribges -s unblocked        fort.51
+NCPUS=1 $pgrbexec <$pgrbparm;pgrberr=$?
+
+if test $pgrberr -eq 0;then
+  FILENV=gscnasgn
+  gscnexec=/nwprod/syndat/exec.syndat/gesscan.xc
+  gscnparm=/nwprod/syndat/ucl.syndat/gescanfnl.parm2
+  weight=/nwprod/syndat/fix.syndat/weight
+  fildef=/dm/datpro/fildef.trk
+  assign -a $tcvits                    fort.11
+  assign -a $fildef                    fort.12
+  assign -a $nmcdate                   fort.13
+  assign -a stmtrk.wrk                 fort.14
+  assign -a bogdomn.wrk                fort.15
+  assign -a rawdat.wrk                 fort.16
+  assign -a gfindfil.wrk               fort.18
+  assign -a trkpos.wrk                 fort.19
+  assign -a gribges    -s unblocked    fort.20
+  assign -a gribges.dic.wrk            fort.30
+  assign -a $weight                    fort.40
+  assign -a gshistry.diag              fort.53
+  assign -a tracks                     fort.54
+  assign -a atcftrk                    fort.55
+  assign -a winds                      fort.56
+  assign -a gesvit                     fort.57
+  assign -a gesstat                    fort.58
+  assign -a matcoef                    fort.70
+  assign -a dumcoef                    fort.71
+  assign -a rawdat.wrk                 fort.72
+  assign -a stmtrk.wrk                 fort.73
+  assign -a alldat                     fort.74
+  assign -a bogdomn.wrk                fort.89
+  NCPUS=1 $gscnexec <$gscnparm;gscnerr=$?
+  if test $gscnerr -eq 0;then
+    FILENV=syndasgn
+    syndexec=/nwprod/syndat/exec.syndat/syndata.xc
+    syndparm=/nwprod/syndat/ucl.syndat/syndtfnl.parm
+    slmask=/nwprod/sm12628/fix.sm12628/slmask.126
+    weight=/nwprod/syndat/fix.syndat/weight
+    assign -a $tcvits                             fort.11
+    assign -a $nmcdate                            fort.13
+    assign -a $slmask         -Fcos -Cascii -Nibm fort.14
+    assign -a bogdomn.wrk                         fort.15
+    assign -a stmtrk.wrk                          fort.16
+    assign -a rawdat.wrk                          fort.17
+    assign -a bghistry.diag                       fort.19
+    assign -a gesvit                              fort.21
+    assign -a stkdatb.wrk                         fort.22
+    assign -a fenvdta.wrk                         fort.23
+    assign -a bogdat.wrk                          fort.24
+    assign -a prepew          -Fcos               fort.25
+    assign -a $weight                             fort.40
+    assign -a bogrept                             fort.58
+    assign -a dthistry                            fort.59
+    assign -a preptc          -Fcos               fort.61
+    assign -a matcoef                             fort.70
+    assign -a dumcoef                             fort.71
+    assign -a rawdat.wrk                          fort.72
+    assign -a stmtrk.wrk                          fort.73
+    assign -a alldat                              fort.74
+    assign -a bogdomn.wrk                         fort.89
+    NCPUS=1 $syndexec <$syndparm;synderr=$?
+  fi
+fi
+
+################################################################################
+# Do quality control on the BUFR data
+
+FILENV=prevasgn
+prevexec=/nwprod/prepobs/exec.prepobs/prevents.xc
+prevparm=/dev/null
+errtable=/nwprod/prepobs/ucl.prepobs/errtable
+assign -a preptc   -Fcos                fort.11
+assign -a $SIGGES  -Fcos -Cascii -Nibm  fort.12
+assign -a $errtable                     fort.13
+assign -a $nmcdate                      fort.14
+assign -a prepdv   -Fcos                fort.50
+$prevexec <$prevparm;preverr=$?
+if test $preverr -ne 0;then exit $preverr;fi
+
+FILENV=acqcasgn
+acqcexec=/nwprod/prepobs/exec.prepobs/prepacqc.xc
+acqcparm=/nwprod/prepobs/ucl.prepobs/prepacqc.parm
+waypoints=/nwprod/prepobs/ucl.prepobs/waypoints
+assign -a prepdv   -Fcos                fort.14
+assign -a $landsea -Fcos -Nibm -Cascii  fort.15
+assign -a $waypoints                    fort.23
+assign -a sdmacqc                       fort.52
+assign -a sdmstac                       fort.53
+assign -a prepdq   -Fcos                fort.61
+$acqcexec <$acqcparm;acqcerr=$?
+cat sdmacqc
+cat sdmstac
+if test $acqcerr -ne 0;then exit $acqcerr;fi
+
+FILENV=cqcbasgn
+cqcbexec=/nwprod/prepobs/exec.prepobs/cqcbufr.xc
+cqcbparm=/dev/null
+assign -a prepdq -Fcos  fort.14
+assign -a prepdc -Fcos  fort.51
+$cqcbexec <$cqcbparm;cqcberr=$?
+cat fort.60
+cat fort.62
+if test $cqcberr -ne 0;then exit $cqcberr;fi
+
+FILENV=oiqcasgn
+oiqcexec=/nwprod/prepobs/exec.prepobs/oiqcbufr.xc
+oiqcparm=/dev/null
+oberrs=/nwprod/prepobs/ucl.prepobs/oiqc.oberrs
+assign -a $nmcdate                        fort.11
+assign -a prepdc      -Fcos               fort.14
+assign -a $oberrs                         fort.17
+assign -a obprt.wrk                       fort.18
+assign -a tolls.wrk                       fort.20
+assign -a obcnt.out                       fort.60
+assign -a toss.sfz                        fort.61
+assign -a toss.upa                        fort.62
+assign -a toss.sat                        fort.63
+assign -a toss.smi                        fort.64
+assign -a tosslist                        fort.65
+assign -a pstoss                          fort.66
+assign -a $PREPQC        -Fcos            fort.70
+assign -a obogram.out                     fort.81
+assign -a obogram.bin -Fcos -Cascii -Nibm fort.82
+NCPUS=7 $oiqcexec <$oiqcparm;oiqcerr=$?
+exit $oiqcerr

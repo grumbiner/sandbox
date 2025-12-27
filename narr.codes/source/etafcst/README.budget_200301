@@ -1,0 +1,29 @@
+2003/1/27-28
+  Output the vapor/condensate (in the case of Zhao cloud model here, cloud 
+  only) increments created during precipitation assimilation.  Output four
+  2-D fields:
+    Vapor increment, entire atmos:  vapinc
+    Vapor increment, sfc-700mb:     vapinc7
+    Cloud increment, entire atmos:  cldinc
+    Cloud increment, sfc-700mb:     cldinc7
+
+  Code modified from /emc2/wx20du/narr/sorc/etafcst
+
+  Files changed:
+    PPTASM: added the 4 arrays
+    INIT.F: zeroed out the four accumulation arrays in two places.
+    ADJPPT.F
+      1. Added 'oldcwm', 'delcwm,delq' (increment of cloud and vapor
+         from one grid box) in the 'private' block preceding loop 910.
+      2. Compute the increments in various places
+
+    Don't quite understand how the following two routines work, so I 
+    simply followed whatever is done for 'ACPREC' and did the same thing 
+    for the four arrays I'm adding
+      CHKOUT.F
+      GOSSIP.F
+
+    Did not work on QUILT.F.  This one I really couldn't figure out so
+    I'll leave it to someone who knows more about output posting.
+
+   

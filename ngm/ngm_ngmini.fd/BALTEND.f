@@ -1,0 +1,128 @@
+       SUBROUTINE BALTEND(ZT,DT,HT,ZCOR,DCOR,HCOR,JCAPIN,DEPTH)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    BALTEND     FIND CORRECTION TO ZERO GRAV TEND
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-06-13
+C
+C ABSTRACT: GIVEN TENDENCIES, OBTAIN CORRECTION TO STATE VECTOR
+C   WHICH ZEROES GRAVITY COMPONENT OF TENDENCY.
+C
+C PROGRAM HISTORY LOG:
+C   88-06-13  PARRISH
+C
+C USAGE:    CALL BALTEND(ZT,DT,HT,ZCOR,DCOR,HCOR,JCAPIN,DEPTH)
+C   INPUT ARGUMENT LIST:
+C     ZT       - VORTICITY TEND COEFFICIENTS.
+C     DT       - DIVERGENCE TEND COEFFICIENTS.
+C     HT       - HEIGHT TEND COEFFICIENTS.
+C     JCAPIN   - TRIANGULAR TRUNCATION
+C     DEPTH    - SCALE HEIGHT.
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     ZCOR     - CORRECTION VORTICITY COEFFICIENTS.
+C     DCOR     - CORRECTION DIVERGENCE COEFFICIENTS.
+C     HCOR     - CORRECTION HEIGHT COEFFICIENTS.
+C
+C REMARKS: MUST INCLUDE BLOCK DATA BLOCKSP02 AND DEFINITION OF
+C           PL1 VARIABLES BEFORE COMPILING.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         INTEGER D1,H1,Z2,D2,H2
+         real ZT(1),DT(1),HT(1),ZCOR(1),DCOR(1),HCOR(1)
+C--------
+         COMMON/DAVEBUFF/ COF(INCOEFS,INUMCOEF),GRD(INLOLA,INUMGRID)
+         real COF,GRD
+         REAL RCF(INCOEFS,2)
+         EQUIVALENCE (COF,RCF)
+         REAL RC0INV
+C--------
+         COMMON/FIXSP02/JCAP,NCOEFS,NFOP,JFOP,
+     *      ISCALZD,IUNSCLZD,
+     *      IBSHAT,IBVHAT,IBVIHAT,
+     *      IBOP,ICOP,IFOP,ICINVOP,
+     *      IRFOP,IRCINVOP,
+     *      BFOP(INCOEFS),BONES(INCOEFS)
+         LOGICAL BFOP,BONES
+C--------
+C-------- CHECK TO SEE IF INITIALIZATION OF INTERNAL VARIABLES NEEDED
+         IF(JCAP.NE.JCAPIN) CALL SETSP02(JCAPIN)
+         CALL GETCOEF(D1,1)
+         CALL GETCOEF(H1,1)
+         CALL GETCOEF(Z2,1)
+         CALL GETCOEF(D2,1)
+         CALL GETCOEF(H2,1)
+         CALL getcoef(IRF,1)
+         CALL getcoef(IRZ,1)
+         CALL getcoef(IRWORK,1)
+         CALL getcoef(IRC,1)
+         CALL getcoef(IRB,1)
+         CALL getcoef(IRR,1)
+         RC0INV=6.3712E6*7.2921E-5/SQRT(9.8062*DEPTH)
+         OMEGAINV=1./7.2921E-5
+         JCAP1=JCAP+1
+C--------
+C-------- COMPUTE RHS OF INCREMENT EQUATIONS
+C--------
+         TRANS=-1.
+         CALL SPLUSF(ZT,DT,HT,
+     *                COF(1,Z2),COF(1,D1),COF(1,H1),DEPTH,TRANS,JCAP)
+         DO 100 I=1,NCOEFS,2
+           IP=I+1
+           COF(IP,D2)=OMEGAINV*COF(I,D1)
+           COF(I,D2)=-OMEGAINV*COF(IP,D1)
+           COF(IP,H2)=OMEGAINV*COF(I,H1)
+           COF(I,H2)=-OMEGAINV*COF(IP,H1)
+100      CONTINUE
+         do 10002 i=1,ncoefs
+         RCF(i,IRF)=COF(i,H2)
+10002    continue
+C--------
+C-------- SOLVE TRIDIAGONAL MATRIX EQUATION TO GET DIV INCREMENT.
+C--------
+         CALL SOLVTRID(IRF,IRZ,IRWORK,IRC,IRB,IRR,RC0INV)
+         do 10004 i=1,ncoefs
+         RCF(i,IRF)=RCF(i,IRF)*RC0INV
+     *                 *RCF(i,IRCINVOP)
+         COF(i,D1)=RCF(i,IRF)
+10004    continue
+C--------
+C-------- COMPUTE RHS FOR HEIGHT INCREMENT
+C--------
+         do 10006 i=1,ncoefs
+         RCF(i,IRF)=RC0INV*RCF(i,IRCINVOP)
+     *      *(COF(i,D2)-COF(i,IBOP)*RCF(i,IRF))
+10006    continue
+C--------
+C-------- SOLVE TRIDIAGONAL MATRIX EQUATION TO GET HEIGHT INCREMENT.
+C--------
+         CALL SOLVTRID(IRF,IRZ,IRWORK,IRC,IRB,IRR,RC0INV)
+         do 10008 i=1,ncoefs
+         COF(i,H1)=RCF(i,IRF)
+         COF(i,Z2)=0.
+10008    continue
+         COF(1,H1)=0.
+         COF(2,H1)=0.
+         COF(1,D1)=0.
+         COF(2,D1)=0.
+         TRANS=1.
+         CALL SPLUSF(COF(1,Z2),COF(1,D1),COF(1,H1),
+     *        ZCOR,DCOR,HCOR,DEPTH,TRANS,JCAP)
+         CALL FREECOEF(D1,1)
+         CALL FREECOEF(H1,1)
+         CALL FREECOEF(Z2,1)
+         CALL FREECOEF(D2,1)
+         CALL FREECOEF(H2,1)
+         CALL freecoef(IRF,1)
+         CALL freecoef(IRZ,1)
+         CALL freecoef(IRWORK,1)
+         CALL freecoef(IRC,1)
+         CALL freecoef(IRB,1)
+         CALL freecoef(IRR,1)
+       RETURN
+       END

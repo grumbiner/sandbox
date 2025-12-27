@@ -1,0 +1,87 @@
+      SUBROUTINE GPLN2I
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    GPLN2T      SETS COMMON FOR SUBROUTINE PLN2T.
+C   PRGMMR: JOSEPH SELA      ORG: W/NMC23    DATE: 91-03-14
+C
+C ABSTRACT: INITIALIZES THE CONSTANT VARIABLES AND ARRAYS
+C   OF A COMMON FOR SUBROUTINE PLN2T.
+C
+C PROGRAM HISTORY LOG:
+C   91-03-14  JOSEPH SELA
+C
+C USAGE:    CALL GPLN2T
+C
+C REMARKS: CALL SUBROUTINE ONCE BEFORE CALLS TO PLN2T.
+C          REFER TO PLN2T FOR ADDITIONAL DOCUMENTATION.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN, CFT77.
+C   MACHINE:  CRAY Y-MP.
+C
+C$$$
+CC
+      DIMENSION       X( 63 )
+CC
+      COMMON /PLN2TI/ DEPS( 4158 ),RDEPS( 4158 ),
+     1                DX( 126 ),Y( 63 ),INDXMV( 4158 )
+CC
+CCC   DATA IFIR /0/
+CC
+CCC   IF  (IFIR .EQ. 1)  GO TO 500
+CCC        IFIR = 1
+      DO 200 LL=1, 63
+             RDEPS(LL) = 0.0
+  200 CONTINUE
+      LPLUS =  63
+      LEN   =  63
+      DO 240 INDE=2, 64
+      DO 220   LL=1,LEN
+             L = LL - 1
+             N = L + INDE - 1
+             RDEPS(LL+LPLUS) = (N*N - L*L) / (4.0 * N*N - 1.0)
+  220 CONTINUE
+      LPLUS = LPLUS + LEN
+      LEN = LEN - 1
+  240 CONTINUE
+      DO 260 I= 64 , 2079
+             RDEPS(I) = SQRT(RDEPS(I))
+  260 CONTINUE
+      DO 300 I=1, 2079
+             DEPS(2*I-1) = RDEPS(I)
+             DEPS(2*I  ) = RDEPS(I)
+  300 CONTINUE
+      IBEGIN =  126  + 1
+      DO 320 I=IBEGIN, 4158
+             RDEPS(I) = 1.0/DEPS(I)
+  320 CONTINUE
+      DO 400 LL=1, 63
+             X(LL) = LL*2+1
+  400 CONTINUE
+      DO 420 LL=1, 63
+             Y(LL) = X(LL)/(X(LL)-1.)
+  420 CONTINUE
+      DO 440 LL=1, 63
+             X(LL) = SQRT(X(LL))
+  440 CONTINUE
+      DO 460 LL=1, 63
+             DX(2*LL-1) = X(LL)
+             DX(2*LL  ) = X(LL)
+  460 CONTINUE
+C 500 CONTINUE
+CC
+CC    SET INDEX ARRAY FOR TRANSPOSING VECTOR ARRAY
+CC    FROM CRAY ORDER TO IBM ORDER.
+      L=0
+      DO 640 NN=1, 64
+      LLN=MIN0( 64 -NN+1, 63 )
+      DO 620 LL=1,LLN
+      INDX=(( 62 +3)*(LL-1)-(LL-1)*LL/2+NN)*2
+      L=L+2
+      INDXMV(L-1)=INDX-1
+      INDXMV(L  )=INDX
+  620 CONTINUE
+  640 CONTINUE
+CC
+      RETURN
+      END

@@ -1,0 +1,8 @@
+C-----------------------------------------------------------------------
+      LOGICAL SINGLRST,SUBPOST
+C
+      COMMON /CTLBLK/
+     & SIGMA,RUN,IDAT(3),IHRST,FIRST,RESTRT,NFCST,NBC,LIST,IOUT
+     &,DT,NTSD,NTSTM,NSTART,NTDDMP,NPREC,IDTAD,NBOCO,NSHDE,NCP
+     &,NPHS,NCNVC,NRADS,NRADL,SUBPOST,NEST
+C-----------------------------------------------------------------------

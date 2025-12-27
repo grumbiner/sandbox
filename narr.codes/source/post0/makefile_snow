@@ -1,0 +1,26 @@
+F77=xlf
+FC  = xlf
+CPP = /lib/cpp -P
+#
+CPPFLAGS =
+FFLAGS =-O3 -qstrict -qrealsize=4 -qmaxmem=-1 -qsource -qxref=full \
+           -qattr -qspillsize=930 -bloadmap:lm -g
+LDFLAGS = -bD:2000000000 -bmap:map
+LIBS = -L/usr/local/lib -lessl -L/nwprod/lib -lw3_4
+
+LIBS= 
+ 
+TARGET = post0.x
+
+OBJS=   POST0.o PROF.o BCEX.o HORIZ.o PTETAE.o
+ 
+.SUFFIXES:	.F .f .o
+
+.F.f:
+	$(CPP) $(CPPFLAGS) $< > $*.f
+ 
+$(TARGET):	$(OBJS)
+		$(FC) $(FFLAGS) $(LDFLAGS) $(LIBS) -o $@ $(OBJS)
+
+clean:	
+	/bin/rm -f  $(OBJS) *.lst

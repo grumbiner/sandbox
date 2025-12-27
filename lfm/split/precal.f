@@ -1,0 +1,27 @@
+      SUBROUTINE PRECAL
+C$$$  SUBPROGRAM  DOCUMENTATION  BLOCK    (SHORT VERSION)
+C     SUBROUTINE PRECAL          MAKE EXP TABLE
+C     DENNIS DEAVEN     W/NMC23   21 JUNE 83
+C-----------------------------------------------------------------------
+C  SETS  UP TABLE OF EXPONENTIALS FOR CALCULATION OF MIXING RATIO
+C-----------------------------------------------------------------------
+C$$$
+C
+      IMPLICIT REAL (A-H,O-Z)
+      COMMON /CNST/ BTHICK,BTHIK1,BTHK3,DT,RDELX,
+     1              DTDS0,DTDS1,DTDS2,DTDX,DS1DX,DS2DX,
+     2              CP,R,ROCP,TSTRAT,CPTS,SATRH,RSAT60,
+     3              RDT,BTHICH,BTHK3H,BTK398,RBT,A1BRN,
+     4              A2BRN,TDTDX4,RPK,VVCNST
+      COMMON /DIAG/ SUMK(8),SUMP1(8),SUMP2(8),SUMS(8),SUMF(8),SUMFD(8),
+     1     SUMVOR(8),SUMDIV(8),DP(8),SUMP(8),SUMTS(8),SUMZ(8),
+     2     SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+      COMMON /FASTER/ PIE(1100),AX(120)
+      SAVE
+C
+      DO 200 K = 1,120
+        XKT   = K -70.5E0
+        AX(K) = EXP(17.269E0*XKT/(XKT+237.3E0))
+  200 CONTINUE
+      RETURN
+      END

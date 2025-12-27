@@ -1,0 +1,88 @@
+OBJS=   module_EXCH_BUF_INTEGER.o module_EXCH_BUF_REAL.o module_EXCHM.o \
+        ADJPPT.o BOCOH.o BOCOV.o CHKOUT.o \
+        CHKSNOW.o CLO89.o COLLECT.o CONRAD.o CUCNVC.o DDAMP.o \
+        DIFCOF.o DIGFLT.o DIST.o DSTRB.o E1E290.o E290.o \
+        E2SPEC.o E3V88.o EBU.o FILT25.o FST88.o \
+        GFDLRD.o GLB2LOC.o GOSSIP.o GRADFS.o HCONST.o \
+        IDSTRB.o ILOC2GLB.o INIT.o LOC2GLB.o LWR88.o \
+        MIXLEN.o MPI_FIRST.o MPPINIT.o O3CLIM.o O3INT.o \
+        OZON2D.o PARA_RANGE.o PDNEW.o PDTE.o \
+        PGCOR.o PRECPD.o PRODQ2.o \
+        QUILT.o RADFS.o  RDTEMP.o READ_NHB.o READPCP.o \
+        READ_RESTRT.o READ_RESTRT2.o SETUP_SERVERS.o \
+        SFCDIF.o SFLX.o SLP.o SOLARD.o SPA88.o SURFCE.o SWR93.o \
+        TABLE.o TTBLEX.o UPDATE.o VDIFH.o VDIFQ.o VDIFV.o VTADV.o \
+        VTADVF.o  ZENITH.o ZERO2.o ZERO3.o ZERO3_T.o TWR.o EXIT.o \
+        BOCOHF.o HZADV.o  RADTN.o HDIFF.o \
+        HZADV2.o TURBL.o GSCOND.o SGETMO.o SSTBAJA.o w3fi63.o
+
+FC  = f90
+CPP = /lib/cpp -P
+#
+CPPFLAGS =
+
+FFLAGS = -O3 -OPT:IEEE_arithmetic=3:roundoff=3:Olimit=5000 -OPT:cray_ivdep=ON $(DBG)
+FFLAGSX = -O3 -OPT:IEEE_arithmetic=3:roundoff=3:Olimit=5000 -OPT:cray_ivdep=ON $(DBG)
+FFLAGSY = -O3 -OPT:IEEE_arithmetic=3:roundoff=3:Olimit=5000 -OPT:cray_ivdep=ON $(DBG)
+###FFLAGS = -O3  -C -check_bounds -OPT:Olimit=0  $(DBG)
+FFLAGS  = -O3 -OPT:Olimit=0  $(DBG)
+FFLAGSX = -O3 -OPT:Olimit=0  $(DBG)
+FFLAGSY = -O2 -OPT:Olimit=0  $(DBG)
+FFLAGSD = $(FFLAGS)
+LDFLAGS = -lfpe 
+LIBS = -lfastm -lmpi /groupB/users/pshaf/lib/w3lib.a /groupB/users/pshaf/lib/bacio.a $(DBGLIB)
+NPES=28
+ 
+TARGET = etafcst.x.$(NPES)
+
+.SUFFIXES:	.F .f .o
+
+.f.o:
+	$(FC) $(FFLAGS) -c $*.f
+.F.o:
+#	$(CPP) $(CPPFLAGS) $< > $*.f
+	$(FC) $(FFLAGS) -c $*.F
+
+$(TARGET):	$(OBJS)  DIVHOA.o 
+		$(FC) $(FFLAGS) $(LDFLAGS) -o $@ $(OBJS) DIVHOA.o $(LIBS)
+
+SFLX.o:		SFLX.F
+		$(FC) $(FFLAGSX) SFLX.F -c -o $@
+
+SURFCE.o:	SURFCE.F
+		$(FC) $(FFLAGSD) SURFCE.F -c -o $@
+
+CUCNVC.o:	CUCNVC.F
+		$(FC)  $(FFLAGSX) CUCNVC.F -c -o $@
+
+DIVHOA.o:	DIVHOA.F
+		$(FC)  $(FFLAGS) DIVHOA.F -c -o $@
+
+MIXLEN.o:	MIXLEN.F
+		$(FC) -O2 $(DBG) MIXLEN.F -c -o $@
+
+HZADV.o:	HZADV.F
+		$(FC) $(FFLAGS) HZADV.F -c -o $@
+
+GSCOND.o:	GSCOND.F
+		$(FC) -O2  $(DBG)  GSCOND.F -c -o $@
+
+SFCDIF.o:	SFCDIF.F
+		$(FC) $(FFLAGS)  $(DBG)  SFCDIF.F -c -o $@
+
+LWR88.o:	LWR88.F
+		$(FC) -O2  $(DBG)  LWR88.F -c -o $@
+
+VTADV.o:	VTADV.F
+		$(FC) $(FFLAGSY)  $(DBG)  VTADV.F -c -o $@
+
+DSTRB.o:	DSTRB.F
+		$(FC) $(FFLAGSY)  $(DBG)  DSTRB.F -c -o $@
+
+IDSTRB.o:	IDSTRB.F
+		$(FC) $(FFLAGSY)  $(DBG)  IDSTRB.F -c -o $@
+
+
+clean:	
+	/bin/rm -f  $(TARGET) *.f *.lst *.o
+

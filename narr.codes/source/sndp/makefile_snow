@@ -1,0 +1,48 @@
+SHELL=/bin/sh
+#
+SRCS=	BFRHDR.f BFRIZE.f CALHEL.f CALWXT.f SMIX.f SNDPST.f VAP.f \
+        WETBLB.f CALVIS.f 
+
+OBJS=	BFRHDR.o BFRIZE.o CALHEL.o CALWXT.o SMIX.o SNDPST.o VAP.o \
+        WETBLB.o CALVIS.o 
+
+# Tunable parameters
+#
+# FC		Name of the fortran compiling system to use
+# LDFLAGS	Flags to the loader
+# LIBS		List of libraries
+# CMD		Name of the executable
+# PROFLIB	Library needed for profiling
+#
+FC =		xlf
+LDFLAGS = -bD:2000000000 -bmap:map  -bloadmap:lm
+CMD =		sndp.x
+PROFLIB =	-lprof
+
+
+LIBS =          -L/usr/local/lib -lessl -lmass \
+                -L/nwprod/lib -lw3_4 -lbufr_4_64
+
+FFLAGS = -O  -qrealsize=4 -qmaxmem=-1 -qsource -qxref=full -qattr -qspillsize=548  -g
+
+# Lines from here on down should not need to be changed.  They are the
+# actual rules which make uses to build a.out.
+#
+all:		$(CMD)
+
+$(CMD):		$(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+
+# Make the profiled version of the command and call it a.out.prof
+#
+$(CMD).prof:	$(OBJS)
+	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
+
+clean:
+	-rm -f $(OBJS) *.lst
+
+clobber:	clean
+	-rm -f $(CMD) $(CMD).prof
+
+void:	clobber
+	-rm -f $(SRCS) makefile

@@ -1,0 +1,7 @@
+!-----------------------------------------------------------------------
+       real(4),pointer::deta(:),aeta(:),eta(:)
+       COMMON/MAPOT/LSL,IXM,IYM,ISHDE(61),R,PT,TSPH,WBD,SBD
+       common/mapot/TLM0D,TPH0D,DLMD,DPHD,CMLD,DP30,X1P,Y1P
+       common/mapot/DISLP,Z0SLP,SPL(LSM),ALSL(LSM),DETA,AETA,ETA
+       common/mapot/TSHDE(61),ERLAM0,CPHI0,SPHI0
+!-----------------------------------------------------------------------

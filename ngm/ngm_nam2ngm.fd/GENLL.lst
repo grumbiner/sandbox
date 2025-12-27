@@ -1,0 +1,285 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/GENLL.f 09/30/06 19:44:07
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE GENLL(POLEI,POLEJ,ALONVT,XMESHL,GDLAT,GDLON)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .
+          4 |C SUBPROGRAM:    GENLL       COMPUTE (LAT,LON) FOR OUTPUT GRID
+          5 |C   PRGRMMR: TREADON         ORG: W/NMC2     DATE: 92-12-23
+          6 |C
+          7 |C ABSTRACT:
+          8 |C     GIVEN THE STANDARD NMC GRID SPECIFICATIONS THIS ROUTINE
+          9 |C     COMPUTES THE GEODETIC (LAT,LON) OF THE GRID POINTS.
+         10 |C   .
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   ??-??-??  DAVID PLUMMER - SUBROUTINE CGTLL IN ETAPACKC
+         14 |C   93-02-26  RUSS TREADON  - EXTRACTED THIS CODE FROM CGTLL
+         15 |C                             AND GENERALIZED TO HANDLE
+         16 |C                             VARIOUS OUTPUT GRIDS.
+         17 |C   93-06-13  RUSS TREADON  - ADDED LOLA PROJECTION.
+         18 |C
+         19 |C USAGE:    CALL GENLL(IJOUT,JGOUT,POLEI,POLEJ,ALONVT,XMESHL)
+         20 |C   INPUT ARGUMENT LIST:
+         21 |C     NONE
+         22 |C
+         23 |C   OUTPUT ARGUMENT LIST:
+         24 |C     GDLAT    - GEODETIC LATITUDE OF OUTPUT GRID POINTS.
+         25 |C     GDLON    - GEODETIC LONGITUDE OF OUTPUT GRID POINTS.
+         26 |C
+         27 |C   OUTPUT FILES:
+         28 |C     NONE
+         29 |C
+         30 |C   SUBPROGRAMS CALLED:
+         31 |C     UTILITIES:
+         32 |C       NONE
+         33 |C     LIBRARY:
+         34 |C       COMMON   - OUTGRD
+         35 |C
+         36 |C   ATTRIBUTES:
+         37 |C     LANGUAGE: FORTRAN
+         38 |C     MACHINE : CRAY Y-MP
+         39 |C$$$
+         40 |C
+         41 |C
+         42 |C     DECLARE VARIABLES.
+         43 |C
+         44 |      PARAMETER(IGOUT=147,JGOUT=111)
+         45 |      LOGICAL NORTH
+         46 |      REAL LAMBDA
+         47 |      REAL GDLAT(IGOUT,JGOUT), GDLON(IGOUT,JGOUT)
+         48 |C
+         49 |C     SET EARTH RADIUS.
+         50 |      DATA EARTHR / 6371.2 /
+         51 |      DATA NORTH /.TRUE./
+         52 |C
+         53 |      COMMON /IPOINT/ IPT,JPT
+         54 |C
+         55 |C*********************************************************************
+         56 |C     START GENLL HERE.
+         57 |C
+         58 |C     SET CONSTANTS.
+         59 |      PI     = ACOS(-1.)
+         60 |      HALFPI = PI/2.
+         61 |      TWOPI  = 2.*PI
+         62 |      D2R    = PI/180.
+         63 |      R2D    = 1./D2R
+         64 |      RE     = (EARTHR * 1.86603) / XMESHL
+         65 |      GI2    = RE * RE
+         66 |C
+         67 |C     CASE 1:  POLAR STEROGRAPHIC PROJECTION.
+         68 |C
+         69 |C        COMPUTE GEODETIC (LAT,LON) FOR OUTPUT GRID.
+         70 |         DO 20 J = 1,JGOUT
+         71 |            DO 10 I = 1,IGOUT
+         72 |               XI   = REAL(I)
+         73 |               YJ   = REAL(J)
+         74 |               DELX = XI-POLEI
+         75 |               DELY = YJ-POLEJ
+         76 |               R2   = DELX*DELX+DELY*DELY
+         77 |C
+         78 |C              VARIABLES YLAT AND WLON ARE THE GEODETIC
+         79 |C              LATITUDE (POSITIVE NORTH) AND LONGITUDE
+         80 |C              (POSITIVE WEST) OF THE OUTPUT GRID POINTS.
+         81 |C
+         82 |               IF (R2.NE.0.) THEN
+         83 |                  TLON = R2D*ATAN2(DELY,DELX)
+         84 |                  IF (NORTH) THEN
+         85 |                     WLON = ALONVT-90.-TLON
+         86 |                     YLAT = ASIN((GI2-R2)/(GI2+R2))*R2D
+         87 |                  ELSE
+         88 |                     WLON = ALONVT+90.+TLON
+         89 |                     YLAT = -ASIN((GI2-R2)/(GI2+R2))*R2D
+         90 |                  ENDIF
+         91 |                  IF (WLON.GT.360.) WLON = WLON-360.
+         92 |                  IF (WLON.LT.0.)   WLON = WLON+360.
+         93 |               ELSE
+         94 |                  YLAT = 90.
+         95 |                  IF (.NOT.NORTH) YLAT = -90.
+         96 |                  WLON = ALONVT
+         97 |               ENDIF
+         98 |               GDLAT(I,J) = YLAT
+         99 |               GDLON(I,J) = 360.0 - WLON
+        100 | 10         CONTINUE
+        101 | 20      CONTINUE
+        102 |C
+        103 |C     END OF ROUTINE.
+        104 |C
+        105 |c     do j = 1,jgout
+        106 |c      do i = 1,igout
+        107 |         elon = 360.0 - GDLON(IPT,JPT)
+        108 |         WRITE(6,10000) ipt,jpt,GDLAT(Ipt,Jpt),GDLON(Ipt,Jpt),
+        109 |     1      elon
+        110 |c            WRITE(52,10001) i,j,GDLAT(I,J),GDLON(I,J),elon
+        111 |10000        FORMAT(2x,2i8,2x,f12.5,1x,f12.5,1x,f12.5)
+        112 |10001        FORMAT(2X,i8,3(F12.5,1x))
+        113 |c      end do
+        114 |c     end do
+        115 |      RETURN
+        116 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+acos                             Pure Intrinsic
+                                 0-59.16
+ 
+alonvt                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.36  0-85.29  0-88.29  0-96.26
+ 
+asin                             Pure Intrinsic
+                                 0-86.29  0-89.30
+ 
+atan2                            Pure Intrinsic
+                                 0-83.30
+ 
+d2r                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-62.7@  0-63.19
+ 
+delx                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-74.16@  0-76.23  0-76.28  0-83.41
+ 
+dely                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-75.16@  0-76.33  0-76.38  0-83.36
+ 
+earthr                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-50.12*  0-64.17
+ 
+elon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-107.10@  0-109.13
+ 
+gdlat                            Reference argument, Real(4) (1:147, 1:111), Offset: 0, Alignment: full word
+                                 0-47.12$  0-1.50  0-98.16@  0-108.33
+ 
+gdlon                            Reference argument, Real(4) (1:147, 1:111), Offset: 0, Alignment: full word
+                                 0-47.32$  0-1.56  0-99.16@  0-107.25  0-108.48
+ 
+genll                            Subroutine
+                                 0-1.18$
+ 
+gi2                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-86.35  0-86.44  0-89.36  0-89.45
+ 
+halfpi                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-60.7@
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.19@  0-72.28  0-98.22  0-99.22
+ 
+igout                            Parameter, Integer(4)
+                                 0-44.17$  0-47.18  0-47.38  0-71.25
+ 
+ipoint                           Common Block, Alignment: double word
+                                 0-53.15$
+ 
+ipt                              Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-53.23$  0-107.31  0-108.25  0-108.39  0-108.54
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.16@  0-73.28  0-98.24  0-99.24
+ 
+jgout                            Parameter, Integer(4)
+                                 0-44.27$  0-47.24  0-47.44  0-70.22
+ 
+jpt                              Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-53.27$  0-107.35  0-108.29  0-108.43  0-108.58
+ 
+lambda                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-46.12$
+ 
+north                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-45.15$  0-51.12*  0-84.23  0-95.28
+ 
+pi                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-59.7@  0-60.16  0-61.19  0-62.16
+ 
+polei                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.24  0-74.26
+ 
+polej                            Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-75.26
+ 
+r2                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-76.16@  0-82.20  0-86.39  0-86.48  0-89.40  0-89.49
+ 
+r2d                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-63.7@  0-83.26  0-86.53  0-89.54
+ 
+re                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-64.7@  0-65.16  0-65.21
+ 
+real                             Pure Intrinsic
+                                 0-72.23  0-73.23
+ 
+tlon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-83.19@  0-85.40  0-88.40
+ 
+twopi                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-61.7@
+ 
+wlon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-85.22@  0-88.22@  0-91.23  0-91.37@  0-91.44  0-92.23  0-92.37@  0-92.44  0-96.19@  0-99.37
+ 
+xi                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-72.16@  0-74.23
+ 
+xmeshl                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.43  0-64.37
+ 
+yj                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-73.16@  0-75.23
+ 
+ylat                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-86.22@  0-89.22@  0-94.19@  0-95.35@  0-98.29
+ 
+** genll   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    GENLL.f                     10/09/02   12:46:06
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     116
+1501-510  Compilation successful for file GENLL.f.
+1501-543  Object file created.

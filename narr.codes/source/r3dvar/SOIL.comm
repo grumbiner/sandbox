@@ -1,0 +1,9 @@
+!
+      real(4),pointer::soiltb(:,:),sfcexc(:,:),smstav(:,:),smstot(:,:)
+      real(4),pointer::grnflx(:,:),pctsno(:,:),vegfrc(:,:),cmc(:,:)
+      real(4),pointer::smc(:,:,:),stc(:,:,:),sldpth(:),rtdpth(:)
+      real(4),pointer::sh2o(:,:,:)
+      integer(4),pointer::ivgtyp(:,:),isltyp(:,:),islope(:,:)
+      COMMON/SOIL/SOILTB,SFCEXC,SMSTAV,SMSTOT,GRNFLX,PCTSNO,IVGTYP
+      common/soil/ISLTYP,ISLOPE,VEGFRC,CMC,SMC,STC,SLDPTH,RTDPTH
+      common/soil/SH2O

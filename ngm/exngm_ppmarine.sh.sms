@@ -1,0 +1,393 @@
+#!/bin/sh
+set +x
+echo " --- 05/10/96 ------MDL Job 382 ---------------"
+echo " "
+echo "**********************************************"
+echo "HISTORY: Conversion from the HDS to the Cray"
+echo "         of job 382."
+echo " REVISED: Tue 01/08/97 - Added ecoastng, glmarine,"
+echo "                         and fzus40tx"
+echo " REVISED: Mon 04/20/98 - Copied MDL history files and cbwdwvht.dat"
+echo "                         from /COM instead of PARM."
+echo " REVISED: Wed 08/12/98 - Changed fzus40tx to agus40tx"
+echo " REVISED: Mon 03/13/00 - Converted to IBM"
+echo " REVISED: Tue 09/15/05 - Send products to TOC with NTC"
+echo "**********************************************"
+echo " "
+set -x
+
+##################################
+msg="HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+##################################
+
+cd $DATA
+
+if test $cyc -eq 12
+then
+   PRVCYC=00
+else
+   PRVCYC=12
+fi
+
+set +x
+echo "#########################################"
+echo "Copy Files from $COM"
+echo "#########################################"
+set -x
+
+COMFILES=$COMIN/${RUN}.${cycle}
+
+cp $COMFILES.pgrb.f00 pgrb.f00
+cp $COMFILES.pgrb.f06 pgrb.f06
+cp $COMFILES.pgrb.f12 pgrb.f12
+cp $COMFILES.pgrb.f18 pgrb.f18
+cp $COMFILES.pgrb.f24 pgrb.f24
+cp $COMFILES.pgrb.f30 pgrb.f30
+cp $COMFILES.pgrb.f36 pgrb.f36
+cp $COMFILES.pgrb.f42 pgrb.f42
+cp $COMFILES.pgrb.f48 pgrb.f48
+
+cp $COMFILES.pgrbif00 pgrbif00
+cp $COMFILES.pgrbif06 pgrbif06
+cp $COMFILES.pgrbif12 pgrbif12
+cp $COMFILES.pgrbif18 pgrbif18
+cp $COMFILES.pgrbif24 pgrbif24
+cp $COMFILES.pgrbif30 pgrbif30
+cp $COMFILES.pgrbif36 pgrbif36
+cp $COMFILES.pgrbif42 pgrbif42
+cp $COMFILES.pgrbif48 pgrbif48
+
+set +x
+echo "##############################"
+echo "# Initialize MOS forecast file"
+echo "##############################"
+set -x
+
+export pgm="mdl_mosinit"
+. prep_step
+
+export XLFUNIT_20="$FIXmdl/mdl_marbondir"
+export XLFUNIT_49="ncepdate"          
+export XLFUNIT_70="mosfcsts.mar.$cycle" 
+
+startmsg
+$EXECmdl/mdl_mosinit < $PARMmdl/mdl_marinit.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+cp mosfcsts.mar.$cycle $DATA/dummycon
+
+set +x
+echo "##############################"
+echo "# Run Model Pre-processor MOSPREPNGM"
+echo "##############################"
+set -x
+
+export pgm="mdl_mosprepngm"
+. prep_step
+
+export XLFUNIT_11="pgrb.f00" 
+export XLFUNIT_12="pgrb.f06" 
+export XLFUNIT_13="pgrb.f12" 
+export XLFUNIT_14="pgrb.f18" 
+export XLFUNIT_15="pgrb.f24" 
+export XLFUNIT_16="pgrb.f30" 
+export XLFUNIT_17="pgrb.f36"
+export XLFUNIT_18="pgrb.f42" 
+export XLFUNIT_19="pgrb.f48" 
+export XLFUNIT_21="pgrbif00" 
+export XLFUNIT_22="pgrbif06" 
+export XLFUNIT_23="pgrbif12" 
+export XLFUNIT_24="pgrbif18" 
+export XLFUNIT_25="pgrbif24" 
+export XLFUNIT_26="pgrbif30" 
+export XLFUNIT_27="pgrbif36" 
+export XLFUNIT_28="pgrbif42" 
+export XLFUNIT_29="pgrbif48" 
+export XLFUNIT_49="ncepdate"     
+export XLFUNIT_75="ngmgrb.$cycle" 
+
+startmsg
+$EXECmdl/mdl_mosprepngm < $PARMmdl/mdl_storngm.${cycle} >> $pgmout 2>errfile
+export err=$?;err_chk
+
+set +x
+echo "##########################"
+echo "# Create GRIB index file"
+echo "##########################"
+set -x
+
+$EXECutil/grbindex ngmgrb.$cycle ngmgrbi.$cycle
+export err=$?;err_chk
+
+set +x
+echo "################"
+echo "# Run MOSFCSTS"
+echo "################"
+set -x
+
+export pgm="mdl_mosfcst"
+. prep_step
+
+export XLFUNIT_11="$FIXmdl/mdl_ncodes"               
+export XLFUNIT_12="$FIXmdl/mdl_constantids"          
+export XLFUNIT_18="ngmgrb.$cycle"                
+export XLFUNIT_19="ngmgrbi.$cycle"               
+export XLFUNIT_30="dummycon"               
+export XLFUNIT_35="$FIXmdl/mdl_marbon.ijs"           
+export XLFUNIT_40="$FIXmdl/mdl_marbon.equations"     
+export XLFUNIT_48="$FIXmdl/mdl_hexidngm"            
+export XLFUNIT_49="ncepdate"                    
+export XLFUNIT_70="mosfcsts.mar.$cycle"         
+export XLFUNIT_90="tempspace"              
+
+startmsg
+$EXECmdl/mdl_mosfcst < $PARMmdl/mdl_marmos.$cycle >> $pgmout 2>errfile
+export err=$?;err_chk
+
+set +x
+echo "################################"
+echo "# Generate the FOXX40 bulletin"
+echo "################################"
+set -x
+
+export pgm="mdl_foxx40tx"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.mar.$cycle"        
+export XLFUNIT_18="ncepdate"                      
+export XLFUNIT_60="foxx40.$cycle"                  
+export XLFUNIT_65="foxx40.tran"                     
+
+startmsg
+$EXECmdl/mdl_foxx40tx < $PARMmdl/mdl_drfoxx40.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWBC NONE $DATA/foxx40.tran $pcom/foxx40.tran.$job 
+
+set +x
+echo "###########################################"
+echo "#   Generate the ECOAST (FQUS21) bulletin "
+echo "###########################################"
+set -x
+
+if test ${cyc} = '12'
+then
+   cp $COMIN/ecoast00.hist ecoast00.hist
+   cp $COMINm1/ecoast12.hist ecoast12.hist
+else
+   cp $COMINm1/ecoast00.hist ecoast00.hist
+   cp $COMINm1/ecoast12.hist ecoast12.hist
+fi
+
+cp ecoast${cyc}.hist        ecoast${cyc}.hist.out
+
+export pgm="mdl_ecoastng"
+. prep_step
+
+export XLFUNIT_18="ncepdate"                 
+export XLFUNIT_20="ecoast$PRVCYC.hist"      
+export XLFUNIT_21="ecoast${cyc}.hist"    
+export XLFUNIT_25="pgrbif00"           
+export XLFUNIT_26="pgrb.f00"           
+export XLFUNIT_27="pgrbif06"           
+export XLFUNIT_28="pgrb.f06"           
+export XLFUNIT_29="pgrbif12"           
+export XLFUNIT_30="pgrb.f12"           
+export XLFUNIT_31="pgrbif18"           
+export XLFUNIT_32="pgrb.f18"           
+export XLFUNIT_33="pgrbif24"           
+export XLFUNIT_34="pgrb.f24"           
+export XLFUNIT_35="pgrbif30"           
+export XLFUNIT_36="pgrb.f30"           
+export XLFUNIT_37="pgrbif36"           
+export XLFUNIT_38="pgrb.f36"           
+export XLFUNIT_39="pgrbif42"           
+export XLFUNIT_40="pgrb.f42"          
+export XLFUNIT_41="pgrbif48"          
+export XLFUNIT_42="pgrb.f48"           
+export XLFUNIT_52="ecoast.arch.$cycle"   
+export XLFUNIT_58="ecoast${cyc}.hist.out" 
+export XLFUNIT_60="ecoast.$cycle"      
+export XLFUNIT_65="ecoast.tran"        
+
+startmsg
+$EXECmdl/mdl_ecoastng < $PARMmdl/mdl_ecoastng.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test "$SENDCOM" = 'YES'
+then
+   # Copy the updated history file back to com
+   cp ecoast${cyc}.hist.out  $COMOUT/ecoast${cyc}.hist
+fi
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWBC NONE $DATA/ecoast.tran $pcom/ecoast.tran.$job
+
+export pgm=bulls_agus40tx
+. prep_step
+
+if test ${cyc} = '12'
+then
+   if [ -f $COMIN/cbwdwvht.t00z.dat ]
+   then
+      cp $COMIN/cbwdwvht.t00z.dat cbwdwvht.dat
+   elif [ -f $COMINm1/cbwdwvht.t12z.dat ]
+   then
+      cp $COMINm1/cbwdwvht.t12z.dat cbwdwvht.dat
+   fi
+else
+   if [ -f $COMINm1/cbwdwvht.t12z.dat ]
+   then
+      cp $COMINm1/cbwdwvht.t12z.dat cbwdwvht.dat
+   elif [ -f $COMINm1/cbwdwvht.t00z.dat ]
+   then
+      cp $COMINm1/cbwdwvht.t00z.dat cbwdwvht.dat
+   fi
+fi
+
+if [ ! -f cbwdwvht.dat ]
+then
+   echo " ERROR - cannot copy history file cbwdwvht.dat from $COMIN "
+   cp $PARMbulls/bulls_cbwdwvht.dat cbwdwvht.dat
+fi
+
+echo $PDY > dtg.ft90
+echo $cyc > dtg.ft91
+cut -c7-10 /com/date/$cycle > dtg.ft92
+
+export XLFUNIT_10="mosfcsts.mar.$cycle"
+export XLFUNIT_11="pgrb.f00"
+export XLFUNIT_12="pgrbif00"
+export XLFUNIT_13="pgrb.f06"
+export XLFUNIT_14="pgrbif06"
+export XLFUNIT_15="pgrb.f12"
+export XLFUNIT_16="pgrbif12"
+export XLFUNIT_17="pgrb.f18"
+export XLFUNIT_18="pgrbif18"
+export XLFUNIT_19="pgrb.f24"
+export XLFUNIT_20="pgrbif24"
+export XLFUNIT_21="pgrb.f30"
+export XLFUNIT_22="pgrbif30"
+export XLFUNIT_23="pgrb.f36"
+export XLFUNIT_24="pgrbif36"
+export XLFUNIT_25="pgrb.f42"
+export XLFUNIT_26="pgrbif42"
+export XLFUNIT_27="pgrb.f48"
+export XLFUNIT_28="pgrbif48"
+export XLFUNIT_51="agus40tx.tran"
+export XLFUNIT_52="agus40tx.arch"
+export XLFUNIT_68="cbwdwvht.dat"
+export XLFUNIT_90="dtg.ft90"
+export XLFUNIT_91="dtg.ft91"
+export XLFUNIT_92="dtg.ft92"
+
+startmsg
+$EXECbulls/bulls_agus40tx < $PARMbulls/bulls_cbwavdta.dat >>$pgmout 2>errfile
+export err=$?;err_chk
+
+cp cbwdwvht.dat $COMOUT/cbwdwvht.${cycle}.dat
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWBC NONE $DATA/agus40tx.tran $pcom/agus40tx.tran.$job
+
+set +x
+echo "###############################################################"
+echo "#   Generate the Great Lakes FQUS22 (wind/wave) and            "
+echo "#   FQUS20 (storm surge) bulletins.                            "
+echo "###############################################################"
+set -x
+
+if test ${cyc} = '12'
+then
+    cp $COMIN/grlkwv00.hist grlkwv00.hist
+    cp $COMINm1/grlkwv12.hist grlkwv12.hist
+    cp $COMIN/ersurg00.hist ersurg00.hist
+    cp $COMINm1/ersurg12.hist ersurg12.hist
+    cp $COMIN/huron00.hist  huron00.hist
+    cp $COMINm1/huron12.hist  huron12.hist
+else
+    cp $COMINm1/grlkwv00.hist grlkwv00.hist
+    cp $COMINm1/grlkwv12.hist grlkwv12.hist
+    cp $COMINm1/ersurg00.hist ersurg00.hist
+    cp $COMINm1/ersurg12.hist ersurg12.hist
+    cp $COMINm1/huron00.hist  huron00.hist
+    cp $COMINm1/huron12.hist  huron12.hist
+fi
+
+cp $COMIN/mosfcsts.ngm.$cycle mosfcsts.ngm.$cycle
+
+export pgm="mdl_glmarine"
+. prep_step
+
+export XLFUNIT_12="mosfcsts.mar.$cycle"         
+export XLFUNIT_14="mosfcsts.ngm.$cycle" 
+export XLFUNIT_18="ncepdate"                        
+export XLFUNIT_20="grlkwv$PRVCYC.hist"             
+export XLFUNIT_22="ersurg$PRVCYC.hist"            
+export XLFUNIT_24="huron$PRVCYC.hist"            
+export XLFUNIT_27="pgrbif00"                    
+export XLFUNIT_28="pgrb.f00"                   
+export XLFUNIT_29="pgrbif06"                   
+export XLFUNIT_30="pgrb.f06"                     
+export XLFUNIT_31="pgrbif12"                     
+export XLFUNIT_32="pgrb.f12"                     
+export XLFUNIT_33="pgrbif18"                     
+export XLFUNIT_34="pgrb.f18"                     
+export XLFUNIT_35="pgrbif24"                     
+export XLFUNIT_36="pgrb.f24"                     
+export XLFUNIT_37="pgrbif30"                     
+export XLFUNIT_38="pgrb.f30"                     
+export XLFUNIT_39="pgrbif36"                     
+export XLFUNIT_40="pgrb.f36"                     
+export XLFUNIT_41="pgrbif42"                     
+export XLFUNIT_42="pgrb.f42"                     
+export XLFUNIT_43="pgrbif48"                     
+export XLFUNIT_44="pgrb.f48"                     
+export XLFUNIT_52="glmarine.arch.$cycle"         
+export XLFUNIT_60="glmarine.$cycle"              
+export XLFUNIT_65="glmarine.tran"                
+export XLFUNIT_71="grlkwv${cyc}.hist"              
+export XLFUNIT_73="ersurg${cyc}.hist"              
+export XLFUNIT_75="huron${cyc}.hist"               
+
+startmsg
+$EXECmdl/mdl_glmarine < $PARMmdl/mdl_glmarine.dat >> $pgmout 2>errfile
+export err=$?;err_chk
+
+if test "$SENDCOM" = 'YES'
+then
+  # Copy updated history file back to com
+  cp grlkwv${cyc}.hist      $COMOUT/grlkwv${cyc}.hist
+  cp ersurg${cyc}.hist      $COMOUT/ersurg${cyc}.hist
+  cp huron${cyc}.hist       $COMOUT/huron${cyc}.hist
+fi
+
+$USHutil/make_ntc_bull.pl  WMOBH NONE KWBC NONE $DATA/glmarine.tran $pcom/glmarine.tran.$job
+
+#############################################################
+# save output files to COM
+#############################################################
+if test "$SENDCOM" = 'YES'
+then
+  cp ngmgrb.${cycle}       $COMOUT/ngmgrb.${cycle}.$job
+  cp ngmgrbi.${cycle}      $COMOUT/ngmgrbi.${cycle}.$job
+  cp foxx40.${cycle}       $COMOUT/foxx40.${cycle}.$job
+  cp foxx40.tran           $COMOUT/foxx40.tran.${cycle}.$job
+  cp mosfcsts.mar.${cycle} $COMOUT/mosfcsts.mar.${cycle}.$job
+  cp ecoast.$cycle         $COMOUT/ecoast.$cycle
+  cp ecoast.arch.$cycle    $COMOUT/ecoast.arch.$cycle
+  cp glmarine.$cycle       $COMOUT/glmarine.$cycle
+  cp glmarine.arch.$cycle  $COMOUT/glmarine.arch.$cycle
+fi
+
+##################################
+msg="COMPELETED NORMALLY"
+postmsg "$jlogfile" "$msg"
+##################################
+
+set +x
+echo " "
+echo "*******job 382 MDL MOS GUIDANCE COMPLETED NORMALLY ****"
+echo "*******job 382 MDL MOS GUIDANCE COMPLETED NORMALLY ****"
+echo " "
+set -x
+#######  End of SCRIPT ###########################

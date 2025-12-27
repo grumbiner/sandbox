@@ -1,0 +1,192 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/SNO16GET.f 09/30/06 19:45:36
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE SNO16GET(SCVH,IYR,IMN,IDY,   INSNOIMS, LIST)
+          2 |C
+          3 |C ABSTRACT: READS THE NESDIS IMS DAILY SNOW/ICE ANALYSIS ON THE
+          4 |C           1/16TH MESH.
+          5 |C           SCVH = 0 --- NO SNOW OR ICE
+          6 |C                  1 --- WITH SNOW/ICE
+          7 |C
+          8 |C  INPUT ARGUMENTS:
+          9 |C     INSNOSAB - UNIT NO. FOR NESDIS WEEKLY SNOW/ICE ANAL
+         10 |C     LIST     - UNIT NO. FOR PRINT
+         11 |C  OUTPUT ARGUMENTS:
+         12 |C     SCVH - REAL SNOW/ICE ANAL FLAGS OF ZEROE'S AND ONE'S
+         13 |C     IYR  - YEAR  OF ANAL
+         14 |C     IMN  - MONTH OF ANAL
+         15 |C     IDY  - DAY   OF ANAL
+         16 |C
+         17 |      REAL SCVH(1024,1024), ICE(1024,1024)
+         18 |      LOGICAL BITMAP(1024,1024)
+         19 |      INTEGER KPDS(25), KGDS(22), JPDS(25), JGDS(22)
+         20 |C
+         21 |      CALL BAOPEN(INSNOIMS,'fort.22',IRETO)
+         22 |      JPDS = -1
+         23 |      CALL GETGB(INSNOIMS,0,1024*1024,0,JPDS,JGDS,KF,KNUM,KPDS,KGDS,
+         24 |     &     BITMAP,ICE,IRET1)
+         25 |      WRITE(6,*) 'AFTER GETGB FOR IMS ICE, IRET1=', IRET1
+         26 |C
+         27 |      JPDS = -1
+         28 |      CALL GETGB(INSNOIMS,0,1024*1024,1,JPDS,JGDS,KF,KNUM,KPDS,KGDS,
+         29 |     &     BITMAP,SCVH,IRET2)
+         30 |      WRITE(6,*) 'AFTER GETGB FOR IMS SNOW, IRET2=', IRET2
+         31 |C
+         32 |      IF (IRET1.NE.0 .OR. IRET2.NE.0) THEN
+         33 |         WRITE(LIST,*) 'READ ERROR FOR IMS SNOW/ICE, IRET1=',IRET1,
+         34 |     &      ' IRET2=', IRET2
+         35 |         CALL EXIT(16)
+         36 |      ENDIF
+         37 |C
+         38 |      IYR2D = KPDS(8)
+         39 |      IMN = KPDS(9)
+         40 |      IDY = KPDS(10)
+         41 |      ICENT = KPDS(21)
+         42 |      IF(IYR2D.LT.100) THEN
+         43 |       IYR = (ICENT - 1) * 100 + IYR2D
+         44 |      ELSE
+         45 |       IYR = ICENT * 100
+         46 |      ENDIF
+         47 |C
+         48 |      DO 20 I = 1, 1024
+         49 |        DO 10 J = 1, 1024
+         50 |           IF (ICE(I,J).GT.0. .OR. SCVH(I,J) .GT.0.) THEN
+         51 |              SCVH(I,J) = 1.
+         52 |           ELSE
+         53 |              SCVH(I,J) = 0.
+         54 |           ENDIF
+         55 | 10     CONTINUE
+         56 | 20   CONTINUE
+         57 |      RETURN
+         58 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+baopen                           External Subroutine
+                                 0-21.12
+ 
+bitmap                           Static, Logical(4) (1:1024, 1:1024), Offset: 0, Alignment: full word
+                                 0-18.15$  0-24.12  0-29.12
+ 
+exit                             External Subroutine
+                                 0-35.15
+ 
+getgb                            External Subroutine
+                                 0-23.12  0-28.12
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.13@  0-50.20  0-50.41  0-51.20  0-53.20
+ 
+ice                              Static, Real(4) (1:1024, 1:1024), Offset: 0, Alignment: full word
+                                 0-17.29$  0-24.19  0-50.16
+ 
+icent                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-41.7@  0-43.15  0-45.14
+ 
+idy                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-40.7@
+ 
+imn                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.36  0-39.7@
+ 
+insnoims                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.47  0-21.19  0-23.18  0-28.18
+ 
+iret1                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-24.23  0-25.53  0-32.11  0-33.62
+ 
+iret2                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-29.24  0-30.54  0-32.27  0-34.24
+ 
+ireto                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-21.38
+ 
+iyr                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-43.8@  0-45.8@
+ 
+iyr2d                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-38.7@  0-42.10  0-43.34
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-49.15@  0-50.22  0-50.43  0-51.22  0-53.22
+ 
+jgds                             Static, Integer(4) (1:22), Offset: 0, Alignment: full word
+                                 0-19.45$  0-23.46  0-28.46
+ 
+jpds                             Static, Integer(4) (1:25), Offset: 0, Alignment: full word
+                                 0-19.35$  0-22.7@  0-23.41  0-27.7@  0-28.41
+ 
+kf                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-23.51  0-28.51
+ 
+kgds                             Static, Integer(4) (1:22), Offset: 0, Alignment: full word
+                                 0-19.25$  0-23.64  0-28.64
+ 
+knum                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-23.54  0-28.54
+ 
+kpds                             Static, Integer(4) (1:25), Offset: 0, Alignment: full word
+                                 0-19.15$  0-23.59  0-28.59  0-38.15  0-39.13  0-40.13  0-41.15
+ 
+list                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.57  0-33.16
+ 
+scvh                             Reference argument, Real(4) (1:1024, 1:1024), Offset: 0, Alignment: full word
+                                 0-17.12$  0-1.27  0-29.19  0-50.36  0-51.15@  0-53.15@
+ 
+sno16get                         Subroutine
+                                 0-1.18$
+ 
+** sno16get   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    SNO16GET.f                  10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      58
+1501-510  Compilation successful for file SNO16GET.f.
+1501-543  Object file created.

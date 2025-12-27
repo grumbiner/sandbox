@@ -1,0 +1,14 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /DYNAM/
+     & DY,CPGFV,EN,ENT,RDYN,PTDYN,F4D,F4Q,EF4T
+     &,DETAD(LM),RDETA(LM),AETAD(LM),F4Q2(LM),ETAD(LP1),DFL(LP1)
+C
+     &,EM    (JAM),EMT   (JAM)
+C
+     &,DXX   (IDIM1:IDIM2,JDIM1:JDIM2),WPDARX(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,CPGFUX(IDIM1:IDIM2,JDIM1:JDIM2),CURVX (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,FCP   (IDIM1:IDIM2,JDIM1:JDIM2),FDIVX (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,FX    (IDIM1:IDIM2,JDIM1:JDIM2)
+     &,DDMPUX(IDIM1:IDIM2,JDIM1:JDIM2),DDMPVX(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,FADX  (IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

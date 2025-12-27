@@ -1,0 +1,60 @@
+      SUBROUTINE SNO16GET(SCVH,IYR,IMN,IDY,   INSNOSAB, LIST) 
+C                                             
+C ABSTRACT: READS THE NESDIS IMS DAILY SNOW/ICE ANALYSIS ON THE
+C           1/16TH MESH.
+C           SCVH = 0 --- NO SNOW OR ICE
+C                  1 --- WITH SNOW/ICE
+C
+C  INPUT ARGUMENTS:
+C     INSNOSAB - UNIT NO. FOR NESDIS WEEKLY SNOW/ICE ANAL
+C     LIST     - UNIT NO. FOR PRINT
+C  OUTPUT ARGUMENTS:
+C     SCVH - REAL SNOW/ICE ANAL FLAGS OF ZEROE'S AND ONE'S
+C     IYR  - YEAR  OF ANAL
+C     IMN  - MONTH OF ANAL
+C     IDY  - DAY   OF ANAL
+C  
+      REAL SCVH(1024,1024), ICE(1024,1024)
+      LOGICAL*1 BITMAP(1024,1024)
+      INTEGER KPDS(25), KGDS(22), JPDS(25), JGDS(22)
+      print *,'welcome to sno16get',insnosab
+C
+      CALL BAOPEN(45,'fort.45',IRETO)
+      print *,'AFTER BAOPEN FOR SAB FILE IRET =',IRETO
+      JPDS = -1
+      CALL GETGB(45,0,1024*1024,0,JPDS,JGDS,KF,KNUM,KPDS,KGDS,
+     &     BITMAP,ICE,IRET1)
+      WRITE(6,*) 'AFTER GETGB FOR SAB ICE, IRET1=', IRET1
+C
+      JPDS = -1
+      CALL GETGB(45,0,1024*1024,1,JPDS,JGDS,KF,KNUM,KPDS,KGDS,
+     &     BITMAP,SCVH,IRET2)
+      WRITE(6,*) 'AFTER GETGB FOR SAB SNOW, IRET2=', IRET2
+C
+      IF (IRET1.NE.0 .OR. IRET2.NE.0) THEN
+         WRITE(LIST,*) 'READ ERROR FOR SAB SNOW/ICE, IRET1=',IRET1,
+     &      ' IRET2=', IRET2
+         CALL EXIT(16)
+      ENDIF
+C
+      IYR2D = KPDS(8)
+      IMN = KPDS(9)
+      IDY = KPDS(10)
+      ICENT = KPDS(21)
+      IF(IYR2D.LT.100) THEN
+       IYR = (ICENT - 1) * 100 + IYR2D
+      ELSE
+       IYR = ICENT * 100
+      ENDIF
+C
+      DO 20 I = 1, 1024
+        DO 10 J = 1, 1024
+           IF (ICE(I,J).GT.0. .OR. SCVH(I,J) .GT.0.) THEN
+              SCVH(I,J) = 1.
+           ELSE
+              SCVH(I,J) = 0.
+           ENDIF
+ 10     CONTINUE
+ 20   CONTINUE  
+      RETURN
+      END

@@ -1,0 +1,2 @@
+f90 -o editbufr.x editbufr.f  gtgdef.f  raddate.f  w3fi71.f \
+      /nwprod/w3lib90/w3lib /nwprod/bufrlib90/bufrlib

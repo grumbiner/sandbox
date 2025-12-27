@@ -1,0 +1,42 @@
+C  DCL /*                                                           */
+C  DCL /* ---------  interpolation GRID PARAMETERS  ----------------*/
+C  DCL /* ---------      HORIZONTAL            ---------------------*/
+C  DCL /*                                                           */
+C  DCL /* IMAX       IMAX IS THE NUMBER OF  basis   GRID POINTS     */
+C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+C  DCL /* JMAX       JMAX IS THE NUMBER OF   basis  GRID POINTS     */
+C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+C  DCL /*                                                           */
+       PARAMETER (IMAX = 720 )
+       PARAMETER (JMAX = 361 )
+       PARAMETER (KMAX = 42  )
+C  DCL /*                                                           */
+C-----------------------------------------------------------------------
+C-----------------------parameters for ETA model------------------------
+C-------------------------  32 km grid values  -------------------------
+C-----------------------------------------------------------------------
+                         P A R A M E T E R
+     &  (IM=223,JM=365,LM=45,KB=JM+2*IM-3,KBETA=JM+2*IM-3)
+C-------setting KB equal to KBETA indicates ETA model-------------------
+C-----------------------------------------------------------------------
+                         P A R A M E T E R
+     & (IMJM=IM*JM-JM/2,JMP1=JM+1,IMM1=IM-1,IMJMM1=IMJM-1
+     &, KHL00=1,KHH00=IM*JM-JM/2,KNE=IM,KNW=IM-1,KSW=-IM,KSE=-IM+1
+     &, KSL=IMJM+KSE, KSLM1=KSL-1)
+C-----------------------------------------------------------------------
+C--------------HORIZONTAL GRID CONSTANTS - STANDARD RESOLUTION----------
+                         P A R A M E T E R
+     & (TLM0D=-107.0,TPH0D=50.0,WBD=-49.333333,SBD=-37.333333,
+     & DLMD=0.222222222,DPHD=0.205128205)
+C-----------------------------------------------------------------------
+C---------------------NGM parameters for ngmPTS-------------------------
+C-----------------------------------------------------------------------
+C  NGUSED = NUMBER OF GRIDS, CORRESPONDS TO NGM PLI #NGRDUSE
+C  NGBD = NUMBER OF GRID FOR WHICH BOUNDARY POINTS ARE NEEDED
+C  LTBGRI = NUMBER OF PAIRS OF BOUNDARY ROWS = JUANG'S PLI #LTBGRD
+C  LBDIM = SIZE OF INTERNAL WORK ARRAYS, MUST >=  NUMBER OF BDY PTS
+C
+      PARAMETER (NGUSED=3)
+      PARAMETER (NGBD=3)
+      PARAMETER (LTBGRI=2)
+      PARAMETER (LBDIM=1000)

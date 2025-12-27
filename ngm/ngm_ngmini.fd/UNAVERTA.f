@@ -1,0 +1,138 @@
+       SUBROUTINE UNAVERTA(UE,VE,THE,HE,QE,IJ,IMG,JMG,PR,GASCON,
+     *       U,V,TH,H,HU0,HV0,HTH0,H0,Q0,H1ONU,H1ONV,DHONU,DHONV,
+     *       H11MK,DH1MK,DH,WORK)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    UNAVERTA    ADD INCREMENTS TO FULL FIELDS
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+C
+C ABSTRACT: ADD HOSKINS-SIMMONS FORM INCREMENTS ON TO PHILLIPS
+C   FORM FULL FIELDS.
+C
+C PROGRAM HISTORY LOG:
+C   88-08-08  PARRISH
+C
+C USAGE:    CALL UNAVERTA(UE,VE,THE,HE,QE,IJ,IMG,JMG,PR,GASCON,
+C    *       U,V,TH,H,HU0,HV0,HTH0,H0,Q0,H1ONU,H1ONV,DHONU,DHONV,
+C    *       H11MK,DH1MK,DH,WORK)
+C   INPUT ARGUMENT LIST:
+C     IJ       - IMG*JMG, NUMBER OF GRID-POINTS.
+C     IMG      - X-COORDINATE DIMENSION
+C     JMG      - Y-COORDINATE DIMENSION
+C     PR       - RELATED TO EXNER FUNCTION (PR=.5*SIG**KAPPA)
+C     GASCON   - GAS CONSTANT
+C     U        - U-INCREMENT IN HOSKINS-SIMMONS FORM
+C     V        - V-INCREMENT IN HOSKINS-SIMMONS FORM
+C     TH       - T-INCREMENT IN HOSKINS-SIMMONS FORM
+C     H        - LN(PSFC)-INCREMENT IN HOSKINS-SIMMONS FORM
+C     HU0      - ORIGINAL PHILLIPS U-WIND
+C     HV0      - ORIGINAL PHILLIPS V-WIND
+C     HTH0     - ORIGINAL PHILLIPS POT-TEMP
+C     H0       - ORIGINAL PHILLIPS SFCP
+C     Q0       - ORIGINAL PHILLIPS MOISTURE
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     UE       - NEW PHILLIPS U-WIND
+C     VE       - NEW PHILLIPS V-WIND
+C     THE      - NEW PHILLIPS POT-TEMP
+C     HE       - NEW PHILLIPS SFCP
+C     QE       - NEW PHILLIPS MOISTURE
+C     H1ONU    - WORK ARRAY
+C     H1ONV    - WORK ARRAY
+C     DHONU    - WORK ARRAY
+C     DHONV    - WORK ARRAY
+C     H11MK    - WORK ARRAY
+C     DH1MK    - WORK ARRAY
+C     DH       - WORK ARRAY
+C     WORK     - WORK ARRAY
+C
+C   SUBPROGRAMS CALLED: P2KAP,SETSHIFT
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         REAL PR(1)
+         REAL UE(IJ,1),VE(IJ,1),THE(IJ,1),HE(1),QE(IJ,1)
+         REAL U(IIJMAX,1)
+         REAL V(IIJMAX,1)
+         REAL TH(IIJMAX,1),H(1)
+         REAL HU0(IIJMAX,1),HV0(IIJMAX,1)
+         REAL HTH0(IIJMAX,1),H0(1)
+         REAL Q0(IIJMAX,1)
+         REAL H1ONU(IIJMAX),H1ONV(IIJMAX)
+         REAL DHONU(IIJMAX),DHONV(IIJMAX)
+         REAL H11MK(IIJMAX),DH1MK(IIJMAX),DH(IIJMAX)
+         REAL WORK(IIJMAX)
+         LOGICAL BITA(IIJMAX)
+C--------
+C        WRITE(6,110)
+C110     FORMAT(' ENTERING SUBROUTINE UNAVERTA')
+         NVECT=IMG*JMG
+         DO 1101 I=1,NVECT
+           DH(I)=EXP(H(I))
+           HE(I)=DH(I)*H0(I)
+1101     CONTINUE
+         DO 112 K=1,IKM
+           DO 1121 I=1,NVECT
+             QE(I,K)=DH(I)*Q0(I,K)
+1121       CONTINUE
+112      CONTINUE
+C--------
+C-------- OBTAIN H1ONU,H1ONV,DHONU,DHONV
+C--------
+         DO 1123 I=1,NVECT
+           H1ONU(I)=HE(I)
+           DHONU(I)=DH(I)
+1123     CONTINUE
+         CALL SETSHIFT(IMG,JMG,  0,  0,  0,  0,  0,
+     *                           0,  1,  0,  0,  0,
+     *       IS1,IS2,IS3,IS4,IS5,
+     *       LEN,BITA)
+         DO 1125 I=0,LEN-1
+           IF(BITA(I+1)) THEN
+             H1ONU(IS1+I)=.5*(HE(IS1+I)+HE(IS2+I))
+             DHONU(IS1+I)=.5*(DH(IS1+I)+DH(IS2+I))
+           END IF
+1125     CONTINUE
+         DO 1127 I=1,NVECT
+           H1ONV(I)=HE(I)
+           DHONV(I)=DH(I)
+1127     CONTINUE
+         CALL SETSHIFT(IMG,JMG,  0,  1,  0,  0,  0,
+     *                           0,  0,  0,  0,  0,
+     *       IS1,IS2,IS3,IS4,IS5,
+     *       LEN,BITA)
+         DO 1129 I=0,LEN-1
+           IF(BITA(I+1)) THEN
+             H1ONV(IS1+I)=.5*(HE(IS1+I)+HE(IS2+I))
+             DHONV(IS1+I)=.5*(DH(IS1+I)+DH(IS2+I))
+           END IF
+1129     CONTINUE
+C--------
+C-------- COMPUTE H11MK, DH1MK
+C--------
+         CALL P2KAP(HE,H11MK,NVECT)
+         DO 1131 I=1,NVECT
+           H11MK(I)=HE(I)/H11MK(I)
+1131     CONTINUE
+         CALL P2KAP(DH,DH1MK,NVECT)
+         DO 1133 I=1,NVECT
+           DH1MK(I)=DH(I)/DH1MK(I)
+1133     CONTINUE
+         DO 230 KR=1,IKM
+           CONST=.5/(PR(KR)*GASCON)
+           DO 2301 I=1,NVECT
+             THE(I,KR)=DH1MK(I)*HTH0(I,KR)+CONST*
+     *                    H11MK(I)*TH(I,KR)
+             UE(I,KR)=DHONU(I)*HU0(I,KR)
+     *                   +H1ONU(I)*U(I,KR)
+             VE(I,KR)=DHONV(I)*HV0(I,KR)
+     *                   +H1ONV(I)*V(I,KR)
+2301       CONTINUE
+230      CONTINUE
+       RETURN
+       END

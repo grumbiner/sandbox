@@ -1,0 +1,12 @@
+#!/bin/ksh
+
+set -x
+
+rm fort.*
+
+ln -s -f nhb3245 fort.12
+ln -s -f eta_staids.parm fort.15
+ln -s -f profdat fort.63
+xlf -o stalst.x -O2 STALST.f
+./stalst.x > out6 
+exit

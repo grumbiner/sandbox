@@ -1,0 +1,121 @@
+      SUBROUTINE INTBND
+C$$$  SUBPROGRAM  DOCUMENTATION  BLOCK
+C
+C SUBPROGRAM: INTBND         INITIALIZE LATERAL BOUNDARY VALUES
+C   AUTHOR: DENNIS DEAVEN    ORG: W/NMC23    DATE: 17 JUN 83
+C
+C ABSTRACT: CREATES LATERAL BOUNDARY VALUES FOR THE SIX OUTERMOST
+C   ROWS OF THE LFM FORECAST DOMAIN.
+C
+C USAGE:  CALL INTBND
+C
+C  - - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     LUNSIN      LOGICAL UNIT NUMBER FOR INITIAL DATA      /FORTAP/
+C     BUFF        INITIAL SIGMA STRIPS                      LUNSIN
+C     LUNBND      LOGICAL UNIT NUMBER FOR BOUNDARY DATA     /FORTAP/
+C     AA-BB       LATERAL BOUNDARY VALUE TENDENCIES         /PBNDRY/
+C
+C - - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     ALARGE      LATERAL BOUNDARY VALUES                   /PBNDPE/
+C     BLARGE             DITTO                              /PBNDPE/
+C
+C - - - - - - - - - S U B P R O G R A M S   C A L L E D - - - - - - - -
+C
+C     NAME(S)                                               LIBRARY
+C     -------                                               -------
+C     BLDBND,RDBNDY,ZRBNDY                                  LFMFCST
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C
+C ATTRIBUTES:
+C   LANGUAGE: SiliconGraphics 3.5 FORTRAN 77
+C   MACHINE:  SiliconGraphics IRIS-4D/25, 35, INDIGO
+C
+C$$$
+C
+      IMPLICIT    REAL (A-H,O-Z)
+      REAL        HOUR1
+      REAL        BUFF( 3816 ), XLAB(8)
+      REAL        DATE(9)
+      CHARACTER*4 LABSIN,LABBND,LABS00,LABS06,LABS12,LABV06,LABV12
+      COMMON /INDEX/ LI,LJ,LK,LI1,LJ1,LK1,LI2,NIJ,LOLD,LMID,LNEW,
+     1     K7OLD,K7MID,K7NEW,K3OLD,K3MID,K3NEW,K2OLD,K2MID,K2NEW,
+     2     K,K1,K2,K3,KL,KH
+      COMMON /FDATE/ IYEAR, IMO, IDAYMO, IZTIME, IHR1, IOUT
+      COMMON /SVHOUR/ NWDS, IHOUR1( 1205 ), HOUR1(8)
+      COMMON /TTME/   MNSTEP,IODD,IHOUR,IMONTH,ITSW,IVEL,NPHOUR,
+     1                SSLDC,CSLDC,SSLHR,CSLHR,SHR,CHR,
+     2                ALP,XDAYMO
+      COMMON /FORTAP/ LUNBND,LUNSIN,LUNS00,LUNS06,LUNS12,LUNV06,LUNV12,
+     A                LABSIN(8),LABBND(8),LABS00(8),LABS06(8),LABS12(8),
+     B                LABV06(8),LABV12(8),PARM(25)
+      COMMON /PBNDPE/ ALARGE( 53 ,12,23 ), BLARGE( 12, 33 ,23 )
+      COMMON /PBNDRY/ AA( 53 ,12, 23 ), BB( 12, 33 ,23 )
+      COMMON /CNST/ BTHICK,BTHIK1,BTHK3,DT,RDELX,
+     1              DTDS0,DTDS1,DTDS2,DTDX,DS1DX,DS2DX,
+     2              CP,R,ROCP,TSTRAT,CPTS,SATRH,RSAT60,
+     3              RDT,BTHICH,BTHK3H,BTK398,RBT,A1BRN,
+     4              A2BRN,TDTDX4,RPK,VVCNST
+      COMMON /DIAG/ SUMK(8),SUMP1(8),SUMP2(8),SUMS(8),SUMF(8),SUMFD(8),
+     1     SUMVOR(8),SUMDIV(8),DP(8),SUMP(8),SUMTS(8),SUMZ(8),
+     2     SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+      COMMON /FASTER/ PIE(1100),AX(120)
+      COMMON /VTEMP / SIGDOT( 53, 45, 5 ), VT( 53, 45, 25 )
+      SAVE
+C
+C     FETCH INITIAL CONDITIONS FOR FORECAST AND CONSTRUCT
+C     BOUNDARY VALUES VIA BLDBND.
+C
+      NREC = 0
+      IN   = LUNSIN
+      REWIND IN
+         READ (IN) LABSIN
+         NREC = NREC + 1
+      READ (IN) XLAB
+         NREC = NREC + 1
+      DO 10 L = 1,45
+        READ (IN) BUFF
+        NREC = NREC + 1
+        CALL BLDBND(L,BUFF)
+10    CONTINUE
+C
+C     FOR NONZERO HOUR RECOVERY, CONSTRUCT BOUNDARY VALUES
+C     FOR RECOUVERY HOUR VIA RDBNDY AND ADDITON TO INITIAL
+C     VALUES IN ALARGE, BLARGE.
+C
+      IF (IHOUR.LE.0) GO TO 98
+      ICY = IHOUR/6
+      REWIND LUNBND
+      READ (LUNBND,END=45) LABBND
+      DO 1 I = 1,ICY
+      READ (LUNBND,END=35) DATE
+      CALL RDBNDY
+      GO TO 34
+35    CALL ZRBNDY
+      GO TO 98
+34    CONTINUE
+      ITER = NPHOUR * 6
+      IF (I.EQ.1) ITER = NPHOUR*6 - 1
+      NA = 12 * 23 *  53
+      NB = 12 * 23 *  33
+      FIT = ITER
+      DO 88890 IQ2W6E=1,NA
+         ALARGE(IQ2W6E,1,1)=ALARGE(IQ2W6E,1,1)+FIT*AA(IQ2W6E,1,1)
+88890 CONTINUE
+      DO 88900 IQ2W6E=1,NB
+         BLARGE(IQ2W6E,1,1)=BLARGE(IQ2W6E,1,1)+FIT*BB(IQ2W6E,1,1)
+88900 CONTINUE
+1     CONTINUE
+98    REWIND IN
+      REWIND LUNBND
+      RETURN
+45    CONTINUE
+      CALL ZRBNDY
+      GO TO 98
+      END

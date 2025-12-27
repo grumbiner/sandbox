@@ -1,0 +1,588 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/PRINTG.f 09/30/06 19:44:07
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |C
+          2 |      SUBROUTINE PRINTG
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    PRINTG      PRINTS BASIC GRID PARAMETERS
+          6 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          7 |C
+          8 |C ABSTRACT: PRINTS BASIC GRID PARAMETERS
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   85-03-27  JIM HOKE
+         12 |C   88-08-02  BRIAN SCHMIDT ADDED DOCBLOCK
+         13 |C
+         14 |C USAGE:    CALL PRINTG
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     NONE
+         17 |C
+         18 |C   OUTPUT ARGUMENT LIST:
+         19 |C     NONE
+         20 |C
+         21 |C   OUTPUT FILES:
+         22 |C     FT06F001 - FOR PRINTOUT OF BASIC GRID PARAMETERS
+         23 |C
+         24 |C   SUBPROGRAMS CALLED:
+         25 |C     UNIQUE:    - CORNER
+         26 |C     LIBRARY:
+         27 |C       COMMON   - CONSTN
+         28 |C
+         29 |C ATTRIBUTES:
+         30 |C   LANGUAGE: CYBER FORTRAN 200
+         31 |C   MACHINE:  CYBER 205
+         32 |C
+         33 |C$$$
+         34 |C
+         35 |      IMPLICIT REAL (A-H, O-Z)
+         36 |C
+         37 |C
+         38 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         39 |C
+         40 |C
+         41 |      LOGICAL  BITSEA, BITSNO, BITWVL
+         42 |C
+         43 |      COMMON /CONSTN/ IMG( INGRDUSE ), JMG( INGRDUSE ),
+         44 |     1                IAG( INGRDUS1 ), JAG( INGRDUS1 ),
+         45 |     2                IBG( INGRDUS1 ), JBG( INGRDUS1 ),
+         46 |     3                IADDRG( INIADDRS ,  INGRDUSE ),
+         47 |     4                INDEXHU,  INDEXHV,  INDEXHTH, INDEXHQ,
+         48 |     5                INDEXH,   INDEXST,  INDEXSQ,  INDEXALB,
+         49 |     6                INDEXSLP, INDEXPSI, INDEXCD,  INDEXCC,  INDEXGSP,
+         50 |     7                INDEXRAD, INDEXDLW, INDEXDSW, INDEXCPR, INDEXMA,
+         51 |     8                INDEXSEC, INDEXZ0, INDEXTSS,  INDEXCG,  INDEXDHQ,
+         52 |     9                INDEXTSD, KM, NH, NGRDUSE,
+         53 |     1                SPECS( INSPECS ), DELSIG( IKM ),
+         54 |     2                POVH( IKM ), PIOVHK( IKM ),
+         55 |     3                CMUU  ( INGRDUSE ),
+         56 |     4                XPOLEH( INGRDUSE ), YPOLEH( INGRDUSE ),
+         57 |     5                XPOLEU( INGRDUSE ), YPOLEU( INGRDUSE ),
+         58 |     6                XPOLEV( INGRDUSE ), YPOLEV( INGRDUSE ),
+         59 |     7                DLAMNGM,
+         60 |     8                BITSEA( IIJMAX ,  INGRDUSE ),
+         61 |     9                BITSNO( IIJMAX ,  INGRDUSE ),
+         62 |     1                BITWVL( IIJMAX ,  INGRDUSE )
+         63 |C
+         64 |C       ****   END OF INCLUDED COMMON BLOCK CONSTN   ***
+         65 |C
+         66 |C
+         67 |      REARTH = 6371.22E+3
+         68 |      DEGRAD = 3.141592654E0 / 180.E0
+         69 |C
+         70 |      DX45 = (REARTH / (REAL(NH) + 0.5E0)) * (1.0E0+SIN(45.E0*DEGRAD))
+         71 |      DX60 = (REARTH / (REAL(NH) + 0.5E0)) * (1.0E0+SIN(60.E0*DEGRAD))
+         72 |C
+         73 |      PRINT 200
+         74 |  200 FORMAT ('0', 'GRID', 5X, 'GRID', 6X, 'GRID INCREMENT (KM)',
+         75 |     1             4X, 'VARIABLE', 5X, 'POLAR LOCATION'/
+         76 |     2        ' ', 'NAME', 3X, 'DIMENSION', 28X, 'TYPE', 6X,
+         77 |     3             'XPOLE', 5X, 'YPOLE'/
+         78 |     4        ' ', 7X, 'IMG', 1X, 'JMG', 6X, '45N', 8X,
+         79 |     5             '60N'/)
+         80 |C
+         81 |      DO 400 NG=1,NGRDUSE
+         82 |      PRINT 300, NG, IMG(NG), JMG(NG), DX45, DX60, XPOLEH(NG),
+         83 |     1     YPOLEH(NG), XPOLEU(NG), YPOLEU(NG), XPOLEV(NG), YPOLEV(NG)
+         84 |  300 FORMAT (' ', I3, I7, I5, -3PF13.5, -3PF11.5, 7X, 'H',
+         85 |     1             0PF14.5, F10.5/
+         86 |     2        ' ', 46X, 'U', F14.5, F10.5/
+         87 |     3        ' ', 46X, 'V', F14.5, F10.5/)
+         88 |C
+         89 |      DX45 = 0.5E0 * DX45
+         90 |      DX60 = 0.5E0 * DX60
+         91 |C
+         92 |  400 CONTINUE
+         93 |C
+         94 |C     PRINT LATITUDE/LONGITUDE INFORMATION FOR THE
+         95 |C     CORNERS OF ANY INTERIOR GRID.
+         96 |C     THE LONGITUDINAL RANGE IS SPECIFIED TO BE -180. TO +180.
+         97 |      IRANGE = 1
+         98 |C     THE LATITUDE AND LONGITUDE ARE TO BE PRINTED.
+         99 |      IPRT = 1
+        100 |C
+        101 |      PRINT 24
+        102 |   24 FORMAT(1H0,'NEGATIVE VALUES DENOTE WEST LONGITUDES:')
+        103 |C
+        104 |      DO 50 NG=1,NGRDUSE
+        105 |C
+        106 |      PRINT 25, NG
+        107 |   25 FORMAT(1H0,'GRID', I2, ' CORNERS FOR H POINTS ARE AT:')
+        108 |      CALL CORNER(1.E0-XPOLEH(NG),1.E0-YPOLEH(NG),CMUU(NG),
+        109 |     1            DLAMNGM,IRANGE,IPRT,DUMMY,DUMMY)
+        110 |      CALL CORNER(IMG(NG)-XPOLEH(NG),1.E0-YPOLEH(NG),CMUU(NG),
+        111 |     1            DLAMNGM,IRANGE,IPRT,DUMMY,DUMMY)
+        112 |      CALL CORNER(1.E0-XPOLEH(NG),JMG(NG)-YPOLEH(NG),CMUU(NG),
+        113 |     1            DLAMNGM,IRANGE,IPRT,DUMMY,DUMMY)
+        114 |      CALL CORNER(IMG(NG)-XPOLEH(NG),JMG(NG)-YPOLEH(NG),CMUU(NG),
+        115 |     1            DLAMNGM,IRANGE,IPRT,DUMMY,DUMMY)
+        116 |C
+        117 |   50 CONTINUE
+        118 |C
+        119 |C
+        120 |      PRINT 100
+        121 |  100 FORMAT ('0')
+        122 |C
+        123 |      RETURN
+        124 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 3544, Alignment: double word
+                                 0-41.16$  0-60.23$
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 192888, Alignment: double word
+                                 0-41.24$  0-61.23$
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 382232, Alignment: double word
+                                 0-41.32$  0-62.23$
+ 
+cmuu                             Common member, Real(4) (1:2), Offset: 3484, Alignment: full word
+                                 0-55.23$  0-108.51  0-110.54  0-112.54  0-114.57
+ 
+constn                           Common Block, Alignment: double word
+                                 0-43.15$
+ 
+corner                           External Subroutine
+                                 0-108.12  0-110.12  0-112.12  0-114.12
+ 
+degrad                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-68.7@  0-70.63  0-71.63
+ 
+delsig                           Common member, Real(4) (1:16), Offset: 3292, Alignment: full word
+                                 0-53.41$
+ 
+dlamngm                          Common member, Real(4), Offset: 3540, Alignment: full word
+                                 0-59.23$  0-109.19  0-111.19  0-113.19  0-115.19
+ 
+dummy                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-109.39  0-109.45  0-111.39  0-111.45  0-113.39  0-113.45  0-115.39  0-115.45
+ 
+dx45                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-70.7@  0-82.40  0-89.7@  0-89.22
+ 
+dx60                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-82.46  0-90.7@  0-90.22
+ 
+iaddrg                           Common member, Integer(4) (1:44, 1:2), Offset: 32, Alignment: quadruple word
+                                 0-46.23$
+ 
+iag                              Common member, Integer(4) (1:1), Offset: 16, Alignment: quadruple word
+                                 0-44.23$
+ 
+ibg                              Common member, Integer(4) (1:1), Offset: 24, Alignment: double word
+                                 0-45.23$
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-60.31  0-61.31  0-62.31  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-53.49  0-54.29  0-54.44  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+img                              Common member, Integer(4) (1:2), Offset: 0, Alignment: quadruple word
+                                 0-43.23$  0-82.22  0-110.19  0-114.19
+ 
+indexalb                         Common member, Integer(4), Offset: 412, Alignment: full word
+                                 0-48.53$
+ 
+indexcc                          Common member, Integer(4), Offset: 428, Alignment: full word
+                                 0-49.53$
+ 
+indexcd                          Common member, Integer(4), Offset: 424, Alignment: double word
+                                 0-49.43$
+ 
+indexcg                          Common member, Integer(4), Offset: 468, Alignment: full word
+                                 0-51.53$
+ 
+indexcpr                         Common member, Integer(4), Offset: 448, Alignment: quadruple word
+                                 0-50.53$
+ 
+indexdhq                         Common member, Integer(4), Offset: 472, Alignment: double word
+                                 0-51.63$
+ 
+indexdlw                         Common member, Integer(4), Offset: 440, Alignment: double word
+                                 0-50.33$
+ 
+indexdsw                         Common member, Integer(4), Offset: 444, Alignment: full word
+                                 0-50.43$
+ 
+indexgsp                         Common member, Integer(4), Offset: 432, Alignment: quadruple word
+                                 0-49.63$
+ 
+indexh                           Common member, Integer(4), Offset: 400, Alignment: quadruple word
+                                 0-48.23$
+ 
+indexhq                          Common member, Integer(4), Offset: 396, Alignment: full word
+                                 0-47.53$
+ 
+indexhth                         Common member, Integer(4), Offset: 392, Alignment: double word
+                                 0-47.43$
+ 
+indexhu                          Common member, Integer(4), Offset: 384, Alignment: quadruple word
+                                 0-47.23$
+ 
+indexhv                          Common member, Integer(4), Offset: 388, Alignment: full word
+                                 0-47.33$
+ 
+indexma                          Common member, Integer(4), Offset: 452, Alignment: full word
+                                 0-50.63$
+ 
+indexpsi                         Common member, Integer(4), Offset: 420, Alignment: full word
+                                 0-49.33$
+ 
+indexrad                         Common member, Integer(4), Offset: 436, Alignment: full word
+                                 0-50.23$
+ 
+indexsec                         Common member, Integer(4), Offset: 456, Alignment: double word
+                                 0-51.23$
+ 
+indexslp                         Common member, Integer(4), Offset: 416, Alignment: quadruple word
+                                 0-49.23$
+ 
+indexsq                          Common member, Integer(4), Offset: 408, Alignment: double word
+                                 0-48.43$
+ 
+indexst                          Common member, Integer(4), Offset: 404, Alignment: full word
+                                 0-48.33$
+ 
+indextsd                         Common member, Integer(4), Offset: 476, Alignment: full word
+                                 0-52.23$
+ 
+indextss                         Common member, Integer(4), Offset: 464, Alignment: quadruple word
+                                 0-51.42$
+ 
+indexz0                          Common member, Integer(4), Offset: 460, Alignment: full word
+                                 0-51.33$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$  0-44.28  0-44.45  0-45.28  0-45.45
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-43.28  0-43.45  0-46.43  0-55.31  0-56.31  0-56.51  0-57.31  0-57.51  0-58.31  0-58.51
+                                 0-60.41  0-61.41  0-62.41
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$  0-46.31
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$  0-53.30
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$
+ 
+iprt                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-99.7@  0-109.34  0-111.34  0-113.34  0-115.34
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+irange                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-97.7@  0-109.27  0-111.27  0-113.27  0-115.27
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+jag                              Common member, Integer(4) (1:1), Offset: 20, Alignment: full word
+                                 0-44.40$
+ 
+jbg                              Common member, Integer(4) (1:1), Offset: 28, Alignment: full word
+                                 0-45.40$
+ 
+jmg                              Common member, Integer(4) (1:2), Offset: 8, Alignment: double word
+                                 0-43.40$  0-82.31  0-112.35  0-114.38
+ 
+km                               Common member, Integer(4), Offset: 480, Alignment: quadruple word
+                                 0-52.33$
+ 
+ng                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-81.14@  0-82.18  0-82.26  0-82.35  0-82.59  0-83.19  0-83.31  0-83.43  0-83.55  0-83.67
+                                 0-104.13@  0-106.17  0-108.31  0-108.47  0-108.56  0-110.23  0-110.34  0-110.50  0-110.59  0-112.31
+                                 0-112.39  0-112.50  0-112.59  0-114.23  0-114.34  0-114.42  0-114.53  0-114.62
+ 
+ngrduse                          Common member, Integer(4), Offset: 488, Alignment: double word
+                                 0-52.41$  0-81.19  0-104.18
+ 
+nh                               Common member, Integer(4), Offset: 484, Alignment: full word
+                                 0-52.37$  0-70.30  0-71.30
+ 
+piovhk                           Common member, Real(4) (1:16), Offset: 3420, Alignment: full word
+                                 0-54.36$
+ 
+povh                             Common member, Real(4) (1:16), Offset: 3356, Alignment: full word
+                                 0-54.23$
+ 
+printg                           Subroutine
+                                 0-2.18$
+ 
+real                             Pure Intrinsic
+                                 0-70.25  0-71.25
+ 
+rearth                           Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-67.7@  0-70.15  0-71.15
+ 
+sin                              Pure Intrinsic
+                                 0-70.53  0-71.53
+ 
+specs                            Common member, Real(4) (1:700), Offset: 492, Alignment: full word
+                                 0-53.23$
+ 
+xpoleh                           Common member, Real(4) (1:2), Offset: 3492, Alignment: full word
+                                 0-56.23$  0-82.52  0-108.24  0-110.27  0-112.24  0-114.27
+ 
+xpoleu                           Common member, Real(4) (1:2), Offset: 3508, Alignment: full word
+                                 0-57.23$  0-83.24
+ 
+xpolev                           Common member, Real(4) (1:2), Offset: 3524, Alignment: full word
+                                 0-58.23$  0-83.48
+ 
+ypoleh                           Common member, Real(4) (1:2), Offset: 3500, Alignment: full word
+                                 0-56.43$  0-83.12  0-108.40  0-110.43  0-112.43  0-114.46
+ 
+ypoleu                           Common member, Real(4) (1:2), Offset: 3516, Alignment: full word
+                                 0-57.43$  0-83.36
+ 
+ypolev                           Common member, Real(4) (1:2), Offset: 3532, Alignment: full word
+                                 0-58.43$  0-83.60
+ 
+** printg   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    PRINTG.f                    10/09/02   12:46:06
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_nam2ngm.fd/parmodel
+                                      02/09/00   18:03:04      0      38
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     186
+1501-510  Compilation successful for file PRINTG.f.
+1501-543  Object file created.

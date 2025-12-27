@@ -1,0 +1,293 @@
+#!/bin/sh
+
+#####################################################################
+echo  "REVISED: Monday  Aug  5,  1996  - standardize and  "
+echo  "                                - add SMS hooks"
+echo  "REVISED: Monday  May 12,  1997  - Added dbn_alert for afostraj.$cycle "
+echo  "                                - after program tjprod. "
+echo  "                                - Added assigns for Fortran units "
+echo  "                                - 37 and 38 for program tjmostm. "
+echo  "REVISED: Monday  May 30,  1997  - Added program wmogrib to run between"
+echo  "                                - May 15 and Sept 15. "
+echo  "REVISED: Monday  Jun 16,  1997  - Added assign statement for Fortran "
+echo  "                                - unit 54 for program tjprod."
+echo  "REVISED: Monday  Mar 16,  1998  - Added assign statement for Fortran "
+echo  "                                - unit 56 for program tjprod."
+echo  "REVISED: Tuesday Jun 02,  1998  - Added step to convert AFOS thunder "
+echo  "                                - & severe wx maps into AWIPS Redbook."
+echo  "REVISED: Monday Dec 28,  1998   - Added steps to convert AFOS maps "
+echo  "                                - 8wt 0wd 7wd 7wg 7xg 7yg i4k 02g 03g"
+echo  "                                - 04g 05g 02o 03o 04o and 05o "
+echo  "                                - into AWIPS Redbook."
+echo "         MAR 2000 - Modified for implementation of the IBM SP"
+echo "         Jun 2002 - Added step to extract some fields from the grib "
+echo "                    file for SPC that were previously done in mdltrj. "
+echo "                    Added dbnet alerts to get files to TGFTP. "
+echo "REVISED: April 2003              - remove uneeded fax and afos" 
+echo "                                   processing"
+echo "REVISED: November 2004           - we are pulling all but the NVDs and "
+echo "                                   the trajectory graphics.  Removed   "
+echo "                                   codes TJMOSTM, TJMOSCT, TJACGRD,    "
+echo "                                   STORFOUS"
+echo " "
+#####################################################################
+
+cd $DATA
+ 
+# ########################################
+# start GRIB MOS processing
+# ########################################
+ 
+export COMFILES=$COMIN/${RUN}.${cycle}
+export commrf=/com/mrf/prod/mrf.$PDY
+export DAT="$PDY$cyc"
+export bufrsh=/nwprod/ush
+ 
+#    TRAJECTORY MODEL RUN
+#################################################################
+#    DUMP UPPER-AIR, SURFACE LAND, AND SURFACE SHIP
+#    DATA TO ADPUPA, ADPSFC, AND ADPSHP FILES FOR
+#    INPUT TO NGM-BASED 3D TRAJECTORY MODEL
+#    (JACK WOOLLENS SCRIPT)
+#
+#
+#     DUMP 00Z UPPER-AIR OBS TO ADPUPA FILE
+##################################################################
+DUMP=$bufrsh/dumpjb
+$DUMP $DAT 2.0 002 001
+export err=$?
+if [ "$err" -ne 0 ]
+then
+   echo "###  No adpupa data for synop.${PDY}${cyc}! ###"
+   echo "###  Stoping execution of NGM MDL TRAJ model ###"
+   err_chk
+else
+   cp 002.ibm adpupa.$cycle
+fi
+#
+##################################################################
+#     DUMP 00Z SFC LAND OBS TO ADPSFC FILE
+##################################################################
+#
+$DUMP $DAT 2.0 000 001
+export err=$?
+if [ "$err" -ne 0 ]
+then
+   echo "###  No adpsfc data for synop.${PDY}${cyc}! ###"
+   echo "###  Stoping execution of NGM MDL TRAJ model ###"
+   err_chk
+else
+   cp 000.ibm adpsfc.$cycle
+fi
+#
+##################################################################
+#     DUMP 00Z SFC SHIP OBS TO ADPSHP FILE
+##################################################################
+#
+$DUMP $DAT 2.0 001 001
+export err=$?
+if [ "$err" -ne 0 ]
+then
+   echo "###  No adpshp data for synop.${PDY}${cyc}! ###"
+   echo "###  Stoping execution of NGM MDL TRAJ model ###"
+   err_chk
+else
+   cp 001.ibm adpshp.$cycle
+fi
+
+#
+##################################################################
+#     START NGM-BASED 3D TRAJECTORY MODEL
+#     PROGRAM NGMTRAJ
+##################################################################
+#     ASSIGN NGM INPUT DATASETS
+set -x
+cp $COMFILES.pgrb.f00 ngm.$cycle.pgrb.f00
+cp $COMFILES.pgrb.f06 ngm.$cycle.pgrb.f06
+cp $COMFILES.pgrb.f12 ngm.$cycle.pgrb.f12
+cp $COMFILES.pgrb.f18 ngm.$cycle.pgrb.f18
+cp $COMFILES.pgrb.f24 ngm.$cycle.pgrb.f24
+cp $COMFILES.pgrb.f30 ngm.$cycle.pgrb.f30
+cp $COMFILES.pgrb.f36 ngm.$cycle.pgrb.f36
+cp $COMFILES.pgrb.f42 ngm.$cycle.pgrb.f42
+cp $COMFILES.pgrb.f48 ngm.$cycle.pgrb.f48
+cp $COMFILES.pgrbif00 ngm.$cycle.pgrbif00
+cp $COMFILES.pgrbif06 ngm.$cycle.pgrbif06
+cp $COMFILES.pgrbif12 ngm.$cycle.pgrbif12
+cp $COMFILES.pgrbif18 ngm.$cycle.pgrbif18
+cp $COMFILES.pgrbif24 ngm.$cycle.pgrbif24
+cp $COMFILES.pgrbif30 ngm.$cycle.pgrbif30
+cp $COMFILES.pgrbif36 ngm.$cycle.pgrbif36
+cp $COMFILES.pgrbif42 ngm.$cycle.pgrbif42
+cp $COMFILES.pgrbif48 ngm.$cycle.pgrbif48
+
+
+#     USE Previous day's file if 00Z cycle
+#     cp 1 DEG GLOBAL LAT/LON SEA-SFC TEMP INPUT DATASET
+if test $cycle = 't00z'
+then
+   cp /com/gfs/prod/gdas.$PDYm1/gdas1.t00z.sstgrb gdas1.t00z.sstgrb
+else
+   cp /com/gfs/prod/gdas.$PDY/gdas1.t00z.sstgrb gdas1.t00z.sstgrb
+fi
+
+$EXECutil/grbindex gdas1.t00z.sstgrb gdas1.t00z.sstgrb.index
+
+
+export pgm=mdl_ngmtraj
+. prep_step
+startmsg
+
+#     ASSIGN DIRECT-ACCESS WORK DATASETS
+export XLFUNIT_80="disk80"
+export XLFUNIT_81="disk81"
+export XLFUNIT_82="disk82"
+export XLFUNIT_83="disk83"
+export XLFUNIT_84="disk84"
+export XLFUNIT_85="disk85"
+export XLFUNIT_87="disk87"
+export XLFUNIT_88="disk88"
+export XLFUNIT_89="disk89"
+#     ASSIGN NGM INPUT DATASETS
+export XLFUNIT_11="ngm.$cycle.pgrb.f00"
+export XLFUNIT_12="ngm.$cycle.pgrb.f06"
+export XLFUNIT_13="ngm.$cycle.pgrb.f12"
+export XLFUNIT_14="ngm.$cycle.pgrb.f18"
+export XLFUNIT_15="ngm.$cycle.pgrb.f24"
+export XLFUNIT_16="ngm.$cycle.pgrb.f30"
+export XLFUNIT_17="ngm.$cycle.pgrb.f36"
+export XLFUNIT_18="ngm.$cycle.pgrb.f42"
+export XLFUNIT_19="ngm.$cycle.pgrb.f48"
+export XLFUNIT_21="ngm.$cycle.pgrbif00"
+export XLFUNIT_22="ngm.$cycle.pgrbif06"
+export XLFUNIT_23="ngm.$cycle.pgrbif12"
+export XLFUNIT_24="ngm.$cycle.pgrbif18"
+export XLFUNIT_25="ngm.$cycle.pgrbif24"
+export XLFUNIT_26="ngm.$cycle.pgrbif30"
+export XLFUNIT_27="ngm.$cycle.pgrbif36"
+export XLFUNIT_28="ngm.$cycle.pgrbif42"
+export XLFUNIT_29="ngm.$cycle.pgrbif48"
+#     USE Previous day's file if 00Z cycle
+#     ASSIGN 1 DEG GLOBAL LAT/LON SEA-SFC TEMP INPUT DATASET
+export XLFUNIT_30="gdas1.t00z.sstgrb"
+export XLFUNIT_31="gdas1.t00z.sstgrb.index"
+#     ASSIGN INPUT DATASETS FOR UPPER-AIR, SURFACE, & SHIP OBSERVATIONS
+export XLFUNIT_40="adpsfc.$cycle"
+export XLFUNIT_41="adpshp.$cycle"
+export XLFUNIT_42="adpupa.$cycle"
+export XLFUNIT_49="ncepdate"
+
+$EXECmdl/mdl_ngmtraj < $PARMmdl/mdl_ngmdata.t >> $pgmout 2>errfile
+err=$?;export err;err_chk
+
+##################################################################
+#     PROGRAM TJPROD
+#      note:  As of 1/11/2005 the fous5057 messages aren't being
+#      saved or sent.  The afostraj and afaxtraj are obsolete.
+#      ngmtrajgrb has the nvds, and sbntraj has the trajectories.
+##################################################################
+
+export pgm=mdl_tjprod
+. prep_step
+startmsg
+
+export XLFUNIT_80="disk80"
+export XLFUNIT_81="disk81"
+export XLFUNIT_82="disk82"
+export XLFUNIT_83="disk83"
+export XLFUNIT_84="disk84"
+export XLFUNIT_86="disk86"
+export XLFUNIT_87="disk87"
+export XLFUNIT_88="disk88"
+#     ASSIGN INPUT/OUTPUT DATASETS
+export XLFUNIT_49="$FIXutil/graph_pillist1"
+export XLFUNIT_51="fous5057.tran"
+export XLFUNIT_52="fous5057.$cycle"
+export XLFUNIT_53="afostraj.$cycle"
+export XLFUNIT_54="afaxtraj.$cycle"
+export XLFUNIT_55="ngmtrajgrb.$cycle"
+export XLFUNIT_56="sbntraj.$cycle"
+#     EXECUTE TJPROD
+
+$EXECmdl/mdl_tjprod < $PARMmdl/mdl_tjfous.t >> $pgmout 2>errfile
+err=$?;export err;err_chk
+
+
+#  Convert trajectory charts to Redbook and send to AWIPS
+
+if test "$SENDDBN" = 'YES'
+  then
+
+    pils='tjs tj7 tj8'
+    $utilities/redbook_ntc.sh sbntraj.$cycle "${pils}"
+fi
+
+
+#     Create GRIB Index File.
+
+$EXECutil/grbindex ngmtrajgrb.$cycle ngmtrajgrbi.$cycle
+err=$?;export err;err_chk
+
+if test "$err" = 0
+then
+   msg="ngmtrajgrbi.$cycle built"
+   postmsg "$jlogfile" "$msg"
+    cp ngmtrajgrb.$cycle $COMOUT
+    cp ngmtrajgrbi.$cycle $COMOUT
+else
+    cat errfile
+    msg="grbindex failed building ngmtrajgrbi.$cycle"
+    postmsg "$jlogfile" "$msg"
+    export err;err_chk
+fi
+
+######################################################
+# use the utility wgrib to extract net vertical
+# displacement.  Then put file on the NWS ftp server
+######################################################
+$EXECutil/wgrib ngmtrajgrb.$cycle | egrep "(^19:|^20:|^21:|^34:|^35:|^36:|^37:|^38:|^39:|^40:|^41:|^42:|^43:|^44:|^45:|^46:|^47:|^48:|^67:|^68:|^69:|^82:|^83:|^84:|^85:|^86:|^87:|^88:|^89:|^90:|^91:|^92:|^93:|^94:|^95:|^96:|^115:|^116:|^117:|^130:|^131:|^132:|^133:|^134:|^135:|^136:|^137:|^138:|^139:|^140:|^141:|^142:|^143:|^144:)" | $EXECutil/wgrib -i -grib ngmtrajgrb.$cycle -o ngmtrajspc.$cycle
+
+if test $SENDCOM = 'YES'
+then
+  cp ngmtrajspc.$cycle $COMOUT
+fi
+
+if test $SENDDBN = 'YES'
+then
+   $DBNROOT/bin/dbn_alert MDLFCST TRAJGRIB $job $COMOUT/ngmtrajspc.$cycle
+fi
+
+##################################################################
+#     1/11/2005:  dropped:
+#     PROGRAM TJMOSTM
+#     PROGRAM TJMOSCT
+#     PROGRAM TJACGRD
+#     PROGRAM STORFOUS - archive FOUS5057
+##################################################################
+
+##################################################################
+#  CREATE THE REDBOOK GRAPHICS FOR NVDS
+#################################################################
+
+export AFOSOUT=trajafos.$cycle.$job
+export AFOSPARM=graph_afosmakr.ft30.$job
+export SNDKEY=AFOS
+
+sh $utilities/mkafos.sh "ngmtrajgrb.$cycle" $AFOSPARM $AFOSOUT
+
+pils='7wg 7xg 7yg'
+$utilities/redbook_ntc.sh $AFOSOUT "${pils}"  
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+echo "**************$job COMPLETED NORMALLY ON THE IBM SP"
+#####################################################################
+
+msg='job completed normally'
+echo $msg
+postmsg "$jlogfile" "$msg"
+
+# -------------- END OF 381 SCRIPT --------------------------- 

@@ -1,0 +1,17 @@
+      SUBROUTINE ZONGRD(A,ZONA,ZONB)
+CFPP$ NOCONCUR R
+      DIMENSION A( 256 , 28 ),ZONA( 28 ),ZONB( 28 )
+      DO 3 K=1, 28
+      ZONA(K)=0. E 0
+      ZONB(K)=0. E 0
+      DO 2 I=1, 128
+      ZONA(K)=ZONA(K)+A(I,K)
+      ZONB(K)=ZONB(K)+A(I+ 128 ,K)
+2     CONTINUE
+      ZONA(K)=ZONA(K)/ 128
+      ZONB(K)=ZONB(K)/ 128
+3     CONTINUE
+C     PRINT 100,J,ZON
+C100  FORMAT(1H ,I3, 28 (1X,F5.2))
+      RETURN
+      END

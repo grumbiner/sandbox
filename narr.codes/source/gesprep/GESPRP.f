@@ -1,0 +1,1348 @@
+         PROGRAM GESPRP
+C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C MAIN PROGRAM:  GESPRP      CREATE GUESS STRIPS FOR ALL OI ANALYSES
+C   PRGMMR: DEAVEN/DIMEGO    ORG: W/NMC22     DATE: 89-12-21
+C
+C ABSTRACT: READS IN FIRST GUESS IN COEFFICIENT FORM (KMAX LEVELS OF
+C   T126 COEFFICIENTS) AND CONVERTS IT TO A IMAX X JMAX HEMISPHERIC
+C   ANALYSIS GRID. IF DESIRED, A HIGH RESOLUTION (IMAX X JMAX) TERRAIN
+C   FIELD IS READ IN AND INCORPORATED WITH THE FIRST GUESS BY COMPUTING
+C   NEW SURFACE PRESSURE VALUES AT THE NEW TERRAIN HEIGHTS.  THE
+C   SURFACE PRESSURE FIELD IS USED TO COMPUTE THE LMAX OUTPUT LEVELS
+C   USING THE SIGMA STRUCTURE OF THE NESTED GRID MODEL.  THE GUESS IS
+C   THEN VERTICALLY INTERPOLATED TO THOSE LEVELS.  A SIMILAR PROCEDURE
+C   IS PERFORMED FOR THE ANALYSIS ERRORS (12 MANDATORY P LEVELS OR
+C   OR LMAX LEVELS IN SIGMA WITH R30 TRUNCATION).   
+C   now will allow either sigma or eta output vertical coordinate
+C
+C PROGRAM HISTORY LOG:
+C   87-03-31  DIMEGO/PARRISH     ET AL.
+C   88-06-30  DIMEGO             GENERALIZED FOR UNIFICATION & RDAS
+C                                 PLI , HALF PRECISION, FTN200
+C   89-03-30  DEAVEN             QUADRATIC XINTRP, SIGERR  & IMXFRM
+C                                 ADDED  PPUV,PPZT, AND ZSMO
+C                                 TURNED OFF CHANGES IN O/ADABAT
+C   90-05-21  DEAVEN/DIMEGO/PAN  CRAY CONVERSION WITH A NEW
+C                                 SUBROUTINE INTERFACE FOR TRANSFORMS
+C   90-10-24  DiMego             added ETA capability
+C   91-03-06  DiMego             changed to T126 version
+C   91-06-26  DIMEGO             Added noerrs switch  
+C   93-05-10  McCann/DIMEGO      Removed QPASS,RPASS,SET777 and FFT777
+C                                Replaced them with CRAY Standard
+C                                FFT Subroutines fftfax and RFFTMLT
+C   98-09-01  Rogers             Fortran 90 / Y2K compliant version
+C   99-01-27  Rogers             Generalized, cleaned-up version using splib
+C                                routines to convert sigma coefficients
+C                                to global lat/lon grid
+C 
+C USAGE:
+C   INPUT FILES:
+C     UNIT11    - FIRST GUESS COEFFICIENTS FROM THE GDAS
+C               - ON KMAX SIGMA LEVELS
+C     UNIT13    - HIGH RESOLUTION (IMAX X JMAX) TERRAIN FIELD, 
+C                 ETA coordinate reference value at terrain height
+C
+C   OUTPUT FILES:
+C     UNIT6    - DIAGNOSTICS AND PRINT OUTPUT
+C     UNIT51   - FIRST GUESS ON IMAX X JMAX HEMISPHERIC GRID AT
+C              - LMAX SIGMA or ETA LEVELS    (ANAL STRIP FORM)
+C     UNIT53   - PARAMETERS THAT DESCRIBE THE ANALYSIS GRID:
+C              - XLAT CONTAINS THE LATITUDE OF EACH GRID ROW,
+C              - LI   CONTAINS THE NUMBER OF GRID POINTS ON EACH ROW,
+C              - XINT CONTAINS THE INTERVAL IN DEGREES BETWEEN EACH
+C              -      GRID POINT ON EACH ROW, AND
+C              - ELONG1 IS THE WESTERNMOST LONGITUDE
+C              -      OF THE GRID (POSITIVE EAST)
+C     UNIT54   - SPECS FILE (700) FOR NGM INPUT CODE WHEN GUESS IS
+C              - PASSED DIRECTLY  AS FROM SELA COF2GRID
+C     UNIT55   - STRIP FILE OF GUESS FIELDS FOR NGM INPUT CODE
+C              - AS FROM SELA COF2GRID
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - ODABAT   ADABAT   EZSKCH   CONLEV
+C                  COF2GRD  
+C                  DSTATS   TSTATS   LSTATS   ZSTATS   
+C                  IJ2LL    VRTPSL
+C     inlined:   - qfrmtp   vexpnd   xintrp
+C     LIBRARY:
+C       SPLIB    - SPTRAN SPTRANV
+C
+C   EXIT STATES:
+C     COND =   0 - SUCCESSFUL RUN
+C
+C   REMARKS: SEE COMMENT CARDS FOLLOWING DOCBLOCK
+C
+C ATTRIBUTES:
+C   LANGUAGE: STANDARD FORTRAN
+C   MACHINE:
+C
+C$$$
+CC
+C      VARIABLES IN NAMELIST RGRID READ INTO MAIN PROGRAM
+CC
+C   POLA    - TYPE OF ANALYSIS GRID  (DEFAULT=FALSE)
+C   NORTH   - HEMISPHERE SWITCH FOR ANALYSIS GRID  (DEFAULT=TRUE)
+C   ALONVT  - REFERENCE LONGITUDE (+W)      FOR POLA = TRUE
+C             STARTING LATITUDE   (+N)      FOR POLA = FALSE
+C   POLEI   - I INDEX OF POLE               FOR POLA = TRUE
+C             INCREMENT FOR LATITUDE        FOR POLA = FALSE
+C   POLEJ   - J INDEX OF POLE               FOR POLA = TRUE
+C             STARTING LONGITUDE  (+W)      FOR POLA = FALSE GRNWCH=360
+C   XMESHL  - MESH LENGTH (KM) AT 60N       FOR POLA = TRUE
+C             INCREMENT FOR LONGITUDE       FOR POLA = FALSE
+C   SI2     - LMAXP1 SIGMA INTERFACE DEFINITIONS
+C   SIGERR  - LOGICAL switch for whether input analysis errors are
+C             already in SIGMA coordinate of the model or not
+C   NOERRS  - LOGICAL switch for whether analysis errors are
+C             to be read in and processed (DEFAULT=TRUE) i.e. no errors
+C   SIGMA   - LOGICAL switch for whether output strips will be in 
+C             SIGMA coordinate of the NGM model or ETA coordinate
+CC
+C      VARIABLES IN NAMELIST PRMFLD READ INTO MAIN PROGRAM
+CC
+C   STATSON - LOGICAL switch for statistical routines TSTATS & ZSTATS
+C                   saves 15 sec of CPU time when FALSE
+C   UNSLIM  - MINIMUM UNSTABLE LAPSE RATE FOR 1ST LAYER OF GUESS
+C   STBLIM  - IF LAPSE RATE OF LOWEST FIRST GUESS LAYER IS GREATER
+C             THAN THIS VALUE AN ADJUSTMENT IS MADE TO DECREASE
+C             THE LAPSE RATE
+C   ETOP    - TOP PRESSURE FOR ETA coordinate           DEFAULT = 100.mb
+C   PTOP    - TOP PRESSURE FOR GUESS PROFILE OF GEOPOTENTIALS
+C   IPT,JPT - GRID POINTS FOR WHICH DIAGNOSTICS ARE PRINTED
+C   IUNIT   - ARRAY TO HOLD UNIT NUMBERS AND VARIOUS SWITCHES
+C       (1) - INPUT FIRST GUESS COEFFICIENTS            DEFAULT = 11
+C       (2) - INPUT ANALYSIS ERROR COEFFICIENTS         DEFAULT = 12
+C       (3) - INPUT HIGH RESOLUTION TERRAIN FIELD       DEFAULT = 13
+C             if SIGMA=F  surface value of ETA will also be read from unit 13
+C             IF ZERO USE FIRST GUESS TERRAIN FIELD ON GRID FROM GDAS
+C       (4) -      R E S E R V E D                      DEFAULT = 00
+C       (5) - OUTPUT FIRST GUESS STRIP FILE             DEFAULT = 51
+C       (6) - OUTPUT ANALYSIS ERROR STRIP FILE          DEFAULT = 52
+C       (7) - OUTPUT GPARMS FILE                        DEFAULT = 53
+C       (8) - SWITCH FOR ADIABATIC CHECK    YES=1/NO=0  DEFAULT = 01
+C       (9) - SWITCH TO INTEGRATE Z VS XINTRP  Y=1/N=0  DEFAULT = 00
+C       (10)- SWITCH FOR BALLISH WIND XINTRP   Y=1/N=0  DEFAULT = 00
+C       (11)- SWITCH FOR COMBINING FIRST LAYERS OF GES  DEFAULT = 00
+C       (12)- R E S E R V E D                           DEFAULT = 00
+CC
+      INCLUDE "parmanl"
+      REAL ALL(245)
+      INTEGER INDEX( IMAX )
+      REAL   GRD( IMAX , JMAX )
+C  LEVX = 3 * LMAX + LDMAX + 2   FOR NGM INPUT CODE
+      DIMENSION STRIPS( IMAX , LEVX ) , SYMM( JMAX )
+      DIMENSION DA( IMAX , 50 ,6),OBUF( IMAX , LMAX ,6)
+      DIMENSION PSTRIP( IMAX , LMAX ),PISTRP( IMAX , LMAXP1 )
+      DIMENSION TSTRIP( IMAX , 50 )
+      DIMENSION GSTRIP( IMAX , 50 ),GISTRP( IMAX , 51 )
+      DIMENSION XX( IMAX , JMAX , 50 ,5)
+      DIMENSION ZS( IMAX , JMAX ,5) , IUNIT(12)
+      DIMENSION HZ( IMAX , JMAX )
+      DIMENSION GZ( IMAX , JMAX )
+c     DIMENSION IDATE(4),SI( 51 ),SL( 50 )
+      dimension idate(4),si(29),sl(28)
+      DIMENSION IEDATE(4)
+      CHARACTER*4 IPACK
+      DIMENSION SI2(LMAXP1),SL2(LMAX),PINT(LMAXP1),PSIG(LMAX)
+      DIMENSION TLEV(LMXDBL),PLEV(LMXDBL),ZLEV(LMXDBL),Z3(LMXDBL)
+      DIMENSION P1( 51 ),PS1( 50 ),ZSMO(LMXDBL)
+      DIMENSION P2( LMAXP1 ),PS2( LMAX )
+      DIMENSION P3(501 ),PS3( 51 )
+      DIMENSION ALPM(13),PM(13), PMTMP(101),ALPMTP(101)
+      DIMENSION TEMP(LMXDBL),NCOUNT( LMAX )
+      DIMENSION DMEAN( LMAX ),RMSTD( LMAX ),TDMAX( LMAX )
+      DIMENSION MAXI( LMAX ),MAXJ( LMAX )
+      COMMON/ANLGRD/XLAT(JMAX),LI(JMAX),XINT(JMAX),PS(IMAX,JMAX,3)
+      COMMON /GRID/ POLA,NORTH,ALONVT,POLEI,POLEJ,XMESHL,SIGERR
+      LOGICAL POLA,NORTH,SIGERR,SIGMA,STATSON,NOERRS
+      LOGICAL NEWZST,RH
+      NAMELIST/RGRID/POLA,NORTH,ALONVT,POLEI,POLEJ,XMESHL,SI2,
+     $               SIGERR,SIGMA,NOERRS
+      NAMELIST/PRMFLD/STATSON,UNSLIM,STBLIM,ETOP,PTOP,IPT,JPT,IUNIT
+      EQUIVALENCE (YLATS,ALONVT) , (DLAT,POLEI)
+      EQUIVALENCE (XLONW,POLEJ) , (DDLON,XMESHL)
+C
+      DIMENSION CON(24),XLIM(4),YLIM(4)
+      CHARACTER*4 YTITLE(20) , BLANK
+      LOGICAL IACROS,XREV,YREV,TICK,ALLCON
+      CHARACTER*1 XTITLE(30) , BLNK
+      DATA BLANK/'    '/ , BLNK/' '/
+      COMMON /BLK3/ MI,LJ,LID,IACROS,XREV,YREV,TICK,ALLCON,XLIM,YLIM,
+     + XRG,YRG,IXD,IYD,NPRL,NPRC,NLV,CON,XTITLE,YTITLE
+      DATA PM/1000.,850.,700.,500.,400.,300.,
+     + 250.,200.,150.,100.,70.,50.,10./
+C
+c   internal function for pressure on model level
+      pmodel(a,b,c)=(a/b)*(c-ETOP)+ETOP
+c
+c  for ETA model a - is value of ETA
+c                b - is reference value of ETA
+c                c - is surface pressure
+c    and      ETOP - is top pressure of ETA
+C
+c  for NGM model a - is value of sigma
+c                b - is unity  (1.0)
+c                c - is surface pressure
+c    and      ETOP - is zero (0.0).
+C
+      CALL W3TAGB('GESPRP  ',0097,0365,0064,'NP22   ')
+C
+      WRITE(6,1)
+    1 FORMAT('  WELCOME TO THE UNIFIED GUESS PREPROCESSOR',/,
+     + ' ETA/T12628 - GENERALIZED VERSION CREATED JAN 27,1999',//)
+C
+      DO I=1, LMAX
+        NCOUNT(I) = 0
+        DMEAN(I) = 0.0
+        RMSTD(I) = 0.0
+        TDMAX(I) = 0.0
+        MAXI(I) = 0
+        MAXJ(I) = 0
+      ENDDO
+C
+C READ SECOND RECORD OF SIGMA FILE TO GET DATE, INFO ON RESOLUTION
+C
+      LUN1 = 11
+      REWIND LUN1
+      READ(LUN1)
+      READ(LUN1)HOUR,IDATE,SI,SL
+      write(6,*) hour,idate
+      JCAP = 62
+      JCAP1 = JCAP + 1
+      JCAP2 = JCAP + 2
+      NC = JCAP1 * JCAP2
+      KMAX = 28
+      KMAXP1 = KMAX + 1
+      KDMAX = KMAX - 4
+c     DO K = 1, KMAXP1
+c       SI(K) = ALL(K)
+c     ENDDO
+c     DO K = 1, KMAX
+c       SL(K) = ALL(K+KMAXP1)
+c     ENDDO
+c     IF(ALL(204).EQ.1.) THEN
+      JROMB = 0
+c     ELSE
+c       JROMB = 1
+c     ENDIF
+C
+      MI = IMAX
+      LID = MI
+      LJ = JMAX
+      DO I=1,30
+        XTITLE(I) = BLNK
+      ENDDO
+      DO I=1,20
+        YTITLE(I) = BLANK
+      ENDDO
+C
+C  YC=NPRC/IMAX and XC=NPRL/JMAX
+C   THESE ARE FOR half grid NPRC=68 and NPRL=41 small screen
+C
+      YC = (68.) / FLOAT(IMAX)
+      XL = (41.) / FLOAT(JMAX)
+      CON(1) = 1.0
+      CON(2) = 1.0
+      ICT = 3
+      DO 88890 IQ2W=1,13
+         ALPM(IQ2W)=LOG(PM(IQ2W))
+88890 CONTINUE
+      ALPTOP = ALPM( 13 )
+      DEGRAD = 3.14159265 / 180.
+      G = 9.8
+      R = 287.05
+      CP = 1005.0
+      ROG = R / G
+      GOR = G / R
+      RO2G = R / (2.*G)
+C     RO2G = 14.6357
+      ROCP = R / CP
+      GAMD = -9.81/1004.67
+      CPOR = CP / R
+      ALPHAR = .0065*R/G
+C  SET PRINT FOR 12 VALUES PER LINE
+      ISIX =  IMAX / 12 + 1
+      NEWZST = .FALSE.
+C
+C     NAMELIST/RGRID/POLA,NORTH,ALONVT,POLEI,POLEJ,XMESHL,SI2,
+C    $               SIGERR,SIGMA,NOERRS
+C
+      POLA = .FALSE.
+      NORTH = .TRUE.
+      NOERRS = .TRUE.
+      SIGMA = .TRUE.
+      SIGERR = .FALSE.
+      ALONVT = 0.375
+      POLEI  = 0.75
+      POLEJ  = 360.
+      XMESHL = 1.0
+      READ(5,RGRID)
+      WRITE(6,RGRID)
+C
+C     NAMELIST/PRMFLD/STATSON,UNSLIM,STBLIM,ETOP,PTOP,IPT,JPT,IUNIT
+C
+      STATSON = .FALSE.
+      UNSLIM = -0.01
+      STBLIM = +0.005
+      ETOP = 100.
+      PTOP = 10.
+      IPT = 000
+      JPT = 00
+      IUNIT(1) = 11
+      IUNIT(2) = 12
+      IUNIT(3) = 13
+      IUNIT(4) = 0
+      IUNIT(5) = 51
+      IUNIT(6) = 52
+      IUNIT(7) = 53
+      IUNIT(8) = 1
+      IUNIT(9) = 0
+      IUNIT(10)= 0
+      IUNIT(11)= 2
+      IUNIT(12)= 0
+      READ(5,PRMFLD)
+      WRITE(6,PRMFLD)
+      WRITE(6,4)ALONVT,POLEI,POLEJ,XMESHL,SI2
+    4 FORMAT('  RGRID  LIMITS ',4E12.5,'   SI2 = ',/,
+     + (1X,10E12.5,/))
+      NFT = 360. / DDLON + 0.5 
+      WRITE(6,541) NFT , DDLON
+  541 FORMAT('  NFT , DDLON ',I5,F10.4)
+c
+c  now get the index list for an east-west strip
+c
+      HLONG1 = 360. - XLONW
+      DO I = 1, IMAX
+        XLON = MOD((HLONG1+FLOAT(I-1)*DDLON) , 360. E+0)
+        II = ( XLON / DDLON ) + 1.5
+        INDEX(I) =  II
+      ENDDO
+c
+c  now check for south and north poles and set NPPOLE accordingly
+c
+      NPPOLE = 0
+      IF(YLATS+90.0 .lt. 0.01 ) NPPOLE = 1 
+      YLATN = YLATS + (JMAX-1) * DLAT
+      IF(90.0-YLATN .lt. 0.01 ) NPPOLE = NPPOLE + 2 
+c     write(6,'(" NPPOLE=",i5)') NPPOLE
+      print*,'NPPOLE=',NPPOLE
+      IF(SI2(1).GT.0.0)  CALL VRTPSL(SI2,SL2,LMAX,SIGMA)
+      STBMIN = STBLIM - 0.001
+      IF(IPT.GT.0) ISIX = IPT - 1
+      IF(SIGMA) ETOP = 0.0
+      WRITE(6,103)UNSLIM,STBLIM,IPT,JPT,ETOP,PTOP,(IUNIT(IU),IU=1,11)
+  103 FORMAT(' PRMFLD  LIMITS ',2E15.5,'   IPT,JPT = ',2I5,/,
+     + '  ETOP =',F5.0,'  PTOP =',F5.0,'   IUNIT = ',11I5,//)
+      IF( IUNIT(3).NE.0 )  NEWZST = .TRUE.
+C
+C ALWAYS OUTPUT Q FIELDS AND RH ERRORS
+C     IF( IUNIT(4).NE.0 )  RH = .TRUE.
+C
+C     COMPUTE SMOOTHING FUNCTION FOR V NEAR EQUATOR
+C
+      SDLAT = 90./JMAX
+      LA = 20/SDLAT
+      LAP = LA + 1
+      DO L=1,LA
+         SYMM(L) = 0.5 + (SDLAT*L/20) - 0.5*(SDLAT*L/20)**2
+      ENDDO
+      DO L=LAP,JMAX
+         SYMM(L) = 1.
+      ENDDO
+      WRITE(6,510) SYMM
+  510 FORMAT(' AL'/(10G12.5))
+      MAXK   =  KMAX
+      MAXKP1 = MAXK + 1
+      MAXKM1 = MAXK - 1
+      MAXKM2 = MAXK - 2
+      MAXKM3 = MAXK - 3
+      LMAXM1 = LMAX - 1
+      LMAXM2 = LMAX - 2
+      LMAXM3 = LMAX - 3
+      DO MQ2W=1,6
+        DO LQ2W=1,MAXK
+          DO IQ2W=1,IMAX
+            DA(IQ2W,LQ2W,MQ2W)=0.0
+          ENDDO
+        ENDDO
+      ENDDO
+C
+      DO MQ2W=1,6
+        DO LQ2W=1,LMAX
+          DO IQ2W=1,IMAX
+            OBUF(IQ2W,LQ2W,MQ2W)=0.0
+          ENDDO
+        ENDDO
+      ENDDO
+c
+C  set default of unity (1.0) for reference value of ETA
+C     and the ETA index value (also unity for SIGMA)
+C     in preparation of always writing it out  unity or not
+c
+      DO JQ2W=1,JMAX
+        DO IQ2W=1,IMAX
+         ZS(IQ2W,JQ2W,4)=1.0
+         ZS(IQ2W,JQ2W,5)=1.0
+        ENDDO
+      ENDDO
+C
+      IF( .NOT. NEWZST )  GO TO 82315
+      IF( .NOT. SIGMA )  GO TO 82312
+C
+C  READ IN THE HIGH RESOLUTION TERRAIN for SIGMA
+C
+      NFILE = 13
+      DO NREC=1, JMAX
+        READ(NFILE,ERR=2350,END=2310)(ZS(I,NREC,2),I=1,IMAX)
+      ENDDO
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,2),ICT,XL,YC)
+      GO TO 2315
+82312 continue
+C
+C  READ IN THE HIGH RESOLUTION eta TERRAIN
+C
+      NFILE = 13
+      print*,'imax,jmax=',imax,jmax
+      READ(NFILE,ERR=2350,END=2310)((ZS(I,NREC,2),I=1,IMAX),NREC=1,JMAX)
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,2),ICT,XL,YC)
+      print*,'Before reference value of eta is read'
+C
+C also  READ IN THE reference value of ETA
+C
+      READ(NFILE,ERR=2350,END=2310)((ZS(I,NREC,4),I=1,IMAX),NREC=1,JMAX)
+C
+C CALCULATE INDEX OF ETA-MODEL'S SURFACE LEVEL 
+C
+      DO NREC=1,JMAX
+        DO I=1,IMAX
+         EREF = ZS(I,NREC,4)
+         IZ1 = 1
+         DO KZS = 1,LMAXP1
+           RATIO = SI2(KZS) / EREF
+           IF( RATIO.GE.0.99 ) IZ1 = KZS
+         ENDDO
+         ZS(I,NREC,5) = IZ1 + 0.002
+        ENDDO
+      ENDDO
+C
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,4),ICT,XL,YC)
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,5),ICT,XL,YC)
+      GO TO 2315
+ 2350 WRITE(6,2351) NFILE, NREC
+ 2351 FORMAT ('  * * read error ON UNIT',I2,'   BLOCK ',I5)
+      GO TO 2312
+ 2310 WRITE(6,2311) NFILE, NREC
+ 2311 FORMAT ('  * * * *  UNEXPECTED EOF MARK ON UNIT',2I5)
+ 2312 STOP23
+82315 CONTINUE
+C
+C  if not NEWZST and not SIGMA we must set up ETA ref from zstar
+C
+ 2315 CONTINUE
+  104 FORMAT(' DATE OF COEFFICIENT FILE',I4,4I5,F10.3)
+  106 FORMAT(10G12.5)
+c
+C      READ SIGGES COEFFICIENTS
+c
+      IF(SI2(1).LT.0.0) THEN
+c
+C    set output sigma's to input sigma's   i.e. same sig values
+c
+        DO LQ2W=1,LMAXP1
+          SI2(LQ2W)=SI(LQ2W)
+        ENDDO
+        DO IQ2W=1,LMAX
+          SL2(IQ2W)=SL(IQ2W)
+        ENDDO
+c
+        IF(.NOT.SIGMA) THEN
+C
+C re-CALCULATE INDEX OF ETA-MODEL'S SURFACE LEVEL 
+C
+          DO J=1,JMAX
+            DO I=1,IMAX
+              EREF = ZS(I,J,4)
+              IZ1 = 1
+              DO KZS = 1,LMAXP1
+                RATIO = SI2(KZS) / EREF
+                IF( RATIO.GE.0.99 ) IZ1 = KZS
+              ENDDO
+            ZS(I,J,5) = IZ1 + 0.002
+            ENDDO
+          ENDDO
+        END IF
+      END IF
+C
+      WRITE(6,104)LUN1,IDATE,HOUR
+      WRITE(6,1106)SI
+      WRITE(6,1107)SL
+1106  FORMAT(10G12.5)
+1107  FORMAT(10G12.5)
+C
+C    READ TERRAIN COEFFICIENTS
+C
+      CALL COF2GRD(LUN1,NC,KMAX,0,JROMB,
+     1     JCAP,PS(1,1,2),DUM)
+      IF(IPT.NE.0)CALL EZSKCH(PS(1,1,2),ICT,XL,YC)
+      print *,'ok after terrain coeffs'
+C
+C    READ SFC PRESSURE COEFFICIENTS
+C
+      CALL COF2GRD(LUN1,NC,KMAX,0,JROMB,
+     1     JCAP,GRD,DUM)
+      print *,'ok after pstar coeffs'
+      DO JQ2W=1,JMAX
+        DO IQ2W=1,IMAX
+         PS(IQ2W,JQ2W,1)=10.*EXP(GRD(IQ2W,JQ2W))
+        ENDDO
+      ENDDO
+      IF(IPT.NE.0)CALL EZSKCH(PS(1,1,1),ICT,XL,YC)
+      LN = 0
+C
+C    READ TEMPERATURE COEFFICIENTS
+C
+      DO L=1,MAXK
+        CALL COF2GRD(LUN1,NC,KMAX,0,JROMB,
+     1     JCAP,XX(1,1,L,1),DUM)
+         IF(L.LE.2.AND.IPT.NE.0)CALL EZSKCH(XX(1,1,L,1),ICT,XL,YC)
+      print *,'ok after temp coeffs ',l
+      ENDDO
+C
+C      READ DIVERGENCE AND VORTICITY
+C
+      DO L=1,MAXK
+        CALL COF2GRD(LUN1,NC,KMAX,1,JROMB,
+     1     JCAP,XX(1,1,L,2),XX(1,1,L,3))
+        IF(L.LE.1.AND.IPT.NE.0)CALL EZSKCH(XX(1,1,L,2),ICT,XL,YC)
+        IF(L.LE.1.AND.IPT.NE.0)CALL EZSKCH(XX(1,1,L,3),ICT,XL,YC)
+      print *,'ok after wind coeffs ',l
+ 1300 ENDDO
+C
+C      READ Q COEFFICIENTS
+C
+      DO L=1, KDMAX
+        CALL COF2GRD(LUN1,NC,KMAX,0,JROMB,
+     1     JCAP,XX(1,1,L,4),DUM)
+        IF(L.LE.1.AND.IPT.NE.0)CALL EZSKCH(XX(1,1,L,4),ICT,XL,YC)
+      print *,'ok after q coeffs ',l
+      ENDDO
+C
+      ITAPE= IUNIT( 5 )
+      WRITE(ITAPE) HOUR,IDATE,SI2,SL2
+C
+C  UNIT FOR STRIPS GOING TO NGM INPUT CODE NORMALLY 39+2=41
+C
+      LOUT2= IUNIT(7)+2
+      WRITE(LOUT2) 
+C
+C  SELA RECORD IS NOT USED BY NGM INPUT CODE
+C  SELA RECORD IN FULL PRECISION WITH CORRECT BYTE COUNT
+C
+      WRITE(LOUT2) HOUR,IDATE,SI2,SL2
+      WRITE(6,104)ITAPE,IDATE,HOUR
+      WRITE(6,1106)SI2
+      WRITE(6,1107)SL2
+      KNTSTB = 0
+      NEWKNT = 0
+C
+C  RESET TOP PRESSURE
+C
+      PM(13) = PTOP
+      ALPM(13) = LOG(PM(13))
+      ALPTOP = ALPM(13)
+      KSKIP = IUNIT(11)
+      MAXKO  = KMAX
+      MAXK  =  MAXKO - KSKIP
+      MAXKDO  =  KDMAX
+      MAXKD  =  MAXKDO - KSKIP
+      MAXKP1 = MAXK + 1
+      MAXKM1 = MAXK - 1
+      MAXKM2 = MAXK - 2
+      MAXKM3 = MAXK - 3
+      KSTART = 1
+      IF( KSKIP.EQ.0 ) GO TO 47
+      KSTART = 2 + KSKIP
+      DO K=KSTART,MAXKO
+        SI(K-KSKIP) = SI(K)
+      ENDDO
+      SI(MAXKP1) = 0.0
+      CALL VRTPSL(SI,SL,MAXK,.TRUE.)
+      WRITE(6,1106)SI
+      WRITE(6,1107)SL
+   47 CONTINUE
+C
+C  start of big loop over J
+C
+      DO 5800 J=1, JMAX
+      DO 50 NM=1,4
+      KM = MAXKO
+      IF( NM.EQ.4 ) KM = MAXKDO
+C
+C MERGE LAYERS 1 & 2 OF ORIGINAL
+C
+      IF( KSKIP.GT.0 )THEN
+      DO 89120 IQ2W=1,IMAX
+         DA(IQ2W,1,NM+1)=0.5*(XX(IQ2W,J,1,NM)+XX(IQ2W,J,2,NM))
+89120 CONTINUE
+      END IF
+C
+C MERGE THAT MEAN WITH LAYER 3 OF ORIGINAL
+C
+      IF( KSKIP.GT.1 )THEN
+      DO 89130 IQ2W=1,IMAX
+         DA(IQ2W,1,NM+1)=0.5*(DA(IQ2W,1,NM+1)+XX(IQ2W,J,3,NM))
+89130 CONTINUE
+      END IF
+      DO 48 K=KSTART,KM
+      DO 89140 IQ2W=1,IMAX
+         DA(IQ2W,K-KSKIP,NM+1)=XX(IQ2W,J,K,NM)
+89140 CONTINUE
+   48 CONTINUE
+   50 CONTINUE
+C
+      DO 590 N=1,MAXK
+      DO 89150 IQ2W=1,IMAX
+         DA(IQ2W,N,6)=SL(N)*PS(IQ2W,J,1)
+         STRIPS(IQ2W,N)=SI(N)*PS(IQ2W,J,1)
+89150 CONTINUE
+  590 CONTINUE
+      DO 89170 LQ2W=1,MAXK
+      DO 89170 IQ2W=1,IMAX
+         GSTRIP(IQ2W,LQ2W)=LOG(DA(IQ2W,LQ2W,6))
+         GISTRP(IQ2W,LQ2W)=LOG(STRIPS(IQ2W,LQ2W))
+89170 CONTINUE
+      DO 89190 IQ2W=1,IMAX
+         GISTRP(IQ2W,MAXKP1)=ALPTOP
+89190 CONTINUE
+C
+C    CHECK LAPSE RATE AND ADJUST FIRST LAYER TEMP IF NECESSARY
+C
+      DO 586 I=1, IMAX
+      KPRT = 0
+      DELTAZ = RO2G*(DA(I,2,2)+DA(I,1,2))*(GSTRIP(I,1)-GSTRIP(I,2))
+      DELTAT = (DA(I,2,2) - DA(I,1,2))
+      GAMMA = DELTAT / DELTAZ
+      GZ(I,J) = GAMMA
+C
+C  CHECK LAPSE RATE AGAINST STABLE LIMIT
+C
+      IF(GAMMA.LE.STBLIM.OR.KSKIP.EQ.0) GO TO 586
+      KNTSTB = KNTSTB + 1
+      IF(I.EQ.IPT.OR.J.EQ.JPT) KPRT = 1
+      Z2=ROG*(DA(I,1,2)*(GISTRP(I,1)-GISTRP(I,2)) +
+     +        DA(I,2,2)*(GISTRP(I,2)-GISTRP(I,3)))
+      IF( KPRT .EQ. 1 )
+     +    WRITE(6,109)I,J,DA(I,1,2),DA(I,2,2),DELTAT,DELTAZ,GAMMA,Z2
+109       FORMAT(2I6,6E12.4)
+C
+C COMPUTE NEW LAPSE RATE USING SQRT ADJUSTMENT
+C
+      GAMNEW = STBMIN + 0.001*SQRT((GAMMA-STBMIN)*1000.)
+      DELT = GAMNEW * DELTAZ - DELTAT
+C
+C COMPUTE RELATIVE HUMIDITY IN FIRST TWO LAYERS BEFORE ADJUSTMENT
+C
+      Q1 = MAX(0.0 E+0,DA(I,1,5))
+      Q2 = MAX(0.0 E+0,DA(I,2,5))
+      TDRY1 = DA(I,1,2)/(1.+.61*Q1)
+      TDRY2 = DA(I,2,2)/(1.+.61*Q2)
+      QS1 = qfrmtp(TDRY1,DA(I,1,6))
+      QS2 = qfrmtp(TDRY2,DA(I,2,6))
+      RELH1 = MIN(1.0 E+0,(Q1/QS1))
+      RELH2 = MIN(1.0 E+0,(Q2/QS2))
+      IF( KPRT .EQ. 1 )
+     + WRITE(6,1108)Q1,QS1,TDRY1,RELH1,Q2,QS2,TDRY2,RELH2
+1108  FORMAT(8E12.5)
+C
+C ADJUST TEMPERATURES SUCH THAT LAYER THICKNESS IS CONSERVED
+C
+      PRAT = (GISTRP(I,2)-GISTRP(I,3))/(GSTRIP(I,1)-GSTRIP(I,2))
+      CTOP = 1.0 / (1.0 + PRAT)
+      CBOT = 1.0 - CTOP
+      DA(I,1,2) = DA(I,1,2) - CBOT * DELT
+      DA(I,2,2) = DA(I,2,2) + CTOP * DELT
+C
+C ADJUST SPECIFIC HUMIDITY SUCH THAT RELATIVE HUMIDITY IS CONSERVED
+C
+      TDRY1     = TDRY1     - CBOT * DELT
+      TDRY2     = TDRY2     + CTOP * DELT
+      QS1 = qfrmtp(TDRY1,DA(I,1,6))
+      QS2 = qfrmtp(TDRY2,DA(I,2,6))
+      DA(I,1,5) = QS1 * RELH1
+      DA(I,2,5) = QS2 * RELH2
+      IF( KPRT .NE. 1 )  GO TO 586
+      Q1 = DA(I,1,5)
+      Q2 = DA(I,2,5)
+      WRITE(6,1108)Q1,QS1,TDRY1,RELH1,Q2,QS2,TDRY2,RELH2
+C
+C PRINT DIAGOSTIC CHECKS OF RESULTS
+C
+      DELTAZ = RO2G*(DA(I,2,2)+DA(I,1,2))*(GSTRIP(I,1)-GSTRIP(I,2))
+      DELTAT = (DA(I,2,2) - DA(I,1,2))
+      GAMMA = DELTAT / DELTAZ
+      Z2=ROG*(DA(I,1,2)*(GISTRP(I,1)-GISTRP(I,2)) +
+     +        DA(I,2,2)*(GISTRP(I,2)-GISTRP(I,3)))
+      WRITE(6,1108)CBOT,CTOP,DA(I,1,2),DA(I,2,2),DELTAT,DELTAZ,GAMMA,Z2
+  586 CONTINUE
+C
+C  CHECK Q FOR NEGATIVE VALUES AND GET DRY TEMPERATURE
+C
+      DO 592 N=1, MAXKD
+      DO 591 I=1, IMAX
+      Q = MAX(0.0 E+0,DA(I,N,5))
+      DA(I,N,2)=DA(I,N,2)/(1.+.61*Q)
+      DA(I,N,5) = Q
+  591 CONTINUE
+  592 CONTINUE
+      CALL ODABAT(J,DA(1,1,2),DA(1,1,6),0,MAXK)
+      DO 599 N=1, MAXKD
+      DO 598 I=1, IMAX
+      QS = qfrmtp(DA(I,N,2),DA(I,N,6))
+      Q = MIN(QS,DA(I,N,5))
+      DA(I,N,2) = DA(I,N,2)*(1.+.61*Q)
+      DA(I,N,5) = Q
+  598 CONTINUE
+  599 CONTINUE
+C
+C    INTERPOLATE TO FIND GUESS INTERFACE TEMPS
+C
+      DO 89200 LQ2W=1,MAXKM1
+      DO 89200 IQ2W=1,IMAX
+         TSTRIP(IQ2W,LQ2W+1)=(DA(IQ2W,LQ2W,2)*
+     *   (GISTRP(IQ2W,LQ2W+1)-GSTRIP(IQ2W,LQ2W+1))+
+     *                        DA(IQ2W,LQ2W+1,2)*
+     *   (GSTRIP(IQ2W,LQ2W)-GISTRP(IQ2W,LQ2W+1))) /
+     *   (GSTRIP(IQ2W,LQ2W)-GSTRIP(IQ2W,LQ2W+1))
+89200 CONTINUE
+C
+C    EXTRAPOLATE TO FIND GUESS SURFACE TEMPERATURE
+C
+      DO 89210 IQ2W=1,IMAX
+         TSTRIP(IQ2W,1)=(DA(IQ2W,1,2)*(GISTRP(IQ2W,2)-GISTRP(IQ2W,1))+
+     *   TSTRIP(IQ2W,2)*(GSTRIP(IQ2W,1)-GISTRP(IQ2W,2))) /
+     *   (GSTRIP(IQ2W,1)-GISTRP(IQ2W,1))
+         DA(IQ2W,1,1)=PS(IQ2W,J,2)
+89210 CONTINUE
+C
+C    INTEGRATE TO FIND GUESS INTERFACE HEIGHTS
+C
+      DO 585 L=2,MAXK
+      DO 89230 IQ2W=1,IMAX
+         DA(IQ2W,L,1)=DA(IQ2W,L-1,1)-ROG*DA(IQ2W,L-1,2)*
+     *   (GISTRP(IQ2W,L)-GISTRP(IQ2W,L-1))
+89230 CONTINUE
+  585 CONTINUE
+C
+C    CHECK FIRST LAYER LAPSE RATE AND ADJUST SFC TEMP IF NECESSARY
+C
+      DO 587 I=1, IMAX
+      GAMMA = (TSTRIP(I,2) - TSTRIP(I,1)) / (DA(I,2,1) - DA(I,1,1))
+      HZ(I,J) = GAMMA
+      IF(GAMMA.LT.UNSLIM) GAMMA = UNSLIM
+      IF(KSKIP.NE.0) THEN
+      IF(GAMMA.GT.STBLIM*2.) NEWKNT = NEWKNT + 1
+      IF(GAMMA.GT.STBLIM*2.) GAMMA = STBLIM*2.
+      END IF
+      TSTRIP(I,1) = TSTRIP(I,2) - GAMMA * (DA(I,2,1) - DA(I,1,1))
+  587 CONTINUE
+      DO 89240 IQ2W=1,IMAX
+         PS(IQ2W,J,3)=TSTRIP(IQ2W,1)
+         ZS(IQ2W,J,3)=TSTRIP(IQ2W,1)
+89240 CONTINUE
+C
+C  NOW CONVERT TO GRID RELATIVE WINDS IF NECESSARY
+C
+      IF( .NOT. POLA )  GO TO 540
+      YJ = J
+      DO 530 I=1, IMAX
+      XI = I
+      CALL IJ2LL(XI,YJ,YLAT,WLON)
+      THETA = (WLON - ALONVT) * DEGRAD
+      SINTH = SIN(THETA)
+      COSTH = COS(THETA)
+      DO 450 K=1,MAXK
+      UE = DA(I,K,3)
+      VE = DA(I,K,4)
+      DA(I,K,3) = UE * COSTH + VE * SINTH
+      DA(I,K,4) = VE * COSTH - UE * SINTH
+  450 CONTINUE
+  530 CONTINUE
+  540 CONTINUE
+C
+C      ADD SURFACE VALUES TO DA ARRAY
+C
+      DO 89260 IQ2W=1,IMAX
+         DA(IQ2W,MAXK,5)=PS(IQ2W,J,2)
+         DA(IQ2W,MAXKM1,5)=PS(IQ2W,J,1)
+         DA(IQ2W,MAXKM2,5)=PS(IQ2W,J,3)
+89260 CONTINUE
+C
+C      ADD SURFACE VALUES TO OBUF ARRAY
+C
+      IF( NEWZST )  GO TO 555
+      DO 89290 IQ2W=1,IMAX
+         OBUF(IQ2W,LMAX,5)=PS(IQ2W,J,2)
+         OBUF(IQ2W,LMAXM1,5)=PS(IQ2W,J,1)
+         OBUF(IQ2W,LMAXM2,5)=PS(IQ2W,J,3)
+89290 CONTINUE
+      GO TO 580
+  555 CONTINUE
+C
+C   COMPUTE NEW SURFACE PRESSURE
+C
+      DO 2600 I=1, IMAX
+      PSTAR= PS(I,J,1)
+      DO 2355 K=1,MAXK
+      PLEV(K) = PSTAR * SI(K)
+      TLEV(K) = TSTRIP(I,K)
+ 2355 CONTINUE
+C     IF(ZS(I,J,2)-PS(I,J,2)) 2410,2500,2360
+ 2360 CONTINUE
+      K = 1
+ 2370 CONTINUE
+      PLO = PLEV(K)
+      ZLO = DA(I,K,1)
+      TLO = TLEV(K)
+      K = K + 1
+ 2380 CONTINUE
+      IF(ZS(I,J,2).GT.DA(I,K,1)) GO TO 2370
+      ALNPB = GISTRP(I,K-1)
+      ALNPT = GISTRP(I,K)
+      DLNP = ALNPB - ALNPT
+      ALNP3 = 0.5*(ALNPB+ALNPT)
+      A = G * (DA(I,K,1) - ZLO) / DLNP
+      B = R * (TLO - TLEV(K)) / DLNP
+      PHI3 = G*0.5*(ZLO+DA(I,K,1)) + 0.125*B*DLNP*DLNP
+      RADICL = A*A - 2.*B*(G*ZS(I,J,2) - PHI3)
+      IF(RADICL.GE.0.0.AND.MOD(I-1,ISIX).NE.0) GO TO 2400
+      IF(RADICL.GE.0.0.AND.J.NE.JPT) GO TO 2400
+C
+C  DIAGNOSTIC PRINTS WHEN RADICL IS LESS THAN ZERO
+C
+      WRITE(6,88106)RADICL,I,J,A,B,ZS(I,J,2),K
+88106 FORMAT(' radicl,I,J,A,B,ZS,K ',E15.5,2I4,3E15.5,I5)
+      WRITE(6,1109)PLEV(K),DA(I,K,1),TLEV(K)
+      WRITE(6,1109)PLO,ZLO,TLO
+1109  FORMAT(3E12.5)
+      IF(RADICL.GE.0.0) GO TO 2400
+      GO TO 2500
+ 2400 ALNPS = ALNP3 - 2. * (G * ZS(I,J,2) - PHI3) /
+C                     ---------------------------------
+     +                   (A + SQRT(RADICL))
+      ZS(I,J,1) = EXP(ALNPS)
+      ZS(I,J,3) = TLO - (ALNPB-ALNPS)*B/R
+      IF(MOD(I-1,ISIX).EQ.0.AND.J.EQ.JPT)
+     +       WRITE(6,106)ZS(I,J,1),ZS(I,J,2),ZS(I,J,3)
+      GO TO 2600
+C  NEW TERRAIN IS LOWER THAN GUESS TERRAIN
+C2410 CONTINUE
+C     ZS(I,J,3) = PS(I,J,3) + .0065 * (PS(I,J,2)-ZS(I,J,2))
+C     ZS(I,J,1) = PS(I,J,1)*(ZS(I,J,3)/PS(I,J,3))**5.256
+C     IF(MOD(I-1,ISIX).EQ.0.AND.JPT.GT.0)
+C    +        WRITE(6,106)PS(I,J,1),PS(I,J,2),PS(I,J,3)
+C     IF(MOD(I-1,ISIX).EQ.0.AND.JPT.GT.0)
+C    +        WRITE(6,106)ZS(I,J,1),ZS(I,J,2),ZS(I,J,3)
+C     GO TO 2600
+ 2500 CONTINUE
+      ZS(I,J,1) = PS(I,J,1)
+      ZS(I,J,3) = PS(I,J,3)
+      IF(MOD(I-1,ISIX).EQ.0.AND.J.EQ.JPT)
+     +        WRITE(6,106)ZS(I,J,1),ZS(I,J,2),ZS(I,J,3)
+ 2600 CONTINUE
+      DO 89320 IQ2W=1,IMAX
+         OBUF(IQ2W,LMAX,5)=ZS(IQ2W,J,2)
+         OBUF(IQ2W,LMAXM1,5)=ZS(IQ2W,J,1)
+         OBUF(IQ2W,LMAXM2,5)=ZS(IQ2W,J,3)
+89320 CONTINUE
+  580 CONTINUE
+C
+C ------ PRINT OUT SELECTED FIRST GUESS STRIPS --------
+C
+      IF( J.NE.JPT )  GO TO 87
+      IF( IPT.GT.0 )  GO TO 9374
+      WRITE(6,84)J
+   83 FORMAT(//,'      NEW  GUESS FIELDS FOR J=',I2,///)
+   84 FORMAT(//,'     FIRST GUESS FIELDS FOR J=',I2,///)
+      WRITE(6,85)(I,I=1, IMAX ,ISIX)
+   85 FORMAT(I8,11I11)
+   55 FORMAT(12F11.3)
+      DO 86 N=1,MAXK
+        WRITE(6,55) (DA(I,N,1),I=1, IMAX ,ISIX)
+        WRITE(6,55) (DA(I,N,2),I=1, IMAX ,ISIX)
+        WRITE(6,55) (DA(I,N,3),I=1, IMAX ,ISIX)
+        WRITE(6,55) (DA(I,N,4),I=1, IMAX ,ISIX)
+        WRITE(6,55) (DA(I,N,5),I=1, IMAX ,ISIX)
+        WRITE(6,55) (DA(I,N,6),I=1, IMAX ,ISIX)
+   86 CONTINUE
+      GO TO 87
+ 9374 CONTINUE
+      WRITE(6,84)J
+      WRITE(6,85)IPT
+      DO 9375 N=1,MAXK
+        WRITE(6,55)(DA(IPT,N,LPV),LPV=1,6)
+ 9375 CONTINUE
+   87 CONTINUE
+C
+C  STORE PSIG/ETA IN OBUF
+C
+      DO 66 K = 1, LMAX
+        DO 89350 IQ2W=1,IMAX
+C        OBUF(IQ2W,K,6)=SL2(K)*OBUF(IQ2W,LMAXM1,5)
+C        STRIPS(IQ2W,K)=SI2(K)*OBUF(IQ2W,LMAXM1,5)
+         pstar=OBUF(IQ2W,LMAXM1,5)
+         etaref=ZS(IQ2W,J,4)
+         OBUF(IQ2W,K,6)= pmodel(SL2(K),etaref,pstar)
+         STRIPS(IQ2W,K)= pmodel(SI2(K),etaref,pstar)
+89350   CONTINUE
+   66 CONTINUE
+      DO 89370 LQ2W=1,LMAX
+      DO 89370 IQ2W=1,IMAX
+         PSTRIP(IQ2W,LQ2W)=LOG(OBUF(IQ2W,LQ2W,6))
+         PISTRP(IQ2W,LQ2W)=LOG(STRIPS(IQ2W,LQ2W))
+89370 CONTINUE
+      DO 89390 IQ2W=1,IMAX
+        IF(SIGMA) THEN
+          PISTRP(IQ2W,LMAXP1)=ALPTOP
+        ELSE
+          PISTRP(IQ2W,LMAXP1)=LOG(ETOP)
+        END IF
+89390 CONTINUE
+      LN = 1
+C
+C  start of biggish loop over I
+C
+      DO 160 I=1, IMAX
+      POLD=DA(I,MAXKM1,5)
+      PNEW=OBUF(I,LMAXM1,5)
+      DO 20 K=1,MAXK
+      PS1(K) = DA(I,K,6)
+   20 CONTINUE
+      DO 21 K=1,LMAX
+      PS2(K) = OBUF(I,K,6)
+   21 CONTINUE
+      ZTOP = DA(I,MAXK,1) -
+     +   ROG * DA(I,MAXK,2) * (GISTRP(I,MAXKP1)-GISTRP(I,MAXK))
+      IF((POLD/PNEW).GE.SL2(1)) GO TO 29
+C     IF( PNEW.LE.POLD ) GO TO 29
+C
+C  * *  HERE WHEN ADDING NEW SURFACE LEVEL
+C  * *  WHEN SUFFICIENTLY FAR BELOW OLD ONE
+C  ***  PROBLEMS CAN ARISE (DUE TO XINTRP) IF THE SOURCE PROFILE
+C  ***  CONTAINS TWO LEVELS WHICH ARE IDENTICAL OR VERY NEARLY SO
+C
+      LEV3 = MAXKP1 + 1
+      P3(1) = LOG(PNEW)
+      Z3(1) = OBUF(I,LMAX,5)
+      TLEV(1) =
+     +  GOR*(DA(I,1,1)-Z3(1))/(P3(1)-GISTRP(I,1))
+      DO 24 K=1,MAXK
+      P3(K+1) = GISTRP(I,K)
+      Z3(K+1) = DA(I,K,1)
+      TLEV(K+1) = DA(I,K,2)
+   24 CONTINUE
+      GO TO 31
+   29 CONTINUE
+      LEV3 = MAXKP1
+      DO 30 K=1,MAXK
+      P3(K) = GISTRP(I,K)
+      Z3(K) = DA(I,K,1)
+      TLEV(K) = DA(I,K,2)
+   30 CONTINUE
+   31 CONTINUE
+      P3(LEV3) = GISTRP(I,MAXKP1)
+      Z3(LEV3) = ZTOP
+C
+C  the source profile is now contained in P3,Z3, TLEV
+C  SET UP TARGET PROFILE  INTERFACE & MID-POINT LEVELS
+C  first level is new terrain for SIGMA
+C
+      ZLEV(1) = OBUF(I,LMAX,5)
+      PLEV(1) = PISTRP(I,1)
+      IF( SIGMA ) THEN
+        KSTRT = 2
+      ELSE
+C
+C  first level will be interpolated to for ETA
+C
+        KSTRT = 1
+      END IF
+      KK = 1
+      DO 26 K=1,LMAX
+      KK = KK + 1
+      PLEV(KK) = PSTRIP(I,K)
+      KK = KK + 1
+      PLEV(KK) = PISTRP(I,K+1)
+   26 CONTINUE
+      IF(IUNIT(9).EQ.0) THEN
+        DO 832 K=KSTRT,KK
+            ZLEV(K) = XINTRP(Z3,P3,PLEV(K),LEV3)
+  832   CONTINUE
+      ELSE
+C
+C  TRY METHOD OF INTEGRATION
+C  RATHER THAN INTERPOLATION  but better NOT  for ETA
+C
+        DO 32 K=2,KK
+          DO 22 LK=2,LEV3
+            IF(P3(LK).GE.PLEV(K)) GO TO 22
+            KL = LK - 1
+            GO TO 23
+   22     CONTINUE
+          KL = LEV3 - 1
+   23     CONTINUE
+          ZLEV(K) = Z3(KL) - ROG*TLEV(KL)*(PLEV(K)-P3(KL))
+   32   CONTINUE
+      ENDIF
+C
+C  COMPUTE ORIGINAL TEMPERATURES
+C
+      DO 34 K=1,LMAX
+      KPK = K + K
+      TEMP(K) =
+     +  GOR*(ZLEV(KPK+1)-ZLEV(KPK-1))/(PLEV(KPK-1)-PLEV(KPK+1))
+   34 CONTINUE
+C
+C  COMPUTE AND (maybe) ADJUST FULL PROFILE OF TEMPERATURES
+C
+        DO 36 K = 2,KK
+        TLEV(K-1)=GOR*(ZLEV(K)-ZLEV(K-1))/(PLEV(K-1)-PLEV(K))
+  36    CONTINUE
+C
+C      STORE FIRST SUB-LAYER TEMPERATURE AS SURFACE VALUE
+C
+      IF(SIGMA) THEN
+        OBUF(I,LMAXM2,5) = TLEV(1)
+        ZS(I,J,3) = TLEV(1)
+        IF(.NOT.NEWZST) PS(I,J,3) = TLEV(1)
+        IZ1 = 1
+        IZ2 = 2
+      ELSE
+C
+C      for ETA, we must first find where surface really is
+C
+        IZ1 = ZS(I,J,5) + 0.5
+        OBUF(I,LMAXM2,5) = TLEV(IZ1+IZ1-1)
+        ZS(I,J,3) = TLEV(IZ1+IZ1-1)
+        IF(.NOT.NEWZST) PS(I,J,3) = TLEV(IZ1+IZ1-1)
+        IZ2=IZ1+1
+      END IF
+      IF( IUNIT(8).EQ.0 )  GO TO 94
+      ITER = 0
+        NTOP = KK - 1
+  25      KEY = 0
+      ITER = ITER + 1
+        DO 35 K = IZ2,NTOP
+        DT = TLEV(K) - TLEV(K-1)
+        DZ =(ZLEV(K+1) - ZLEV(K-1)) * 0.5
+        DTDZ = DT / DZ
+        IF(DTDZ.GE.GAMD)GO TO 35
+        KEY = 99
+        DELT = GAMD * DZ - DT
+        PRAT = (PLEV(K)-PLEV(K+1))/(PLEV(K-1)-PLEV(K))
+        CTOP = 1.0 / (1.0 + PRAT)
+        CBOT = 1.0 - CTOP
+        TLEV(K-1) = TLEV(K-1) - CBOT * DELT - .05
+C       ZLEV(K)=ZLEV(K-1)+ROG*TLEV(K-1)*(PLEV(K-1)-PLEV(K))
+        TLEV(K) = TLEV(K) + CTOP * DELT + .05
+C       ZLEV(K+1)=ZLEV(K)+ROG*TLEV(K)*(PLEV(K)-PLEV(K+1))
+ 35     CONTINUE
+        DO 11 K = IZ2,KK
+        ZLEV(K)=ZLEV(K-1)+ROG*TLEV(K-1)*(PLEV(K-1)-PLEV(K))
+ 11     CONTINUE
+        IF ( KEY .NE.0 .AND. ITER.LE.15) GO TO 25
+   94 CONTINUE
+C
+C  STORE HEIGHTS AND TEMPERATURES IN OBUF
+C
+      DO 95 K=1,LMAX
+      KPK = K + K
+      OBUF(I,K,1) = ZLEV(KPK)
+      OBUF(I,K,2) =
+     +  GOR*(ZLEV(KPK+1)-ZLEV(KPK-1))/(PLEV(KPK-1)-PLEV(KPK+1))
+C
+C  NOW COMPUTE STATISTICS ON ADJUSTED TEMPERATURES
+C
+      TDIF = OBUF(I,K,2) - TEMP(K)
+      IF( ABS(TDIF).LE.0.01 ) GO TO 95
+      NCOUNT(K) = NCOUNT(K) + 1
+      DMEAN(K) = DMEAN(K) + TDIF
+      RMSTD(K) = RMSTD(K) + TDIF*TDIF
+      IF(ABS(TDIF).LE.TDMAX(K)) GO TO 95
+      TDMAX(K) = ABS(TDIF)
+      MAXI(K) = I
+      MAXJ(K) = J
+   95 CONTINUE
+C
+C   re-STORE FIRST SUB-LAYER TEMPERATURE AS SURFACE VALUE
+C
+      IF(SIGMA) THEN
+        OBUF(I,LMAXM2,5) = TLEV(1)
+        ZS(I,J,3) = TLEV(1)
+        IF(.NOT.NEWZST) PS(I,J,3) = TLEV(1)
+      ELSE
+C
+C      for ETA, we use level where surface really is
+C
+        OBUF(I,LMAXM2,5) = TLEV(IZ1+IZ1-1)
+        ZS(I,J,3) = TLEV(IZ1+IZ1-1)
+        IF(.NOT.NEWZST) PS(I,J,3) = TLEV(IZ1+IZ1-1)
+      END IF
+C
+C      INTERPOLATE REMAINING FIELDS  LINEAR WRT LOG P
+C    DO THE U & V COMPONENTS
+C
+      DO 125 L=3,4
+      DO 115 K=1,MAXK
+      TLEV(K)=DA(I,K,L)
+      P1(K) = GSTRIP(I,K)
+  115 CONTINUE
+      IF(IUNIT(10).EQ.0)CALL VEXPND(TLEV,PS1,MAXK,ZLEV,PS2,LMAX,LN)
+      DO 120 K=1,LMAX
+      OBUF(I,K,L)=ZLEV(K)
+C
+C  BALLISH SUGGESTS INTERPOLATING WINDS SAME WAY AS HEIGHTS
+C
+      IF(IUNIT(10).NE.0)OBUF(I,K,L)=XINTRP(TLEV,P1,PSTRIP(I,K),MAXK)
+  120 CONTINUE
+  125 CONTINUE
+C
+C    DO MOISTURE
+C
+      DO 135 K=1,MAXKD
+C
+C  MITCHELL SUGGESTS INTERPOLATING LN OF Q LINEAR IN LN OF P
+C
+      TLEV(K)=-13.8
+      IF(DA(I,K,5).GT.0.0)TLEV(K)=LOG(DA(I,K,5))
+  135 CONTINUE
+      TLEV(MAXKD+1)=-13.85
+      TLEV(MAXKD+2)=-13.90
+      TLEV(MAXKD+3)=-13.95
+      TLEV(MAXKD+4)=-14.00
+      KDMX = MAXKD + 4
+      CALL VEXPND(TLEV,PS1,KDMX,ZLEV,PS2,LDMAX,LN)
+      DO 140  K=1, LDMAX
+C
+C  MITCHELL SUGGESTS INTERPOLATING LN OF Q LINEAR IN LN OF P
+C
+      OBUF(I,K,5)=EXP(ZLEV(K))
+  140 CONTINUE
+  160 CONTINUE
+C
+C  CHECK Q FOR NEGATIVE VALUES AND GET DRY TEMPERATURE
+C
+      DO 962 N=1, LDMAX
+      DO 961 I=1, IMAX
+      Q = MAX(0.0 E+0,OBUF(I,N,5))
+      OBUF(I,N,2)=OBUF(I,N,2)/(1.+.61*Q)
+      OBUF(I,N,5) = Q
+  961 CONTINUE
+  962 CONTINUE
+      CALL ADABAT(J,OBUF(1,1,2),OBUF(1,1,6),0)
+      DO 967 N=1, LDMAX
+      DO 966 I=1, IMAX
+      QS = qfrmtp(OBUF(I,N,2),OBUF(I,N,6))
+      Q = MIN(QS,OBUF(I,N,5))
+      OBUF(I,N,2) = OBUF(I,N,2)*(1.+.61*Q)
+      OBUF(I,N,5) = Q
+C
+C ALWAYS OUTPUT Q FIELDS AND RH ERRORS
+C     IF( RH )OBUF(I,N,5) = Q / QS
+C
+  966 CONTINUE
+  967 CONTINUE
+      IF( STATSON ) THEN
+C
+C  POST T , U , V , Q FIELDS
+C
+        CALL TSTATS(DA,OBUF,J,MAXK)
+C
+C  STORE GUESS INTERFACE TEMPERATURES FOR POSTING HEIGHTS
+C
+        DO 89400 LQ2W=1,MAXK
+        DO 89400 IQ2W=1,IMAX
+           DA(IQ2W,LQ2W,2)=TSTRIP(IQ2W,LQ2W)
+89400   CONTINUE
+        CALL ZSTATS(DA,SI,OBUF,SI2,J,MAXK)
+      END IF
+      IF( J.NE.JPT )  GO TO 46
+      IF( IPT.GT.0 )  GO TO 9376
+      WRITE(6,83)J
+      WRITE(6,85)(I,I=1, IMAX ,ISIX)
+         DO 45 N=1,LMAX
+        WRITE(6,55) (OBUF(I,N,1),I=1, IMAX ,ISIX)
+        WRITE(6,55) (OBUF(I,N,2),I=1, IMAX ,ISIX)
+        WRITE(6,55) (OBUF(I,N,3),I=1, IMAX ,ISIX)
+        WRITE(6,55) (OBUF(I,N,4),I=1, IMAX ,ISIX)
+        WRITE(6,55) (OBUF(I,N,5),I=1, IMAX ,ISIX)
+        WRITE(6,55) (OBUF(I,N,6),I=1, IMAX ,ISIX)
+   45    CONTINUE
+      GO TO 46
+ 9376 CONTINUE
+      WRITE(6,83)J
+      WRITE(6,85)IPT
+         DO 9377 N=1,LMAX
+           WRITE(6,55) (OBUF(IPT,N,LPV),LPV=1,6)
+ 9377    CONTINUE
+   46 CONTINUE
+C
+      WRITE(ITAPE) OBUF
+C
+C        SET UP INPUT STRIPS FOR NGM INPUT CODE
+C
+      DO 5790 L=1,LMAX
+      DO 5790 IQ2W=1,IMAX
+C
+C  U COMPONENT
+C
+         STRIPS(IQ2W,L)=OBUF(IQ2W,L,3)
+C
+C  V COMPONENT MADE TO BE ANTISYMMETRIC AT THE EQUATOR.
+C
+         STRIPS(IQ2W,L+LMAX)=OBUF(IQ2W,L,4)*(2.*SYMM(J)-1.)
+C
+C  VIRTUAL TEMPERATURE
+C
+         STRIPS(IQ2W,L+2*LMAX)=OBUF(IQ2W,L,2)
+ 5790 CONTINUE
+      DO 5795 L=1, LDMAX
+C
+C  SPECIFIC HUMIDITY
+C
+      DO 5795 IQ2W=1,IMAX
+         STRIPS(IQ2W,L+3*LMAX)=OBUF(IQ2W,L,5)
+ 5795 CONTINUE
+         LEVPST = 3*LMAX + LDMAX + 1
+C
+C  SURFACE PRESSURE IN CENTIBARS
+C
+      DO 89450 IQ2W=1,IMAX
+         STRIPS(IQ2W,LEVPST)=OBUF(IQ2W,LMAXM1,5)*0.1 E+0
+89450 CONTINUE
+C
+C  TERRAIN HEIGHT
+C
+      DO 89460 IQ2W=1,IMAX
+         STRIPS(IQ2W,LEVPST+1)=OBUF(IQ2W,LMAX,5)
+89460 CONTINUE
+         WRITE(LOUT2) STRIPS
+      DO 89470 MQ2W=1,6
+      DO 89470 LQ2W=1,MAXK
+      DO 89470 IQ2W=1,IMAX
+         DA(IQ2W,LQ2W,MQ2W)=0.0
+89470 CONTINUE
+      DO 89480 MQ2W=1,6
+      DO 89480 LQ2W=1,LMAX
+      DO 89480 IQ2W=1,IMAX
+         OBUF(IQ2W,LQ2W,MQ2W)=0.0
+89480 CONTINUE
+C
+c  end of big j-loop   1 to jmax
+C
+ 5800 CONTINUE
+C
+C  end of big loop over J
+C
+      IF(IPT.NE.0)CALL EZSKCH(PS(1,1,1),ICT,XL,YC)
+      IF(IPT.NE.0)CALL EZSKCH(PS(1,1,2),ICT,XL,YC)
+      IF(IPT.NE.0)CALL EZSKCH(PS(1,1,3),ICT,XL,YC)
+      IF( IUNIT(8).EQ.0 )  GO TO 9108
+      WRITE(6,9102)NCOUNT
+ 9102 FORMAT(' KNT ',18I7)
+      DO 8888 L=1,LMAX
+      NCOUNT(L) = MAX0(1,NCOUNT(L))
+      COUNT = 1.0 / FLOAT(NCOUNT(L))
+      DMEAN(L) = DMEAN(L) * COUNT
+      RMSTD(L) = SQRT(RMSTD(L)*COUNT)
+ 8888 CONTINUE
+      WRITE(6,9103)DMEAN
+      WRITE(6,9104)RMSTD
+      WRITE(6,9105)TDMAX
+      WRITE(6,9106)MAXI
+      WRITE(6,9107)MAXJ
+ 9103 FORMAT(' MEAN',18F7.2)
+ 9104 FORMAT(' RMS ',18F7.2)
+ 9105 FORMAT(' MAX ',18F7.2)
+ 9106 FORMAT(' MAXI',18I7)
+ 9107 FORMAT(' MAXJ',18I7)
+ 9108 CONTINUE
+      if( STATSON )CALL DSTATS
+      if( STATSON )CALL LSTATS
+      IF(.NOT.NEWZST.OR.IPT.EQ.0) GO TO 59
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,1),ICT,XL,YC)
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,2),ICT,XL,YC)
+      IF(IPT.NE.0)CALL EZSKCH(ZS(1,1,3),ICT,XL,YC)
+   59 CONTINUE
+      END FILE ITAPE
+      WRITE(6,583)KNTSTB
+  583 FORMAT(I10,' FIRST GUESS POINTS EXCEED STABLE LAPSE RATE LIMIT')
+      IF(IPT.NE.0)CALL EZSKCH(GZ,ICT,XL,YC)
+      WRITE(6,584)NEWKNT
+  584 FORMAT(I10,'  NEW  GUESS POINTS EXCEED STABLE LAPSE RATE LIMIT')
+      IF(IPT.NE.0)CALL EZSKCH(HZ,ICT,XL,YC)
+      IF(.NOT.POLA) GO TO 105
+      DO 100 J=1, JMAX
+      XLAT(J) = 0.
+      LI(J) =  IMAX
+      XINT(J) = 0.
+  100 CONTINUE
+      ELONG1 = 0.0
+      GO TO 116
+  105 CONTINUE
+      DO 111 J=1, JMAX
+      XLAT(J) = YLATS + (J-1) * DLAT
+      LI(J) =  IMAX
+      XINT(J) = DDLON
+  111 CONTINUE
+      ELONG1 = 360. - XLONW
+  116 CONTINUE
+      LOUT = IUNIT(7)
+        WRITE (LOUT) XLAT,LI,XINT,ELONG1,ETOP
+      IF( NEWZST ) GO TO 118
+      WRITE (LOUT) ((PS(I,J,1),I=1, IMAX ),J=1, JMAX )
+      WRITE (LOUT) ((PS(I,J,2),I=1, IMAX ),J=1, JMAX )
+      GO TO 119
+  118 CONTINUE
+      WRITE (LOUT) ((ZS(I,J,1),I=1, IMAX ),J=1, JMAX )
+      WRITE (LOUT) ((ZS(I,J,2),I=1, IMAX ),J=1, JMAX )
+  119 CONTINUE
+      WRITE (LOUT) ((ZS(I,J,3),I=1, IMAX ),J=1, JMAX )
+C
+c   always write out fourth field whether it is simply unity or not
+C
+      WRITE (LOUT) ((ZS(I,J,4),I=1, IMAX ),J=1, JMAX )
+C
+c   always write out fifth  field whether it is simply unity or not
+C
+      WRITE (LOUT) ((ZS(I,J,5),I=1, IMAX ),J=1, JMAX )
+      END FILE LOUT
+c     IF(SIGMA.AND..NOT.GLOBAL) THEN
+C
+C     NOW CREATE SPECS FILE, AND WRITE OUT.
+C               FOR NGM AND RAFS
+C
+C     COMMENT OUT SINCE THIS IS NOT NEEDED FOR ETA GESPREP
+C     AND THERE ARE NO F90 EQUIVALENTS TO W3FS11 and W3FS15
+C
+C
+C     UPDATE DATE/TIME I.E. STAMP WITH VALID TIME
+C
+c      IYR = IDATE(4)
+c      IMO = IDATE(2)
+c      IDY = IDATE(3)
+c      IHR = IDATE(1)
+c      CALL W3FS11(IPACK,IYR,IMO,IDY,IHR,0)
+C LENGTH OF FORECAST FROM SELA RECORD OF GUESS COEFFICIENTS
+c      INC = HOUR
+c      CALL W3FS15(IPACK,INC,IPACK)
+c      CALL W3FS11(IPACK,IYR,IMO,IDY,IHR,1)
+c      IDATE(4) = IYR
+c      IDATE(2) = IMO
+c      IDATE(3) = IDY
+c      IDATE(1) = IHR
+c      CALL SHLLET(IDATE,SI2,JMAX,IMAX,LMAX,LDMAX,LOUT+1,XLAT)
+c     END IF
+      CALL W3TAGE('GESPRP  ')
+        STOP
+        END

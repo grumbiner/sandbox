@@ -1,0 +1,4 @@
+      include "parmbuf"
+      integer ip
+      real buf
+      common/buffer/ip,buf(ibufmax)

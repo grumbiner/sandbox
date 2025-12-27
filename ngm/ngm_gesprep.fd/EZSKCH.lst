@@ -1,0 +1,852 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/EZSKCH.f 09/30/06 19:43:44
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE EZSKCH(ZZ,ICT,XL,YC)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    EZSKCH      PRODUCES PRINTER PLOTS
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 86-07-18
+          6 |C
+          7 |C ABSTRACT: DISPLAYS ONLY THE NORTH AMERICAN PORTION
+          8 |C   OF THE RGNL OI ANALYSIS GRID (HEMISPHERIC 180X60), SUBSET IS
+          9 |C   .       (46X31)    I=112,157 AND J=12,42.
+         10 |C   OF THE RGNL OI ANALYSIS GRID (HEMISPHERIC 360X90), SUBSET IS
+         11 |C   .       (91X46)    I=223,313 AND J=17,62.
+         12 |C
+         13 |C PROGRAM HISTORY LOG:
+         14 |C   86-07-18  G DIMEGO
+         15 |C   88-09-23  B SCHMIDT ADDED THE DOCBLOCK
+         16 |C
+         17 |C USAGE:    CALL EZSKCH (ZZ, ICT, XL, YC)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     ZZ       - ARRAY TO BE PLOTTED
+         20 |C     ICT      - VARIABLE controlling type of contour intervals
+         21 |C     XL       - XL = NPRL / (# of J points in N/S direction)
+         22 |C     YC       - YC = NPRC / (# of I points in E/W direction)
+         23 |C
+         24 |C   SUBPROGRAMS CALLED:
+         25 |C     UNIQUE:    - CONLEV
+         26 |C     LIBRARY:
+         27 |C       COMMON   - BLK3
+         28 |C
+         29 |C ATTRIBUTES:
+         30 |C   LANGUAGE: STANDARD FORTRAN
+         31 |C   MACHINE:
+         32 |C
+         33 |C$$$
+         34 |C
+         35 |C THIS IS A MODIFIED VERSION OF EZSKCH (ON THE ABOVE DATA SET)
+         36 |C WHICH IS SET UP TO DISPLAY ONLY THE NORTH AMERICAN PORTION
+         37 |CCOF THE RGNL OI ANALYSIS GRID (HEMISPHERIC 180X60), SUBSET IS
+         38 |CC          (46X31)    I=112,157 AND J=12,42.
+         39 |C OF THE RGNL OI ANALYSIS GRID (HEMISPHERIC 360X90), SUBSET IS
+         40 |C           (91X46)    I=223,313 AND J=17,62.
+         41 |C
+         42 |      IMPLICIT REAL   (A-H,O-Z)
+         43 |      DIMENSION ZZ(1,1),CON(24),XLIM(4),YLIM(4),XAXIS(30)
+         44 |      CHARACTER*1 CSYMB(12),CSYM(12),IQ(121),C1,C2,C3
+         45 |      CHARACTER*1 FSYMB(9),XFOR(52)
+         46 |      EQUIVALENCE (XFOR,YFOR)
+         47 |      CHARACTER*2 YFOR(26),FFSYMB(30)
+         48 |      CHARACTER*4 YTITLE(20)
+         49 |      LOGICAL     IACROS, XREV, YREV, TICK, ALLCON
+         50 |      CHARACTER*1 XTIT, XBLK, XTITLE(30)
+         51 |      CHARACTER*1 HTIT, BLK, EYE, PLS, MIN, FIL
+         52 |      EQUIVALENCE (XTIT,HTIT),(XBLK,BLK)
+         53 |      LOGICAL     AXIS, END
+         54 |      COMMON /BLK3/ LI,LJ,LID,IACROS,XREV,YREV,TICK,ALLCON,XLIM,YLIM,
+         55 |     + XRG,YRG,IXD,IYD,NPRL,NPRC,NLV,CON,XTITLE,YTITLE
+         56 |      CHARACTER*1 IOVER, IUNDR
+         57 |      CHARACTER*2 CM3, EFF
+         58 |      DATA        IOVER/'+'/, IUNDR/'-'/
+         59 |      DATA        CM3/',3'/, EFF/' F'/
+         60 |      DATA  BLK,EYE,PLS,MIN /' ','I','+','-'/
+         61 |      DATA CSYMB/'N','9','7','5','3','1','0','2','4','6','8','X'/
+         62 |      DATA FSYMB/'1','2','3','4','5','6','7','8','9'/
+         63 |      DATA FFSYMB/'01','02','03','04','05','06','07','08','09','10',
+         64 |     +  '11','12','13','14','15','16','17','18','19','20',
+         65 |     +  '21','22','23','24','25','26','27','28','29','30'/
+         66 |      ZMIN = +1. E+15
+         67 |      ZMAX = -1. E+15
+         68 |C
+         69 |C MAX-MIN OBTAINED FROM right half of grid
+         70 |C
+         71 |      IJ = 0
+         72 |      IHALF = (LI/2) + 1
+         73 |c     JHALF = (LJ/2) + 1
+         74 |      DO 1 J=1,LJ
+         75 |      DO 1 I=1,LI
+         76 |      IJ = IJ + 1
+         77 |c     IF(I.GE.IHALF.AND.J.GE.JHALF) THEN
+         78 |      IF(I.GE.IHALF) THEN
+         79 |        ZMIN = AMIN1(ZMIN,ZZ(IJ,1))
+         80 |        ZMAX = AMAX1(ZMAX,ZZ(IJ,1))
+         81 |      END IF
+         82 |    1 CONTINUE
+         83 |      WRITE(6,7)ZMAX,ZMIN
+         84 |    7 FORMAT(2E15.5)
+         85 |      YLIM(1) = 1.0
+         86 |      YLIM(2) = FLOAT(LI)
+         87 |C     YLIM(3) = 1.0
+         88 |      YLIM(3) = FLOAT(IHALF)
+         89 |      YLIM(4) = FLOAT(LI)
+         90 |      NPRC = ((YLIM(4)-YLIM(3))*(YC*2.) + 1.00001)
+         91 |      XLIM(1) = FLOAT(LJ)
+         92 |      XLIM(2) = 1.0
+         93 |      XLIM(3) = FLOAT(LJ)
+         94 |      XLIM(4) = 1.0
+         95 |c     XLIM(4) = FLOAT(JHALF)
+         96 |c     NPRL = ((XLIM(3)-XLIM(4))*(XL*2.) + 1.00001)
+         97 |      NPRL = ((XLIM(3)-XLIM(4))*(XL) + 1.00001)
+         98 |      YRG = YLIM(3)
+         99 |      XRG = XLIM(3)
+        100 |      IYD = 0
+        101 |    8 CONTINUE
+        102 |C     IYD = IYD + AMAX1(1. E+0,(YC + YC + .00001 E+0))
+        103 |      IYD = IYD + AMAX1(1. E+0,(YC * 4. + .00001 E+0))
+        104 |      IF(IYD.LE.4.OR.(NPRC/IYD).GT.20) GO TO 8
+        105 |C     IXD = AMAX1(1. E+0,(XL + XL + .00001 E+0))
+        106 |      IXD = AMAX1(1. E+0,(XL * 4. + .00001 E+0))
+        107 |      NLV = 20
+        108 |      IACROS = .TRUE.
+        109 |      XREV  = .TRUE.
+        110 |      YREV  = .FALSE.
+        111 |      TICK  = .TRUE.
+        112 |      ALLCON = .FALSE.
+        113 |      IF( ZMIN.EQ.ZMAX )  RETURN
+        114 |      IF( ICT.GT.2 )  CON(2) = 1.0
+        115 |      CALL CONLEV(ICT,ZMAX,ZMIN)
+        116 |C     DO 3 I=1,20
+        117 |C     YTITLE(I) = BLANK
+        118 |C   3 CONTINUE
+        119 |    4 CONTINUE
+        120 |      NLV2   = NLV/2
+        121 |      NLV2M1 = NLV2 - 1
+        122 |C INTERNAL WRITE NOW FORTRAN STANDARD ???
+        123 |c     WRITE(UNIT=XFOR,FMT=5)
+        124 |c     ENCODE(52,5,YFOR)
+        125 |C     ENCODE(52,5,YFOR)
+        126 |c   5 FORMAT(52H( 21X,6A4,/,5X,3A4,5X,4A4,5X,7A4,//,  X,   30F  .1) )
+        127 |      IF( .NOT. ALLCON )  GO TO 10
+        128 |      INC = ( 24 - NLV ) / 4
+        129 |      DO 6 I = 1,NLV2
+        130 |      II = I + INC
+        131 |      CSYM(I) = CSYMB(II)
+        132 |    6 CONTINUE
+        133 |      GO TO 15
+        134 |   10 CSYM(1)=CSYMB(7)
+        135 |      DO 11 I=1,NLV2M1
+        136 |      CSYM(I+1) = FSYMB(I)
+        137 |   11 CONTINUE
+        138 |   15 XXXRG=XRG
+        139 |      LZZ   = LID*LJ
+        140 |      IZ1   = 1
+        141 |      JZ1   = 1
+        142 |      IF (IACROS) GO TO 20
+        143 |      IZD   = LID
+        144 |      LIZ   = LJ
+        145 |      IZM   = LZZ - LID + 1
+        146 |      JZD   = 1
+        147 |      LJZ   = LI
+        148 |      JZM   = LI
+        149 |      GO TO 30
+        150 | 20   IZD   = 1
+        151 |      LIZ   = LI
+        152 |      IZM   = LI
+        153 |      JZD   = LID
+        154 |      LJZ   = LJ
+        155 |      JZM   = LZZ - LID + 1
+        156 | 30   IF (.NOT.YREV) GO TO 40
+        157 |      IZ1   = IZM
+        158 |      IZD   =-IZD
+        159 | 40   IF (.NOT.XREV) GO TO 50
+        160 |      JZ1   = JZM
+        161 |      JZD   =-JZD
+        162 | 50   CONTINUE
+        163 |      UNLIN = FLOAT(NPRL-1)
+        164 |      XLO   =  XLIM(3)
+        165 |      XDL   = (XLIM(4) - XLO) / UNLIN
+        166 |      XLOA  =  XLIM(1)
+        167 |      XDLA  = (XLIM(2)  - XLOA) / FLOAT(LJZ-1)
+        168 |      XLOB = AMIN1(XLIM(1),XLIM(2))
+        169 |      XHIB = AMAX1(XLIM(1),XLIM(2))
+        170 |      VNCOL = FLOAT(NPRC-1)
+        171 |      YLO   =  YLIM(3)
+        172 |      YDL   = (YLIM(4) - YLIM(3)) / VNCOL
+        173 |      YLOA  =  YLIM(1)
+        174 |      YDLA  = (YLIM(2) - YLOA) / FLOAT(LIZ-1)
+        175 |      YLOB = AMIN1(YLIM(1),YLIM(2))
+        176 |      YHIB = AMAX1(YLIM(1),YLIM(2))
+        177 |      NXAXIS = MIN0((NPRC+IYD-1)/IYD,20)
+        178 |      ZLIM = ABS(YDL)*1. E-4
+        179 |      DO 60  J=1,NXAXIS
+        180 |      XAXIS(J)= YRG + YDL*FLOAT(IYD*(J-1))
+        181 |      IF(XAXIS(J).GT.YHIB)GO TO 61
+        182 |      IF(XAXIS(J).LT.YLOB) GO TO 61
+        183 |      IF ( ABS(XAXIS(J)) .LT. ZLIM)  XAXIS(J) = 0.
+        184 |   60 CONTINUE
+        185 |      GO TO 62
+        186 |   61 NXAXIS=J-1
+        187 |   62 YFOR(24) = FFSYMB(IYD)
+        188 |      YD=IYD
+        189 |      YRGG=MOD(MOD((YRG-YLO)/YDL,YD)+YD+.5 E+0,YD)
+        190 |      IYA=YRGG
+        191 |      NSKS=IYA+1
+        192 |      NSPACE = NSKS + 12 - IYD
+        193 |      IF(NSPACE.LE.0)GO TO 65
+        194 |      YFOR(19) = FFSYMB(NSPACE)
+        195 |      GO TO 66
+        196 |   65 CONTINUE
+        197 |      I=IYD+NSPACE
+        198 |      YFOR(22) = CM3
+        199 |      YFOR(21) = YFOR(25)
+        200 |      YFOR(20) = FFSYMB(I)
+        201 |      YFOR(19) = EFF
+        202 |   66 WRITE(6,YFOR)(YTITLE(I),I=1,20),(XAXIS(J),J=1,NXAXIS)
+        203 |      NSK=IYD
+        204 |      XD    = IXD
+        205 |      XRG   = MOD(MOD((XRG-XLO)/XDL,XD)+XD+.5 E+0,XD)
+        206 |      IXA   = XRG
+        207 |      X  = XLO
+        208 |      ZLIM = ABS(XDL)*1. E-4
+        209 |      ZMAX = -1. E+15
+        210 |      ZMIN = +1. E+15
+        211 |      DO 300 IL=1,NPRL
+        212 |      XTIT = XBLK
+        213 |      IF (IL.LE.30) XTIT = XTITLE(IL)
+        214 |      AXIS =  MOD(IL-1,IXD).EQ.IXA
+        215 |      FIL  = BLK
+        216 |      END  = TICK.AND.(IL.EQ.1.OR.IL.EQ.NPRL)
+        217 |      IF (AXIS.AND.(.NOT.TICK).OR.END) FIL = MIN
+        218 |      IF(IL.EQ.1.OR.IL.EQ.NPRL)FIL=MIN
+        219 |      DO 80 IC=1,NPRC
+        220 |      IQ(IC) = FIL
+        221 |   80 CONTINUE
+        222 |      FIL  = EYE
+        223 |      IF (AXIS.OR.END)  FIL = PLS
+        224 |      IQ(1)=FIL
+        225 |      IQ(NPRC)=FIL
+        226 |      IF (TICK.AND.IL.GT.3.AND.IL.LT.NPRL-2) GO TO 91
+        227 |      DO 90 IC=NSKS,NPRC,NSK
+        228 |      IQ(IC) = FIL
+        229 |   90 CONTINUE
+        230 |91    IF (.NOT.(TICK.AND.AXIS)) GO TO 110
+        231 |      DO 100 IC=1,2
+        232 |      JC = NPRC-IC
+        233 |      IQ(IC+1) = MIN
+        234 |      IQ(JC) = MIN
+        235 |  100 CONTINUE
+        236 |  110 IF (X.LT.XLOB.OR.X.GT.XHIB)    GO TO 250
+        237 |      XA  = (X-XLOA)/XDLA
+        238 |      JZA = JZ1 + JZD*INT(XA)
+        239 |      JZB = MAX0(1,JZA+JZD)
+        240 |      XAD = MOD(XA,1. E+0)
+        241 |      Y  = YLO
+        242 |C     WRITE(6,12345)IL,JZA,JZB,JZD,XA,XAD
+        243 |      DO 200  IC=1,NPRC
+        244 |      IF (Y.LT.YLOB.OR.Y.GT.YHIB) GO TO 199
+        245 |      YA  = (Y-YLOA)/YDLA
+        246 |      IZA = IZ1 + IZD*INT(YA)
+        247 |      IZB = IZA + IZD
+        248 |      YAD = MOD(YA,1. E+0)
+        249 |      ZAA = ZZ(IZA,JZA)
+        250 |      ZAB = ZZ(IZA,JZB)
+        251 |      ZBA = ZZ(IZB,JZA)
+        252 |      ZBB = ZZ(IZB,JZB)
+        253 |      Z1  = ZAA + (ZAB-ZAA)*XAD
+        254 |      Z2  = ZBA + (ZBB-ZBA)*XAD
+        255 |      Z   = Z1 + (Z2-Z1)*YAD
+        256 |C     IF(IL.EQ.NPRL)WRITE(6,12345)IZA,IZB,YA,YAD
+        257 |C2345 FORMAT(6G15.5)
+        258 |C     IF(IL.EQ.NPRL)WRITE(6,12345)ZAA,ZAB,ZBA,ZBB
+        259 |C     IF(IL.EQ.NPRL)WRITE(6,12345)Z,Z1,Z2,ZMIN
+        260 |      ZMAX = AMAX1(ZMAX,Z)
+        261 |      ZMIN = AMIN1(ZMIN,Z)
+        262 |      IF (.NOT.ALLCON) GO TO 160
+        263 |      IF(Z.LT.CON(1))GO TO 180
+        264 |      IF(Z.GT.CON(NLV))GO TO 190
+        265 |      DO 150 I=1,NLV,2
+        266 |      IF (Z.LT.CON(I)) GO TO 199
+        267 |      IF (Z.GT.CON(I+1)) GO TO 150
+        268 |      IS = (I+1)/2
+        269 |      GO TO 170
+        270 | 150  CONTINUE
+        271 |      GO TO 199
+        272 | 160  IF (Z.LT.CON(1)) GO TO 180
+        273 |      I  = (Z-CON(1))/CON(2)
+        274 |      IF (MOD(I,2).EQ.1) GO TO 199
+        275 |      IS = MOD(I/2,NLV2)+1
+        276 | 170  IQ(IC) = CSYM(IS)
+        277 |      GO TO 199
+        278 |  180 IQ(IC) = IUNDR
+        279 |      GO TO 199
+        280 |  190 IQ(IC) = IOVER
+        281 |  199 Y = Y + YDL
+        282 |  200 CONTINUE
+        283 | 250  IF (.NOT.AXIS) WRITE (6,260) HTIT,    (IQ(I),I=1,NPRC)
+        284 |  260 FORMAT(1X,A1,10X,121A1)
+        285 |      ZX = X
+        286 |      IF (ABS(ZX).LT.ZLIM) ZX = 0.
+        287 |      IF (AXIS)      WRITE (6,270) HTIT,ZX, (IQ(I),I=1,NPRC)
+        288 |  270 FORMAT(1X,A1,G10.4,121A1)
+        289 |      X = X + XDL
+        290 |  300 CONTINUE
+        291 |      IF( NPRL .LE. 75 )  WRITE(6,29) ZMIN, ZMAX
+        292 |      LPRL=NPRL+7
+        293 |      IF (LPRL.GT.78) LPRL = 3
+        294 |      IF(LPRL.EQ.3)WRITE(6,28)ZMIN,ZMAX
+        295 |   28 FORMAT(1X,/,7X,'MIN=',E11.4,4X,'MAX=',E11.4,/,1X)
+        296 |   29 FORMAT(1X,/,7X,'MIN=',E11.4,4X,'MAX=',E11.4,/,1X)
+        297 |      IF(ALLCON)GO TO 310
+        298 |      CON(11)=CON(1)
+        299 |      IF(ZMIN.LE.CON(1))GO TO 47
+        300 |   46 CON(13)=CON(11)+2.*CON(2)
+        301 |      IF(ZMIN.LE.CON(13).AND.ZMIN.GE.CON(11))GO TO 47
+        302 |      CON(11)=CON(13)
+        303 |      GO TO 46
+        304 |   47 Z=CON(11)+0.5*CON(2)
+        305 |      DO 55 M = 1,4
+        306 |      DO 45 L=12,16
+        307 |      CON(L) = CON(L-1) + CON(2)
+        308 |   45 CONTINUE
+        309 |      I  = (Z-CON(1))/CON(2)
+        310 |      IS = MOD(I/2,NLV2)+1
+        311 |      C1=CSYM(IS)
+        312 |      Z=Z+CON(2)+CON(2)
+        313 |      I  = (Z-CON(1))/CON(2)
+        314 |      IS = MOD(I/2,NLV2)+1
+        315 |      C2=CSYM(IS)
+        316 |      Z=Z+CON(2)+CON(2)
+        317 |      I  = (Z-CON(1))/CON(2)
+        318 |      IS = MOD(I/2,NLV2)+1
+        319 |      C3=CSYM(IS)
+        320 |      Z=Z+CON(2)+CON(2)
+        321 |      WRITE(6,34)
+        322 |     + CON(11),C1,CON(12),CON(13),C2,CON(14),CON(15),C3,CON(16)
+        323 |      LPRL=LPRL+1
+        324 |   34 FORMAT(E12.4,4('  *',A1,'*',2E12.4))
+        325 |   35 FORMAT(E12.4,4('  *',A1,'*',2E12.4))
+        326 |      IF(CON(16).GT.ZMAX)GO TO 320
+        327 |      CON(11) = CON(16) + CON(2)
+        328 |   55 CONTINUE
+        329 |      GO TO 320
+        330 |  310 IC = NLV / 4 - 2
+        331 |      GO TO (311,312,313,314), IC
+        332 |  311 WRITE(6,34)CON(1),CSYM(1),CON(2),CON(3),CSYM(2),CON(4),CON(5),
+        333 |     + CSYM(3),CON(6)
+        334 |      WRITE(6,35)CON(7),CSYM(4),CON(8),CON(9),CSYM(5),CON(10),CON(11),
+        335 |     + CSYM(6),CON(12)
+        336 |      GO TO 315
+        337 |  312 WRITE(6,34)CON(1),CSYM(1),CON(2),CON(3),CSYM(2),CON(4),CON(5),
+        338 |     + CSYM(3),CON(6),CON(7),CSYM(4),CON(8)
+        339 |      WRITE(6,35)CON(9),CSYM(5),CON(10),CON(11),CSYM(6),CON(12),CON(13),
+        340 |     + CSYM(7),CON(14),CON(15),CSYM(8),CON(16)
+        341 |      GO TO 315
+        342 |  313 WRITE(6,34)CON(1),CSYM(1),CON(2),CON(3),CSYM(2),CON(4),CON(5),
+        343 |     + CSYM(3),CON(6),CON(7),CSYM(4),CON(8)
+        344 |      WRITE(6,34)CON(9),CSYM(5),CON(10),CON(11),CSYM(6),CON(12),CON(13),
+        345 |     + CSYM(7),CON(14),CON(15),CSYM(8),CON(16)
+        346 |      WRITE(6,34)CON(17),CSYM(9),CON(18),CON(19),CSYM(10),CON(20)
+        347 |      GO TO 315
+        348 |  314 WRITE(6,34)CON(1),CSYM(1),CON(2),CON(3),CSYM(2),CON(4),CON(5),
+        349 |     + CSYM(3),CON(6)
+        350 |      WRITE(6,34)CON(7),CSYM(4),CON(8),CON(9),CSYM(5),CON(10),CON(11),
+        351 |     + CSYM(6),CON(12)
+        352 |      WRITE(6,34)CON(13),CSYM(7),CON(14),CON(15),CSYM(8),CON(16),
+        353 |     + CON(17),CSYM(9),CON(18)
+        354 |      WRITE(6,34)CON(19),CSYM(10),CON(20),CON(21),CSYM(11),CON(22),
+        355 |     + CON(23),CSYM(12),CON(24)
+        356 |      LPRL = LPRL + 4
+        357 |      GO TO 320
+        358 |  315 LPRL = LPRL + 3
+        359 |  320 XRG=XXXRG
+        360 |      ALLCON=.FALSE.
+        361 |      NLV=20
+        362 |      IF( LPRL - 82 )  323,325,324
+        363 |  323 LP = 5
+        364 |      LJJ = XDL * UNLIN / XDLA + 1.49999
+        365 |      IF( LPRL .GE. 82 - LJJ - LJJ - 9 )  LP = 82 - LPRL
+        366 |  324 DO 322 L = 1,LP
+        367 |      WRITE(6,321)
+        368 |  322 CONTINUE
+        369 |  321 FORMAT(' ')
+        370 |  325 RETURN
+        371 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-178.14  0-183.12  0-208.14  0-286.11
+ 
+allcon                           Common member, Logical(4), Offset: 28, Alignment: full word
+                                 0-49.45$  0-54.53$  0-112.7@  0-127.17  0-262.16  0-297.10  0-360.7@
+ 
+amax1                            Pure Intrinsic Real(4)
+                                 0-80.16  0-103.19  0-106.13  0-169.14  0-176.14  0-260.14
+ 
+amin1                            Pure Intrinsic Real(4)
+                                 0-79.16  0-168.14  0-175.14  0-261.14
+ 
+axis                             Automatic, Logical(4), Offset: 0, Alignment: full word
+                                 0-53.19$  0-214.7@  0-217.11  0-223.11  0-230.26  0-283.16  0-287.11
+ 
+blk                              Static, Character(1), Offset: 0, Alignment: quadruple word
+                                 0-51.25$  0-52.37  0-60.13*  0-215.14
+ 
+blk3                             Common Block, Alignment: double word
+                                 0-54.15$
+ 
+c1                               Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-44.46$  0-311.7@  0-322.16
+ 
+c2                               Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-44.49$  0-315.7@  0-322.35
+ 
+c3                               Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-44.52$  0-319.7@  0-322.54
+ 
+cm3                              Static, Character(2), Offset: 0, Alignment: full word
+                                 0-57.19$  0-59.19*  0-198.18
+ 
+con                              Common member, Real(4) (1:24), Offset: 92, Alignment: full word
+                                 0-43.25$  0-55.38$  0-114.23@  0-263.15  0-264.15  0-266.16  0-267.16  0-272.16  0-273.15  0-273.23
+                                 0-298.7@  0-298.15  0-299.18  0-300.7@  0-300.15  0-300.26  0-301.18  0-301.38  0-302.7@  0-302.15
+                                 0-304.9  0-304.21  0-307.7@  0-307.16  0-307.27  0-309.15  0-309.23  0-312.11  0-312.18  0-313.15
+                                 0-313.23  0-316.11  0-316.18  0-317.15  0-317.23  0-320.11  0-320.18  0-322.8  0-322.19  0-322.27
+                                 0-322.38  0-322.46  0-322.57  0-326.10  0-327.7@  0-327.17  0-327.27  0-332.18  0-332.33  0-332.40
+                                 0-332.55  0-332.62  0-333.16  0-334.18  0-334.33  0-334.40  0-334.55  0-334.63  0-335.16  0-337.18
+                                 0-337.33  0-337.40  0-337.55  0-337.62  0-338.16  0-338.23  0-338.38  0-339.18  0-339.33  0-339.41
+                                 0-339.57  0-339.65  0-340.16  0-340.24  0-340.40  0-342.18  0-342.33  0-342.40  0-342.55  0-342.62
+                                 0-343.16  0-343.23  0-343.38  0-344.18  0-344.33  0-344.41  0-344.57  0-344.65  0-345.16  0-345.24
+                                 0-345.40  0-346.18  0-346.34  0-346.42  0-346.59  0-348.18  0-348.33  0-348.40  0-348.55  0-348.62
+                                 0-349.16  0-350.18  0-350.33  0-350.40  0-350.55  0-350.63  0-351.16  0-352.18  0-352.34  0-352.42
+                                 0-352.58  0-353.8  0-353.24  0-354.18  0-354.35  0-354.43  0-354.60  0-355.8  0-355.25
+ 
+conlev                           External Subroutine
+                                 0-115.12
+ 
+csym                             Automatic, Character(1) (1:12), Offset: 0, Alignment: full word
+                                 0-44.29$  0-131.7@  0-134.7@  0-136.7@  0-276.16  0-311.10  0-315.10  0-319.10  0-332.25  0-332.47
+                                 0-333.8  0-334.25  0-334.47  0-335.8  0-337.25  0-337.47  0-338.8  0-338.30  0-339.25  0-339.49
+                                 0-340.8  0-340.32  0-342.25  0-342.47  0-343.8  0-343.30  0-344.25  0-344.49  0-345.8  0-345.32
+                                 0-346.26  0-346.50  0-348.25  0-348.47  0-349.8  0-350.25  0-350.47  0-351.8  0-352.26  0-352.50
+                                 0-353.16  0-354.26  0-354.51  0-355.16
+ 
+csymb                            Static, Character(1) (1:12), Offset: 0, Alignment: full word
+                                 0-44.19$  0-61.12*  0-131.17  0-134.15
+ 
+eff                              Static, Character(2), Offset: 0, Alignment: full word
+                                 0-57.24$  0-59.30*  0-201.18
+ 
+end                              Automatic, Logical(4), Offset: 0, Alignment: full word
+                                 0-53.25$  0-216.7@  0-217.35  0-223.19
+ 
+eye                              Static, Character(1), Offset: 0, Alignment: full word
+                                 0-51.30$  0-60.17*  0-222.14
+ 
+ezskch                           Subroutine
+                                 0-1.18$
+ 
+ffsymb                           Static, Character(2) (1:30), Offset: 0, Alignment: full word
+                                 0-47.28$  0-63.12*  0-187.18  0-194.18  0-200.18
+ 
+fil                              Automatic, Character(1), Offset: 0, Alignment: full word
+                                 0-51.45$  0-215.7@  0-217.40@  0-218.32@  0-220.16  0-222.7@  0-223.25@  0-224.13  0-225.16
+                                 0-228.16
+ 
+float                            Pure Intrinsic
+                                 0-86.17  0-88.17  0-89.17  0-91.17  0-93.17  0-163.15  0-167.35  0-170.15  0-174.34  0-180.27
+ 
+fsymb                            Static, Character(1) (1:9), Offset: 0, Alignment: full word
+                                 0-45.19$  0-62.12*  0-136.19
+ 
+htit                             Automatic, Character(1), Offset: 0, Alignment: quadruple word
+                                 0-51.19$  0-52.25  0-283.36  0-287.36
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-75.12@  0-78.10  0-129.12@  0-130.12  0-131.12  0-135.13@  0-136.12  0-136.25  0-197.7@  0-200.25
+                                 0-202.28  0-202.31@  0-265.14@  0-266.20  0-267.20  0-268.13  0-273.7@  0-274.15  0-275.16
+                                 0-283.49  0-283.52@  0-287.49  0-287.52@  0-309.7@  0-310.16  0-313.7@  0-314.16  0-317.7@
+                                 0-318.16
+ 
+iacros                           Common member, Logical(4), Offset: 12, Alignment: full word
+                                 0-49.19$  0-54.31$  0-108.7@  0-142.11
+ 
+ic                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-219.13@  0-220.10  0-227.13@  0-228.10  0-231.14@  0-232.17  0-233.10  0-243.15@  0-276.10
+                                 0-278.10  0-280.10  0-330.7@  0-331.32
+ 
+ict                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.28  0-114.11  0-115.19
+ 
+ihalf                            Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-72.7@  0-78.15  0-88.23
+ 
+ii                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-130.7@  0-131.23
+ 
+ij                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-76.7@  0-76.12  0-79.30  0-80.30
+ 
+il                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-211.14@  0-213.11  0-213.35  0-214.19  0-216.24  0-216.35  0-218.10  0-218.21  0-226.20  0-226.32
+ 
+inc                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-128.7@  0-130.16
+ 
+int                              Pure Intrinsic
+                                 0-238.23  0-246.23
+ 
+iover                            Static, Character(1), Offset: 0, Alignment: full word
+                                 0-56.19$  0-58.19*  0-280.16
+ 
+iq                               Automatic, Character(1) (1:121), Offset: 0, Alignment: full word
+                                 0-44.38$  0-220.7@  0-224.7@  0-225.7@  0-228.7@  0-233.7@  0-234.7@  0-276.7@  0-278.7@  0-280.7@
+                                 0-283.46  0-287.46
+ 
+is                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-268.7@  0-275.7@  0-276.21  0-310.7@  0-311.15  0-314.7@  0-315.15  0-318.7@  0-319.15
+ 
+iundr                            Static, Character(1), Offset: 0, Alignment: full word
+                                 0-56.26$  0-58.31*  0-278.16
+ 
+ixa                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-206.7@  0-214.32
+ 
+ixd                              Common member, Integer(4), Offset: 72, Alignment: double word
+                                 0-55.16$  0-106.7@  0-204.15  0-214.24
+ 
+iya                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-190.7@  0-191.12
+ 
+iyd                              Common member, Integer(4), Offset: 76, Alignment: full word
+                                 0-55.20$  0-100.7@  0-103.7@  0-103.13  0-104.10  0-104.28  0-177.27  0-177.34  0-180.33  0-187.25
+                                 0-188.10  0-192.28  0-197.9  0-203.11
+ 
+iz1                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-140.7@  0-157.7@  0-246.13
+ 
+iza                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-246.7@  0-247.13  0-249.16  0-250.16
+ 
+izb                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-247.7@  0-251.16  0-252.16
+ 
+izd                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-143.7@  0-150.7@  0-158.7@  0-158.15  0-246.19  0-247.19
+ 
+izm                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-145.7@  0-152.7@  0-157.15
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-74.12@  0-179.14@  0-180.13  0-180.38  0-181.16  0-182.16  0-183.22  0-183.44  0-186.14  0-202.46
+                                 0-202.49@
+ 
+jc                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-232.7@  0-234.10
+ 
+jz1                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-141.7@  0-160.7@  0-238.13
+ 
+jza                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-238.7@  0-239.20  0-249.20  0-251.20
+ 
+jzb                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-239.7@  0-250.20  0-252.20
+ 
+jzd                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-146.7@  0-153.7@  0-161.7@  0-161.15  0-238.19  0-239.24
+ 
+jzm                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-148.7@  0-155.7@  0-160.15
+ 
+l                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-306.13@  0-307.11  0-307.20  0-366.14@
+ 
+li                               Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-54.21$  0-72.16  0-75.16  0-86.23  0-89.23  0-147.15  0-148.15  0-151.15  0-152.15
+ 
+lid                              Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-54.27$  0-139.15  0-143.15  0-145.21  0-153.15  0-155.21
+ 
+liz                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-144.7@  0-151.7@  0-174.40
+ 
+lj                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-54.24$  0-74.16  0-91.23  0-93.23  0-139.19  0-144.15  0-154.15
+ 
+ljj                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-364.7@  0-365.26  0-365.32
+ 
+ljz                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-147.7@  0-154.7@  0-167.41
+ 
+lp                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-363.7@  0-365.43@  0-366.20
+ 
+lprl                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-292.7@  0-293.11  0-293.23@  0-294.10  0-323.7@  0-323.12  0-356.7@  0-356.14  0-358.7@  0-358.14
+                                 0-362.11  0-365.11  0-365.53
+ 
+lzz                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-139.7@  0-145.15  0-155.15
+ 
+m                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-305.13@
+ 
+max0                             Pure Intrinsic
+                                 0-239.13
+ 
+min                              Static, Character(1), Offset: 0, Alignment: full word
+                                 0-51.40$  0-60.25*  0-217.46  0-218.36  0-233.18  0-234.16
+ 
+min0                             Pure Intrinsic
+                                 0-177.16
+ 
+mod                              Pure Intrinsic
+                                 0-189.12  0-189.16  0-205.15  0-205.19  0-214.15  0-240.13  0-248.13  0-274.11  0-275.12  0-310.12
+                                 0-314.12  0-318.12
+ 
+nlv                              Common member, Integer(4), Offset: 88, Alignment: double word
+                                 0-55.34$  0-107.7@  0-120.16  0-128.20  0-264.19  0-265.18  0-330.12  0-361.7@
+ 
+nlv2                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.7@  0-121.16  0-129.18  0-275.20  0-310.20  0-314.20  0-318.20
+ 
+nlv2m1                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.7@  0-135.17
+ 
+nprc                             Common member, Integer(4), Offset: 84, Alignment: full word
+                                 0-55.29$  0-90.7@  0-104.23  0-170.21  0-177.22  0-219.18  0-225.10  0-227.21  0-232.12  0-243.20
+                                 0-283.56  0-287.56
+ 
+nprl                             Common member, Integer(4), Offset: 80, Alignment: quadruple word
+                                 0-55.24$  0-97.7@  0-163.21  0-211.19  0-216.41  0-218.27  0-226.38  0-291.11  0-292.12
+ 
+nsk                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-203.7@  0-227.26
+ 
+nsks                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-191.7@  0-192.16  0-227.16
+ 
+nspace                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-192.7@  0-193.10  0-194.25  0-197.13
+ 
+nxaxis                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-177.7@  0-179.18  0-186.7@  0-202.53
+ 
+pls                              Static, Character(1), Offset: 0, Alignment: full word
+                                 0-51.35$  0-60.21*  0-223.31
+ 
+tick                             Common member, Logical(4), Offset: 24, Alignment: double word
+                                 0-49.39$  0-54.48$  0-111.7@  0-216.14  0-217.26  0-226.11  0-230.17
+ 
+unlin                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-163.7@  0-165.33  0-364.19
+ 
+vncol                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-170.7@  0-172.37
+ 
+x                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-207.7@  0-236.11  0-236.24  0-237.14  0-285.12  0-289.7@  0-289.11
+ 
+xa                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-237.7@  0-238.27  0-240.17
+ 
+xad                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-240.7@  0-253.29  0-254.29
+ 
+xaxis                            Automatic, Real(4) (1:30), Offset: 0, Alignment: full word
+                                 0-43.49$  0-180.7@  0-181.10  0-182.10  0-183.16  0-183.38@  0-202.40
+ 
+xblk                             Static, Character(1), Offset: 0, Alignment: quadruple word
+                                 0-50.25$  0-52.32  0-212.14
+ 
+xd                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-204.7@  0-205.37  0-205.41  0-205.51
+ 
+xdl                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-165.7@  0-205.33  0-208.18  0-289.15  0-364.13
+ 
+xdla                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-167.7@  0-237.22  0-364.27
+ 
+xfor                             Automatic, Character(1) (1:52), Offset: 0, Alignment: quadruple word
+                                 0-45.28$  0-46.20
+ 
+xhib                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-169.7@  0-236.29
+ 
+xl                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-97.34  0-106.27
+ 
+xlim                             Common member, Real(4) (1:4), Offset: 32, Alignment: quadruple word
+                                 0-43.33$  0-54.60$  0-91.7@  0-92.7@  0-93.7@  0-94.7@  0-97.16  0-97.24  0-99.13  0-164.16
+                                 0-165.16  0-166.16  0-167.16  0-168.20  0-168.28  0-169.20  0-169.28
+ 
+xlo                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-164.7@  0-165.26  0-205.28  0-207.12
+ 
+xloa                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-166.7@  0-167.27  0-237.16
+ 
+xlob                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-168.7@  0-236.16
+ 
+xrev                             Common member, Logical(4), Offset: 16, Alignment: quadruple word
+                                 0-49.27$  0-54.38$  0-109.7@  0-159.16
+ 
+xrg                              Common member, Real(4), Offset: 64, Alignment: quadruple word
+                                 0-55.8$  0-99.7@  0-138.13  0-205.7@  0-205.24  0-206.15  0-359.7@
+ 
+xtit                             Automatic, Character(1), Offset: 0, Alignment: quadruple word
+                                 0-50.19$  0-52.20  0-212.7@  0-213.21@
+ 
+xtitle                           Common member, Character(1) (1:30), Offset: 188, Alignment: full word
+                                 0-50.31$  0-55.42$  0-213.28
+ 
+xxxrg                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-138.7@  0-359.11
+ 
+y                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-241.7@  0-244.11  0-244.24  0-245.14  0-281.7@  0-281.11
+ 
+ya                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-245.7@  0-246.27  0-248.17
+ 
+yad                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-248.7@  0-255.26
+ 
+yc                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.35  0-90.34  0-103.33
+ 
+yd                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-188.7@  0-189.34  0-189.38  0-189.48
+ 
+ydl                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-172.7@  0-178.18  0-180.23  0-189.30  0-281.15
+ 
+ydla                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-174.7@  0-245.22
+ 
+yfor                             Automatic, Character(2) (1:26), Offset: 0, Alignment: quadruple word
+                                 0-47.19$  0-46.25  0-187.7@  0-194.7@  0-198.7@  0-199.7@  0-199.18  0-200.7@  0-201.7@  0-202.15
+ 
+yhib                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-176.7@  0-181.22  0-244.29
+ 
+ylim                             Common member, Real(4) (1:4), Offset: 48, Alignment: quadruple word
+                                 0-43.41$  0-54.65$  0-85.7@  0-86.7@  0-88.7@  0-89.7@  0-90.16  0-90.24  0-98.13  0-171.16
+                                 0-172.16  0-172.26  0-173.16  0-174.16  0-175.20  0-175.28  0-176.20  0-176.28
+ 
+ylo                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-171.7@  0-189.25  0-241.12
+ 
+yloa                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-173.7@  0-174.26  0-245.16
+ 
+ylob                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-175.7@  0-182.22  0-244.16
+ 
+yrev                             Common member, Logical(4), Offset: 20, Alignment: full word
+                                 0-49.33$  0-54.43$  0-110.7@  0-156.16
+ 
+yrg                              Common member, Real(4), Offset: 68, Alignment: full word
+                                 0-55.12$  0-98.7@  0-180.17  0-189.21
+ 
+yrgg                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-189.7@  0-190.11
+ 
+ytitle                           Common member, Character(4) (1:20), Offset: 218, Alignment: half word
+                                 0-48.19$  0-55.49$  0-202.21
+ 
+z                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-255.7@  0-260.25  0-261.25  0-263.10  0-264.10  0-266.11  0-267.11  0-272.11  0-273.13  0-304.7@
+                                 0-309.13  0-312.7@  0-312.9  0-313.13  0-316.7@  0-316.9  0-317.13  0-320.7@  0-320.9
+ 
+z1                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-253.7@  0-255.13  0-255.22
+ 
+z2                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-254.7@  0-255.19
+ 
+zaa                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-249.7@  0-253.13  0-253.24
+ 
+zab                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-250.7@  0-253.20
+ 
+zba                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-251.7@  0-254.13  0-254.24
+ 
+zbb                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-252.7@  0-254.20
+ 
+zlim                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-178.7@  0-183.31  0-208.7@  0-286.22
+ 
+zmax                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-67.7@  0-80.9@  0-80.22  0-83.17  0-113.19  0-115.23  0-209.7@  0-260.7@  0-260.20  0-291.45
+                                 0-294.36  0-326.21
+ 
+zmin                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-79.9@  0-79.22  0-83.22  0-113.11  0-115.28  0-210.7@  0-261.7@  0-261.20  0-291.39
+                                 0-294.31  0-299.10  0-301.10  0-301.30
+ 
+zx                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-285.7@  0-286.15  0-286.28@  0-287.41
+ 
+zz                               Reference argument, Real(4) (1:1, 1:1), Offset: 0, Alignment: full word
+                                 0-43.17$  0-1.25  0-79.27  0-80.27  0-249.13  0-250.13  0-251.13  0-252.13
+ 
+** ezskch   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    EZSKCH.f                    12/17/02   09:23:59
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     371
+1501-510  Compilation successful for file EZSKCH.f.
+1501-543  Object file created.

@@ -1,0 +1,167 @@
+C ######################################################################
+C                        SUBROUTINE CANRES
+C                        -----------------
+C       THIS ROUTINE CALCULATES THE CANOPY RESISTANCE WHICH DEPENDS ON
+C       INCOMING SOLAR RADIATION, AIR TEMPERATURE, ATMOSPHERIC WATER
+C       VAPOR PRESSURE DEFICIT AT THE LOWEST MODEL LEVEL, AND SOIL
+C       MOISTURE (PREFERABLY UNFROZEN SOIL MOISTURE RATHER THAN TOTAL)
+C ----------------------------------------------------------------------
+C        SOURCE:  JARVIS (1976), JACQUEMIN AND NOILHAN (1990 BLM)
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C        INPUT:  SOLAR: INCOMING SOLAR RADIATION
+C                CH:     SURFACE EXCHANGE COEFFICIENT FOR HEAT AND MOISTURE
+C                SFCTMP: AIR TEMPERATURE AT 1ST LEVEL ABOVE GROUND
+C                Q2:     AIR HUMIDITY AT 1ST LEVEL ABOVE GROUND
+C                Q2SAT:  SATURATION AIR HUMIDITY AT 1ST LEVEL ABOVE GROUND
+C                DQSDT2: SLOPE OF SATURATION HUMIDITY FUNCTION WRT TEMP
+C                SFCPRS: SURFACE PRESSURE
+C                SMC:    VOLUMETRIC SOIL MOISTURE 
+C                ZSOIL:  SOIL DEPTH (NEGATIVE SIGN, AS IT IS BELOW GROUND)
+C                NSOIL:  NO. OF SOIL LAYERS
+C                NROOT:  NO. OF SOIL LAYERS IN ROOT ZONE (1.LE.NROOT.LE.NSOIL)
+C                XLAI:   LEAF AREA INDEX
+C                SMCWLT: WILTING POINT
+C                SMCREF: REFERENCE SOIL MOISTURE
+C                        (WHERE SOIL WATER DEFICIT STRESS SETS IN)
+C
+C RCMIN, RSMAX, TOPT, RGL, HS: CANOPY STRESS PARAMETERS SET IN SUBR REDPRM
+C
+C  (SEE EQNS 12-14 AND TABLE 2 OF SEC. 3.1.2 OF 
+C       CHEN ET AL., 1996, JGR, VOL 101(D3), 7251-7268)               
+C
+C        OUTPUT:  PC: PLANT COEFFICIENT
+C                 RC: CANOPY RESISTANCE
+C ----------------------------------------------------------------------
+C ######################################################################
+
+      INTEGER   NSOLD
+      PARAMETER (NSOLD = 20)
+
+      INTEGER K
+      INTEGER NROOT
+      INTEGER NSOIL
+
+      REAL SIGMA, RD, CP, SLV
+      REAL SOLAR, CH, SFCTMP, Q2, SFCPRS 
+      REAL SMC(NSOIL), ZSOIL(NSOIL), PART(NSOLD) 
+      REAL SMCWLT, SMCREF, RCMIN, RC, PC, Q2SAT, DQSDT2
+      REAL TOPT, RSMAX, RGL, HS, XLAI, RCS, RCT, RCQ, RCSOIL, FF
+      REAL P, QS, GX, TAIR4, ST1, SLVCP, RR, DELTA
+
+      PARAMETER (SIGMA=5.67E-8, RD=287.04, CP=1004.5, SLV=2.501000E6)
+
+      RCS = 0.0
+      RCT = 0.0
+      RCQ = 0.0
+      RCSOIL = 0.0
+      RC = 0.0
+
+C ----------------------------------------------------------------------
+C CONTRIBUTION DUE TO INCOMING SOLAR RADIATION
+C ----------------------------------------------------------------------
+
+CC/98/01/05/..disgard old version assuming fixed LAI=1
+CC...........FF = 0.55*2.0*SOLAR/RGL
+
+      FF = 0.55*2.0*SOLAR/(RGL*XLAI)
+      RCS = (FF + RCMIN/RSMAX) / (1.0 + FF)
+      RCS = MAX(RCS,0.0001)
+
+C ----------------------------------------------------------------------
+C CONTRIBUTION DUE TO AIR TEMPERATURE AT FIRST MODEL LEVEL ABOVE GROUND
+C ----------------------------------------------------------------------
+
+      RCT = 1.0 - 0.0016*((TOPT-SFCTMP)**2.0)
+      RCT = MAX(RCT,0.0001)
+
+C ----------------------------------------------------------------------
+C CONTRIBUTION DUE TO VAPOR PRESSURE DEFICIT AT FIRST MODEL LEVEL.
+C ----------------------------------------------------------------------
+
+c      P = SFCPRS
+      QS = Q2SAT
+C RCQ EXPRESSION FROM SSIB 
+      RCQ = 1.0/(1.0+HS*(QS-Q2))
+      RCQ = MAX(RCQ,0.01)
+
+C ----------------------------------------------------------------------
+C CONTRIBUTION DUE TO SOIL MOISTURE AVAILABILITY.
+C DETERMINE CONTRIBUTION FROM EACH SOIL LAYER, THEN ADD THEM UP.
+C ----------------------------------------------------------------------
+
+      GX = (SMC(1) - SMCWLT) / (SMCREF - SMCWLT)
+      IF (GX .GT. 1.) GX = 1.
+      IF (GX .LT. 0.) GX = 0.
+
+C####   USING SOIL DEPTH AS WEIGHTING FACTOR
+      PART(1) = (ZSOIL(1)/ZSOIL(NROOT)) * GX
+
+C#### USING ROOT DISTRIBUTION AS WEIGHTING FACTOR
+CC      PART(1) = RTDIS(1) * GX
+      
+      DO K = 2, NROOT
+        GX = (SMC(K) - SMCWLT) / (SMCREF - SMCWLT)
+        IF (GX .GT. 1.) GX = 1.
+        IF (GX .LT. 0.) GX = 0.
+C####   USING SOIL DEPTH AS WEIGHTING FACTOR        
+        PART(K) = ((ZSOIL(K)-ZSOIL(K-1))/ZSOIL(NROOT)) * GX
+
+C#### USING ROOT DISTRIBUTION AS WEIGHTING FACTOR
+CC         PART(K) = RTDIS(K) * GX 
+               
+      END DO
+
+      DO K = 1, NROOT
+        RCSOIL = RCSOIL+PART(K)
+      END DO
+
+      RCSOIL = MAX(RCSOIL,0.0001)
+
+C ----------------------------------------------------------------------
+C         DETERMINE CANOPY RESISTANCE DUE TO ALL FACTORS.
+C         CONVERT CANOPY RESISTANCE (RC) TO PLANT COEFFICIENT (PC).
+C ----------------------------------------------------------------------
+
+CC/98/01/05/........RC = RCMIN/(RCS*RCT*RCQ*RCSOIL)
+      RC = RCMIN/(XLAI*RCS*RCT*RCQ*RCSOIL)
+          
+      TAIR4 = SFCTMP**4.
+      ST1 = (4.*SIGMA*RD)/CP
+      SLVCP = SLV/CP
+      RR = ST1*TAIR4/(SFCPRS*CH) + 1.0
+      DELTA = SLVCP*DQSDT2
+      
+      PC = (RR+DELTA)/(RR*(1.+RC*CH)+DELTA)
+      
+      RETURN
+      END
+      FUNCTION CSNOW ( DSNOW )
+
+      IMPLICIT NONE
+
+      REAL C
+      REAL DSNOW
+      REAL CSNOW
+      REAL UNIT
+
+      PARAMETER ( UNIT=0.11631 ) 
+                                         
+C   ####  SIMULATION OF TERMAL SNOW CONDUCTIVITY                   
+C   ####  SIMULATION UNITS OF CSNOW IS CAL/(CM*HR* C) 
+C   ####  AND IT WILL BE RETURND IN W/(M* C)
+C   ####  BASIC VERSION IS DYACHKOVA EQUATION                                
+
+C #####   DYACHKOVA EQUATION (1960), FOR RANGE 0.1-0.4
+
+      C=0.328*10**(2.25*DSNOW)
+      CSNOW=UNIT*C
+
+C #####    DE VAUX EQUATION (1933), IN RANGE 0.1-0.6
+C       CSNOW=0.0293*(1.+100.*DSNOW**2)
+      
+C     #####   E. ANDERSEN FROM FLERCHINGER
+C     CSNOW=0.021+2.51*DSNOW**2        
+      
+      RETURN                                                      
+      END

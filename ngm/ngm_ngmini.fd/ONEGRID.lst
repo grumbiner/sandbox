@@ -1,0 +1,2902 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/ONEGRID.f 09/30/06 19:43:59
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE ONEGRID ( NG , NPAIR, LASTSTEP )
+          2 |C***  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C SUBPROGRAM:    ONEGRID     ADVANCE GRID NG BY FULL LAX-WENDROFF STEP
+          5 |C   PRGMMR: J TUCCILLO       ORG: W/NMC4      DATE: 90-06-25
+          6 |C
+          7 |C ABSTRACT:
+          8 |C   .       ADVANCE THE SINGLE GRID NG IN TIME BY
+          9 |C   .       ONE FULL LAX-WENDROFF TIME STEP.
+         10 |C   .
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   90-06-25  J TUCCILLO
+         13 |C
+         14 |C USAGE:  CALL ONEGRID( NG, NPAIR, LASTSTEP )
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     NG       - GRID NUMBER (OUTER HEMISPHERIC GRID HAS
+         17 |C                NG EQUAL TO 1.)
+         18 |C     NPAIR    - 1 FOR THE FIRST OF A PAIR OF CALLS TO
+         19 |C                THIS GRID, 2 FOR THE SECOND OF A PAIR.
+         20 |C     LASTSTEP - A FLAG WHICH WHEN EQUAL TO 1 INDICATES
+         21 |C                THAT THIS IS THE LAST STEP FOR THIS
+         22 |C                GRID WITHIN A COMPLETE (GRID A)
+         23 |C                TIME STEP.
+         24 |C
+         25 |C   SUBPROGRAMS CALLED:
+         26 |C     UNIQUE:    - P2KAP
+         27 |C     LIBRARY:
+         28 |C       COMMON   - COMCONST
+         29 |C                  COMBLANK
+         30 |C                  COMDIAG
+         31 |C
+         32 |C REMARKS:
+         33 |C   .
+         34 |C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+         35 |C   .
+         36 |C   NAMES     MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         37 |C   -----     ----------------------------------        ---------
+         38 |C   VBL        ARRAY CONTAINING ALL VBLS FOR ALL GRIDS   COMMON
+         39 |C   .
+         40 |C   BITGRDX    (X = H, U, V) BIT VECTORS TO CONTROL      COMMON
+         41 |C   .             STORAGE OF UPDATED VBLS ONLY AT
+         42 |C   .             LEGITIMATE FORECAST POINTS.
+         43 |C   .
+         44 |C   BITSEA     BIT VECTOR (1 OVER WATER) TO ALLOW DIFF.  COMMON
+         45 |C                 TREATMENTS OF SURFACE EXCHANGES.
+         46 |C   .
+         47 |C   IMG,JMG    HORIZONTAL DIMENSIONS OF ALL GRIDS.       COMMON
+         48 |C   .
+         49 |C   KM         NUMBER OF HORIZONTAL LVLS. FOR ALL GRIDS  COMMON
+         50 |C   .
+         51 |C   NH         NH + 0.5 IS THE NUMBER OF GRID INTERVALS  COMMON
+         52 |C   .             ON GRID 1 BETWEEN POLE AND EQUATOR.
+         53 |C   .
+         54 |C   IAG,IBG,   GRID COORDINATES DEFINING THE 'HOLE' ON   COMMON
+         55 |C   JAG,JBG    A COARSE GRID THAT IS COVERED BY THE      COMMON
+         56 |C   .             NEXT FINER GRID.
+         57 |C   .
+         58 |C   IADDRG     INITIAL ADDRESSES IN VBL FOR EACH TYPE    COMMON
+         59 |C   .             OF DATA FOR EACH GRID.
+         60 |C   .
+         61 |C   XPOLEH,    VALUES OF I AND J AT THE NORTH POLE FOR   COMMON
+         62 |C   YPOLEH     H POINTS  ON ALL GRIDS.
+         63 |C   .
+         64 |C   DELSIG     VERTICAL SIGMA DIFFS. ACROSS EACH LAYER   COMMON
+         65 |C   .
+         66 |C   SIGINT     SIGMA VALUES AT THE KM + 1 INTERFACES.    COMMON
+         67 |C   .
+         68 |C   PR         HALF OF (1-SIGMA) TO THE KAPPA POWER.     COMMON
+         69 |C   .
+         70 |C   NTIME      TIME STEP(ADVANCES BY ONE FOR EACH STEP   COMMON
+         71 |C   .             ON THE OUTER GRID(NG = 1) ).
+         72 |C   .
+         73 |C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+         74 |C   .
+         75 |C   NAMES     MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         76 |C   -----     ----------------------------------        ---------
+         77 |C   VBL        UPDATED VARIABLES.                         COMMON
+         78 |C   .
+         79 |C
+         80 |C ATTRIBUTES:
+         81 |C   LANGUAGE: FORTRAN
+         82 |C   MACHINE:  CRAY Y-MP
+         83 |C
+         84 |C$$$
+         85 |C
+         86 |      include 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      3,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =  10000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         87 |C
+         88 |      PARAMETER ( P5 = 0.5, ZERO = 0.0, ONE = 1.0, P609 = 0.609,
+         89 |     *            TWO = 2.0, ONEP5 = 1.5, IKMM1 = IKM - 1 )
+         90 |      PARAMETER ( CSUBP = 1005.0E0 )
+         91 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  15:04:57
+         92 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+         93 |      REAL C11U,C12U
+         94 |C
+         95 |      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+         96 |     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+         97 |     2                  NTIME, ITIME, NSTEPS,
+         98 |     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+         99 |     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+        100 |     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+        101 |     6                  IADDRG(INIADDRS, INGRDUSE),
+        102 |     7                  NPTSFH(2, INGRDUSE),
+        103 |     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+        104 |     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+        105 |     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+        106 |     2                  SIGINT(IKMP1),
+        107 |     3                  DTOVDX, ANGVEL,
+        108 |     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+        109 |     5                  SATDEL, RHFACTOR, QBOUND,
+        110 |     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+        111 |     7                  SCALEHT, SIGDOT, DLAMNGM
+        112 |C
+        113 |      COMMON            SCR     (IIJMAX,  INSCR),
+        114 |     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+        115 |     2                  SCR3    (IIJKMAX, INSCR3),
+        116 |     3                  FILLER  (INFILLER),
+        117 |     4                  VBL     (INVBL),
+        118 |     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+        119 |     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+        120 |     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+        121 |     8                  BITSEA  (IIJMAX, INGRDUSE),
+        122 |     9                  BITSNO  (IIJMAX, INGRDUSE),
+        123 |     1                  BITWVL  (IIJMAX, INGRDUSE)
+        124 |C
+        125 |      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+        126 |      COMMON /COMDIAG/  KADIAB( IKM, INGRDUSE ),
+        127 |     1                  NPTSDHQ (2, INGRDUSE),
+        128 |     2                  KKCLOUD2(2, INGRDUSE), NPTSBUOY(2, INGRDUSE),
+        129 |     3                  NPTSWATR(2, INGRDUSE), NPTSCC  (2, INGRDUSE),
+        130 |     4                  KKGSP2  (2, INGRDUSE),
+        131 |     5                  KKGSE2  (2, INGRDUSE),
+        132 |     6                  NPTSSAT (IKM, 2, INGRDUSE),
+        133 |     7                  NPTSEVAP(IKM, 2, INGRDUSE),
+        134 |     8                  NPTSGSP (2, INGRDUSE), NUMPROF,
+        135 |     9                  PPTCC   (2, INGRDUSE), PPTGSP  (2, INGRDUSE),
+        136 |     1                  ALATPR  (IMAXPROF),    ALONPR  (IMAXPROF),
+        137 |     2                  DESCRP  (IMAXPROF)
+        138 |C
+        139 |      CHARACTER*24 DESCRP
+        140 |C
+        141 |C              ARRAYS FOR MAP SCALE  AND CORIOLIS FACTORS,ETC.
+        142 |      DIMENSION    DICOR(IIJMAX),  DJCOR(IIJMAX), SINLAT(IIJMAX),
+        143 |     1             EM2C(IIJMAX),   EM2H(IIJMAX),  GRNDP(IIJMAX),
+        144 |     2             EMU(IIJMAX),    EM2U(IIJMAX),  EMUIN(IIJMAX),
+        145 |     3             EMV(IIJMAX),    EM2V(IIJMAX),  EMVIN(IIJMAX)
+        146 |C
+        147 |C              HORIZONTAL SCRATCH ARRAYS.
+        148 |      DIMENSION    S1(IIJMAX),     S2(IIJMAX),    S3(IIJMAX),
+        149 |     1             S4(IIJMAX),     S5(IIJMAX),    S6(IIJMAX),
+        150 |     2             S7(IIJMAX),     S8(IIJMAX),    S9(IIJMAX) ,
+        151 |     3             HP(IIJMAX),    S11(IIJMAX), S12(IIJMAX) ,
+        152 |     4            S13(IIJMAX),    S14(IIJMAX), S15(IIJMAX) ,
+        153 |     5            S16(IIJMAX),    S17(IIJMAX), S18(IIJMAX) ,
+        154 |     6            S19(IIJMAX),    S20(IIJMAX), S21(IIJMAX) ,
+        155 |     7            S22(IIJMAX),    S23(IIJMAX)
+        156 |C
+        157 |C              THREE-DIMENSIONAL SCRATCH ARRAYS.
+        158 |      DIMENSION    U(IIJKMAX),     V(IIJKMAX),    TH(IIJKMAX),
+        159 |     1             Q(IIJKMAX),
+        160 |     2             UP(IIJKMAX),    VP(IIJKMAX),   THP(IIJKMAX),
+        161 |     2             THPATH(IIJKMAX),
+        162 |     3             QP(IIJKMAX),    QPATH(IIJKMAX),
+        163 |     4             XDIS(IIJKMAX),  YDIS(IIJKMAX), ZDIS(IIJKMAX),
+        164 |     5             W(IIJKMAX),     VT(IIJKMAX),   PSI(IIJKMAX),
+        165 |     6             CORU(IIJKMAX),  CORV(IIJKMAX), FLX(IIJKMAX),
+        166 |     7             CONV(IIJKMAX),  SBAR(IIJKMAX), FLY(IIJKMAX),
+        167 |     8             DHQ(IIJKMAX),   FKS(IIJKMAX)
+        168 |C
+        169 |      DIMENSION   ABITGRDH(IIJMAX, 2, INGRDUSE),
+        170 |     1            ABITGRDU(IIJMAX, 2, INGRDUSE),
+        171 |     2            ABITGRDV(IIJMAX, 2, INGRDUSE)
+        172 |C
+        173 |      LOGICAL LFRST
+        174 |      INTEGER I1X,I2X
+        175 |      REAL COFD1,COFD2,COFD3,COFD4,COFN1,COFN2,COFN3
+        176 |      PARAMETER (COFD1 = 1., COFD2 = 5.44053037, COFD3 = 2.27693825,
+        177 |     1   COFD4 = -0.0869930591, COFN1 = 0.34757549, COFN2 = 4.36732956,
+        178 |     2   COFN3 = 3.91557032)
+        179 |      DATA LFRST / .TRUE. /
+        180 |C
+        181 |C              HORIZONTAL SCRATCH ARRAY EQUIVALENCES
+        182 |      EQUIVALENCE  (SCR(1,1), S1   ),  (SCR(1,2), S2    ),
+        183 |     1             (SCR(1,3), S3   ),  (SCR(1,4), S4    ),
+        184 |     2             (SCR(1,5), S5   ),  (SCR(1,6), S6    ),
+        185 |     3             (SCR(1,7), S7   ),  (SCR(1,8), S8    ),
+        186 |     4             (SCR(1,9), S9   ),  (SCR(1,10),HP    ),
+        187 |     5             (SCR(1,11),S11  ),   (SCR(1,12),S12   ),
+        188 |     6             (SCR(1,13), S13  ),  (SCR(1,14),S14   ),
+        189 |     7             (SCR(1,15), S15  ),  (SCR(1,16),S16   ),
+        190 |     8             (SCR(1,17), S17  ),  (SCR(1,18),S18   ),
+        191 |     9             (SCR(1,19), S19  ),  (SCR(1,20),S20   ),
+        192 |     1             (SCR(1,21), S21  ),  (SCR(1,22),S22   ),
+        193 |     2             (SCR(1,23), S23  )
+        194 |C
+        195 |C              GEOGRAPHY-RELATED HORIZONTAL SCRATCH ARRAYS.
+        196 |      EQUIVALENCE  (SCRGEOG(1, 1),DICOR),
+        197 |     1             (SCRGEOG(1, 2),DJCOR),  (SCRGEOG(1, 3),SINLAT),
+        198 |     2             (SCRGEOG(1, 4),EM2C ),  (SCRGEOG(1, 5),EM2H  ),
+        199 |     3             (SCRGEOG(1, 6),EMU  ),  (SCRGEOG(1, 7),EM2U  ),
+        200 |     4             (SCRGEOG(1, 8),EMUIN),  (SCRGEOG(1, 9),EMV   ),
+        201 |     5             (SCRGEOG(1,10),EM2V ),  (SCRGEOG(1,11),EMVIN ),
+        202 |     6             (SCRGEOG(1,12),GRNDP)
+        203 |C
+        204 |C              THREE-DIMENSIONAL SCRATCH ARRAY EQUIVALENCES.
+        205 |      EQUIVALENCE  (SCR3(1,1), U,          FLX               ),
+        206 |     1             (SCR3(1,2), V,          FLY               ),
+        207 |     2             (SCR3(1,3), TH,      SBAR                 ),
+        208 |     3             (SCR3(1,4), Q,         DHQ                ),
+        209 |     4             (SCR3(1,5), UP                            ),
+        210 |     5             (SCR3(1,6), VP,  THPATH, QPATH            ),
+        211 |     6             (SCR3(1,7), THP                           ),
+        212 |     7             (SCR3(1,8), QP                            ),
+        213 |     8             (SCR3(1,9), W,   XDIS, VT,  CORV          ),
+        214 |     9             (SCR3(1,10),ZDIS,YDIS, PSI, CORU,CONV,FKS )
+        215 |C
+        216 |C
+        217 |      IF ( LFRST ) THEN
+        218 |C
+        219 |        LFRST = .FALSE.
+        220 |C
+        221 |CMIC$ DO ALL VECTOR SHARED(BITGRDU, ABITGRDU, BITGRDV, ABITGRDV, BITGRDH
+        222 |CMIC$1   , ABITGRDH) PRIVATE(IQ2)
+        223 |        DO 5583 IQ2 = 1, IIJMAX * INGRDUSE * 2
+        224 |         IF ( BITGRDU(IQ2,1,1) ) THEN
+        225 |            ABITGRDU(IQ2,1,1) = ONE
+        226 |         ELSE
+        227 |            ABITGRDU(IQ2,1,1) = ZERO
+        228 |         END IF
+        229 |         IF ( BITGRDV(IQ2,1,1) ) THEN
+        230 |            ABITGRDV(IQ2,1,1) = ONE
+        231 |         ELSE
+        232 |            ABITGRDV(IQ2,1,1) = ZERO
+        233 |         END IF
+        234 |         IF ( BITGRDH(IQ2,1,1) ) THEN
+        235 |            ABITGRDH(IQ2,1,1) = ONE
+        236 |         ELSE
+        237 |            ABITGRDH(IQ2,1,1) = ZERO
+        238 |         END IF
+        239 |5583    CONTINUE
+        240 |C
+        241 |      END IF
+        242 |C
+        243 |CMIC$ DO ALL VECTOR SHARED(SCR) PRIVATE(IQ2)
+        244 |      DO 2991 IQ2 = 1, IMAXSCR
+        245 |         SCR(IQ2,1) = ZERO
+        246 | 2991 CONTINUE
+        247 |C
+        248 |      SIGDOT = ZERO
+        249 |C              GET THE GRID SIZE DIVIDED BY TWICE THE
+        250 |C              EARTH RADIUS( = DXOV2R) FOR THIS GRID.
+        251 |         DXOV2R = ONE / ((FLOAT(NH) + P5) * 2**(NG-1))
+        252 |C
+        253 |C              THE GRID SIZE IN METERS.
+        254 |         DELX = TWO * RADIUS * DXOV2R
+        255 |C
+        256 |C              HALF THE RATIO OF DELTA TIME TO DELTA X.
+        257 |         DTOV2DX = P5 * DTOVDX
+        258 |C
+        259 |C              ONE FULL TIME STEP IN SECONDS FOR THIS GRID.
+        260 |         DTIME = DTOVDX * DELX
+        261 |C
+        262 |C              GRID ARRAY DIMENSIONS
+        263 |         IM = IMG(NG)
+        264 |         JM = JMG(NG)
+        265 |         IJ = IM * JM
+        266 |C
+        267 |C              POLE COORDINATES IN I AND J FOR H POINTS.
+        268 |         XIP = XPOLEH(NG)
+        269 |         YJP = YPOLEH(NG)
+        270 |C
+        271 |C              ADDRESSES OF THE 1ST POINT(I,J,K)=(1,1,1) OF VBLS IN
+        272 |C              ARRAY VBL.
+        273 |         MADDU = IADDRG(1,NG)
+        274 |         MADDV = IADDRG(2,NG)
+        275 |         MADDT = IADDRG(3,NG)
+        276 |         MADDQ = IADDRG(4,NG)
+        277 |         MADDH = IADDRG(5,NG)
+        278 |C
+        279 |C              GET AVERAGED GROUND HEIGHT AT HP POINT.
+        280 |C              GRNDP = G * GROUND-HEIGHT IN METER / CSUBP
+        281 |      LEN22=IJ-3*IM
+        282 |      LADD2 = 1 + IM
+        283 |      JADD = IADDRG(10,NG)
+        284 |CMIC$ PARALLEL SHARED(IJ, S20, GRNDP, JADD, IM, VBL) PRIVATE(IQ2)
+        285 |CMIC$ DO PARALLEL VECTOR
+        286 |      DO 88980 IQ2=1,IJ
+        287 |         S20(IQ2)=P5*(VBL(JADD+IQ2-1)+VBL(JADD+IM+IQ2-1))
+        288 |88980 CONTINUE
+        289 |CMIC$ DO PARALLEL VECTOR
+        290 |      DO 89020 IQ2=1,IJ
+        291 |         GRNDP(IQ2)=P5*(S20(IQ2)+S20(IQ2+1))
+        292 |89020 CONTINUE
+        293 |CMIC$ END PARALLEL
+        294 |C
+        295 |C--------------GET EM = SCALE FACTOR AT H, U, V, AND
+        296 |C              H PRIME (DESIGNATED BY C) POINTS.
+        297 |         C1 = (ONE   - XIP) * DXOV2R
+        298 |         C2 = (ONEP5 - XIP) * DXOV2R
+        299 |CMIC$ DO ALL VECTOR SHARED(IM, C1, DXOV2R, C2, S1, S2) PRIVATE(IQ2)
+        300 |         DO 1001 IQ2 = 1, IM
+        301 |            S1(IQ2) = ( C1 + DXOV2R*FLOAT(IQ2-1) ) ** 2
+        302 |            S2(IQ2) = ( C2 + DXOV2R*FLOAT(IQ2-1) ) ** 2
+        303 |1001     CONTINUE
+        304 |         C1 = (ONE   - YJP) * DXOV2R
+        305 |         C2 = (ONEP5 - YJP) * DXOV2R
+        306 |CMIC$ DO ALL VECTOR SHARED(JM, C1, DXOV2R, C2, S3, S4) PRIVATE(IQ2)
+        307 |         DO 1003 IQ2 = 1, JM
+        308 |            S3(IQ2) = ( C1 + DXOV2R*FLOAT(IQ2-1) ) ** 2 + ONE
+        309 |            S4(IQ2) = ( C2 + DXOV2R*FLOAT(IQ2-1) ) ** 2 + ONE
+        310 |1003     CONTINUE
+        311 |C
+        312 |      I = 1 - IM
+        313 |CMIC$ PARALLEL SHARED(IJ, EM2H, SINLAT, EMU, EM2U, EMV, EM2V, EMUIN,
+        314 |CMIC$1   EMVIN, EM2C, JM, I, IM, S3, S1, S2, S4) PRIVATE(IQ2, J, C1,
+        315 |CMIC$2   C11U)
+        316 |CMIC$ DO PARALLEL
+        317 |      DO 13 J = 1, JM
+        318 |         C11U = S3(J)
+        319 |         DO 77003 IQ2 = 1, IM
+        320 |            EM2H(I+IQ2-1+J*IM) = C11U + S1(IQ2)
+        321 |            EMV(I+IQ2-1+J*IM) = C11U + S2(IQ2)
+        322 |77003    CONTINUE
+        323 |         C11U = S4(J)
+        324 |         DO 77004 IQ2 = 1, IM
+        325 |            EMU(I+IQ2-1+J*IM) = C11U + S1(IQ2)
+        326 |            EM2C(I+IQ2-1+J*IM) = C11U + S2(IQ2)
+        327 |77004    CONTINUE
+        328 |   13 CONTINUE
+        329 |C
+        330 |C--------------GET SINE OF THE LATITUDE AT H POINTS FROM THE
+        331 |C              SCALE FACTOR.
+        332 |CMIC$ DO PARALLEL VECTOR
+        333 |      DO 89120 IQ2=1,IJ
+        334 |         SINLAT(IQ2)=(TWO/EM2H(IQ2)) - ONE
+        335 |C
+        336 |C------------- GET EM SQUARED AT H, U, AND V POINTS.
+        337 |         EM2H(IQ2)=EM2H(IQ2)*EM2H(IQ2)
+        338 |         EM2U(IQ2)=EMU(IQ2)*EMU(IQ2)
+        339 |         EM2V(IQ2)=EMV(IQ2)*EMV(IQ2)
+        340 |C
+        341 |C--------------GET RECIPROCAL OF EM AT U AND V POINTS
+        342 |         EMUIN(IQ2)=ONE/EMU(IQ2)
+        343 |         EMVIN(IQ2)=ONE/EMV(IQ2)
+        344 |C
+        345 |C------------- GET EM SQUARED AT THE H PRIME(C) POINT.
+        346 |         EM2C(IQ2)=EM2C(IQ2)*EM2C(IQ2)
+        347 |89120 CONTINUE
+        348 |CMIC$ END PARALLEL
+        349 |C
+        350 |C--------------DTIME * (X - XP) / (2 * RADIUS**2) AT H PTS
+        351 |C              IS PLACED INTO DICOR
+        352 |C              AND  DTIME * (Y - YP) / (2 * RADIUS**2)
+        353 |C              IS PLACED INTO DJCOR.
+        354 |C
+        355 |         C2 = TWO * DTOVDX * DXOV2R * DXOV2R
+        356 |         C1 = C2 * (ONE - XIP)
+        357 |CMIC$ DO ALL VECTOR SHARED(IM, C1, C2, S1) PRIVATE(IQ2)
+        358 |         DO 2001 IQ2 = 1, IM
+        359 |            S1(IQ2) = C1 + C2*FLOAT(IQ2-1)
+        360 |2001     CONTINUE
+        361 |         C1 = C2 * (ONE - YJP)
+        362 |CMIC$ DO ALL VECTOR SHARED(JM, C1, C2, S3) PRIVATE(IQ2)
+        363 |         DO 2002 IQ2 = 1, JM
+        364 |            S3(IQ2) = C1 + C2*FLOAT(IQ2-1)
+        365 |2002     CONTINUE
+        366 |C
+        367 |      I = 1 - IM
+        368 |CMIC$ DO ALL SHARED(JM, I, IM, S3, DJCOR, S1, DICOR) PRIVATE(J, C1, IQ2)
+        369 |      DO 14 J = 1, JM
+        370 |         C1 = S3(J)
+        371 |         DO 77005 IQ2 = 1, IM
+        372 |            DJCOR(I+IQ2-1+J*IM) = C1
+        373 |            DICOR(I+IQ2-1+J*IM) = S1(IQ2)
+        374 |77005    CONTINUE
+        375 |   14 CONTINUE
+        376 |C
+        377 |C--------------------- DETERMINE LIMITS ON J-ROWS
+        378 |C
+        379 |         J1 =  1
+        380 |         J2 =  2
+        381 |         J3 =  3
+        382 |         JM0 = JM
+        383 |         JM1 = JM - 1
+        384 |         JM2 = JM - 2
+        385 |C
+        386 |C              IF THIS IS THE SECOND TIME STEP OF A PAIR, WE
+        387 |C              MUST ADD (OR SUBTRACT) 2 .
+        388 |      IF( NPAIR .LT. 2 ) GO TO 17
+        389 |C
+        390 |         J1  = J1 + 2
+        391 |         J2  = J2 + 2
+        392 |         J3  = J3 + 2
+        393 |         JM0 = JM0 - 2
+        394 |         JM1 = JM1 - 2
+        395 |         JM2 = JM2 - 2
+        396 |C
+        397 |   17 CONTINUE
+        398 |C
+        399 |C------------- SET UP THE THREE STANDARD VECTOR INITIAL
+        400 |C              ADDRESSES (RELATIVE TO A SINGLE HORIZONTAL
+        401 |C              FIELD) THAT BEGIN WITH THE ROW.
+        402 |C              J = J1,J2,J3
+        403 |         LADD2 = IM * (J2 - 1) + 1
+        404 |         LADD3 = IM * (J3 - 1) + 1
+        405 |C
+        406 |C------------- SET UP THE 6 POSSIBLE VECTOR LENGTHS FOR THE
+        407 |C              BLOCKS OF J-ROWS J = JP THROUGH JMQ, WHERE
+        408 |C              P STANDS FOR 1,2,OR 3 AND Q STANDS FOR
+        409 |C              0,1, OR 2.
+        410 |C
+        411 |         LEN22 = IM * (JM2 - J2 + 1)
+        412 |         LEN21 = IM * (JM1 - J2 + 1)
+        413 |         LEN20 = IM * (JM0 - J2 + 1)
+        414 |C
+        415 |         LEN32 = IM * (JM2 - J3 + 1)
+        416 |         LEN31 = IM * (JM1 - J3 + 1)
+        417 |         LEN30 = IM * (JM0 - J3 + 1)
+        418 |C
+        419 |C================ CONVERGENCE FOR HALF TIME STEP =================
+        420 |C
+        421 |C              PRESET ADDRESSES FOR HU AND HV IN ARRAY VBL.
+        422 |         JADDU = MADDU - 1 + LADD2 - IJ
+        423 |         JADDV = MADDV - 1 + LADD2 - IJ
+        424 |         JADD  = LADD2 - IJ
+        425 |C
+        426 |CFPP$ NODEPCHK L
+        427 |CMIC$ DO ALL SHARED(JADDU, IJ, JADDV, JADD, LEN21, LADD2, LEN20, LADD3,
+        428 |CMIC$1   DELSIG, VBL, EMUIN, EMVIN, EM2C, CONV) PRIVATE(S1, S2, K, C1,
+        429 |CMIC$2   IQ2, C12U) SAVELAST
+        430 |      DO 100 K = 1, 16
+        431 |         C12U = -DELSIG(K)
+        432 |C
+        433 |         DO 77006 IQ2 = 1, LEN21
+        434 |            S1(LADD2+IQ2-1) = VBL(JADDU+IJ*K+IQ2-1)*EMUIN(LADD2+IQ2-1)
+        435 |77006    CONTINUE
+        436 |C
+        437 |         DO 77007 IQ2 = 1, LEN20
+        438 |            S2(LADD2+IQ2-1) = VBL(JADDV+IJ*K+IQ2-1)*EMVIN(LADD2+IQ2-1)
+        439 |77007    CONTINUE
+        440 |C
+        441 |C              PUT  - DELSIG TIMES FLUX DIFFS. * EM**2 INTO CONV
+        442 |         DO 77008 IQ2 = 1, LEN21
+        443 |            CONV(JADD+IJ*K+IQ2-1) = EM2C(LADD2+IQ2-1)*C12U*(S1(LADD2+IQ2
+        444 |     1         )-S1(LADD2+IQ2-1)+S2(LADD3+IQ2-1)-S2(LADD2+IQ2-1))
+        445 |77008    CONTINUE
+        446 |  100 CONTINUE
+        447 |C
+        448 |C------------- COMPUTE THE VERTICAL SUM OF CONV, ACCUMULATING IT IN S1.
+        449 |      JADD = LADD2 + IJ
+        450 |CMIC$ DO ALL VECTOR SHARED(LEN21, LADD2, JADD, CONV, S1) PRIVATE(IQ2)
+        451 |      DO 89320 IQ2=1,LEN21
+        452 |         S1(LADD2+IQ2-1)=CONV(LADD2+IQ2-1)+CONV(JADD+IQ2-1)
+        453 |89320 CONTINUE
+        454 |C
+        455 |      DO 105 K = 3,IKM
+        456 |         JADD = JADD + IJ
+        457 |CMIC$ DO ALL VECTOR SHARED(LEN21, LADD2, JADD, S1, CONV) PRIVATE(IQ2)
+        458 |      DO 89330 IQ2=1,LEN21
+        459 |         S1(LADD2+IQ2-1)=S1(LADD2+IQ2-1)+CONV(JADD+IQ2-1)
+        460 |89330 CONTINUE
+        461 |  105 CONTINUE
+        462 |C
+        463 |C              ARRAY S1 NOW HAS DDDH, WHICH EQUALS THE LOCAL
+        464 |C              TIME DERIVATIVE OF SURFACE PRESSURE
+        465 |C              AT C POINTS, J = J2,JM1.
+        466 |C
+        467 |      JADDH = LADD2 + MADDH - 1
+        468 |CMIC$ PARALLEL SHARED(LEN21, DTOV2DX, LADD2, S1, S4, HP, JADDH, IM, VBL)
+        469 |CMIC$1    PRIVATE(IQ2)
+        470 |CMIC$ DO PARALLEL VECTOR
+        471 |      DO 89340 IQ2=1,LEN21
+        472 |         S4(LADD2+IQ2-1)=P5*(VBL(JADDH+IQ2-1)+VBL(JADDH+IM+IQ2-1))
+        473 |89340 CONTINUE
+        474 |CMIC$ DO PARALLEL VECTOR
+        475 |      DO 89400 IQ2=1,LEN21
+        476 |         HP(LADD2+IQ2-1)=DTOV2DX*S1(LADD2+IQ2-1)+
+        477 |     *                   P5*(S4(LADD2+IQ2-1)+S4(LADD2+IQ2))
+        478 |89400 CONTINUE
+        479 |CMIC$ END PARALLEL
+        480 |C
+        481 |C------------- CONVERT CONV INTO W = H * DELX * D(SIGMA) / DT, J=J2,JM1.
+        482 |      C1 = DELSIG(1)
+        483 |CMIC$ DO ALL VECTOR SHARED(LEN21,LADD2,C1,IJ,CONV,S1,W)PRIVATE(IQ2)
+        484 |      DO 89410 IQ2=1,LEN21
+        485 |         W(LADD2+IJ+IQ2-1)=CONV(LADD2+IQ2-1)-C1*S1(LADD2+IQ2-1)
+        486 |89410 CONTINUE
+        487 |C
+        488 |C              K = 2 ARRAY OF W NOW CONTAINS W FOR INTERFACE K = 2.
+        489 |C              TOP NONZERO W,AT INTERFACE KM, WILL END UP AT LEVEL
+        490 |C              KM OF ARRAY W.
+        491 |      JADDW = LADD2 + IJ
+        492 |      DO 110 K = 3,IKM
+        493 |      C1    = DELSIG(K - 1)
+        494 |      JADDW = JADDW + IJ
+        495 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN21 .OR. IJ.EQ.0) SHARED(LEN21,
+        496 |CMIC$1   JADDW, IJ, C1, LADD2, CONV, W, S1) PRIVATE(IQ2)
+        497 |      DO 89430 IQ2=1,LEN21
+        498 |         W(JADDW+IQ2-1)=
+        499 |     *   CONV(JADDW-IJ+IQ2-1)+W(JADDW-IJ+IQ2-1)-C1*S1(LADD2+IQ2-1)
+        500 |89430 CONTINUE
+        501 |  110 CONTINUE
+        502 |C
+        503 |C--------------GET RECIPROCAL OF H INTO S11, J = J2,JM0.
+        504 |C
+        505 |CMIC$ PARALLEL SHARED(LEN21, LADD2, S4, S3, LADD3, S11, LEN20, S2, JADDH
+        506 |CMIC$1   , VBL) PRIVATE(IQ2)
+        507 |CMIC$ DO PARALLEL VECTOR
+        508 |      DO 89440 IQ2=1,LEN20
+        509 |         S11(LADD2+IQ2-1)=ONE/VBL(JADDH+IQ2-1)
+        510 |89440 CONTINUE
+        511 |C
+        512 |C--------------AVERAGE IN I TO GET 1/H AT V PTS (S2, J = J2,JM0).
+        513 |CMIC$ DO PARALLEL VECTOR
+        514 |      DO 89450 IQ2=1,LEN20
+        515 |         S2(LADD2+IQ2-1)=P5*(S11(LADD2+IQ2-1)+S11(LADD2+IQ2))
+        516 |89450 CONTINUE
+        517 |C
+        518 |C--------------AVERAGE IN J FOR 1/H AT U  PTS (S4, J = J2,JM1).
+        519 |CMIC$ DO PARALLEL VECTOR
+        520 |      DO 89480 IQ2=1,LEN21
+        521 |         S4(LADD2+IQ2-1)=P5*(S11(LADD2+IQ2-1)+S11(LADD3+IQ2-1))
+        522 |89480 CONTINUE
+        523 |C
+        524 |C------------- GET I AVERAGE OF THESE FOR CENTER PT. (S3, J = J2,JM1).
+        525 |CMIC$ DO PARALLEL VECTOR
+        526 |      DO 89510 IQ2=1,LEN21
+        527 |         S3(LADD2+IQ2-1)=P5*(S4(LADD2+IQ2-1)+S4(LADD2+IQ2))
+        528 |89510 CONTINUE
+        529 |CMIC$ END PARALLEL
+        530 |C
+        531 |C              WE CAN CHANGE HU,HV,HTH,AND HQ TO U,V,TH,AND Q WHERE
+        532 |C              WE HAVE THE VALUES 1/H.
+        533 |C
+        534 |         JADDUH = MADDU - 1 + LADD2 - IJ
+        535 |         JADDVH = MADDV - 1 + LADD2 - IJ
+        536 |         JADDTH = MADDT - 1 + LADD2 - IJ
+        537 |         JADDQH = MADDQ - 1 + LADD2 - IJ
+        538 |         JADD   = LADD2 - IJ
+        539 |C
+        540 |CFPP$ NODEPCHK
+        541 |CMIC$ DO ALL SHARED(JADDUH, IJ, JADDVH, JADDTH, JADDQH, JADD, LEN21,
+        542 |CMIC$1   LADD2, LEN20, VBL, S4, U, S2, V, S11, TH, Q) PRIVATE(K, IQ2)
+        543 |      DO 200 K = 1, 16
+        544 |         DO 77009 IQ2 = 1, LEN21
+        545 |            U(JADD+IJ*K+IQ2-1) = VBL(JADDUH+IJ*K+IQ2-1)*S4(LADD2+IQ2-1)
+        546 |77009    CONTINUE
+        547 |         DO 77010 IQ2 = 1, LEN20
+        548 |            V(JADD+IJ*K+IQ2-1) = VBL(JADDVH+IJ*K+IQ2-1)*S2(LADD2+IQ2-1)
+        549 |            TH(JADD+IJ*K+IQ2-1)=VBL(JADDTH+IJ*K+IQ2-1)*S11(LADD2+IQ2-1)
+        550 |            Q(JADD+IJ*K+IQ2-1) = VBL(JADDQH+IJ*K+IQ2-1)*S11(LADD2+IQ2-1)
+        551 |77010    CONTINUE
+        552 |  200 CONTINUE
+        553 |C
+        554 |C--------------PUT AVERAGES OF TH, Q, AND V INTO HALF TIME ARRAYS,
+        555 |C              FOR ROWS J2 THRU JM1.
+        556 |      JADD  = LADD2 - IJ
+        557 |CFPP$ NODEPCHK
+        558 |CMIC$ DO ALL SHARED(JADD, IJ, LEN20, LADD2, LEN21, LADD3, TH, Q, V, THP
+        559 |CMIC$1   , QP, VP) PRIVATE(S5, S6, S7, K, IQ2) SAVELAST
+        560 |      DO 205 K = 1, 16
+        561 |C            AVERAGE OF TH TO THP AT HP POINT
+        562 |C              DITTO FOR Q.
+        563 |C              FOR V WE NEED BACKWARD I AVERAGING.
+        564 |         DO 77011 IQ2 = 1, LEN20
+        565 |            S5(LADD2+IQ2-1)=0.5*(TH(JADD+IJ*K+IQ2-1)+TH(JADD+IJ*K+IQ2))
+        566 |            S6(LADD2+IQ2-1) = 0.5*(Q(JADD+IJ*K+IQ2-1)+Q(JADD+IJ*K+IQ2))
+        567 |            S7(LADD2+IQ2-1)=0.5*(V(JADD+IJ*K-2+IQ2)+V(JADD+IJ*K+IQ2-1))
+        568 |77011    CONTINUE
+        569 |         DO 77012 IQ2 = 1, LEN21
+        570 |            THP(JADD+IJ*K+IQ2-1) = 0.5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1))
+        571 |            QP(JADD+IJ*K+IQ2-1) = 0.5*(S6(LADD2+IQ2-1)+S6(LADD3+IQ2-1))
+        572 |            VP(JADD+IJ*K+IQ2-1) = 0.5*(S7(LADD2+IQ2-1)+S7(LADD3+IQ2-1))
+        573 |77012    CONTINUE
+        574 |  205 CONTINUE
+        575 |C
+        576 |C------------- PUT HORIZONTAL AVG OF U INTO HALF TIME ARRAY,
+        577 |C              FOR J3,JM1.
+        578 |      JADD  = LADD2 - IJ
+        579 |CFPP$ NODEPCHK
+        580 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, LADD2, LEN31, LADD3, IM, U, UP)
+        581 |CMIC$1    PRIVATE(S5, K, IQ2) SAVELAST
+        582 |      DO 210 K = 1, 16
+        583 |         DO 77013 IQ2 = 1, LEN21
+        584 |            S5(LADD2+IQ2-1) = 0.5*(U(JADD+IJ*K+IQ2-1)+U(JADD+IJ*K+IQ2))
+        585 |77013    CONTINUE
+        586 |         DO 77014 IQ2 = 1, LEN31
+        587 |            UP(JADD+IJ*K+IM+IQ2-1) = 0.5*(S5(LADD2+IQ2-1)+S5(LADD3+IQ2-1
+        588 |     1         ))
+        589 |77014    CONTINUE
+        590 |  210 CONTINUE
+        591 |C
+        592 |C------------- CONVERT W INTO ZDIS USING 1/H AT CENTER POINT.
+        593 |C              DO THIS FOR J2,JM1.  1/H IS IN S3.
+        594 |C
+        595 |      JADDW = LADD2
+        596 |CFPP$ NODEPCHK
+        597 |CMIC$ DO ALL SHARED(JADDW, IJ, DTOV2DX, LEN21, LADD2, DELSIG, W, S3,
+        598 |CMIC$1   ZDIS) PRIVATE(K, C1, IQ2)
+        599 |      DO 215 K = 1, 15
+        600 |         C1 = -DTOV2DX/(DELSIG(1+K)+DELSIG(K))
+        601 |         DO 77015 IQ2 = 1, LEN21
+        602 |            ZDIS(JADDW+IJ*K+IQ2-1) = W(JADDW+IJ*K+IQ2-1)*C1*S3(LADD2+IQ2
+        603 |     1         -1)
+        604 |77015    CONTINUE
+        605 |  215 CONTINUE
+        606 |C
+        607 |C              NONZERO VALUES OF ZDIS(K = 2,KM) ARE AT THE
+        608 |C              CORRECT PLACE IN THE ZDIS ARRAY.
+        609 |C
+        610 |C---VER TH---- DO VERTICAL ADVECTION OF THETA.  FIRST
+        611 |C              COMPUTE ZDIS(K) * (TH(K) - TH(K-1) ) FOR K=2,KM,
+        612 |C              AND STORE IN W.
+        613 |      JADD  = LADD2
+        614 |CFPP$ NODEPCHK
+        615 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, ZDIS, THP, W) PRIVATE(K, IQ2)
+        616 |      DO 220 K = 1, 15
+        617 |         DO 77016 IQ2 = 1, LEN21
+        618 |            W(JADD+IJ*K+IQ2-1) = ZDIS(JADD+IJ*K+IQ2-1)*(THP(JADD+IJ*K+
+        619 |     1         IQ2-1)-THP(JADD+IJ*(K-1)+IQ2-1))
+        620 |77016    CONTINUE
+        621 |  220 CONTINUE
+        622 |      JADD = 15*IJ + JADD
+        623 |CMIC$ PARALLEL SHARED(LEN21, JADD, THP, W, LADD2, IJ) PRIVATE(IQ2)
+        624 |CMIC$ DO PARALLEL VECTOR
+        625 |      DO 89860 IQ2=1,LEN21
+        626 |         THP(LADD2+IQ2-1)=THP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+        627 |89860 CONTINUE
+        628 |CMIC$ DO PARALLEL VECTOR
+        629 |      DO 89861 IQ2=1,LEN21
+        630 |         THP(JADD+IQ2-1)=THP(JADD+IQ2-1)+W(JADD+IQ2-1)
+        631 |89861 CONTINUE
+        632 |CMIC$ END PARALLEL
+        633 |C
+        634 |      JADD  = LADD2
+        635 |CFPP$ NODEPCHK
+        636 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, THP, W) PRIVATE(K, IQ2)
+        637 |      DO 225 K = 1, 14
+        638 |         DO 77017 IQ2 = 1, LEN21
+        639 |            THP(JADD+IJ*K+IQ2-1) = THP(JADD+IJ*K+IQ2-1) + W(JADD+IJ*K+
+        640 |     1         IQ2-1) + W(JADD+IJ*(K+1)+IQ2-1)
+        641 |77017    CONTINUE
+        642 |  225 CONTINUE
+        643 |C
+        644 |C---VER Q------DO THE VERTICAL ADVECTION OF THE SPECIFIC HUMIDITY.
+        645 |      JADD  = LADD2
+        646 |CFPP$ NODEPCHK
+        647 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, ZDIS, QP, W) PRIVATE(K, IQ2)
+        648 |      DO 230 K = 1, 15
+        649 |         DO 77018 IQ2 = 1, LEN21
+        650 |            W(JADD+IJ*K+IQ2-1) = ZDIS(JADD+IJ*K+IQ2-1)*(QP(JADD+IJ*K+IQ2
+        651 |     1         -1)-QP(JADD+IJ*(K-1)+IQ2-1))
+        652 |77018    CONTINUE
+        653 |  230 CONTINUE
+        654 |      JADD = 15*IJ + JADD
+        655 |CMIC$ PARALLEL SHARED(LEN21, JADD, QP, W, LADD2, IJ) PRIVATE(IQ2)
+        656 |CMIC$ DO PARALLEL VECTOR
+        657 |      DO 12920 IQ2=1,LEN21
+        658 |         QP(LADD2+IQ2-1)=QP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+        659 |12920 CONTINUE
+        660 |CMIC$ DO PARALLEL VECTOR
+        661 |      DO 12921 IQ2=1,LEN21
+        662 |         QP(JADD+IQ2-1)=QP(JADD+IQ2-1)+W(JADD+IQ2-1)
+        663 |12921 CONTINUE
+        664 |CMIC$ END PARALLEL
+        665 |C
+        666 |      JADD  = LADD2
+        667 |CFPP$ NODEPCHK
+        668 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, QP, W) PRIVATE(K, IQ2)
+        669 |      DO 235 K = 1, 14
+        670 |         DO 77019 IQ2 = 1, LEN21
+        671 |            QP(JADD+IJ*K+IQ2-1) = QP(JADD+IJ*K+IQ2-1) + W(JADD+IJ*K+IQ2-
+        672 |     1         1) + W(JADD+IJ*(K+1)+IQ2-1)
+        673 |77019    CONTINUE
+        674 |  235 CONTINUE
+        675 |C
+        676 |C---VER U------THE VERTICAL ADVECTION OF U IS SIMILAR EXCEPT THAT A
+        677 |C              BACKWARD J-AVERAGING OF ZDIS IS NECESSARY.
+        678 |      JADD  = LADD3
+        679 |CFPP$ NODEPCHK
+        680 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, IM, UP, ZDIS, W) PRIVATE(K, IQ2)
+        681 |      DO 240 K = 1, 15
+        682 |         DO 77020 IQ2 = 1, LEN31
+        683 |            W(JADD+IJ*K+IQ2-1) = (UP(JADD+IJ*K+IQ2-1)-UP(JADD+IJ*(K-1)+
+        684 |     1         IQ2-1))*(0.5*(ZDIS(JADD+IJ*K-IM+IQ2-1)+ZDIS(JADD+IJ*K+IQ2
+        685 |     2         -1)))
+        686 |77020    CONTINUE
+        687 |  240 CONTINUE
+        688 |      JADD = 15*IJ + JADD
+        689 |CMIC$ PARALLEL SHARED(LEN31, JADD, UP, W, LADD3, IJ) PRIVATE(IQ2)
+        690 |CMIC$ DO PARALLEL VECTOR
+        691 |      DO 89990 IQ2=1,LEN31
+        692 |         UP(LADD3+IQ2-1)=UP(LADD3+IQ2-1)+W(LADD3+IJ+IQ2-1)
+        693 |89990 CONTINUE
+        694 |CMIC$ DO PARALLEL VECTOR
+        695 |      DO 89991 IQ2=1,LEN31
+        696 |         UP(JADD+IQ2-1)=UP(JADD+IQ2-1)+W(JADD+IQ2-1)
+        697 |89991 CONTINUE
+        698 |CMIC$ END PARALLEL
+        699 |C
+        700 |      JADD  = LADD3
+        701 |CFPP$ NODEPCHK
+        702 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, UP, W) PRIVATE(K, IQ2)
+        703 |      DO 245 K = 1, 14
+        704 |         DO 77021 IQ2 = 1, LEN31
+        705 |            UP(JADD+IJ*K+IQ2-1) = UP(JADD+IJ*K+IQ2-1) + W(JADD+IJ*K+IQ2-
+        706 |     1         1) + W(JADD+IJ*(K+1)+IQ2-1)
+        707 |77021    CONTINUE
+        708 |  245 CONTINUE
+        709 |C
+        710 |C---VER V----- THE VERTICAL ADVECTION OF V NEEDS BACKWARD
+        711 |C              I-AVERAGE OF ZDIS.
+        712 |      JADD  = LADD2
+        713 |CFPP$ NODEPCHK
+        714 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, VP, ZDIS, W) PRIVATE(K, IQ2)
+        715 |      DO 250 K = 1, 15
+        716 |         DO 77022 IQ2 = 1, LEN21
+        717 |            W(JADD+IJ*K+IQ2-1) = (VP(JADD+IJ*K+IQ2-1)-VP(JADD+IJ*(K-1)+
+        718 |     1         IQ2-1))*(0.5*(ZDIS(JADD+IJ*K-2+IQ2)+ZDIS(JADD+IJ*K+IQ2-1)
+        719 |     2         ))
+        720 |77022    CONTINUE
+        721 |  250 CONTINUE
+        722 |      JADD = 15*IJ + JADD
+        723 |CMIC$ PARALLEL SHARED(LEN21, JADD, VP, W, LADD2, IJ) PRIVATE(IQ2)
+        724 |CMIC$ DO PARALLEL VECTOR
+        725 |      DO 90060 IQ2=1,LEN21
+        726 |         VP(LADD2+IQ2-1)=VP(LADD2+IQ2-1)+W(LADD2+IJ+IQ2-1)
+        727 |90060 CONTINUE
+        728 |CMIC$ DO PARALLEL VECTOR
+        729 |      DO 90061 IQ2=1,LEN21
+        730 |         VP(JADD+IQ2-1)=VP(JADD+IQ2-1)+W(JADD+IQ2-1)
+        731 |90061 CONTINUE
+        732 |CMIC$ END PARALLEL
+        733 |C
+        734 |      JADD  = LADD2
+        735 |CFPP$ NODEPCHK
+        736 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, VP, W) PRIVATE(K, IQ2)
+        737 |      DO 255 K = 1, 14
+        738 |         DO 77023 IQ2 = 1, LEN21
+        739 |            VP(JADD+IJ*K+IQ2-1) = VP(JADD+IJ*K+IQ2-1) + W(JADD+IJ*K+IQ2-
+        740 |     1         1) + W(JADD+IJ*(K+1)+IQ2-1)
+        741 |77023    CONTINUE
+        742 |  255 CONTINUE
+        743 |C
+        744 |C=====================HORIZONTAL ADVECTION===========================
+        745 |C
+        746 |      JADD  = LADD2 - IJ
+        747 |CFPP$ NODEPCHK
+        748 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, LADD2, LEN20, EMU, U, XDIS, EMV, V
+        749 |CMIC$1   , YDIS) PRIVATE(K, IQ2)
+        750 |      DO 260 K = 1, 16
+        751 |         DO 77024 IQ2 = 1, LEN21
+        752 |            XDIS(JADD+IJ*K+IQ2-1) = -EMU(LADD2+IQ2-1)*U(JADD+IJ*K+IQ2-1)
+        753 |77024    CONTINUE
+        754 |         DO 77025 IQ2 = 1, LEN20
+        755 |            YDIS(JADD+IJ*K+IQ2-1) = -EMV(LADD2+IQ2-1)*V(JADD+IJ*K+IQ2-1)
+        756 |77025    CONTINUE
+        757 |  260 CONTINUE
+        758 |C
+        759 |C---ADV TH AND Q
+        760 |C
+        761 |      JADD  = LADD2 - IJ
+        762 |CFPP$ NODEPCHK
+        763 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, IM, LADD2, LEN20, DTOV2DX, LADD3,
+        764 |CMIC$1   TH, Q, XDIS, YDIS, QP, THP) PRIVATE(S6, S9, S7, S8, K, IQ2, S5S
+        765 |CMIC$2   , S6S) SAVELAST
+        766 |      DO 270 K = 1, 16
+        767 |C
+        768 |         DO 77026 IQ2 = 1, LEN21
+        769 |            S6(LADD2+IQ2-1) = 0.5*(TH(JADD+IJ*K+IM+IQ2-1)+TH(JADD+IJ*K+
+        770 |     1         IQ2-1))
+        771 |            S9(LADD2+IQ2-1) = 0.5*(Q(JADD+IJ*K+IM+IQ2-1)+Q(JADD+IJ*K+IQ2
+        772 |     1         -1))
+        773 |77026    CONTINUE
+        774 |         DO 77027 IQ2 = 1, LEN20
+        775 |            S7(LADD2+IQ2-1)=0.5*(TH(JADD+IJ*K+IQ2)+TH(JADD+IJ*K+IQ2-1))
+        776 |            S8(LADD2+IQ2-1) = 0.5*(Q(JADD+IJ*K+IQ2)+Q(JADD+IJ*K+IQ2-1))
+        777 |77027    CONTINUE
+        778 |C
+        779 |         DO 77028 IQ2 = 1, LEN21
+        780 |            S5S = 0.5*(XDIS(JADD+IJ*K+IQ2-1)+XDIS(JADD+IJ*K+IQ2))
+        781 |            S6S = 0.5*(YDIS(JADD+IJ*K+IQ2-1)+YDIS(JADD+IJ*K+IM+IQ2-1))
+        782 |C
+        783 |            QP(JADD+IJ*K+IQ2-1) = QP(JADD+IJ*K+IQ2-1) + DTOV2DX*((S9(
+        784 |     1         LADD2+IQ2)-S9(LADD2+IQ2-1))*S5S+S6S*(S8(LADD3+IQ2-1)-S8(
+        785 |     2         LADD2+IQ2-1)))
+        786 |C
+        787 |            THP(JADD+IJ*K+IQ2-1) = THP(JADD+IJ*K+IQ2-1) + DTOV2DX*((S6(
+        788 |     1         LADD2+IQ2)-S6(LADD2+IQ2-1))*S5S+S6S*(S7(LADD3+IQ2-1)-S7(
+        789 |     2         LADD2+IQ2-1)))
+        790 |77028    CONTINUE
+        791 |  270 CONTINUE
+        792 |C
+        793 |C
+        794 |C---ADV U
+        795 |C
+        796 |      JADD  = LADD3 - IJ
+        797 |CFPP$ NODEPCHK
+        798 |CMIC$ DO ALL SHARED(JADD, IJ, LEN21, IM, LADD2, LEN31, LADD3, DTOV2DX, U
+        799 |CMIC$1   , XDIS, UP, YDIS) PRIVATE(S8, S6, S7, K, IQ2) SAVELAST
+        800 |      DO 280 K = 1, 16
+        801 |C
+        802 |         DO 77029 IQ2 = 1, LEN21
+        803 |            S8(LADD2+IQ2-1) = 0.5*(U(JADD+IJ*K-IM+IQ2-1)+U(JADD+IJ*K-IM+
+        804 |     1         IQ2))
+        805 |77029    CONTINUE
+        806 |         DO 77030 IQ2 = 1, LEN31
+        807 |            S6(LADD3+IQ2-1) = 0.5*(XDIS(JADD+IJ*K+IQ2-1)+XDIS(JADD+IJ*K-
+        808 |     1         IM+IQ2-1))
+        809 |            S7(LADD3+IQ2-1) = 0.5*(U(JADD+IJ*K+IQ2-1)+U(JADD+IJ*K-IM+IQ2
+        810 |     1         -1))
+        811 |77030    CONTINUE
+        812 |C
+        813 |         DO 77031 IQ2 = 1, LEN31
+        814 |C              ADD XDIS TIMES I DIFFERENCE OF U TERM TO UP.
+        815 |C              ADD YDIS TIMES J DIFFERENCE OF U TERM TO UP.
+        816 |            UP(JADD+IJ*K+IQ2-1) = UP(JADD+IJ*K+IQ2-1) + DTOV2DX*((S7(
+        817 |     1         LADD3+IQ2)-S7(LADD3+IQ2-1))*0.5*(S6(LADD3+IQ2)+S6(LADD3+
+        818 |     2         IQ2-1))+YDIS(JADD+IJ*K+IQ2-1)*(S8(LADD3+IQ2-1)-S8(LADD2+
+        819 |     3         IQ2-1)))
+        820 |77031    CONTINUE
+        821 |  280 CONTINUE
+        822 |C
+        823 |C
+        824 |C---ADV V
+        825 |C
+        826 |      JADD  = LADD2 - IJ
+        827 |C
+        828 |CFPP$ NODEPCHK
+        829 |CMIC$ DO ALL SHARED(JADD, IJ, LEN20, LADD2, LEN21, IM, DTOV2DX, LADD3,
+        830 |CMIC$1   YDIS, V, VP, XDIS) PRIVATE(S8, S7, S6, K, IQ2) SAVELAST
+        831 |      DO 290 K = 1, 16
+        832 |         DO 77032 IQ2 = 1, LEN20
+        833 |            S8(LADD2+IQ2-1) = 0.5*(YDIS(JADD+IJ*K+IQ2-1)+YDIS(JADD+IJ*K-
+        834 |     1         2+IQ2))
+        835 |            S7(LADD2+IQ2-1)=0.5*(V(JADD+IJ*K+IQ2-1)+V(JADD+IJ*K-2+IQ2))
+        836 |77032    CONTINUE
+        837 |C
+        838 |         DO 77033 IQ2 = 1, LEN21
+        839 |            S6(LADD2+IQ2-1) = 0.5*(V(JADD+IJ*K+IQ2-1)+V(JADD+IJ*K+IM+IQ2
+        840 |     1         -1))
+        841 |77033    CONTINUE
+        842 |C
+        843 |         DO 77034 IQ2 = 1, LEN21
+        844 |            VP(JADD+IJ*K+IQ2-1) = VP(JADD+IJ*K+IQ2-1) + DTOV2DX*((S6(
+        845 |     1         LADD2+IQ2-1)-S6(LADD2-2+IQ2))*XDIS(JADD+IJ*K+IQ2-1)+(S7(
+        846 |     2         LADD3+IQ2-1)-S7(LADD2+IQ2-1))*0.5*(S8(LADD3+IQ2-1)+S8(
+        847 |     3         LADD2+IQ2-1)))
+        848 |77034    CONTINUE
+        849 |  290 CONTINUE
+        850 |C
+        851 |C
+        852 |C
+        853 |C================= HYDROSTATIC FOR HALF TIME STEP ==============
+        854 |C
+        855 |C------------- DO THE HYDROSTATIC COMPUTATIONS,J = J2,JM0.
+        856 |C              MAKE VIRTUAL TEMPERATURE CORRECTION TO THETA.
+        857 |      JADD  = LADD2 - IJ
+        858 |CFPP$ NODEPCHK
+        859 |CMIC$ DO ALL SHARED(JADD, IJ, LEN20, Q, TH, VT) PRIVATE(K, IQ2)
+        860 |      DO 300 K = 1, 16
+        861 |         DO 77035 IQ2 = 1, LEN20
+        862 |            VT(JADD+IJ*K+IQ2-1) = (1.0+0.609*Q(JADD+IJ*K+IQ2-1))*TH(JADD
+        863 |     1         +IJ*K+IQ2-1)
+        864 |77035    CONTINUE
+        865 |  300 CONTINUE
+        866 |C
+        867 |C-------------- GET SFC PRESS(H) **KAPPA INTO S9(J2,JM0)
+        868 |      LADKAPPA = MADDH - 1 + LADD2
+        869 |C
+        870 |C*****  Code Expanded From Routine:  P2KAP
+        871 |CMIC$ DO ALL VECTOR SHARED(LEN20, LADKAPPA, LADD2, VBL, S9) PRIVATE(I1X)
+        872 |      DO 77001 I1X = 1, LEN20
+        873 |         S9(I1X+LADD2-1) = (0.34757549+VBL(I1X+LADKAPPA-1)*(4.36732956+
+        874 |     1      VBL(I1X+LADKAPPA-1)*3.91557032))/(1.+VBL(I1X+LADKAPPA-1)*(
+        875 |     2      5.44053037+VBL(I1X+LADKAPPA-1)*(2.27693825+VBL(I1X+LADKAPPA-
+        876 |     3      1)*(-0.0869930591))))
+        877 |77001 CONTINUE
+        878 |C*****  End of Code Expanded From Routine:  P2KAP
+        879 |C
+        880 |C------------- COMPUTE PSI FOR K = 1,(J2,JM0).
+        881 |      C1 = ONE - TWO * PR(1)
+        882 |      JADD = IADDRG(10,NG) - 1 + LADD2
+        883 |CMIC$ DO ALL VECTOR SHARED(LEN20, C1, LADD2, JADD, VT, S9, VBL, PSI)
+        884 |CMIC$1    PRIVATE(IQ2)
+        885 |      DO 90960 IQ2=1,LEN20
+        886 |         PSI(LADD2+IQ2-1)= C1 * VT(LADD2+IQ2-1) *
+        887 |     *             S9(LADD2+IQ2-1) + VBL(JADD+IQ2-1)
+        888 |90960 CONTINUE
+        889 |C
+        890 |C              NOW EXTEND TO PSI AT K = 2,KM
+        891 |      JADD  = LADD2
+        892 |      DO 320 K = 2,IKM
+        893 |         JADD  = JADD + IJ
+        894 |         C1 = PR(K - 1) - PR(K)
+        895 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN20 .OR. IJ.EQ.0) SHARED(LEN20,
+        896 |CMIC$1   JADD, IJ, C1, LADD2, PSI, VT, S9) PRIVATE(IQ2)
+        897 |      DO 90990 IQ2=1,LEN20
+        898 |         PSI(JADD+IQ2-1)=PSI(JADD-IJ+IQ2-1)+
+        899 |     *         C1*(VT(JADD+IQ2-1)+VT(JADD-IJ+IQ2-1))*
+        900 |     *         S9(LADD2+IQ2-1)
+        901 |90990 CONTINUE
+        902 |  320 CONTINUE
+        903 |C
+        904 |C========================PRESSURE GRADIENT FORCE======================
+        905 |C
+        906 |C---PGF U----- COMPUTE U ACCEL. TERM AND ADD TO UP(J3,JM1).
+        907 |C
+        908 |      C2 = CSUBP * DTOV2DX
+        909 |C
+        910 |CMIC$ DO ALL VECTOR SHARED(LEN31, LADD3, S9, S6) PRIVATE(IQ2)
+        911 |      DO 91020 IQ2=1,LEN31
+        912 |         S6(LADD3+IQ2-1)=S9(LADD3+IQ2)-S9(LADD3+IQ2-1)
+        913 |91020 CONTINUE
+        914 |C
+        915 |      JADD  = LADD3 - IJ
+        916 |CFPP$ NODEPCHK
+        917 |CMIC$ PARALLEL SHARED(LEN21, LADD3, LADD2, S9, S6, JADD, IJ, LEN31, C2,
+        918 |CMIC$1   PR, UP, VT, PSI, EMV) PRIVATE(IQ2, K, C1)
+        919 |CFPP$ NODEPCHK
+        920 |CMIC$ DO PARALLEL
+        921 |      DO 330 K = 1, 16
+        922 |         C1 = PR(K)*2.E0
+        923 |         DO 77036 IQ2 = 1, LEN31
+        924 |            UP(JADD+IJ*K+IQ2-1) = UP(JADD+IJ*K+IQ2-1) - C2*(C1*0.5*(VT(
+        925 |     1         JADD+IJ*K+IQ2-1)+VT(JADD+IJ*K+IQ2))*S6(LADD3+IQ2-1)+PSI(
+        926 |     2         JADD+IJ*K+IQ2)-PSI(JADD+IJ*K+IQ2-1))*EMV(LADD3+IQ2-1)
+        927 |77036    CONTINUE
+        928 |  330 CONTINUE
+        929 |C
+        930 |C---PGF V------COMPUTE V ACCELERATION TERM AND ADD TO VP(J2,JM1).
+        931 |CMIC$ DO PARALLEL VECTOR
+        932 |      DO 91150 IQ2=1,LEN21
+        933 |         S6(LADD2+IQ2-1)=S9(LADD3+IQ2-1)-S9(LADD2+IQ2-1)
+        934 |91150 CONTINUE
+        935 |CMIC$ END PARALLEL
+        936 |C
+        937 |      JADD  = LADD2 - IJ
+        938 |CFPP$ NODEPCHK
+        939 |CMIC$ PARALLEL SHARED(LEN20, LADD2, MADDH, SINLAT, VBL, S5, JADD, IJ,
+        940 |CMIC$1   LEN21, C2, IM, PR, VP, VT, S6, PSI, EMU) PRIVATE(IQ2, K, C1)
+        941 |CFPP$ NODEPCHK
+        942 |CMIC$ DO PARALLEL
+        943 |      DO 340 K = 1, 16
+        944 |         C1 = PR(K)*2.0
+        945 |         DO 77037 IQ2 = 1, LEN21
+        946 |            VP(JADD+IJ*K+IQ2-1) = VP(JADD+IJ*K+IQ2-1) - C2*(C1*0.5*(VT(
+        947 |     1         JADD+IJ*K+IQ2-1)+VT(JADD+IJ*K+IM+IQ2-1))*S6(LADD2+IQ2-1)+
+        948 |     2         PSI(JADD+IJ*K+IM+IQ2-1)-PSI(JADD+IJ*K+IQ2-1))*EMU(LADD2+
+        949 |     3         IQ2-1)
+        950 |77037    CONTINUE
+        951 |  340 CONTINUE
+        952 |C
+        953 |C ======================= CORIOLIS FORCE ===========================
+        954 |C
+        955 |C              FIRST PUT SINE LATITUDE TIMES H INTO S5(J2,JM0).
+        956 |CMIC$ DO PARALLEL VECTOR
+        957 |      DO 91280 IQ2=1,LEN20
+        958 |         S5(LADD2+IQ2-1)=SINLAT(LADD2+IQ2-1)*VBL(MADDH+LADD2+IQ2-2)
+        959 |91280 CONTINUE
+        960 |CMIC$ END PARALLEL
+        961 |         C1 = TWO * ANGVEL * DTIME
+        962 |C
+        963 |C
+        964 |         JADD  = LADD2 - IJ
+        965 |         JADDU = MADDU - 1 + JADD
+        966 |         JADDV = MADDV - 1 + JADD
+        967 |C
+        968 |CFPP$ NODEPCHK
+        969 |CMIC$ DO ALL SHARED(JADD, IJ, JADDU, JADDV, LEN20, IM, LADD2, C1, LEN21
+        970 |CMIC$1   , LADD3, VBL, DJCOR, DICOR, S5, CORU, CORV) PRIVATE(S6, S7, K,
+        971 |CMIC$2   IQ2) SAVELAST
+        972 |      DO 400 K = 1, 16
+        973 |C
+        974 |         DO 77038 IQ2 = 1, LEN20
+        975 |            S6(LADD2+IQ2-1) = 0.5*(VBL(JADDU+IJ*K+IQ2-1)+VBL(JADDU+IJ*K-
+        976 |     1         IM+IQ2-1))
+        977 |            S7(LADD2+IQ2-1) = 0.5*(VBL(JADDV+IJ*K-2+IQ2)+VBL(JADDV+IJ*K+
+        978 |     1         IQ2-1))
+        979 |            S6(LADD2+IQ2-1) = DJCOR(LADD2+IQ2-1)*S6(LADD2+IQ2-1) - DICOR
+        980 |     1         (LADD2+IQ2-1)*S7(LADD2+IQ2-1) + C1*S5(LADD2+IQ2-1)
+        981 |77038    CONTINUE
+        982 |C
+        983 |C              S6 NOW CONTAINS THE QUANTITY (H * DTIME) TIMES
+        984 |C              ( 2 * ANGVEL * SIN(LATITUDE)
+        985 |C              + (U * Y - V * X) / (2 * RADIUS * RADIUS)),
+        986 |C              AT H POINTS.
+        987 |C              AVERAGE S6 IN J TO GET CORU(J2,JM1).
+        988 |         DO 77039 IQ2 = 1, LEN21
+        989 |            CORU(JADD+IJ*K+IQ2-1)=0.5*(S6(LADD2+IQ2-1)+S6(LADD3+IQ2-1))
+        990 |            CORV(JADD+IJ*K+IQ2-1) = 0.5*(S6(LADD2+IQ2-1)+S6(LADD2+IQ2))
+        991 |77039    CONTINUE
+        992 |  400 CONTINUE
+        993 |C
+        994 |C
+        995 |C--------------DO THE CORIOLIS ACCELERATIONS FOR THE HALF TIME STEP.
+        996 |C              FIRST FOR UP(J3,JM1).
+        997 |C              S2 STILL HAS 1/H AT V POINTS.
+        998 |      JADD  = LADD3 - IJ
+        999 |CFPP$ NODEPCHK
+       1000 |CMIC$ DO ALL SHARED(JADD,IJ,LEN31,LADD3,UP,CORV,V,S2)PRIVATE(K,IQ2)
+       1001 |      DO 410 K = 1, 16
+       1002 |         DO 77040 IQ2 = 1, LEN31
+       1003 |            UP(JADD+IJ*K+IQ2-1) = UP(JADD+IJ*K+IQ2-1) + 0.5*CORV(JADD+IJ
+       1004 |     1         *K+IQ2-1)*V(JADD+IJ*K+IQ2-1)*S2(LADD3+IQ2-1)
+       1005 |77040    CONTINUE
+       1006 |  410 CONTINUE
+       1007 |C
+       1008 |C--------------DO CORIOLIS ACCEL. FOR THE HALF TIME STEP VP(J2,JM1).
+       1009 |C              S4 STILL HAS 1/H AT U POINTS.
+       1010 |      JADD = LADD2 - IJ
+       1011 |CFPP$ NODEPCHK
+       1012 |CMIC$ DO ALL SHARED(JADD,IJ,LEN21,LADD2,VP,CORU,U,S4)PRIVATE(K,IQ2)
+       1013 |      DO 420 K = 1, 16
+       1014 |         DO 77041 IQ2 = 1, LEN21
+       1015 |            VP(JADD+IJ*K+IQ2-1) = VP(JADD+IJ*K+IQ2-1) - 0.5*CORU(JADD+IJ
+       1016 |     1         *K+IQ2-1)*U(JADD+IJ*K+IQ2-1)*S4(LADD2+IQ2-1)
+       1017 |77041    CONTINUE
+       1018 |  420 CONTINUE
+       1019 |C
+       1020 |C************* START THE FULL TIME STEP **************************
+       1021 |C
+       1022 |C--------------PRESET ADDRESSES FOR (VP,THP,QP) AND FOR UP.
+       1023 |C              (J3,JM1) FOR UP, (J=J2,JM1) FOR VP, THP, AND QP.
+       1024 |C
+       1025 |C------------- FIX THE PRESET ADDRESSES IN VBL FOR ENTRY INTO K-LOOPS
+       1026 |C              THAT STORE MODIFIED VARIABLE BACK INTO ARRAY VBL.
+       1027 |         III = LADD3 - 1 - IJ
+       1028 |         NADDU = MADDU + III
+       1029 |         NADDV = MADDV + III
+       1030 |         NADDT = MADDT + III
+       1031 |         NADDQ = MADDQ + III
+       1032 |C
+       1033 |C------------- DO CORIOLIS FORCE FOR HU(J3,JM2) AND HV(J3,JM1),
+       1034 |      JADDU = NADDU
+       1035 |      JADDV = NADDV
+       1036 |      JADD  = LADD3 - IJ
+       1037 |CFPP$ NODEPCHK
+       1038 |CMIC$ PARALLEL SHARED(LEN31, LADD2, LADD3, HP, S2, EMVIN, S5, LEN21, S1
+       1039 |CMIC$1   , EMUIN, S6, JADDU, IJ, JADDV, JADD, LEN32, NPAIR, NG, VBL,
+       1040 |CMIC$2   ABITGRDU, CORU, VP, ABITGRDV, CORV, UP) PRIVATE(IQ2, K)
+       1041 |CFPP$ NODEPCHK
+       1042 |CMIC$ DO PARALLEL
+       1043 |      DO 600 K = 1, 16
+       1044 |         DO 77042 IQ2 = 1, LEN32
+       1045 |            VBL(JADDU+IJ*K+IQ2-1) = VBL(JADDU+IJ*K+IQ2-1) + ABITGRDU(
+       1046 |     1         LADD3+IQ2-1,NPAIR,NG)*CORU(JADD+IJ*K+IQ2-1)*VP(JADD+IJ*K+
+       1047 |     2         IQ2-1)
+       1048 |77042    CONTINUE
+       1049 |         DO 77043 IQ2 = 1, LEN31
+       1050 |            VBL(JADDV+IJ*K+IQ2-1) = VBL(JADDV+IJ*K+IQ2-1) - ABITGRDV(
+       1051 |     1         LADD3+IQ2-1,NPAIR,NG)*CORV(JADD+IJ*K+IQ2-1)*UP(JADD+IJ*K+
+       1052 |     2         IQ2-1)
+       1053 |77043    CONTINUE
+       1054 |  600 CONTINUE
+       1055 |C
+       1056 |C              PLACE HP AT HU PTS INTO S1(J2,JM1).
+       1057 |C              HP / EM AT VP PTS(J2,JM1) INTO S6.
+       1058 |CMIC$ DO PARALLEL VECTOR
+       1059 |      DO 91550 IQ2=1,LEN21
+       1060 |         S1(LADD2+IQ2-1)=P5*(HP(LADD2+IQ2-2)+HP(LADD2+IQ2-1))
+       1061 |         S6(LADD2+IQ2-1)=S1(LADD2+IQ2-1)*EMUIN(LADD2+IQ2-1)
+       1062 |91550 CONTINUE
+       1063 |C
+       1064 |C              PLACE HP AT HV PTS(J3,JM1) INTO S2.
+       1065 |C              HP / EM AT UP PTS(J3,JM1) INTO S5.
+       1066 |CMIC$ DO PARALLEL VECTOR
+       1067 |      DO 91560 IQ2=1,LEN31
+       1068 |         S2(LADD3+IQ2-1)=P5*(HP(LADD2+IQ2-1)+HP(LADD3+IQ2-1))
+       1069 |         S5(LADD3+IQ2-1)=S2(LADD3+IQ2-1)*EMVIN(LADD3+IQ2-1)
+       1070 |91560 CONTINUE
+       1071 |CMIC$ END PARALLEL
+       1072 |C
+       1073 |         JADD2 = LADD2 - IJ
+       1074 |         JADD3 = LADD3 - IJ
+       1075 |C
+       1076 |CFPP$ NODEPCHK
+       1077 |CMIC$ DO ALL SHARED(JADD2, IJ, JADD3, LEN31, LADD3, LEN21, LADD2, S5, UP
+       1078 |CMIC$1   , FLX, S6, VP, FLY) PRIVATE(K, IQ2)
+       1079 |      DO 630 K = 1, 16
+       1080 |         DO 77044 IQ2 = 1, LEN31
+       1081 |            FLX(JADD3+IJ*K+IQ2-1) = S5(LADD3+IQ2-1)*UP(JADD3+IJ*K+IQ2-1)
+       1082 |77044    CONTINUE
+       1083 |         DO 77045 IQ2 = 1, LEN21
+       1084 |            FLY(JADD2+IJ*K+IQ2-1) = S6(LADD2+IQ2-1)*VP(JADD2+IJ*K+IQ2-1)
+       1085 |77045    CONTINUE
+       1086 |  630 CONTINUE
+       1087 |C
+       1088 |C============= CONVERGENCE FOR FULL TIME STEP ======================
+       1089 |C
+       1090 |C------------- EVALUATE CONV AT H POINTS(J3,JM1), PUT IN ARRAY CONV.
+       1091 |      JADD = LADD3 - IJ
+       1092 |CFPP$ NODEPCHK
+       1093 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, LADD3, IM, DELSIG, EM2H, FLX, FLY,
+       1094 |CMIC$1   CONV) PRIVATE(K, C1, IQ2)
+       1095 |      DO 640 K = 1, 16
+       1096 |C               DELX HUP/M
+       1097 |         C1 = -DELSIG(K)
+       1098 |         DO 77046 IQ2 = 1, LEN31
+       1099 |            CONV(JADD+IJ*K+IQ2-1) = EM2H(LADD3+IQ2-1)*C1*(FLX(JADD+IJ*K+
+       1100 |     1         IQ2-1)-FLX(JADD+IJ*K-2+IQ2)+FLY(JADD+IJ*K+IQ2-1)-FLY(JADD
+       1101 |     2         +IJ*K-IM+IQ2-1))
+       1102 |77046    CONTINUE
+       1103 |  640 CONTINUE
+       1104 |C
+       1105 |C------------- ACCUMULATE VERT. SUM OF CONV IN S7,(J3,JM1)
+       1106 |      JADD = LADD3 + IJ
+       1107 |CMIC$ DO ALL VECTOR SHARED(LEN31, LADD3, JADD, CONV, S7) PRIVATE(IQ2)
+       1108 |      DO 91730 IQ2=1,LEN31
+       1109 |         S7(LADD3+IQ2-1)=CONV(LADD3+IQ2-1)+CONV(JADD+IQ2-1)
+       1110 |91730 CONTINUE
+       1111 |C
+       1112 |      DO 650 K = 3,IKM
+       1113 |         JADD = JADD + IJ
+       1114 |CMIC$ DO ALL VECTOR SHARED(LEN31, LADD3, JADD, S7, CONV) PRIVATE(IQ2)
+       1115 |      DO 91740 IQ2=1,LEN31
+       1116 |         S7(LADD3+IQ2-1)=S7(LADD3+IQ2-1)+CONV(JADD+IQ2-1)
+       1117 |91740 CONTINUE
+       1118 |  650 CONTINUE
+       1119 |C
+       1120 |C              ARRAY S7 NOW HAS DELX * (THE LOCAL TIME DERIVATIVE
+       1121 |C              OF SURFACE PRESSURE, WHICH EQUALS THE VERTICAL
+       1122 |C              SUM OF CONV) AT H POINTS.
+       1123 |C
+       1124 |C------------- COMPUTE NEW VALUE OF H IN ARRAY VBL(J3,JM1)
+       1125 |C
+       1126 |      JADD = MADDH - 1 + LADD3
+       1127 |CMIC$ DO ALL VECTOR SHARED(LEN31, JADD, LADD3, NPAIR, NG, DTOVDX, VBL,
+       1128 |CMIC$1   ABITGRDH, S7) PRIVATE(IQ2)
+       1129 |      DO 91750 IQ2=1,LEN31
+       1130 |         VBL(JADD+IQ2-1)=VBL(JADD+IQ2-1)+
+       1131 |     *               ABITGRDH(LADD3+IQ2-1, NPAIR, NG) *
+       1132 |     *               DTOVDX*S7(LADD3+IQ2-1)
+       1133 |91750 CONTINUE
+       1134 |C
+       1135 |C--------------COMPUTE INTERFACE W(K) AT H PTS(J3,JM1),(K = 2,KM).
+       1136 |      C1 =  - DELSIG(1)
+       1137 |CMIC$ DO ALL VECTOR SHARED(LEN31,LADD3,C1,IJ,CONV,S7,W)PRIVATE(IQ2)
+       1138 |      DO 91760 IQ2=1,LEN31
+       1139 |         W(LADD3+IJ+IQ2-1)=CONV(LADD3+IQ2-1)+C1*S7(LADD3+IQ2-1)
+       1140 |91760 CONTINUE
+       1141 |      JADD = LADD3
+       1142 |C
+       1143 |      DO 660 K = 3,IKM
+       1144 |         JADD = JADD + IJ
+       1145 |         C1   =  - DELSIG(K - 1)
+       1146 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31,
+       1147 |CMIC$1   JADD, C1, LADD3, IJ, W, CONV, S7) PRIVATE(IQ2)
+       1148 |      DO 91770 IQ2=1,LEN31
+       1149 |         W(JADD+IJ+IQ2-1)=W(JADD+IQ2-1)+
+       1150 |     *           CONV(JADD+IQ2-1)+C1*S7(LADD3+IQ2-1)
+       1151 |91770 CONTINUE
+       1152 |  660 CONTINUE
+       1153 |C
+       1154 |C============== FULL ADVECTION FOR FULL TIME STEP =====================
+       1155 |C
+       1156 |C--ADV HU----- DO FULL TIME STEP ADVECTION OF HU.
+       1157 |C              PUT UP AT H PTS INTO SBAR(J3,JM1)
+       1158 |      JADD = LADD3 - IJ
+       1159 |CFPP$ NODEPCHK
+       1160 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, UP, SBAR) PRIVATE(K, IQ2)
+       1161 |      DO 700 K = 1, 16
+       1162 |         DO 77047 IQ2 = 1, LEN31
+       1163 |            SBAR(JADD+IJ*K+IQ2-1) = 0.5*(UP(JADD+IJ*K-2+IQ2)+UP(JADD+IJ*
+       1164 |     1         K+IQ2-1))
+       1165 |77047    CONTINUE
+       1166 |  700 CONTINUE
+       1167 |C
+       1168 |C              PUT W * UP AT H INTERFACE PTS INTO
+       1169 |C              FKS(K = 2,KM),J = J3,JM1.
+       1170 |      JADD = LADD3
+       1171 |C
+       1172 |CFPP$ NODEPCHK
+       1173 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, W, SBAR, FKS) PRIVATE(K, IQ2)
+       1174 |      DO 710 K = 1, 15
+       1175 |C
+       1176 |C              UP(H PTS) AT INTERFACE K INTO S8.
+       1177 |         DO 77048 IQ2 = 1, LEN31
+       1178 |            FKS(JADD+IJ*K+IQ2-1) = W(JADD+IJ*K+IQ2-1)*0.5*(SBAR(JADD+IJ*
+       1179 |     1         K+IQ2-1)+SBAR(JADD+IJ*(K-1)+IQ2-1))
+       1180 |77048    CONTINUE
+       1181 |  710 CONTINUE
+       1182 |C
+       1183 |C              AVERAGE THIS TO HU POINTS(J3,JM2) TO GET FKU.
+       1184 |      JADD = LADD3
+       1185 |      DO 720 K = 2,IKM
+       1186 |         JADD = JADD + IJ
+       1187 |CMIC$ PARALLEL SHARED(LEN32, JADD, S23, FKS, IM) PRIVATE(IQ2)
+       1188 |CMIC$ DO PARALLEL VECTOR
+       1189 |      DO 91870 IQ2=1,LEN32
+       1190 |         S23(IQ2)=P5*(FKS(JADD+IQ2-1)+FKS(JADD+IM+IQ2-1))
+       1191 |91870 CONTINUE
+       1192 |CMIC$ DO PARALLEL VECTOR
+       1193 |      DO 91871 IQ2 = 1, LEN32
+       1194 |         FKS(JADD+IQ2-1) = S23(IQ2)
+       1195 |91871 CONTINUE
+       1196 |CMIC$ END PARALLEL
+       1197 |  720 CONTINUE
+       1198 |C
+       1199 |C              TAKE THE VERTICAL DIFFS AND ACCUMULATE D(HU) IN FKS
+       1200 |C              FOR J = J3,JM2.
+       1201 |         C1  =  - DTOVDX / DELSIG(1)
+       1202 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN32 .OR. IJ.EQ.0) SHARED(LEN32, C1
+       1203 |CMIC$1   , LADD3, IJ, FKS) PRIVATE(IQ2)
+       1204 |      DO 91890 IQ2=1,LEN32
+       1205 |         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+       1206 |91890 CONTINUE
+       1207 |         JADD = LADD3
+       1208 |      DO 730 K = 2,IKMM1
+       1209 |         JADD = JADD + IJ
+       1210 |         C1   =  - DTOVDX / DELSIG(K)
+       1211 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN32 .OR. IJ.EQ.0) SHARED(LEN32, C1
+       1212 |CMIC$1   , JADD, IJ, FKS) PRIVATE(IQ2)
+       1213 |      DO 91900 IQ2=1,LEN32
+       1214 |         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+       1215 |91900 CONTINUE
+       1216 |  730 CONTINUE
+       1217 |C
+       1218 |         C1 = DTOVDX / DELSIG(KM)
+       1219 |         JADD = JADD + IJ
+       1220 |CMIC$ DO ALL VECTOR SHARED(LEN32, C1, JADD, FKS) PRIVATE(IQ2)
+       1221 |      DO 91910 IQ2=1,LEN32
+       1222 |         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+       1223 |91910 CONTINUE
+       1224 |C
+       1225 |C  --HOR ADV-- GET CONTRIBUTIONS FROM HORIZONTAL FLUXES(J3,JM2)
+       1226 |      JADD = LADD3 - IJ
+       1227 |      JADDU = NADDU
+       1228 |C
+       1229 |CFPP$ NODEPCHK
+       1230 |CMIC$ DO ALL SHARED(JADD, IJ, JADDU, LEN31, LADD3, LEN32, IM, NPAIR, NG
+       1231 |CMIC$1   , DTOVDX, FLX, UP, FLY, SBAR, VBL, ABITGRDU, FKS, EM2U)
+       1232 |CMIC$2    PRIVATE(S23, S22, S21, K, IQ2) SAVELAST
+       1233 |      DO 740 K = 1, 16
+       1234 |C
+       1235 |         DO 77049 IQ2 = 1, LEN31
+       1236 |            S23(LADD3+IQ2-1) = FLX(JADD+IJ*K+IQ2-1)*UP(JADD+IJ*K+IQ2-1)
+       1237 |77049    CONTINUE
+       1238 |C
+       1239 |C     (HP)     FIU AT CENTER OF GRID SQUARE.
+       1240 |         DO 77050 IQ2 = 1, LEN32
+       1241 |            S22(LADD3+IQ2-1)=0.5*(S23(LADD3+IQ2-1)+S23(LADD3+IM+IQ2-1))
+       1242 |77050    CONTINUE
+       1243 |C
+       1244 |C        FJU AT H PTS(J3,JM1)
+       1245 |         DO 77051 IQ2 = 1, LEN31
+       1246 |            S21(LADD3+IQ2-1) = 0.5*(FLY(JADD+IJ*K+IQ2-1)+FLY(JADD+IJ*K-
+       1247 |     1         IM+IQ2-1))*SBAR(JADD+IJ*K+IQ2-1)
+       1248 |77051    CONTINUE
+       1249 |C
+       1250 |C         X-DIFF. CENTERED AT HU PTS(J3,JM2)
+       1251 |C         Y-DIFF. CENTERED AT HU PTS(J3,JM2)
+       1252 |         DO 77052 IQ2 = 1, LEN32
+       1253 |C              COMBINE WITH X-DIFF, MULT BY EM**2,
+       1254 |C              AND ADD TO VERTICAL TERM ALREADY IN FKS.
+       1255 |C              STORE NEW HU VALUE IN VBL WHERE ALLOWED.
+       1256 |            VBL(JADDU+IJ*K+IQ2-1) = VBL(JADDU+IJ*K+IQ2-1) + ABITGRDU(
+       1257 |     1         LADD3+IQ2-1,NPAIR,NG)*(FKS(JADD+IJ*K+IQ2-1)-DTOVDX*(S21(
+       1258 |     2         LADD3+IM+IQ2-1)-S21(LADD3+IQ2-1)+S22(LADD3+IQ2-1)-S22(
+       1259 |     3         LADD3-2+IQ2))*EM2U(LADD3+IQ2-1))
+       1260 |77052    CONTINUE
+       1261 |  740 CONTINUE
+       1262 |C
+       1263 |C
+       1264 |C---ADV HV-----DO FULL TIME STEP ADVECTION OF HV.
+       1265 |C              PUT VP AT H PTS INTO SBAR(J3,JM1)
+       1266 |      JADD = LADD3 - IJ
+       1267 |C
+       1268 |CFPP$ NODEPCHK
+       1269 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, IM, VP, SBAR) PRIVATE(K, IQ2)
+       1270 |      DO 750 K = 1, 16
+       1271 |         DO 77053 IQ2 = 1, LEN31
+       1272 |            SBAR(JADD+IJ*K+IQ2-1) = 0.5*(VP(JADD+IJ*K+IQ2-1)+VP(JADD+IJ*
+       1273 |     1         K-IM+IQ2-1))
+       1274 |77053    CONTINUE
+       1275 |  750 CONTINUE
+       1276 |C
+       1277 |C              PUT W * VP (H, INTERFACE PTS) INTO
+       1278 |C              FKS(K = 2,KM AND J = J3,JM1).
+       1279 |      JADD = LADD3
+       1280 |CFPP$ NODEPCHK
+       1281 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, W, SBAR, FKS) PRIVATE(K, IQ2)
+       1282 |      DO 760 K = 1, 15
+       1283 |         DO 77054 IQ2 = 1, LEN31
+       1284 |            FKS(JADD+IJ*K+IQ2-1) = W(JADD+IJ*K+IQ2-1)*0.5*(SBAR(JADD+IJ*
+       1285 |     1         K+IQ2-1)+SBAR(JADD+IJ*(K-1)+IQ2-1))
+       1286 |77054    CONTINUE
+       1287 |  760 CONTINUE
+       1288 |C
+       1289 |C              AVERAGE THIS TO HV POINTS (J = J3,JM1).
+       1290 |      JADD = LADD3
+       1291 |      DO 770 K = 2,IKM
+       1292 |         JADD = JADD + IJ
+       1293 |CMIC$ PARALLEL SHARED(LEN31, JADD, S23, FKS) PRIVATE(IQ2)
+       1294 |CMIC$ DO PARALLEL VECTOR
+       1295 |      DO 92160 IQ2=1,LEN31
+       1296 |         S23(IQ2)=P5*(FKS(JADD+IQ2-1)+FKS(JADD+IQ2))
+       1297 |92160 CONTINUE
+       1298 |CMIC$ DO PARALLEL VECTOR
+       1299 |      DO 92161 IQ2 = 1, LEN31
+       1300 |         FKS(JADD+IQ2-1) = S23(IQ2)
+       1301 |92161 CONTINUE
+       1302 |CMIC$ END PARALLEL
+       1303 |  770 CONTINUE
+       1304 |C
+       1305 |C              TAKE VERTICAL DIFFS AND ACCUMULATE D(HV) IN FKS(J3,JM1).
+       1306 |         C1   =  - DTOVDX / DELSIG(1)
+       1307 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1308 |CMIC$1   , LADD3, IJ, FKS) PRIVATE(IQ2)
+       1309 |      DO 92180 IQ2=1,LEN31
+       1310 |         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+       1311 |92180 CONTINUE
+       1312 |      JADD = LADD3
+       1313 |      DO 780 K = 2,IKMM1
+       1314 |         JADD = JADD + IJ
+       1315 |         C1   =  - DTOVDX / DELSIG(K)
+       1316 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1317 |CMIC$1   , JADD, IJ, FKS) PRIVATE(IQ2)
+       1318 |      DO 92190 IQ2=1,LEN31
+       1319 |         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+       1320 |92190 CONTINUE
+       1321 |  780 CONTINUE
+       1322 |C
+       1323 |         C1   = DTOVDX / DELSIG(KM)
+       1324 |         JADD = JADD + IJ
+       1325 |CMIC$ DO ALL VECTOR SHARED(LEN31, C1, JADD, FKS) PRIVATE(IQ2)
+       1326 |      DO 92200 IQ2=1,LEN31
+       1327 |         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+       1328 |92200 CONTINUE
+       1329 |C
+       1330 |C --HOR ADV--  GET CONTRIBUTIONS FROM HORIZONTAL FLUXES AND COMBINE
+       1331 |C              WITH THE VERTICAL TERM.(J3,JM1).
+       1332 |      JADD  = LADD3 - IJ
+       1333 |      JADDV = NADDV
+       1334 |CFPP$ NODEPCHK
+       1335 |CMIC$ DO ALL SHARED(JADD, IJ, JADDV, LEN31, LADD3, LEN21, IM, LADD2,
+       1336 |CMIC$1   NPAIR, NG, DTOVDX, FLX, SBAR, FLY, VP, VBL, ABITGRDV, FKS, EM2V
+       1337 |CMIC$2   ) PRIVATE(S23, S21, S22, K, IQ2) SAVELAST
+       1338 |      DO 790 K = 1, 16
+       1339 |C              FIV AT H PTS (J = J3,JM1).
+       1340 |         DO 77055 IQ2 = 1, LEN31
+       1341 |            S23(LADD3+IQ2-1) = 0.5*(FLX(JADD+IJ*K-2+IQ2)+FLX(JADD+IJ*K+
+       1342 |     1         IQ2-1))*SBAR(JADD+IJ*K+IQ2-1)
+       1343 |77055    CONTINUE
+       1344 |C
+       1345 |C      (HP)    FJV IN CENTER OF GRID SQUARE(J2,JM1)
+       1346 |         DO 77056 IQ2 = 1, LEN21
+       1347 |            S21(LADD2+IQ2-1) = FLY(JADD+IJ*K-IM+IQ2-1)*VP(JADD+IJ*K-IM+
+       1348 |     1         IQ2-1)
+       1349 |77056    CONTINUE
+       1350 |         DO 77057 IQ2 = 1, LEN21
+       1351 |            S22(LADD2+IQ2-1) = 0.5*(S21(LADD2+IQ2-1)+S21(LADD2+IQ2))
+       1352 |77057    CONTINUE
+       1353 |C
+       1354 |C      (HV)    X-DIFF. CENTERED AT HV PTS(J3,JM1)
+       1355 |C      (HV)    Y-DIFF. CENTERED AT HV PTS(J3,JM1)
+       1356 |         DO 77058 IQ2 = 1, LEN31
+       1357 |C              COMBINE WITH X-DIFF,MULT. BY M**2 AND ADD TO VERT.TERM.
+       1358 |C              STORE NEW HV VALUE IN VBL WHERE ALLOWED.
+       1359 |            VBL(JADDV+IJ*K+IQ2-1) = VBL(JADDV+IJ*K+IQ2-1) + ABITGRDV(
+       1360 |     1         LADD3+IQ2-1,NPAIR,NG)*(FKS(JADD+IJ*K+IQ2-1)-DTOVDX*(S23(
+       1361 |     2         LADD3+IQ2)-S23(LADD3+IQ2-1)+S22(LADD3+IQ2-1)-S22(LADD2+
+       1362 |     3         IQ2-1))*EM2V(LADD3+IQ2-1))
+       1363 |77058    CONTINUE
+       1364 |  790 CONTINUE
+       1365 |C
+       1366 |C              ARRAYS UP AND VP ARE NO LONGER NEEDED.
+       1367 |C              THEREFORE, THE SPACE USED BY VP IS AVAILABLE FOR USE
+       1368 |C              AS THPATH AND THEN QPATH.
+       1369 |C
+       1370 |C---ADV HTH---- DO FULL TIME STEP ADVECTION OF HTH (H * THETA).
+       1371 |C              CALCULATE THP AT HV PTS AND PUT IT INTO SBAR(J=J3,JM1).
+       1372 |C              CALCULATE THP AT H PTS AND PUT IT INTO THPATH (J3,JM1).
+       1373 |      JADD  = LADD3 - IJ
+       1374 |CFPP$ NODEPCHK
+       1375 |CMIC$ DO ALL SHARED(JADD,IJ,LEN31,IM,THP,SBAR,THPATH)PRIVATE(K,IQ2)
+       1376 |      DO 800 K = 1, 16
+       1377 |         DO 77059 IQ2 = 1, LEN31
+       1378 |            SBAR(JADD+IJ*K+IQ2-1) = 0.5*(THP(JADD+IJ*K+IQ2-1)+THP(JADD+
+       1379 |     1         IJ*K-IM+IQ2-1))
+       1380 |77059    CONTINUE
+       1381 |         DO 77060 IQ2 = 1, LEN31
+       1382 |            THPATH(JADD+IJ*K+IQ2-1) = 0.5*(SBAR(JADD+IJ*K-2+IQ2)+SBAR(
+       1383 |     1         JADD+IJ*K+IQ2-1))
+       1384 |77060    CONTINUE
+       1385 |  800 CONTINUE
+       1386 |C
+       1387 |C              PUT W * THP(H INTERFACE PTS) INTO
+       1388 |C              FKS(K = 2,KM AND J = J3,JM1).
+       1389 |      JADD  = LADD3
+       1390 |C
+       1391 |CFPP$ NODEPCHK
+       1392 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, W, THPATH, FKS) PRIVATE(K, IQ2)
+       1393 |      DO 810 K = 1, 15
+       1394 |         DO 77061 IQ2 = 1, LEN31
+       1395 |            FKS(JADD+IJ*K+IQ2-1) = W(JADD+IJ*K+IQ2-1)*0.5*(THPATH(JADD+
+       1396 |     1         IJ*K+IQ2-1)+THPATH(JADD+IJ*(K-1)+IQ2-1))
+       1397 |77061    CONTINUE
+       1398 |  810 CONTINUE
+       1399 |C
+       1400 |C              TAKE VERTICAL DIFFS AND ACCUMULATE D(HT) IN FKS.
+       1401 |         C1   = - DTOVDX / DELSIG(1)
+       1402 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1403 |CMIC$1   , LADD3, IJ, FKS) PRIVATE(IQ2)
+       1404 |      DO 92470 IQ2=1,LEN31
+       1405 |         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+       1406 |92470 CONTINUE
+       1407 |         JADD = LADD3
+       1408 |C
+       1409 |      DO 820 K = 2,IKMM1
+       1410 |         JADD = JADD + IJ
+       1411 |         C1   =  - DTOVDX / DELSIG(K)
+       1412 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1413 |CMIC$1   , JADD, IJ, FKS) PRIVATE(IQ2)
+       1414 |      DO 92480 IQ2=1,LEN31
+       1415 |         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+       1416 |92480 CONTINUE
+       1417 |  820 CONTINUE
+       1418 |C
+       1419 |         C1   = DTOVDX / DELSIG(KM)
+       1420 |         JADD = JADD + IJ
+       1421 |CMIC$ DO ALL VECTOR SHARED(LEN31, C1, JADD, FKS) PRIVATE(IQ2)
+       1422 |      DO 92490 IQ2=1,LEN31
+       1423 |         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+       1424 |92490 CONTINUE
+       1425 |C
+       1426 |C              GET CONTRIBUTIONS FROM X AND Y FLUX.
+       1427 |         JADD  = LADD3 - IJ
+       1428 |         JADDT = NADDT
+       1429 |C
+       1430 |CFPP$ NODEPCHK
+       1431 |CMIC$ DO ALL SHARED(JADD, IJ, JADDT, LEN31, LADD3, LEN21, IM, LADD2,
+       1432 |CMIC$1   NPAIR, NG, DTOVDX, FLX, SBAR, THP, FLY, VBL, ABITGRDH, FKS,
+       1433 |CMIC$2   EM2H) PRIVATE(S22, S23, K, IQ2) SAVELAST
+       1434 |      DO 830 K = 1, 16
+       1435 |C
+       1436 |C              FIT AT HV PTS(J3,JM1)
+       1437 |         DO 77062 IQ2 = 1, LEN31
+       1438 |            S22(LADD3+IQ2-1)=FLX(JADD+IJ*K+IQ2-1)*SBAR(JADD+IJ*K+IQ2-1)
+       1439 |77062    CONTINUE
+       1440 |C
+       1441 |C        FJT AT HU PTS(J2,JM1)
+       1442 |         DO 77063 IQ2 = 1, LEN21
+       1443 |            S23(LADD2+IQ2-1) = 0.5*(THP(JADD+IJ*K-IM-2+IQ2)+THP(JADD+IJ*
+       1444 |     1         K-IM+IQ2-1))*FLY(JADD+IJ*K-IM+IQ2-1)
+       1445 |77063    CONTINUE
+       1446 |C
+       1447 |C          X-DIFF CENTERED AT H PTS(J3,JM1)
+       1448 |C          Y-DIFF CENTERED AT H PTS(J3,JM1)
+       1449 |         DO 77064 IQ2 = 1, LEN31
+       1450 |C              COMBINE WITH X-DIFF, MULT BY M**2 AND ADD TO VERT. TERM.
+       1451 |C              PUT NEW H * THETA IN VBL WHERE ALLOWED TO.
+       1452 |            VBL(JADDT+IJ*K+IQ2-1) = VBL(JADDT+IJ*K+IQ2-1) + ABITGRDH(
+       1453 |     1         LADD3+IQ2-1,NPAIR,NG)*(FKS(JADD+IJ*K+IQ2-1)-DTOVDX*(S22(
+       1454 |     2         LADD3+IQ2-1)-S22(LADD3-2+IQ2)+S23(LADD3+IQ2-1)-S23(LADD2+
+       1455 |     3         IQ2-1))*EM2H(LADD3+IQ2-1))
+       1456 |77064    CONTINUE
+       1457 |  830 CONTINUE
+       1458 |C
+       1459 |C---ADV HQ---- DO FULL TIME STEP ADVECTION OF HQ
+       1460 |C              PUT QP AT HV PTS INTO SBAR(J3,JM1)
+       1461 |C              AND QP AT H PTS INTO QPATH (J = J3, JM1).
+       1462 |         JADD = LADD3 - IJ
+       1463 |C
+       1464 |CFPP$ NODEPCHK
+       1465 |CMIC$ DO ALL SHARED(JADD,IJ,LEN31,IM,QP,SBAR,QPATH)PRIVATE(K,IQ2)
+       1466 |      DO 850 K = 1, 16
+       1467 |         DO 77065 IQ2 = 1, LEN31
+       1468 |            SBAR(JADD+IJ*K+IQ2-1) = 0.5*(QP(JADD+IJ*K+IQ2-1)+QP(JADD+IJ*
+       1469 |     1         K-IM+IQ2-1))
+       1470 |77065    CONTINUE
+       1471 |         DO 77066 IQ2 = 1, LEN31
+       1472 |            QPATH(JADD+IJ*K+IQ2-1) = 0.5*(SBAR(JADD+IJ*K-2+IQ2)+SBAR(
+       1473 |     1         JADD+IJ*K+IQ2-1))
+       1474 |77066    CONTINUE
+       1475 |  850 CONTINUE
+       1476 |C
+       1477 |C              PUT W * QP(H INTERFACE PTS) INTO
+       1478 |C              FKS(K = 2,KM AND J = J3,JM1).
+       1479 |      JADD = LADD3
+       1480 |C
+       1481 |CFPP$ NODEPCHK
+       1482 |CMIC$ DO ALL SHARED(JADD, IJ, LEN31, W, QPATH, FKS) PRIVATE(K, IQ2)
+       1483 |      DO 860 K = 1, 15
+       1484 |         DO 77067 IQ2 = 1, LEN31
+       1485 |            FKS(JADD+IJ*K+IQ2-1) = W(JADD+IJ*K+IQ2-1)*0.5*(QPATH(JADD+IJ
+       1486 |     1         *K+IQ2-1)+QPATH(JADD+IJ*(K-1)+IQ2-1))
+       1487 |77067    CONTINUE
+       1488 |  860 CONTINUE
+       1489 |C
+       1490 |C              TAKE VERTICAL DIFFS AND ACCUMULATE DHQ IN FKS.
+       1491 |         C1   =  - DTOVDX / DELSIG(1)
+       1492 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1493 |CMIC$1   , LADD3, IJ, FKS) PRIVATE(IQ2)
+       1494 |      DO 92730 IQ2=1,LEN31
+       1495 |         FKS(LADD3+IQ2-1)=C1*FKS(LADD3+IJ+IQ2-1)
+       1496 |92730 CONTINUE
+       1497 |      JADD = LADD3
+       1498 |      DO 870 K = 2,IKMM1
+       1499 |         JADD = JADD + IJ
+       1500 |         C1   = - DTOVDX / DELSIG(K)
+       1501 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN31 .OR. IJ.EQ.0) SHARED(LEN31, C1
+       1502 |CMIC$1   , JADD, IJ, FKS) PRIVATE(IQ2)
+       1503 |      DO 92740 IQ2=1,LEN31
+       1504 |         FKS(JADD+IQ2-1)=C1*(FKS(JADD+IJ+IQ2-1)-FKS(JADD+IQ2-1))
+       1505 |92740 CONTINUE
+       1506 |  870 CONTINUE
+       1507 |C
+       1508 |         C1   = DTOVDX / DELSIG(KM)
+       1509 |         JADD = JADD + IJ
+       1510 |CMIC$ DO ALL VECTOR SHARED(LEN31, C1, JADD, FKS) PRIVATE(IQ2)
+       1511 |      DO 92750 IQ2=1,LEN31
+       1512 |         FKS(JADD+IQ2-1)=C1*FKS(JADD+IQ2-1)
+       1513 |92750 CONTINUE
+       1514 |C
+       1515 |C              GET CONTRIBUTIONS FROM X AND Y FLUX.
+       1516 |         JADD  = LADD3 - IJ
+       1517 |         JADDQ = NADDQ
+       1518 |C
+       1519 |CFPP$ NODEPCHK
+       1520 |CMIC$ DO ALL SHARED(JADD, IJ, JADDQ, LEN31, LADD3, LEN21, IM, LADD2,
+       1521 |CMIC$1   NPAIR, NG, DTOVDX, FLX, SBAR, QP, FLY, VBL, ABITGRDH, FKS, EM2H
+       1522 |CMIC$2   ) PRIVATE(S22, S23, K, IQ2) SAVELAST
+       1523 |      DO 880 K = 1, 16
+       1524 |C
+       1525 |C              FIQ AT HV PTS(J3,JM1).
+       1526 |         DO 77068 IQ2 = 1, LEN31
+       1527 |            S22(LADD3+IQ2-1)=FLX(JADD+IJ*K+IQ2-1)*SBAR(JADD+IJ*K+IQ2-1)
+       1528 |77068    CONTINUE
+       1529 |C
+       1530 |C        FJQ AT HU PTS(J2,JM1).
+       1531 |         DO 77069 IQ2 = 1, LEN21
+       1532 |            S23(LADD2+IQ2-1) = 0.5*(QP(JADD+IJ*K-IM-2+IQ2)+QP(JADD+IJ*K-
+       1533 |     1         IM+IQ2-1))*FLY(JADD+IJ*K-IM+IQ2-1)
+       1534 |77069    CONTINUE
+       1535 |C
+       1536 |C        X-DIFF CENTERED AT H PTS(J3,JM1).
+       1537 |C        Y-DIFF CENTERED AT H PTS(J3,JM1).
+       1538 |         DO 77070 IQ2 = 1, LEN31
+       1539 |C              COMBINE WITH X-DIFF, MULT BY M**2 AND ADD TO VERT. TERM.
+       1540 |            VBL(JADDQ+IJ*K+IQ2-1) = VBL(JADDQ+IJ*K+IQ2-1) + ABITGRDH(
+       1541 |     1         LADD3+IQ2-1,NPAIR,NG)*(FKS(JADD+IJ*K+IQ2-1)-DTOVDX*(S22(
+       1542 |     2         LADD3+IQ2-1)-S22(LADD3-2+IQ2)+S23(LADD3+IQ2-1)-S23(LADD2+
+       1543 |     3         IQ2-1))*EM2H(LADD3+IQ2-1))
+       1544 |77070    CONTINUE
+       1545 |  880 CONTINUE
+       1546 |C
+       1547 |C
+       1548 |C============== HYDROSTATIC COMPUTATION FOR FULL TIME STEP ===========
+       1549 |C
+       1550 |C--------------DO THE HYDROSTATIC COMPUTATIONS (J = J2,JM1).
+       1551 |C              FIRST MAKE VIRTUAL TEMP CORRN TO THETA PRIME (THP).
+       1552 |      JADD  = LADD2 - IJ
+       1553 |CFPP$ NODEPCHK
+       1554 |CMIC$ PARALLEL SHARED(LEN21, LADD2, HP, S4, JADD, IJ, THP, QP, VT)
+       1555 |CMIC$1    PRIVATE(I2X, K, IQ2)
+       1556 |CFPP$ NODEPCHK
+       1557 |CMIC$ DO PARALLEL
+       1558 |      DO 900 K = 1, 16
+       1559 |         DO 77071 IQ2 = 1, LEN21
+       1560 |            VT(JADD+IJ*K+IQ2-1) = THP(JADD+IJ*K+IQ2-1)*(1.0+0.609*QP(
+       1561 |     1         JADD+IJ*K+IQ2-1))
+       1562 |77071    CONTINUE
+       1563 |  900 CONTINUE
+       1564 |C*****  Code Expanded From Routine:  P2KAP
+       1565 |CMIC$ DO PARALLEL VECTOR
+       1566 |      DO 77002 I2X = 1, LEN21
+       1567 |         S4(I2X+LADD2-1) = (0.34757549+HP(I2X+LADD2-1)*(4.36732956+HP(
+       1568 |     1      I2X+LADD2-1)*3.91557032))/(1.+HP(I2X+LADD2-1)*(5.44053037+HP
+       1569 |     2      (I2X+LADD2-1)*(2.27693825+HP(I2X+LADD2-1)*(-0.0869930591))))
+       1570 |77002 CONTINUE
+       1571 |CMIC$ END PARALLEL
+       1572 |C*****  End of Code Expanded From Routine:  P2KAP
+       1573 |C
+       1574 |C              COMPUTE PSI PRIME FOR K = 1 IN ARRAY PSI(J = J2,JM1).
+       1575 |C           A SIMPLE HYDROSTATIC EQUATION FOR LAYER ONE
+       1576 |      C1 = ONE - TWO * PR(1)
+       1577 |CMIC$ DO ALL VECTOR SHARED(LEN21, LADD2, C1, GRNDP, VT, S4, PSI)
+       1578 |CMIC$1    PRIVATE(IQ2)
+       1579 |      DO 92950 IQ2=1,LEN21
+       1580 |         PSI(LADD2+IQ2-1)=GRNDP(LADD2+IQ2-1)+
+       1581 |     *         C1*VT(LADD2+IQ2-1)*S4(LADD2+IQ2-1)
+       1582 |92950 CONTINUE
+       1583 |C
+       1584 |         JADD = LADD2
+       1585 |      DO 920 K = 2,IKM
+       1586 |         JADD = JADD + IJ
+       1587 |         C1   = PR(K - 1) - PR(K)
+       1588 |CMIC$ DO ALL VECTOR IF (ABS(IJ).GE.LEN21 .OR. IJ.EQ.0) SHARED(LEN21,
+       1589 |CMIC$1   JADD, IJ, C1, LADD2, PSI, VT, S4) PRIVATE(IQ2)
+       1590 |      DO 92980 IQ2=1,LEN21
+       1591 |         PSI(JADD+IQ2-1)=PSI(JADD-IJ+IQ2-1)+
+       1592 |     *       C1*(VT(JADD+IQ2-1)+VT(JADD-IJ+IQ2-1))*
+       1593 |     *       S4(LADD2+IQ2-1)
+       1594 |92980 CONTINUE
+       1595 |  920 CONTINUE
+       1596 |C
+       1597 |C============== PRESSURE GRADIENT FORCE FOR FULL TIME STEP ===========
+       1598 |C
+       1599 |C---PGF HU-----THE PRESSURE FORCE CHANGE TO HU(N + 1) FOR J = J3,JM2.
+       1600 |C
+       1601 |      C2 = CSUBP * DTOVDX
+       1602 |C
+       1603 |CMIC$ DO ALL VECTOR SHARED(LEN32, LADD3, NPAIR, NG, C2, S4, S3, S1, EMU
+       1604 |CMIC$1   , ABITGRDU) PRIVATE(IQ2)
+       1605 |      DO 93010 IQ2=1,LEN32
+       1606 |         S3(LADD3+IQ2-1)=(S4(LADD3+IQ2-1)-S4(LADD3+IQ2-2))*P5
+       1607 |         S1(LADD3+IQ2-1)=S1(LADD3+IQ2-1)*EMU(LADD3+IQ2-1)*
+       1608 |     *     ABITGRDU(LADD3+IQ2-1, NPAIR, NG)*C2
+       1609 |93010 CONTINUE
+       1610 |C
+       1611 |      JADDU = NADDU
+       1612 |      JADD  = LADD3 - IJ
+       1613 |CFPP$ NODEPCHK
+       1614 |CMIC$ PARALLEL SHARED(LEN31, LADD3, LADD2, NPAIR, NG, C2, S4, S3, S2,
+       1615 |CMIC$1   EMV, ABITGRDV, JADD, IJ, JADDU, LEN32, PR, VBL, PSI, VT, S1)
+       1616 |CMIC$2    PRIVATE(IQ2, K, C1)
+       1617 |CFPP$ NODEPCHK
+       1618 |CMIC$ DO PARALLEL
+       1619 |      DO 930 K = 1, 16
+       1620 |         C1 = 2.0*PR(K)
+       1621 |         DO 77072 IQ2 = 1, LEN32
+       1622 |            VBL(JADDU+IJ*K+IQ2-1) = VBL(JADDU+IJ*K+IQ2-1) - (PSI(JADD+IJ
+       1623 |     1         *K+IQ2-1)-PSI(JADD+IJ*K-2+IQ2)+S3(LADD3+IQ2-1)*C1*(VT(
+       1624 |     2         JADD+IJ*K-2+IQ2)+VT(JADD+IJ*K+IQ2-1)))*S1(LADD3+IQ2-1)
+       1625 |77072    CONTINUE
+       1626 |  930 CONTINUE
+       1627 |C
+       1628 |C---PGF HV---- GET THE PRESSURE FORCE CHANGE TO HV (J = J3,JM1).
+       1629 |C
+       1630 |CMIC$ DO PARALLEL VECTOR
+       1631 |      DO 93150 IQ2=1,LEN31
+       1632 |         S3(LADD3+IQ2-1)=(S4(LADD3+IQ2-1)-S4(LADD2+IQ2-1))*P5
+       1633 |         S2(LADD3+IQ2-1)=S2(LADD3+IQ2-1)*EMV(LADD3+IQ2-1)*
+       1634 |     *     ABITGRDV(LADD3+IQ2-1, NPAIR, NG) * C2
+       1635 |93150 CONTINUE
+       1636 |CMIC$ END PARALLEL
+       1637 |C
+       1638 |      JADDV = NADDV
+       1639 |      JADD  = LADD3 - IJ
+       1640 |CFPP$ NODEPCHK
+       1641 |CMIC$ DO ALL SHARED(JADD, IJ, JADDV, LEN31, IM, LADD3, PR, VBL, PSI, S3
+       1642 |CMIC$1   , VT, S2) PRIVATE(K, C1, IQ2)
+       1643 |      DO 940 K = 1, 16
+       1644 |         C1 = 2.0E0*PR(K)
+       1645 |         DO 77073 IQ2 = 1, LEN31
+       1646 |            VBL(JADDV+IJ*K+IQ2-1) = VBL(JADDV+IJ*K+IQ2-1) - (PSI(JADD+IJ
+       1647 |     1         *K+IQ2-1)-PSI(JADD+IJ*K-IM+IQ2-1)+S3(LADD3+IQ2-1)*C1*(VT(
+       1648 |     2         JADD+IJ*K+IQ2-1)+VT(JADD+IJ*K-IM+IQ2-1)))*S2(LADD3+IQ2-1)
+       1649 |77073    CONTINUE
+       1650 |  940 CONTINUE
+       1651 |C
+       1652 |      RETURN
+       1653 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-113.6$
+ 
+abitgrdh                         Static, Real(4) (1:23668, 1:2, 1:2), Offset: 0, Alignment: full word
+                                 0-169.19$  0-235.13@  0-237.13@  0-1131.22  0-1452.61  0-1540.61
+ 
+abitgrdu                         Static, Real(4) (1:23668, 1:2, 1:2), Offset: 0, Alignment: full word
+                                 0-170.19$  0-225.13@  0-227.13@  0-1045.61  0-1256.61  0-1608.12
+ 
+abitgrdv                         Static, Real(4) (1:23668, 1:2, 1:2), Offset: 0, Alignment: full word
+                                 0-171.19$  0-230.13@  0-232.13@  0-1050.61  0-1359.61  0-1634.12
+ 
+alatpr                           Common member, Real(4) (1:6), Offset: 804, Alignment: full word
+                                 0-136.25$
+ 
+alonpr                           Common member, Real(4) (1:6), Offset: 828, Alignment: full word
+                                 0-136.48$
+ 
+anem                             Common member, Real(4), Offset: 812, Alignment: full word
+                                 0-110.25$
+ 
+angvel                           Common member, Real(4), Offset: 780, Alignment: full word
+                                 0-107.33$  0-961.21
+ 
+bitgrdh                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 43630784, Alignment: quadruple word
+                                 0-118.25$  0-125.15$  0-234.15
+ 
+bitgrdu                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44009472, Alignment: quadruple word
+                                 0-119.25$  0-125.24$  0-224.15
+ 
+bitgrdv                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44388160, Alignment: quadruple word
+                                 0-120.25$  0-125.33$  0-229.15
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 44766848, Alignment: quadruple word
+                                 0-121.25$  0-125.42$
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 44956192, Alignment: quadruple word
+                                 0-122.25$  0-125.50$
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 45145536, Alignment: quadruple word
+                                 0-123.25$  0-125.58$
+ 
+blkdr                            Common member, Real(4), Offset: 816, Alignment: quadruple word
+                                 0-110.31$
+ 
+c1                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-297.10@  0-301.25  0-304.10@  0-308.25  0-356.10@  0-359.23  0-361.10@  0-364.23  0-370.10@
+                                 0-372.35  0-482.7@  0-485.46  0-493.7@  0-499.49  0-600.10@  0-602.58  0-881.7@  0-886.28
+                                 0-894.10@  0-899.16  0-922.10@  0-924.61  0-944.10@  0-946.61  0-961.10@  0-980.48  0-1097.10@
+                                 0-1099.55  0-1136.7@  0-1139.46  0-1145.10@  0-1150.35  0-1201.10@  0-1205.27  0-1210.10@
+                                 0-1214.26  0-1218.10@  0-1222.26  0-1306.10@  0-1310.27  0-1315.10@  0-1319.26  0-1323.10@
+                                 0-1327.26  0-1401.10@  0-1405.27  0-1411.10@  0-1415.26  0-1419.10@  0-1423.26  0-1491.10@
+                                 0-1495.27  0-1500.10@  0-1504.26  0-1508.10@  0-1512.26  0-1576.7@  0-1581.16  0-1587.10@
+                                 0-1592.14  0-1620.10@  0-1623.63  0-1644.10@  0-1647.66
+ 
+c11u                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-93.12$  0-318.10@  0-320.34  0-321.33  0-323.10@  0-325.33  0-326.34
+ 
+c12u                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-93.17$  0-431.10@  0-443.55
+ 
+c2                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-298.10@  0-302.25  0-305.10@  0-309.25  0-355.10@  0-356.15  0-359.28  0-361.15  0-364.28
+                                 0-908.7@  0-924.57  0-946.57  0-1601.7@  0-1608.45  0-1634.47
+ 
+charn                            Common member, Real(4), Offset: 820, Alignment: full word
+                                 0-110.38$
+ 
+cofd1                            Parameter, Real(4)
+                                 0-175.12$  0-176.18$
+ 
+cofd2                            Parameter, Real(4)
+                                 0-175.18$  0-176.30$
+ 
+cofd3                            Parameter, Real(4)
+                                 0-175.24$  0-176.50$
+ 
+cofd4                            Parameter, Real(4)
+                                 0-175.30$  0-177.10$
+ 
+cofn1                            Parameter, Real(4)
+                                 0-175.36$  0-177.33$
+ 
+cofn2                            Parameter, Real(4)
+                                 0-175.42$  0-177.53$
+ 
+cofn3                            Parameter, Real(4)
+                                 0-175.48$  0-178.10$
+ 
+comconst                         Common Block, Alignment: double word
+                                 0-95.15$
+ 
+comdiag                          Common Block, Alignment: double word
+                                 0-126.15$
+ 
+conaust                          Common member, Real(4), Offset: 824, Alignment: double word
+                                 0-110.45$
+ 
+conv                             Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-166.20$  0-214.53  0-443.13@  0-452.26  0-452.44  0-459.42  0-485.28  0-499.10  0-1099.13@
+                                 0-1109.26  0-1109.44  0-1116.42  0-1139.28  0-1150.18
+ 
+coru                             Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-165.20$  0-214.48  0-989.13@  0-1015.61  0-1046.38
+ 
+corv                             Common member, Real(4) (1:378688), Offset: 15431536, Alignment: quadruple word
+                                 0-165.36$  0-213.48  0-990.13@  0-1003.61  0-1051.38
+ 
+critconv                         Common member, Real(4), Offset: 796, Alignment: full word
+                                 0-108.54$
+ 
+csubp                            Parameter, Real(4)
+                                 0-90.19$  0-908.12  0-1601.12
+ 
+ddorf                            Common member, Real(4), Offset: 828, Alignment: full word
+                                 0-110.54$
+ 
+delsig                           Common member, Real(4) (1:16), Offset: 516, Alignment: full word
+                                 0-105.25$  0-431.18  0-482.12  0-493.15  0-600.25  0-600.37  0-1097.16  0-1136.15  0-1145.20
+                                 0-1201.28  0-1210.29  0-1218.24  0-1306.29  0-1315.29  0-1323.26  0-1401.28  0-1411.29  0-1419.26
+                                 0-1491.29  0-1500.28  0-1508.26
+ 
+delx                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-254.10@  0-260.27
+ 
+descrp                           Common member, Character(24) (1:6), Offset: 852, Alignment: full word
+                                 0-137.25$  0-139.20$
+ 
+dhq                              Common member, Real(4) (1:378688), Offset: 7857776, Alignment: quadruple word
+                                 0-167.20$  0-208.43
+ 
+dicor                            Common member, Real(4) (1:23668), Offset: 2177456, Alignment: quadruple word
+                                 0-142.20$  0-196.35  0-373.13@  0-979.68
+ 
+djcor                            Common member, Real(4) (1:23668), Offset: 2272128, Alignment: quadruple word
+                                 0-142.36$  0-197.35  0-372.13@  0-979.31
+ 
+dlamngm                          Common member, Real(4), Offset: 844, Alignment: full word
+                                 0-111.42$
+ 
+dtime                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-260.10@  0-961.30
+ 
+dtov2dx                          Static, Real(4), Offset: 0, Alignment: full word
+                                 0-257.10@  0-476.26  0-600.16  0-783.57  0-787.59  0-816.57  0-844.57  0-908.20
+ 
+dtovdx                           Common member, Real(4), Offset: 776, Alignment: double word
+                                 0-107.25$  0-257.25  0-260.18  0-355.21  0-1132.22  0-1201.19  0-1210.20  0-1218.15  0-1257.60
+                                 0-1306.20  0-1315.20  0-1323.17  0-1360.60  0-1401.19  0-1411.20  0-1419.17  0-1453.60  0-1491.20
+                                 0-1500.19  0-1508.17  0-1541.60  0-1601.20
+ 
+dxov2r                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-251.10@  0-254.32  0-297.31  0-298.31  0-301.30  0-302.30  0-304.31  0-305.31  0-308.30  0-309.30
+                                 0-355.30  0-355.39
+ 
+em2c                             Common member, Real(4) (1:23668), Offset: 2461472, Alignment: quadruple word
+                                 0-143.20$  0-198.35  0-326.13@  0-346.10@  0-346.20  0-346.30  0-443.37
+ 
+em2h                             Common member, Real(4) (1:23668), Offset: 2556144, Alignment: quadruple word
+                                 0-143.36$  0-198.59  0-320.13@  0-334.27  0-337.10@  0-337.20  0-337.30  0-1099.37  0-1455.24
+                                 0-1543.24
+ 
+em2u                             Common member, Real(4) (1:23668), Offset: 2745488, Alignment: quadruple word
+                                 0-144.36$  0-199.59  0-338.10@  0-1259.30
+ 
+em2v                             Common member, Real(4) (1:23668), Offset: 3029504, Alignment: quadruple word
+                                 0-145.36$  0-201.35  0-339.10@  0-1362.24
+ 
+emu                              Common member, Real(4) (1:23668), Offset: 2650816, Alignment: quadruple word
+                                 0-144.20$  0-199.35  0-325.13@  0-338.20  0-338.29  0-342.25  0-752.38  0-948.62  0-1607.42
+ 
+emuin                            Common member, Real(4) (1:23668), Offset: 2840160, Alignment: quadruple word
+                                 0-144.51$  0-200.35  0-342.10@  0-434.53  0-1061.42
+ 
+emv                              Common member, Real(4) (1:23668), Offset: 2934832, Alignment: quadruple word
+                                 0-145.20$  0-200.59  0-321.13@  0-339.20  0-339.29  0-343.25  0-755.38  0-926.53  0-1633.42
+ 
+emvin                            Common member, Real(4) (1:23668), Offset: 3124176, Alignment: quadruple word
+                                 0-145.51$  0-201.59  0-343.10@  0-438.53  0-1069.42
+ 
+filler                           Common member, Real(4) (1:10000), Offset: 18461040, Alignment: quadruple word
+                                 0-116.25$
+ 
+fks                              Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-167.36$  0-214.58  0-1178.13@  0-1190.23  0-1190.39  0-1194.10@  0-1205.10@  0-1205.30
+                                 0-1214.10@  0-1214.30  0-1214.49  0-1222.10@  0-1222.29  0-1257.39  0-1284.13@  0-1296.23
+                                 0-1296.39  0-1300.10@  0-1310.10@  0-1310.30  0-1319.10@  0-1319.30  0-1319.49  0-1327.10@
+                                 0-1327.29  0-1360.39  0-1395.13@  0-1405.10@  0-1405.30  0-1415.10@  0-1415.30  0-1415.49
+                                 0-1423.10@  0-1423.29  0-1453.39  0-1485.13@  0-1495.10@  0-1495.30  0-1504.10@  0-1504.30
+                                 0-1504.49  0-1512.10@  0-1512.29  0-1541.39
+ 
+float                            Pure Intrinsic
+                                 0-251.27  0-301.37  0-302.37  0-308.37  0-309.37  0-359.31  0-364.31
+ 
+flx                              Common member, Real(4) (1:378688), Offset: 3313520, Alignment: quadruple word
+                                 0-165.51$  0-205.44  0-1081.13@  0-1099.59  0-1100.23  0-1236.32  0-1341.37  0-1341.58  0-1438.30
+                                 0-1527.30
+ 
+fly                              Common member, Real(4) (1:378688), Offset: 4828272, Alignment: quadruple word
+                                 0-166.51$  0-206.44  0-1084.13@  0-1100.44  0-1100.65  0-1246.37  0-1246.58  0-1347.32  0-1444.29
+                                 0-1533.27
+ 
+grndp                            Common member, Real(4) (1:23668), Offset: 3218848, Alignment: quadruple word
+                                 0-143.51$  0-202.35  0-291.10@  0-1580.27
+ 
+hp                               Common member, Real(4) (1:23668), Offset: 852048, Alignment: quadruple word
+                                 0-151.20$  0-186.51  0-476.10@  0-1060.30  0-1060.46  0-1068.30  0-1068.46  0-1567.40  0-1567.68
+                                 0-1568.43  0-1568.71  0-1569.39
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-312.7@  0-320.18  0-321.17  0-325.17  0-326.18  0-367.7@  0-372.19  0-373.19
+ 
+i1x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-174.15$  0-872.16@  0-873.13  0-873.44  0-874.17  0-874.54  0-875.28  0-875.60
+ 
+i2x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-174.19$  0-1566.16@  0-1567.13  0-1567.43  0-1568.13  0-1568.46  0-1569.14  0-1569.42
+ 
+iaddrg                           Common member, Integer(4) (1:44, 1:2), Offset: 108, Alignment: full word
+                                 0-101.25$  0-273.18  0-274.18  0-275.18  0-276.18  0-277.18  0-283.14  0-882.14
+ 
+iag                              Common member, Integer(4) (1:1), Offset: 92, Alignment: full word
+                                 0-99.25$
+ 
+ibg                              Common member, Integer(4) (1:1), Offset: 100, Alignment: full word
+                                 0-100.25$
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ibucket                          Common member, Integer(4), Offset: 492, Alignment: full word
+                                 0-103.60$
+ 
+icallrad                         Common member, Integer(4), Offset: 48, Alignment: quadruple word
+                                 0-96.25$
+ 
+iii                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1027.10@  0-1028.26  0-1029.26  0-1030.26  0-1031.26
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  0-115.34  0-158.22  0-158.38  0-158.54  0-159.22  0-160.23  0-160.39  0-160.55  0-161.27
+                                 0-162.23  0-162.42  0-163.25  0-163.41  0-163.56  0-164.22  0-164.39  0-164.55  0-165.25  0-165.41
+                                 0-165.55  0-166.25  0-166.41  0-166.55  0-167.24  0-167.40  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-113.34  0-114.34  0-118.34  0-119.34  0-120.34  0-121.34  0-122.34  0-123.34  0-142.26
+                                 0-142.42  0-142.58  0-143.25  0-143.41  0-143.57  0-144.24  0-144.41  0-144.57  0-145.24  0-145.41
+                                 0-145.57  0-148.23  0-148.39  0-148.54  0-149.23  0-149.39  0-149.54  0-150.23  0-150.39  0-150.54
+                                 0-151.23  0-151.39  0-151.52  0-152.23  0-152.39  0-152.52  0-153.23  0-153.39  0-153.52  0-154.23
+                                 0-154.39  0-154.52  0-155.23  0-155.39  0-169.28  0-170.28  0-171.28  0-223.26  1-49.31  1-56.21
+                                 1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ij                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-265.10@  0-281.13  0-286.22  0-290.22  0-333.22  0-422.38  0-423.38  0-424.26  0-434.41  0-438.41
+                                 0-443.23  0-449.22  0-456.24  0-485.18  0-491.23  0-494.23  0-499.21  0-499.39  0-534.39  0-535.39
+                                 0-536.39  0-537.39  0-538.27  0-545.20  0-545.45  0-548.20  0-548.45  0-549.21  0-549.44  0-550.20
+                                 0-550.45  0-556.23  0-565.42  0-565.62  0-566.43  0-566.62  0-567.41  0-567.60  0-570.22  0-571.21
+                                 0-572.21  0-578.23  0-584.43  0-584.62  0-587.21  0-602.24  0-602.46  0-618.20  0-618.44  0-618.66
+                                 0-619.32  0-622.17  0-626.52  0-639.22  0-639.45  0-639.66  0-640.32  0-650.20  0-650.44  0-650.65
+                                 0-651.28  0-654.17  0-658.50  0-671.21  0-671.43  0-671.64  0-672.28  0-683.20  0-683.43  0-683.63
+                                 0-684.40  0-684.65  0-688.17  0-692.50  0-705.21  0-705.43  0-705.64  0-706.28  0-717.20  0-717.43
+                                 0-717.63  0-718.40  0-718.62  0-722.17  0-726.50  0-739.21  0-739.43  0-739.64  0-740.28  0-746.23
+                                 0-752.23  0-752.62  0-755.23  0-755.62  0-761.23  0-769.44  0-769.67  0-771.43  0-771.65  0-775.42
+                                 0-775.60  0-776.43  0-776.60  0-780.34  0-780.56  0-781.34  0-781.56  0-783.21  0-783.43  0-787.22
+                                 0-787.45  0-796.23  0-803.43  0-803.65  0-807.46  0-807.68  0-809.43  0-809.62  0-816.21  0-816.43
+                                 0-818.34  0-826.23  0-833.46  0-833.68  0-835.41  0-835.60  0-839.43  0-839.62  0-844.21  0-844.43
+                                 0-845.56  0-857.23  0-862.21  0-862.53  0-863.17  0-893.25  0-898.35  0-899.43  0-915.23  0-924.21
+                                 0-924.43  0-925.21  0-925.41  0-926.21  0-926.40  0-937.23  0-946.21  0-946.43  0-947.21  0-947.41
+                                 0-948.25  0-948.49  0-964.26  0-975.46  0-975.68  0-977.46  0-977.68  0-989.23  0-990.23  0-998.23
+                                 0-1003.21  0-1003.43  0-1003.71  0-1004.33  0-1010.22  0-1015.21  0-1015.43  0-1015.71  0-1016.33
+                                 0-1027.28  0-1036.23  0-1045.23  0-1045.47  0-1046.48  0-1046.68  0-1050.23  0-1050.47  0-1051.48
+                                 0-1051.68  0-1073.26  0-1074.26  0-1081.23  0-1081.62  0-1084.23  0-1084.62  0-1091.22  0-1099.23
+                                 0-1099.68  0-1100.32  0-1100.53  0-1101.17  0-1106.22  0-1113.24  0-1139.18  0-1144.24  0-1149.17
+                                 0-1158.22  0-1163.23  0-1163.50  0-1163.70  0-1178.22  0-1178.43  0-1178.70  0-1179.35  0-1186.24
+                                 0-1205.40  0-1209.24  0-1214.39  0-1219.24  0-1226.22  0-1236.41  0-1236.61  0-1246.46  0-1246.67
+                                 0-1247.37  0-1256.23  0-1256.47  0-1257.48  0-1266.22  0-1272.23  0-1272.50  0-1272.70  0-1284.22
+                                 0-1284.43  0-1284.70  0-1285.35  0-1292.24  0-1310.40  0-1314.24  0-1319.39  0-1324.24  0-1332.23
+                                 0-1341.46  0-1341.67  0-1342.34  0-1347.41  0-1347.64  0-1359.23  0-1359.47  0-1360.48  0-1373.23
+                                 0-1378.23  0-1378.51  0-1379.16  0-1382.25  0-1382.54  0-1383.21  0-1395.22  0-1395.43  0-1396.16
+                                 0-1396.40  0-1405.40  0-1410.24  0-1415.39  0-1420.24  0-1427.26  0-1438.39  0-1438.61  0-1443.46
+                                 0-1443.70  0-1444.38  0-1452.23  0-1452.47  0-1453.48  0-1462.25  0-1468.23  0-1468.50  0-1468.70
+                                 0-1472.24  0-1472.53  0-1473.21  0-1485.22  0-1485.43  0-1485.71  0-1486.37  0-1495.40  0-1499.24
+                                 0-1504.39  0-1509.24  0-1516.26  0-1527.39  0-1527.61  0-1532.45  0-1532.68  0-1533.36  0-1540.23
+                                 0-1540.47  0-1541.48  0-1552.23  0-1560.21  0-1560.44  0-1561.21  0-1586.24  0-1591.35  0-1592.41
+                                 0-1612.23  0-1622.23  0-1622.47  0-1622.71  0-1623.35  0-1624.21  0-1624.41  0-1639.23  0-1646.23
+                                 0-1646.47  0-1646.71  0-1647.35  0-1648.21  0-1648.41
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ijmax                            Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-95.25$
+ 
+ijrad                            Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-95.44$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-89.51  0-105.32  0-105.41  0-105.53  0-126.33  0-132.34  0-133.34  0-455.20  0-492.20
+                                 0-892.20  0-1112.20  0-1143.20  0-1185.20  0-1291.20  0-1585.20  1-49.25  1-52.21  1-53.25  1-57.39
+                                 1-58.26  1-59.26
+ 
+ikmm1                            Parameter, Integer(4)
+                                 0-89.43$  0-1208.20  0-1313.20  0-1409.20  0-1498.20
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$  0-106.32
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+im                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-263.10@  0-265.15  0-281.18  0-282.19  0-287.48  0-300.27  0-312.15  0-319.28  0-320.28  0-321.27
+                                 0-324.28  0-325.27  0-326.28  0-358.27  0-367.15  0-371.28  0-372.29  0-373.29  0-403.18  0-404.18
+                                 0-411.18  0-412.18  0-413.18  0-415.18  0-416.18  0-417.18  0-472.57  0-587.26  0-684.45  0-769.49
+                                 0-771.48  0-781.61  0-803.48  0-803.70  0-808.16  0-809.67  0-839.67  0-947.46  0-948.30  0-976.16
+                                 0-1101.22  0-1190.48  0-1241.62  0-1247.16  0-1258.22  0-1273.18  0-1347.46  0-1347.69  0-1379.21
+                                 0-1443.51  0-1444.18  0-1444.43  0-1469.18  0-1532.50  0-1533.16  0-1533.41  0-1647.40  0-1648.46
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$  0-136.34  0-136.57  0-137.34
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$  0-244.24
+ 
+img                              Common member, Integer(4) (1:2), Offset: 76, Alignment: full word
+                                 0-98.25$  0-263.15
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  0-116.34  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$  0-99.29  0-99.44  0-100.29  0-100.44
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-98.29  0-98.44  0-101.42  0-102.35  0-104.32  0-104.50  0-118.45  0-119.45  0-120.45
+                                 0-121.42  0-122.42  0-123.42  0-126.38  0-127.37  0-128.37  0-128.60  0-129.37  0-129.60  0-130.37
+                                 0-131.37  0-132.42  0-133.42  0-134.37  0-135.37  0-135.60  0-169.39  0-170.39  0-171.39  0-223.35
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$  0-101.32
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  0-113.43  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  0-115.43  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  0-114.43  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$  0-117.34
+ 
+iphyspl                          Common member, Integer(4), Offset: 52, Alignment: full word
+                                 0-96.35$
+ 
+iq2                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-223.17@  0-224.23  0-225.22  0-227.22  0-229.23  0-230.22  0-232.22  0-234.23  0-235.22  0-237.22
+                                 0-244.15@  0-245.14  0-286.16@  0-287.14  0-287.32  0-287.51  0-290.16@  0-291.16  0-291.29
+                                 0-291.38  0-300.18@  0-301.16  0-301.43  0-302.16  0-302.43  0-307.18@  0-308.16  0-308.43
+                                 0-309.16  0-309.43  0-319.19@  0-320.20  0-320.44  0-321.19  0-321.43  0-324.19@  0-325.19
+                                 0-325.43  0-326.20  0-326.44  0-333.16@  0-334.17  0-334.32  0-337.15  0-337.25  0-337.35  0-338.15
+                                 0-338.24  0-338.33  0-339.15  0-339.24  0-339.33  0-342.16  0-342.29  0-343.16  0-343.29  0-346.15
+                                 0-346.25  0-346.35  0-358.18@  0-359.16  0-359.37  0-363.18@  0-364.16  0-364.37  0-371.19@
+                                 0-372.21  0-373.21  0-373.38  0-433.19@  0-434.22  0-434.46  0-434.65  0-437.19@  0-438.22
+                                 0-438.46  0-438.65  0-442.19@  0-443.28  0-443.48  0-443.70  0-444.27  0-444.43  0-444.59
+                                 0-451.16@  0-452.19  0-452.37  0-452.54  0-458.16@  0-459.19  0-459.35  0-459.52  0-471.16@
+                                 0-472.19  0-472.40  0-472.60  0-475.16@  0-476.19  0-476.43  0-477.39  0-477.55  0-484.16@
+                                 0-485.21  0-485.39  0-485.58  0-497.16@  0-498.18  0-499.24  0-499.42  0-499.61  0-508.16@
+                                 0-509.20  0-509.41  0-514.16@  0-515.19  0-515.40  0-515.57  0-520.16@  0-521.19  0-521.40
+                                 0-521.57  0-526.16@  0-527.19  0-527.39  0-527.55  0-544.19@  0-545.25  0-545.50  0-545.66
+                                 0-547.19@  0-548.25  0-548.50  0-548.66  0-549.26  0-549.49  0-549.66  0-550.25  0-550.50  0-550.67
+                                 0-564.19@  0-565.22  0-565.47  0-565.67  0-566.22  0-566.48  0-566.67  0-567.22  0-567.48  0-567.65
+                                 0-569.19@  0-570.27  0-570.50  0-570.66  0-571.26  0-571.49  0-571.65  0-572.26  0-572.49  0-572.65
+                                 0-583.19@  0-584.22  0-584.48  0-584.67  0-586.19@  0-587.29  0-587.52  0-587.68  0-601.19@
+                                 0-602.29  0-602.51  0-602.70  0-617.19@  0-618.25  0-618.49  0-619.16  0-619.41  0-625.16@
+                                 0-626.20  0-626.37  0-626.55  0-629.16@  0-630.19  0-630.35  0-630.49  0-638.19@  0-639.27
+                                 0-639.50  0-640.16  0-640.41  0-649.19@  0-650.25  0-650.49  0-650.70  0-651.37  0-657.16@
+                                 0-658.19  0-658.35  0-658.53  0-661.16@  0-662.18  0-662.33  0-662.47  0-670.19@  0-671.26
+                                 0-671.48  0-671.69  0-672.37  0-682.19@  0-683.25  0-683.48  0-684.16  0-684.48  0-684.70
+                                 0-691.16@  0-692.19  0-692.35  0-692.53  0-695.16@  0-696.18  0-696.33  0-696.47  0-704.19@
+                                 0-705.26  0-705.48  0-705.69  0-706.37  0-716.19@  0-717.25  0-717.48  0-718.16  0-718.47  0-718.67
+                                 0-725.16@  0-726.19  0-726.35  0-726.53  0-729.16@  0-730.18  0-730.33  0-730.47  0-738.19@
+                                 0-739.26  0-739.48  0-739.69  0-740.37  0-751.19@  0-752.28  0-752.48  0-752.67  0-754.19@
+                                 0-755.28  0-755.48  0-755.67  0-768.19@  0-769.22  0-769.52  0-770.16  0-771.22  0-771.51  0-771.70
+                                 0-774.19@  0-775.22  0-775.47  0-775.65  0-776.22  0-776.48  0-776.65  0-779.19@  0-780.39
+                                 0-780.61  0-781.39  0-781.64  0-783.26  0-783.48  0-784.22  0-784.36  0-784.62  0-785.22  0-787.27
+                                 0-787.50  0-788.22  0-788.36  0-788.62  0-789.22  0-802.19@  0-803.22  0-803.51  0-804.16
+                                 0-806.19@  0-807.22  0-807.51  0-808.19  0-809.22  0-809.48  0-809.70  0-813.19@  0-816.26
+                                 0-816.48  0-817.22  0-817.36  0-817.58  0-818.16  0-818.39  0-818.56  0-819.16  0-832.19@  0-833.22
+                                 0-833.51  0-834.18  0-835.22  0-835.46  0-835.67  0-838.19@  0-839.22  0-839.48  0-839.70
+                                 0-843.19@  0-844.26  0-844.48  0-845.22  0-845.40  0-845.61  0-846.22  0-846.38  0-846.60  0-847.22
+                                 0-861.19@  0-862.26  0-862.58  0-863.22  0-885.16@  0-886.20  0-886.42  0-887.29  0-887.47
+                                 0-897.16@  0-898.19  0-898.38  0-899.28  0-899.46  0-900.25  0-911.16@  0-912.19  0-912.35
+                                 0-912.49  0-923.19@  0-924.26  0-924.48  0-925.26  0-925.46  0-925.61  0-926.26  0-926.45  0-926.63
+                                 0-932.16@  0-933.19  0-933.35  0-933.51  0-945.19@  0-946.26  0-946.48  0-947.26  0-947.49
+                                 0-947.66  0-948.33  0-948.54  0-949.16  0-957.16@  0-958.19  0-958.39  0-958.62  0-974.19@
+                                 0-975.22  0-975.51  0-976.19  0-977.22  0-977.53  0-978.16  0-979.22  0-979.43  0-979.59  0-980.23
+                                 0-980.39  0-980.60  0-988.19@  0-989.28  0-989.49  0-989.65  0-990.28  0-990.51  0-990.67
+                                 0-1002.19@  0-1003.26  0-1003.48  0-1004.19  0-1004.38  0-1004.54  0-1014.19@  0-1015.26  0-1015.48
+                                 0-1016.19  0-1016.38  0-1016.54  0-1044.19@  0-1045.28  0-1045.52  0-1046.22  0-1046.53  0-1047.16
+                                 0-1049.19@  0-1050.28  0-1050.52  0-1051.22  0-1051.53  0-1052.16  0-1059.16@  0-1060.19  0-1060.39
+                                 0-1060.55  0-1061.19  0-1061.35  0-1061.54  0-1067.16@  0-1068.19  0-1068.39  0-1068.55  0-1069.19
+                                 0-1069.35  0-1069.54  0-1080.19@  0-1081.28  0-1081.46  0-1081.67  0-1083.19@  0-1084.28  0-1084.46
+                                 0-1084.67  0-1098.19@  0-1099.28  0-1099.48  0-1100.16  0-1100.39  0-1100.58  0-1101.25  0-1108.16@
+                                 0-1109.19  0-1109.37  0-1109.54  0-1115.16@  0-1116.19  0-1116.35  0-1116.52  0-1129.16@  0-1130.19
+                                 0-1130.35  0-1131.37  0-1132.38  0-1138.16@  0-1139.21  0-1139.39  0-1139.58  0-1148.16@  0-1149.20
+                                 0-1149.34  0-1150.28  0-1150.47  0-1162.19@  0-1163.28  0-1163.57  0-1164.18  0-1177.19@  0-1178.27
+                                 0-1178.48  0-1179.18  0-1179.44  0-1189.16@  0-1190.14  0-1190.32  0-1190.51  0-1193.16@  0-1194.19
+                                 0-1194.32  0-1204.16@  0-1205.20  0-1205.43  0-1213.16@  0-1214.19  0-1214.42  0-1214.58
+                                 0-1221.16@  0-1222.19  0-1222.38  0-1235.19@  0-1236.23  0-1236.46  0-1236.66  0-1240.19@
+                                 0-1241.23  0-1241.45  0-1241.65  0-1245.19@  0-1246.23  0-1246.51  0-1247.19  0-1247.42  0-1252.19@
+                                 0-1256.28  0-1256.52  0-1257.22  0-1257.53  0-1258.25  0-1258.42  0-1258.59  0-1259.24  0-1259.41
+                                 0-1271.19@  0-1272.28  0-1272.55  0-1273.21  0-1283.19@  0-1284.27  0-1284.48  0-1285.18  0-1285.44
+                                 0-1295.16@  0-1296.14  0-1296.32  0-1296.48  0-1299.16@  0-1300.19  0-1300.32  0-1309.16@
+                                 0-1310.20  0-1310.43  0-1318.16@  0-1319.19  0-1319.42  0-1319.58  0-1326.16@  0-1327.19  0-1327.38
+                                 0-1340.19@  0-1341.23  0-1341.53  0-1342.16  0-1342.39  0-1346.19@  0-1347.23  0-1347.49  0-1348.16
+                                 0-1350.19@  0-1351.23  0-1351.47  0-1351.64  0-1356.19@  0-1359.28  0-1359.52  0-1360.22  0-1360.53
+                                 0-1361.22  0-1361.37  0-1361.54  0-1362.16  0-1362.35  0-1377.19@  0-1378.28  0-1378.56  0-1379.24
+                                 0-1381.19@  0-1382.30  0-1382.61  0-1383.26  0-1394.19@  0-1395.27  0-1395.48  0-1396.21  0-1396.49
+                                 0-1404.16@  0-1405.20  0-1405.43  0-1414.16@  0-1415.19  0-1415.42  0-1415.58  0-1422.16@
+                                 0-1423.19  0-1423.38  0-1437.19@  0-1438.23  0-1438.44  0-1438.66  0-1442.19@  0-1443.23  0-1443.56
+                                 0-1444.21  0-1444.46  0-1449.19@  0-1452.28  0-1452.52  0-1453.22  0-1453.53  0-1454.22  0-1454.41
+                                 0-1454.56  0-1455.16  0-1455.35  0-1467.19@  0-1468.28  0-1468.55  0-1469.21  0-1471.19@  0-1472.29
+                                 0-1472.60  0-1473.26  0-1484.19@  0-1485.27  0-1485.48  0-1486.19  0-1486.46  0-1494.16@  0-1495.20
+                                 0-1495.43  0-1503.16@  0-1504.19  0-1504.42  0-1504.58  0-1511.16@  0-1512.19  0-1512.38
+                                 0-1526.19@  0-1527.23  0-1527.44  0-1527.66  0-1531.19@  0-1532.23  0-1532.55  0-1533.19  0-1533.44
+                                 0-1538.19@  0-1540.28  0-1540.52  0-1541.22  0-1541.53  0-1542.22  0-1542.41  0-1542.56  0-1543.16
+                                 0-1543.35  0-1559.19@  0-1560.26  0-1560.49  0-1561.26  0-1579.16@  0-1580.20  0-1580.39  0-1581.28
+                                 0-1581.44  0-1590.16@  0-1591.19  0-1591.38  0-1592.26  0-1592.44  0-1593.23  0-1605.16@  0-1606.19
+                                 0-1606.36  0-1606.52  0-1607.19  0-1607.35  0-1607.52  0-1608.27  0-1621.19@  0-1622.28  0-1622.52
+                                 0-1623.19  0-1623.42  0-1623.56  0-1624.28  0-1624.46  0-1624.64  0-1631.16@  0-1632.19  0-1632.36
+                                 0-1632.52  0-1633.19  0-1633.35  0-1633.52  0-1634.27  0-1645.19@  0-1646.28  0-1646.52  0-1647.19
+                                 0-1647.43  0-1647.59  0-1648.26  0-1648.49  0-1648.67
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+itime                            Common member, Integer(4), Offset: 68, Alignment: full word
+                                 0-97.32$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-317.13@  0-318.20  0-320.26  0-321.25  0-323.20  0-325.25  0-326.26  0-369.13@  0-370.18
+                                 0-372.27  0-373.27
+ 
+j1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-379.10@  0-390.10@  0-390.16
+ 
+j2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-380.10@  0-391.10@  0-391.16  0-403.24  0-411.30  0-412.30  0-413.30
+ 
+j3                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-381.10@  0-392.10@  0-392.16  0-404.24  0-415.30  0-416.30  0-417.30
+ 
+jadd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-283.7@  0-287.27  0-287.43  0-424.10@  0-443.18  0-449.7@  0-452.49  0-456.10@  0-456.17
+                                 0-459.47  0-538.10@  0-545.15  0-548.15  0-549.16  0-550.15  0-556.7@  0-565.37  0-565.57  0-566.38
+                                 0-566.57  0-567.36  0-567.55  0-570.17  0-571.16  0-572.16  0-578.7@  0-584.38  0-584.57  0-587.16
+                                 0-613.7@  0-618.15  0-618.39  0-618.61  0-619.27  0-622.7@  0-622.22  0-630.14  0-630.30  0-630.44
+                                 0-634.7@  0-639.17  0-639.40  0-639.61  0-640.27  0-645.7@  0-650.15  0-650.39  0-650.60  0-651.23
+                                 0-654.7@  0-654.22  0-662.13  0-662.28  0-662.42  0-666.7@  0-671.16  0-671.38  0-671.59  0-672.23
+                                 0-678.7@  0-683.15  0-683.38  0-683.58  0-684.35  0-684.60  0-688.7@  0-688.22  0-696.13  0-696.28
+                                 0-696.42  0-700.7@  0-705.16  0-705.38  0-705.59  0-706.23  0-712.7@  0-717.15  0-717.38  0-717.58
+                                 0-718.35  0-718.57  0-722.7@  0-722.22  0-730.13  0-730.28  0-730.42  0-734.7@  0-739.16  0-739.38
+                                 0-739.59  0-740.23  0-746.7@  0-752.18  0-752.57  0-755.18  0-755.57  0-761.7@  0-769.39  0-769.62
+                                 0-771.38  0-771.60  0-775.37  0-775.55  0-776.38  0-776.55  0-780.29  0-780.51  0-781.29  0-781.51
+                                 0-783.16  0-783.38  0-787.17  0-787.40  0-796.7@  0-803.38  0-803.60  0-807.41  0-807.63  0-809.38
+                                 0-809.57  0-816.16  0-816.38  0-818.29  0-826.7@  0-833.41  0-833.63  0-835.36  0-835.55  0-839.38
+                                 0-839.57  0-844.16  0-844.38  0-845.51  0-857.7@  0-862.16  0-862.48  0-862.69  0-882.7@  0-887.42
+                                 0-891.7@  0-893.10@  0-893.18  0-898.14  0-898.30  0-899.23  0-899.38  0-915.7@  0-924.16  0-924.38
+                                 0-925.16  0-925.36  0-926.16  0-926.35  0-937.7@  0-946.16  0-946.38  0-947.16  0-947.36  0-948.20
+                                 0-948.44  0-964.10@  0-965.30  0-966.30  0-989.18  0-990.18  0-998.7@  0-1003.16  0-1003.38
+                                 0-1003.66  0-1004.28  0-1010.7@  0-1015.16  0-1015.38  0-1015.66  0-1016.28  0-1036.7@  0-1046.43
+                                 0-1046.63  0-1051.43  0-1051.63  0-1091.7@  0-1099.18  0-1099.63  0-1100.27  0-1100.48  0-1100.69
+                                 0-1106.7@  0-1109.49  0-1113.10@  0-1113.17  0-1116.47  0-1126.7@  0-1130.14  0-1130.30  0-1141.7@
+                                 0-1144.10@  0-1144.17  0-1149.12  0-1149.29  0-1150.23  0-1158.7@  0-1163.18  0-1163.45  0-1163.65
+                                 0-1170.7@  0-1178.17  0-1178.38  0-1178.65  0-1179.30  0-1184.7@  0-1186.10@  0-1186.17  0-1190.27
+                                 0-1190.43  0-1194.14  0-1207.10@  0-1209.10@  0-1209.17  0-1214.14  0-1214.34  0-1214.53
+                                 0-1219.10@  0-1219.17  0-1222.14  0-1222.33  0-1226.7@  0-1236.36  0-1236.56  0-1246.41  0-1246.62
+                                 0-1247.32  0-1257.43  0-1266.7@  0-1272.18  0-1272.45  0-1272.65  0-1279.7@  0-1284.17  0-1284.38
+                                 0-1284.65  0-1285.30  0-1290.7@  0-1292.10@  0-1292.17  0-1296.27  0-1296.43  0-1300.14  0-1312.7@
+                                 0-1314.10@  0-1314.17  0-1319.14  0-1319.34  0-1319.53  0-1324.10@  0-1324.17  0-1327.14  0-1327.33
+                                 0-1332.7@  0-1341.41  0-1341.62  0-1342.29  0-1347.36  0-1347.59  0-1360.43  0-1373.7@  0-1378.18
+                                 0-1378.46  0-1378.67  0-1382.20  0-1382.49  0-1383.16  0-1389.7@  0-1395.17  0-1395.38  0-1395.67
+                                 0-1396.35  0-1407.10@  0-1410.10@  0-1410.17  0-1415.14  0-1415.34  0-1415.53  0-1420.10@
+                                 0-1420.17  0-1423.14  0-1423.33  0-1427.10@  0-1438.34  0-1438.56  0-1443.41  0-1443.65  0-1444.33
+                                 0-1453.43  0-1462.10@  0-1468.18  0-1468.45  0-1468.65  0-1472.19  0-1472.48  0-1473.16  0-1479.7@
+                                 0-1485.17  0-1485.38  0-1485.66  0-1486.32  0-1497.7@  0-1499.10@  0-1499.17  0-1504.14  0-1504.34
+                                 0-1504.53  0-1509.10@  0-1509.17  0-1512.14  0-1512.33  0-1516.10@  0-1527.34  0-1527.56  0-1532.40
+                                 0-1532.63  0-1533.31  0-1541.43  0-1552.7@  0-1560.16  0-1560.39  0-1561.16  0-1584.10@  0-1586.10@
+                                 0-1586.17  0-1591.14  0-1591.30  0-1592.21  0-1592.36  0-1612.7@  0-1622.66  0-1623.30  0-1624.16
+                                 0-1624.36  0-1639.7@  0-1646.66  0-1647.30  0-1648.16  0-1648.36
+ 
+jadd2                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1073.10@  0-1084.17  0-1084.56
+ 
+jadd3                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1074.10@  0-1081.17  0-1081.56
+ 
+jaddh                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-467.7@  0-472.34  0-472.51  0-509.35
+ 
+jaddq                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1517.10@  0-1540.17  0-1540.41
+ 
+jaddqh                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-537.10@  0-550.38
+ 
+jaddt                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1428.10@  0-1452.17  0-1452.41
+ 
+jaddth                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-536.10@  0-549.37
+ 
+jaddu                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-422.10@  0-434.35  0-965.10@  0-975.40  0-975.62  0-1034.7@  0-1045.17  0-1045.41  0-1227.7@
+                                 0-1256.17  0-1256.41  0-1611.7@  0-1622.17  0-1622.41
+ 
+jadduh                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-534.10@  0-545.38
+ 
+jaddv                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-423.10@  0-438.35  0-966.10@  0-977.40  0-977.62  0-1035.7@  0-1050.17  0-1050.41  0-1333.7@
+                                 0-1359.17  0-1359.41  0-1638.7@  0-1646.17  0-1646.41
+ 
+jaddvh                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-535.10@  0-548.38
+ 
+jaddw                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-491.7@  0-494.7@  0-494.15  0-498.12  0-499.15  0-499.33  0-595.7@  0-602.18  0-602.40
+ 
+jag                              Common member, Integer(4) (1:1), Offset: 96, Alignment: quadruple word
+                                 0-99.40$
+ 
+jbg                              Common member, Integer(4) (1:1), Offset: 104, Alignment: double word
+                                 0-100.40$
+ 
+jm                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-264.10@  0-265.20  0-307.27  0-317.20  0-363.27  0-369.20  0-382.16  0-383.16  0-384.16
+ 
+jm0                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-382.10@  0-393.10@  0-393.16  0-413.24  0-417.24
+ 
+jm1                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-383.10@  0-394.10@  0-394.16  0-412.24  0-416.24
+ 
+jm2                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-384.10@  0-395.10@  0-395.16  0-411.24  0-415.24
+ 
+jmg                              Common member, Integer(4) (1:2), Offset: 84, Alignment: full word
+                                 0-98.40$  0-264.15
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-430.14@  0-431.25  0-434.44  0-438.44  0-443.26  0-455.14@  0-492.14@  0-493.22  0-543.14@
+                                 0-545.23  0-545.48  0-548.23  0-548.48  0-549.24  0-549.47  0-550.23  0-550.48  0-560.14@  0-565.45
+                                 0-565.65  0-566.46  0-566.65  0-567.44  0-567.63  0-570.25  0-571.24  0-572.24  0-582.14@  0-584.46
+                                 0-584.65  0-587.24  0-599.14@  0-600.34  0-600.44  0-602.27  0-602.49  0-616.14@  0-618.23
+                                 0-618.47  0-618.69  0-619.36  0-637.14@  0-639.25  0-639.48  0-639.69  0-640.36  0-648.14@
+                                 0-650.23  0-650.47  0-650.68  0-651.32  0-669.14@  0-671.24  0-671.46  0-671.67  0-672.32
+                                 0-681.14@  0-683.23  0-683.46  0-683.67  0-684.43  0-684.68  0-703.14@  0-705.24  0-705.46
+                                 0-705.67  0-706.32  0-715.14@  0-717.23  0-717.46  0-717.67  0-718.43  0-718.65  0-737.14@
+                                 0-739.24  0-739.46  0-739.67  0-740.32  0-750.14@  0-752.26  0-752.65  0-755.26  0-755.65
+                                 0-766.14@  0-769.47  0-769.70  0-771.46  0-771.68  0-775.45  0-775.63  0-776.46  0-776.63  0-780.37
+                                 0-780.59  0-781.37  0-781.59  0-783.24  0-783.46  0-787.25  0-787.48  0-800.14@  0-803.46  0-803.68
+                                 0-807.49  0-807.71  0-809.46  0-809.65  0-816.24  0-816.46  0-818.37  0-831.14@  0-833.49  0-833.71
+                                 0-835.44  0-835.63  0-839.46  0-839.65  0-844.24  0-844.46  0-845.59  0-860.14@  0-862.24  0-862.56
+                                 0-863.20  0-892.14@  0-894.18  0-894.30  0-921.14@  0-922.18  0-924.24  0-924.46  0-925.24
+                                 0-925.44  0-926.24  0-926.43  0-943.14@  0-944.18  0-946.24  0-946.46  0-947.24  0-947.44  0-948.28
+                                 0-948.52  0-972.14@  0-975.49  0-975.71  0-977.49  0-977.71  0-989.26  0-990.26  0-1001.14@
+                                 0-1003.24  0-1003.46  0-1004.17  0-1004.36  0-1013.14@  0-1015.24  0-1015.46  0-1016.17  0-1016.36
+                                 0-1043.14@  0-1045.26  0-1045.50  0-1046.51  0-1046.71  0-1050.26  0-1050.50  0-1051.51  0-1051.71
+                                 0-1079.14@  0-1081.26  0-1081.65  0-1084.26  0-1084.65  0-1095.14@  0-1097.23  0-1099.26  0-1099.71
+                                 0-1100.35  0-1100.56  0-1101.20  0-1112.14@  0-1143.14@  0-1145.27  0-1161.14@  0-1163.26
+                                 0-1163.53  0-1164.16  0-1174.14@  0-1178.25  0-1178.46  0-1179.16  0-1179.39  0-1185.14@
+                                 0-1208.14@  0-1210.36  0-1233.14@  0-1236.44  0-1236.64  0-1246.49  0-1246.70  0-1247.40  0-1256.26
+                                 0-1256.50  0-1257.51  0-1270.14@  0-1272.26  0-1272.53  0-1273.16  0-1282.14@  0-1284.25  0-1284.46
+                                 0-1285.16  0-1285.39  0-1291.14@  0-1313.14@  0-1315.36  0-1338.14@  0-1341.49  0-1341.70
+                                 0-1342.37  0-1347.44  0-1347.67  0-1359.26  0-1359.50  0-1360.51  0-1376.14@  0-1378.26  0-1378.54
+                                 0-1379.19  0-1382.28  0-1382.57  0-1383.24  0-1393.14@  0-1395.25  0-1395.46  0-1396.19  0-1396.44
+                                 0-1409.14@  0-1411.36  0-1434.14@  0-1438.42  0-1438.64  0-1443.49  0-1444.16  0-1444.41  0-1452.26
+                                 0-1452.50  0-1453.51  0-1466.14@  0-1468.26  0-1468.53  0-1469.16  0-1472.27  0-1472.56  0-1473.24
+                                 0-1483.14@  0-1485.25  0-1485.46  0-1486.17  0-1486.41  0-1498.14@  0-1500.35  0-1523.14@
+                                 0-1527.42  0-1527.64  0-1532.48  0-1532.71  0-1533.39  0-1540.26  0-1540.50  0-1541.51  0-1558.14@
+                                 0-1560.24  0-1560.47  0-1561.24  0-1585.14@  0-1587.20  0-1587.32  0-1619.14@  0-1620.22  0-1622.26
+                                 0-1622.50  0-1623.17  0-1623.38  0-1624.24  0-1624.44  0-1643.14@  0-1644.24  0-1646.26  0-1646.50
+                                 0-1647.17  0-1647.38  0-1648.24  0-1648.44
+ 
+kadiab                           Common member, Integer(4) (1:16, 1:2), Offset: 0, Alignment: quadruple word
+                                 0-126.25$
+ 
+kkcloud2                         Common member, Integer(4) (1:2, 1:2), Offset: 144, Alignment: quadruple word
+                                 0-128.25$
+ 
+kkgse2                           Common member, Integer(4) (1:2, 1:2), Offset: 224, Alignment: quadruple word
+                                 0-131.25$
+ 
+kkgsp2                           Common member, Integer(4) (1:2, 1:2), Offset: 208, Alignment: quadruple word
+                                 0-130.25$
+ 
+klift1                           Common member, Integer(4), Offset: 484, Alignment: full word
+                                 0-103.44$
+ 
+klift2                           Common member, Integer(4), Offset: 488, Alignment: double word
+                                 0-103.52$
+ 
+km                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-95.32$  0-1218.31  0-1323.33  0-1419.33  0-1508.33
+ 
+kumulus                          Common member, Integer(4), Offset: 476, Alignment: full word
+                                 0-103.25$
+ 
+ladd2                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-282.7@  0-403.10@  0-422.30  0-423.30  0-424.18  0-434.16  0-434.59  0-438.16  0-438.59  0-443.42
+                                 0-443.64  0-444.21  0-444.53  0-449.14  0-452.13  0-452.31  0-459.13  0-459.29  0-467.15  0-472.13
+                                 0-476.13  0-476.37  0-477.33  0-477.49  0-485.12  0-485.33  0-485.52  0-491.15  0-499.55  0-509.14
+                                 0-515.13  0-515.34  0-515.51  0-521.13  0-521.34  0-527.13  0-527.33  0-527.49  0-534.31  0-535.31
+                                 0-536.31  0-537.31  0-538.19  0-545.60  0-548.60  0-549.60  0-550.61  0-556.15  0-565.16  0-566.16
+                                 0-567.16  0-570.44  0-571.43  0-572.43  0-578.15  0-584.16  0-587.46  0-595.15  0-602.64  0-613.15
+                                 0-626.14  0-626.31  0-626.46  0-634.15  0-645.15  0-658.13  0-658.29  0-658.44  0-666.15  0-712.15
+                                 0-726.13  0-726.29  0-726.44  0-734.15  0-746.15  0-752.42  0-755.42  0-761.15  0-769.16  0-771.16
+                                 0-775.16  0-776.16  0-784.16  0-784.30  0-785.16  0-788.16  0-788.30  0-789.16  0-803.16  0-818.66
+                                 0-826.15  0-833.16  0-835.16  0-839.16  0-845.16  0-845.32  0-846.32  0-847.16  0-857.15  0-868.30
+                                 0-873.17  0-882.34  0-886.14  0-886.36  0-887.23  0-891.15  0-900.19  0-933.13  0-933.45  0-937.15
+                                 0-947.60  0-948.66  0-958.13  0-958.33  0-958.56  0-964.18  0-975.16  0-977.16  0-979.16  0-979.37
+                                 0-979.53  0-980.17  0-980.33  0-980.54  0-989.43  0-990.45  0-990.61  0-1010.14  0-1016.48
+                                 0-1060.13  0-1060.33  0-1060.49  0-1061.13  0-1061.29  0-1061.48  0-1068.33  0-1073.18  0-1084.40
+                                 0-1347.17  0-1351.17  0-1351.41  0-1351.58  0-1361.65  0-1443.17  0-1454.67  0-1532.17  0-1542.67
+                                 0-1552.15  0-1567.17  0-1567.47  0-1568.17  0-1568.50  0-1569.18  0-1569.46  0-1580.14  0-1580.33
+                                 0-1581.22  0-1581.38  0-1584.17  0-1593.17  0-1632.46
+ 
+ladd3                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-404.10@  0-444.37  0-521.51  0-570.60  0-571.59  0-572.59  0-587.62  0-678.15  0-692.13  0-692.29
+                                 0-692.44  0-700.15  0-784.56  0-788.56  0-796.15  0-807.16  0-809.16  0-817.16  0-817.30  0-817.52
+                                 0-817.66  0-818.50  0-846.16  0-846.54  0-912.13  0-912.29  0-912.43  0-915.15  0-925.55  0-926.57
+                                 0-933.29  0-989.59  0-998.15  0-1004.48  0-1027.16  0-1036.15  0-1046.16  0-1051.16  0-1068.13
+                                 0-1068.49  0-1069.13  0-1069.29  0-1069.48  0-1074.18  0-1081.40  0-1091.14  0-1099.42  0-1106.14
+                                 0-1109.13  0-1109.31  0-1116.13  0-1116.29  0-1126.26  0-1131.31  0-1132.32  0-1139.12  0-1139.33
+                                 0-1139.52  0-1141.14  0-1150.41  0-1158.14  0-1170.14  0-1184.14  0-1205.14  0-1205.34  0-1207.17
+                                 0-1226.14  0-1236.17  0-1241.17  0-1241.39  0-1241.56  0-1246.17  0-1257.16  0-1258.16  0-1258.36
+                                 0-1258.53  0-1259.16  0-1259.35  0-1266.14  0-1279.14  0-1290.14  0-1310.14  0-1310.34  0-1312.14
+                                 0-1332.15  0-1341.17  0-1360.16  0-1361.16  0-1361.31  0-1361.48  0-1362.29  0-1373.15  0-1389.15
+                                 0-1405.14  0-1405.34  0-1407.17  0-1427.18  0-1438.17  0-1453.16  0-1454.16  0-1454.33  0-1454.50
+                                 0-1455.29  0-1462.17  0-1479.14  0-1495.14  0-1495.34  0-1497.14  0-1516.18  0-1527.17  0-1541.16
+                                 0-1542.16  0-1542.33  0-1542.50  0-1543.29  0-1606.13  0-1606.30  0-1606.46  0-1607.13  0-1607.29
+                                 0-1607.46  0-1608.21  0-1612.15  0-1623.50  0-1624.58  0-1632.13  0-1632.30  0-1633.13  0-1633.29
+                                 0-1633.46  0-1634.21  0-1639.15  0-1647.53  0-1648.61
+ 
+ladkappa                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-868.7@  0-873.48  0-874.21  0-874.58  0-875.32  0-875.64
+ 
+laststep                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40
+ 
+len20                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-413.10@  0-437.28  0-508.22  0-514.22  0-547.28  0-564.28  0-754.28  0-774.28  0-832.28  0-861.28
+                                 0-872.25  0-885.22  0-897.22  0-957.22  0-974.28
+ 
+len21                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-412.10@  0-433.28  0-442.28  0-451.22  0-458.22  0-471.22  0-475.22  0-484.22  0-497.22  0-520.22
+                                 0-526.22  0-544.28  0-569.28  0-583.28  0-601.28  0-617.28  0-625.22  0-629.22  0-638.28  0-649.28
+                                 0-657.22  0-661.22  0-670.28  0-716.28  0-725.22  0-729.22  0-738.28  0-751.28  0-768.28  0-779.28
+                                 0-802.28  0-838.28  0-843.28  0-932.22  0-945.28  0-988.28  0-1014.28  0-1059.22  0-1083.28
+                                 0-1346.28  0-1350.28  0-1442.28  0-1531.28  0-1559.28  0-1566.25  0-1579.22  0-1590.22
+ 
+len22                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-281.7@  0-411.10@
+ 
+len30                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-417.10@
+ 
+len31                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-416.10@  0-586.28  0-682.28  0-691.22  0-695.22  0-704.28  0-806.28  0-813.28  0-911.22  0-923.28
+                                 0-1002.28  0-1049.28  0-1067.22  0-1080.28  0-1098.28  0-1108.22  0-1115.22  0-1129.22  0-1138.22
+                                 0-1148.22  0-1162.28  0-1177.28  0-1235.28  0-1245.28  0-1271.28  0-1283.28  0-1295.22  0-1299.25
+                                 0-1309.22  0-1318.22  0-1326.22  0-1340.28  0-1356.28  0-1377.28  0-1381.28  0-1394.28  0-1404.22
+                                 0-1414.22  0-1422.22  0-1437.28  0-1449.28  0-1467.28  0-1471.28  0-1484.28  0-1494.22  0-1503.22
+                                 0-1511.22  0-1526.28  0-1538.28  0-1631.22  0-1645.28
+ 
+len32                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-415.10@  0-1044.28  0-1189.22  0-1193.25  0-1204.22  0-1213.22  0-1221.22  0-1240.28  0-1252.28
+                                 0-1605.22  0-1621.28
+ 
+lfrst                            Static, Logical(4), Offset: 0, Alignment: full word
+                                 0-173.15$  0-179.12*  0-217.12  0-219.9@
+ 
+lgridppt                         Common member, Integer(4), Offset: 480, Alignment: quadruple word
+                                 0-103.34$
+ 
+lofclds                          Common member, Integer(4) (1:2, 1:4), Offset: 16, Alignment: quadruple word
+                                 0-95.51$
+ 
+lvltot                           Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-95.36$
+ 
+maddh                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-277.10@  0-467.23  0-868.18  0-958.50  0-1126.14
+ 
+maddq                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-276.10@  0-537.19  0-1031.18
+ 
+maddt                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-275.10@  0-536.19  0-1030.18
+ 
+maddu                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-273.10@  0-422.18  0-534.19  0-965.18  0-1028.18
+ 
+maddv                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-274.10@  0-423.18  0-535.19  0-966.18  0-1029.18
+ 
+naddq                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1031.10@  0-1517.18
+ 
+naddt                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1030.10@  0-1428.18
+ 
+naddu                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1028.10@  0-1034.15  0-1227.15  0-1611.15
+ 
+naddv                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1029.10@  0-1035.15  0-1333.15  0-1638.15
+ 
+ng                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.28  0-251.49  0-263.19  0-264.19  0-268.23  0-269.23  0-273.27  0-274.27  0-275.27  0-276.27
+                                 0-277.27  0-283.24  0-882.24  0-1046.34  0-1051.34  0-1131.51  0-1257.34  0-1360.34  0-1453.34
+                                 0-1541.34  0-1608.41  0-1634.41
+ 
+ngrduse                          Common member, Integer(4), Offset: 56, Alignment: double word
+                                 0-96.44$
+ 
+nh                               Common member, Integer(4), Offset: 60, Alignment: full word
+                                 0-96.53$  0-251.33
+ 
+npair                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-388.11  0-1046.28  0-1051.28  0-1131.44  0-1257.28  0-1360.28  0-1453.28  0-1541.28
+                                 0-1608.34  0-1634.34
+ 
+nptsbuoy                         Common member, Integer(4) (1:2, 1:2), Offset: 160, Alignment: quadruple word
+                                 0-128.48$
+ 
+nptscc                           Common member, Integer(4) (1:2, 1:2), Offset: 192, Alignment: quadruple word
+                                 0-129.48$
+ 
+nptsdhq                          Common member, Integer(4) (1:2, 1:2), Offset: 128, Alignment: quadruple word
+                                 0-127.25$
+ 
+nptsevap                         Common member, Integer(4) (1:16, 1:2, 1:2), Offset: 496, Alignment: quadruple word
+                                 0-133.25$
+ 
+nptsfh                           Common member, Integer(4) (1:2, 1:2), Offset: 460, Alignment: full word
+                                 0-102.25$
+ 
+nptsgsp                          Common member, Integer(4) (1:2, 1:2), Offset: 752, Alignment: quadruple word
+                                 0-134.25$
+ 
+nptssat                          Common member, Integer(4) (1:16, 1:2, 1:2), Offset: 240, Alignment: quadruple word
+                                 0-132.25$
+ 
+nptswatr                         Common member, Integer(4) (1:2, 1:2), Offset: 176, Alignment: quadruple word
+                                 0-129.25$
+ 
+nsteps                           Common member, Integer(4), Offset: 72, Alignment: double word
+                                 0-97.39$
+ 
+ntime                            Common member, Integer(4), Offset: 64, Alignment: quadruple word
+                                 0-97.25$
+ 
+numprof                          Common member, Integer(4), Offset: 768, Alignment: quadruple word
+                                 0-134.48$
+ 
+one                              Parameter, Real(4)
+                                 0-88.41$  0-225.33  0-230.33  0-235.33  0-251.19  0-297.16  0-304.16  0-308.59  0-309.59  0-334.40
+                                 0-342.21  0-343.21  0-356.21  0-361.21  0-509.27  0-881.12  0-1576.12
+ 
+onegrid                          Subroutine
+                                 0-1.18$
+ 
+onep5                            Parameter, Real(4)
+                                 0-89.30$  0-298.16  0-305.16
+ 
+p5                               Parameter, Real(4)
+                                 0-88.19$  0-251.39  0-257.20  0-287.19  0-291.21  0-472.26  0-477.26  0-515.26  0-521.26  0-527.26
+                                 0-1060.26  0-1068.26  0-1190.19  0-1296.19  0-1606.60  0-1632.60
+ 
+p609                             Parameter, Real(4)
+                                 0-88.52$
+ 
+pkato                            Common member, Real(4), Offset: 832, Alignment: quadruple word
+                                 0-110.61$
+ 
+pptcc                            Common member, Real(4) (1:2, 1:2), Offset: 772, Alignment: full word
+                                 0-135.25$
+ 
+pptgsp                           Common member, Real(4) (1:2, 1:2), Offset: 788, Alignment: full word
+                                 0-135.48$
+ 
+pr                               Common member, Real(4) (1:16), Offset: 580, Alignment: full word
+                                 0-105.38$  0-881.24  0-894.15  0-894.27  0-922.15  0-944.15  0-1576.24  0-1587.17  0-1587.29
+                                 0-1620.19  0-1644.21
+ 
+press                            Common member, Real(4) (1:16), Offset: 644, Alignment: full word
+                                 0-105.47$
+ 
+psi                              Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-164.51$  0-214.43  0-886.10@  0-898.10@  0-898.26  0-925.68  0-926.31  0-948.16  0-948.40
+                                 0-1580.10@  0-1591.10@  0-1591.26  0-1622.62  0-1623.26  0-1646.62  0-1647.26
+ 
+q                                Common member, Real(4) (1:378688), Offset: 7857776, Alignment: quadruple word
+                                 0-159.20$  0-208.32  0-550.13@  0-566.36  0-566.55  0-771.36  0-771.58  0-776.36  0-776.53
+                                 0-862.46
+ 
+qbound                           Common member, Real(4), Offset: 808, Alignment: double word
+                                 0-109.43$
+ 
+qp                               Common member, Real(4) (1:378688), Offset: 13916784, Alignment: quadruple word
+                                 0-162.20$  0-212.32  0-571.13@  0-650.57  0-651.20  0-658.10@  0-658.26  0-662.10@  0-662.25
+                                 0-671.13@  0-671.35  0-783.13@  0-783.35  0-1468.42  0-1468.62  0-1532.37  0-1532.60  0-1560.67
+ 
+qpath                            Common member, Real(4) (1:378688), Offset: 10887280, Alignment: quadruple word
+                                 0-162.36$  0-210.45  0-1472.13@  0-1485.60  0-1486.26
+ 
+radius                           Common member, Real(4), Offset: 512, Alignment: quadruple word
+                                 0-104.61$  0-254.23
+ 
+rhfactor                         Common member, Real(4), Offset: 804, Alignment: full word
+                                 0-109.33$
+ 
+s1                               Common member, Real(4) (1:23668), Offset: 0, Alignment: quadruple word
+                                 0-148.20$  0-182.31  0-301.13@  0-320.41  0-325.40  0-359.13@  0-373.35  0-434.13@  0-443.61
+                                 0-444.18  0-452.10@  0-459.10@  0-459.26  0-476.34  0-485.49  0-499.52  0-1060.10@  0-1061.26
+                                 0-1607.10@  0-1607.26  0-1624.55
+ 
+s11                              Common member, Real(4) (1:23668), Offset: 946720, Alignment: quadruple word
+                                 0-151.35$  0-187.31  0-509.10@  0-515.30  0-515.47  0-521.30  0-521.47  0-549.56  0-550.57
+ 
+s12                              Common member, Real(4) (1:23668), Offset: 1041392, Alignment: quadruple word
+                                 0-151.48$  0-187.52
+ 
+s13                              Common member, Real(4) (1:23668), Offset: 1136064, Alignment: quadruple word
+                                 0-152.19$  0-188.32
+ 
+s14                              Common member, Real(4) (1:23668), Offset: 1230736, Alignment: quadruple word
+                                 0-152.35$  0-188.52
+ 
+s15                              Common member, Real(4) (1:23668), Offset: 1325408, Alignment: quadruple word
+                                 0-152.48$  0-189.32
+ 
+s16                              Common member, Real(4) (1:23668), Offset: 1420080, Alignment: quadruple word
+                                 0-153.19$  0-189.52
+ 
+s17                              Common member, Real(4) (1:23668), Offset: 1514752, Alignment: quadruple word
+                                 0-153.35$  0-190.32
+ 
+s18                              Common member, Real(4) (1:23668), Offset: 1609424, Alignment: quadruple word
+                                 0-153.48$  0-190.52
+ 
+s19                              Common member, Real(4) (1:23668), Offset: 1704096, Alignment: quadruple word
+                                 0-154.19$  0-191.32
+ 
+s2                               Common member, Real(4) (1:23668), Offset: 94672, Alignment: quadruple word
+                                 0-148.36$  0-182.51  0-302.13@  0-321.40  0-326.41  0-438.13@  0-444.34  0-444.50  0-515.10@
+                                 0-548.57  0-1004.45  0-1068.10@  0-1069.26  0-1633.10@  0-1633.26  0-1648.58
+ 
+s20                              Common member, Real(4) (1:23668), Offset: 1798768, Alignment: quadruple word
+                                 0-154.35$  0-191.52  0-287.10@  0-291.25  0-291.34
+ 
+s21                              Common member, Real(4) (1:23668), Offset: 1893440, Alignment: quadruple word
+                                 0-154.48$  0-192.32  0-1246.13@  0-1257.68  0-1258.32  0-1347.13@  0-1351.37  0-1351.54
+ 
+s22                              Common member, Real(4) (1:23668), Offset: 1988112, Alignment: quadruple word
+                                 0-155.19$  0-192.52  0-1241.13@  0-1258.49  0-1258.66  0-1351.13@  0-1361.44  0-1361.61  0-1438.13@
+                                 0-1453.68  0-1454.29  0-1527.13@  0-1541.68  0-1542.29
+ 
+s23                              Common member, Real(4) (1:23668), Offset: 2082784, Alignment: quadruple word
+                                 0-155.35$  0-193.32  0-1190.10@  0-1194.28  0-1236.13@  0-1241.35  0-1241.52  0-1296.10@  0-1300.28
+                                 0-1341.13@  0-1360.68  0-1361.27  0-1443.13@  0-1454.46  0-1454.63  0-1532.13@  0-1542.46
+                                 0-1542.63
+ 
+s3                               Common member, Real(4) (1:23668), Offset: 189344, Alignment: quadruple word
+                                 0-148.51$  0-183.31  0-308.13@  0-318.17  0-364.13@  0-370.15  0-527.10@  0-602.61  0-1606.10@
+                                 0-1623.47  0-1632.10@  0-1647.50
+ 
+s4                               Common member, Real(4) (1:23668), Offset: 284016, Alignment: quadruple word
+                                 0-149.20$  0-183.51  0-309.13@  0-323.17  0-472.10@  0-477.30  0-477.46  0-521.10@  0-527.30
+                                 0-527.46  0-545.57  0-1016.45  0-1567.10@  0-1581.35  0-1593.14  0-1606.27  0-1606.43  0-1632.27
+                                 0-1632.43
+ 
+s5                               Common member, Real(4) (1:23668), Offset: 378688, Alignment: quadruple word
+                                 0-149.36$  0-184.31  0-565.13@  0-570.41  0-570.57  0-584.13@  0-587.43  0-587.59  0-958.10@
+                                 0-980.51  0-1069.10@  0-1081.37
+ 
+s5s                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-780.13@  0-784.44  0-788.44
+ 
+s6                               Common member, Real(4) (1:23668), Offset: 473360, Alignment: quadruple word
+                                 0-149.51$  0-184.51  0-566.13@  0-571.40  0-571.56  0-769.13@  0-787.69  0-788.27  0-807.13@
+                                 0-817.49  0-817.63  0-839.13@  0-844.67  0-845.29  0-912.10@  0-925.52  0-933.10@  0-947.57
+                                 0-975.13@  0-979.13@  0-979.50  0-989.40  0-989.56  0-990.42  0-990.58  0-1061.10@  0-1084.37
+ 
+s6s                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-781.13@  0-784.48  0-788.48
+ 
+s7                               Common member, Real(4) (1:23668), Offset: 568032, Alignment: quadruple word
+                                 0-150.20$  0-185.31  0-567.13@  0-572.40  0-572.56  0-775.13@  0-788.53  0-788.69  0-809.13@
+                                 0-816.67  0-817.27  0-835.13@  0-845.69  0-846.29  0-977.13@  0-980.30  0-1109.10@  0-1116.10@
+                                 0-1116.26  0-1132.29  0-1139.49  0-1150.38
+ 
+s8                               Common member, Real(4) (1:23668), Offset: 662704, Alignment: quadruple word
+                                 0-150.36$  0-185.51  0-776.13@  0-784.53  0-784.69  0-803.13@  0-818.47  0-818.63  0-833.13@
+                                 0-846.51  0-846.67
+ 
+s9                               Common member, Real(4) (1:23668), Offset: 757376, Alignment: quadruple word
+                                 0-150.51$  0-186.31  0-771.13@  0-783.67  0-784.27  0-873.10@  0-887.20  0-900.16  0-912.26
+                                 0-912.40  0-933.26  0-933.42
+ 
+satdel                           Common member, Real(4), Offset: 800, Alignment: quadruple word
+                                 0-109.25$
+ 
+sbar                             Common member, Real(4) (1:378688), Offset: 6343024, Alignment: quadruple word
+                                 0-166.36$  0-207.41  0-1163.13@  0-1178.60  0-1179.25  0-1247.27  0-1272.13@  0-1284.60  0-1285.25
+                                 0-1342.24  0-1378.13@  0-1382.44  0-1382.66  0-1438.51  0-1468.13@  0-1472.43  0-1472.65  0-1527.51
+ 
+scaleht                          Common member, Real(4), Offset: 836, Alignment: full word
+                                 0-111.25$
+ 
+scr                              Common member, Real(4) (1:23668, 1:23), Offset: 0, Alignment: quadruple word
+                                 0-113.25$  0-182.21  0-182.41  0-183.21  0-183.41  0-184.21  0-184.41  0-185.21  0-185.41  0-186.21
+                                 0-186.41  0-187.21  0-187.42  0-188.21  0-188.42  0-189.21  0-189.42  0-190.21  0-190.42  0-191.21
+                                 0-191.42  0-192.21  0-192.42  0-193.21  0-245.10@
+ 
+scr3                             Common member, Real(4) (1:378688, 1:10), Offset: 3313520, Alignment: quadruple word
+                                 0-115.25$  0-205.21  0-206.21  0-207.21  0-208.21  0-209.21  0-210.21  0-211.21  0-212.21  0-213.21
+                                 0-214.21
+ 
+scrgeog                          Common member, Real(4) (1:23668, 1:12), Offset: 2177456, Alignment: quadruple word
+                                 0-114.25$  0-196.21  0-197.21  0-197.45  0-198.21  0-198.45  0-199.21  0-199.45  0-200.21  0-200.45
+                                 0-201.21  0-201.45  0-202.21
+ 
+sigdot                           Common member, Real(4), Offset: 840, Alignment: double word
+                                 0-111.34$  0-248.7@
+ 
+sigint                           Common member, Real(4) (1:17), Offset: 708, Alignment: full word
+                                 0-106.25$
+ 
+sigmacc                          Common member, Real(4), Offset: 784, Alignment: quadruple word
+                                 0-108.25$
+ 
+sigmadhq                         Common member, Real(4), Offset: 792, Alignment: double word
+                                 0-108.44$
+ 
+sigmagsp                         Common member, Real(4), Offset: 788, Alignment: full word
+                                 0-108.34$
+ 
+sinlat                           Common member, Real(4) (1:23668), Offset: 2366800, Alignment: quadruple word
+                                 0-142.51$  0-197.59  0-334.10@  0-958.26
+ 
+th                               Common member, Real(4) (1:378688), Offset: 6343024, Alignment: quadruple word
+                                 0-158.51$  0-207.32  0-549.13@  0-565.34  0-565.54  0-769.36  0-769.59  0-775.34  0-775.52
+                                 0-862.66
+ 
+thp                              Common member, Real(4) (1:378688), Offset: 12402032, Alignment: quadruple word
+                                 0-160.51$  0-211.32  0-570.13@  0-618.57  0-619.23  0-626.10@  0-626.27  0-630.10@  0-630.26
+                                 0-639.13@  0-639.36  0-787.13@  0-787.36  0-1378.42  0-1378.63  0-1443.37  0-1443.61  0-1560.35
+ 
+thpath                           Common member, Real(4) (1:378688), Offset: 10887280, Alignment: quadruple word
+                                 0-161.20$  0-210.37  0-1382.13@  0-1395.60  0-1396.28
+ 
+two                              Parameter, Real(4)
+                                 0-89.19$  0-254.17  0-334.23  0-355.15  0-881.18  0-961.15  0-1576.18
+ 
+u                                Common member, Real(4) (1:378688), Offset: 3313520, Alignment: quadruple word
+                                 0-158.20$  0-205.32  0-545.13@  0-584.36  0-584.55  0-752.55  0-803.36  0-803.58  0-809.36
+                                 0-809.55  0-1016.26
+ 
+up                               Common member, Real(4) (1:378688), Offset: 9372528, Alignment: quadruple word
+                                 0-160.20$  0-209.32  0-587.13@  0-683.35  0-683.55  0-692.10@  0-692.26  0-696.10@  0-696.25
+                                 0-705.13@  0-705.35  0-816.13@  0-816.35  0-924.13@  0-924.35  0-1003.13@  0-1003.35  0-1051.60
+                                 0-1081.53  0-1163.42  0-1163.62  0-1236.53
+ 
+v                                Common member, Real(4) (1:378688), Offset: 4828272, Alignment: quadruple word
+                                 0-158.36$  0-206.32  0-548.13@  0-567.34  0-567.53  0-755.55  0-835.34  0-835.53  0-839.36
+                                 0-839.55  0-1004.26
+ 
+vbl                              Common member, Real(4) (1:6282436), Offset: 18501040, Alignment: quadruple word
+                                 0-117.25$  0-287.23  0-287.39  0-434.31  0-438.31  0-472.30  0-472.47  0-509.31  0-545.34  0-548.34
+                                 0-549.33  0-550.34  0-873.40  0-874.13  0-874.50  0-875.24  0-875.56  0-887.38  0-958.46  0-975.36
+                                 0-975.58  0-977.36  0-977.58  0-1045.13@  0-1045.37  0-1050.13@  0-1050.37  0-1130.10@  0-1130.26
+                                 0-1256.13@  0-1256.37  0-1359.13@  0-1359.37  0-1452.13@  0-1452.37  0-1540.13@  0-1540.37
+                                 0-1622.13@  0-1622.37  0-1646.13@  0-1646.37
+ 
+vp                               Common member, Real(4) (1:378688), Offset: 10887280, Alignment: quadruple word
+                                 0-160.36$  0-210.32  0-572.13@  0-717.35  0-717.55  0-726.10@  0-726.26  0-730.10@  0-730.25
+                                 0-739.13@  0-739.35  0-844.13@  0-844.35  0-946.13@  0-946.35  0-1015.13@  0-1015.35  0-1046.60
+                                 0-1084.53  0-1272.42  0-1272.62  0-1347.56
+ 
+vt                               Common member, Real(4) (1:378688), Offset: 15431536, Alignment: quadruple word
+                                 0-164.36$  0-213.43  0-862.13@  0-886.33  0-899.20  0-899.35  0-924.69  0-925.33  0-946.69
+                                 0-947.33  0-1560.13@  0-1581.19  0-1592.18  0-1592.33  0-1623.67  0-1624.33  0-1647.70  0-1648.33
+ 
+w                                Common member, Real(4) (1:378688), Offset: 15431536, Alignment: quadruple word
+                                 0-164.20$  0-213.32  0-485.10@  0-498.10@  0-499.31  0-602.38  0-618.13@  0-626.44  0-630.42
+                                 0-639.59  0-640.25  0-650.13@  0-658.42  0-662.40  0-671.57  0-672.21  0-683.13@  0-692.42
+                                 0-696.40  0-705.57  0-706.21  0-717.13@  0-726.42  0-730.40  0-739.57  0-740.21  0-1139.10@
+                                 0-1149.10@  0-1149.27  0-1178.36  0-1284.36  0-1395.36  0-1485.36
+ 
+xdis                             Common member, Real(4) (1:378688), Offset: 15431536, Alignment: quadruple word
+                                 0-163.20$  0-213.37  0-752.13@  0-780.24  0-780.46  0-807.36  0-807.58  0-845.46
+ 
+xip                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-268.10@  0-297.24  0-298.24  0-356.27
+ 
+xpoleh                           Common member, Real(4) (1:2), Offset: 496, Alignment: quadruple word
+                                 0-104.25$  0-268.16
+ 
+ydis                             Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-163.36$  0-214.37  0-755.13@  0-781.24  0-781.46  0-818.24  0-833.36  0-833.58
+ 
+yjp                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-269.10@  0-304.24  0-305.24  0-361.27
+ 
+ypoleh                           Common member, Real(4) (1:2), Offset: 504, Alignment: double word
+                                 0-104.43$  0-269.16
+ 
+zdis                             Common member, Real(4) (1:378688), Offset: 16946288, Alignment: quadruple word
+                                 0-163.51$  0-214.32  0-602.13@  0-618.34  0-650.34  0-684.30  0-684.55  0-718.30  0-718.52
+ 
+zero                             Parameter, Real(4)
+                                 0-88.29$  0-227.33  0-232.33  0-237.33  0-245.23  0-248.16
+ 
+** onegrid   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ONEGRID.f                   10/09/02   12:45:08
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      0      86
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................    1715
+1501-510  Compilation successful for file ONEGRID.f.
+1501-543  Object file created.

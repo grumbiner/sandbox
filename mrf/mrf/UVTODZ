@@ -1,0 +1,298 @@
+      SUBROUTINE UVTODZ(ULN,VLN,DI,ZE,TOPULN,TOPVLN)
+      PARAMETER (JCAP=#JCAP)
+      DIMENSION  DI(#LNT22,#LEVS)
+      DIMENSION  ZE(#LNT22,#LEVS)
+      DIMENSION ULN(#LNT22,#LEVS)
+      DIMENSION VLN(#LNT22,#LEVS)
+      DIMENSION EPS(#LNT22)
+      DIMENSION   TOPULN(2,0:#JCAP,#LEVS)
+      DIMENSION   TOPVLN(2,0:#JCAP,#LEVS)
+      DIMENSION   TOPEPS(0:#JCAP)
+C
+      SAVE IFIRST,EPS,TOPEPS
+C
+C     LOCAL SCALARS
+C     -------------
+C
+      INTEGER I, N, L, K
+C
+C     STATEMENT FUNCTIONS
+C     -------------------
+C
+C     OFFSET(N,L) IS THE OFFSET IN WORDS
+C     TO THE (N,L)-ELEMENT OF A LOWER
+C     TRIANGULAR MATRIX OF COMPLEX NUMBERS
+C     IN AN ARRAY CONTAINING THE MATRIX
+C     PACKED IN COLUMN-MAJOR ORDER,
+C     WHERE L AND N RANGE FROM 0 TO JCAP,
+C     INCLUSIVE
+C
+C          LOWER TRIANGULAR MATRIX OF COMPLEX NUMBERS:
+C
+C                     L -->
+C
+C                   X
+C               N   X X
+C                   X X X
+C               ?   X X X X
+C               V   X X X X X
+C                   X X X X X X
+C
+C          ORDER OF THE MATRIX ELEMENTS IN MEMORY:
+C
+C          (0,0), (1,0), (2,0), ..., (JCAP,0), (1,1), (2,1), (3,1), ...
+C
+      INTEGER OFFSET
+      OFFSET(N,L) = (JCAP+1)*(JCAP+2) - (JCAP-L+1)*(JCAP-L+2) + 2*(N-L)
+C
+C     ---
+C
+C     TERM(1,N,L,K) AND TERM(2,N,L,K) ARE
+C     THE REAL AND IMAGINARY PART, RESP.,
+C     OF EXP((0,1)*L*PHI) TIMES THE (N,L) TERM
+C     IN THE EXPANSION IN SPHERICAL
+C     HARMONICS OF THE FIELD AT LEVEL K,
+C     WHERE PHI IS THE AZIMUTHAL ANGLE
+C
+C     TERM(I,N,L,K) = DI(OFFSET(N,L)+I,K)
+C
+C
+      DATA IFIRST/0/
+      IF(IFIRST.NE.0) GO TO 999
+      DO L = 0, JCAP
+         DO N = L, JCAP
+            TEMP=((N*N-L*L)/(4.*N*N-1.))
+            IF(N.EQ.0) TEMP=0.
+            TEMP=SQRT(TEMP)
+            EPS(OFFSET(N,L)+1)=TEMP
+            EPS(OFFSET(N,L)+2)=TEMP
+         END DO
+            N=JCAP+1
+            TEMP=((N*N-L*L)/(4.*N*N-1.))
+            TOPEPS(L)=SQRT(TEMP)
+      END DO
+C
+      IFIRST=1
+999   CONTINUE
+CMIC$ DO ALL
+CMIC$1 AUTOSCOPE
+               DO 1000      K = 1, #LEVS
+C        THE CASE N=L
+      DO L = 1, JCAP-1
+       RL=L
+            N = L
+          RN=N
+C           DO K = 1, #LEVS
+             ZE(OFFSET(N,L)+1,K)=-RL*VLN(OFFSET(N,L)+2,K)
+     1       -RN*EPS(OFFSET(N+1,L)+1)*ULN(OFFSET(N+1,L)+1,K)
+C
+             ZE(OFFSET(N,L)+2,K)= RL*VLN(OFFSET(N,L)+1,K)
+     1       -RN*EPS(OFFSET(N+1,L)+2)*ULN(OFFSET(N+1,L)+2,K)
+C
+             DI(OFFSET(N,L)+1,K)=-RL*ULN(OFFSET(N,L)+2,K)
+     1       +RN*EPS(OFFSET(N+1,L)+1)*VLN(OFFSET(N+1,L)+1,K)
+C
+             DI(OFFSET(N,L)+2,K)= RL*ULN(OFFSET(N,L)+1,K)
+     1       +RN*EPS(OFFSET(N+1,L)+2)*VLN(OFFSET(N+1,L)+2,K)
+C
+C           END DO
+      END DO
+CCCCCCC
+C     DO K=1,#LEVS
+       ZE(1,K)=0.
+       ZE(2,K)=0.
+       DI(1,K)=0.
+       DI(2,K)=0.
+C     ENDDO
+      DO L = 0, JCAP
+       RL=L
+         DO N = L+1, JCAP-1
+          RN=N
+C           DO K = 1, #LEVS
+             ZE(OFFSET(N,L)+1,K)=-RL*VLN(OFFSET(N,L)+2,K)
+     1       -RN*EPS(OFFSET(N+1,L)+1)*ULN(OFFSET(N+1,L)+1,K)
+     2       +(RN+1.)*EPS(OFFSET(N,L)+1)*ULN(OFFSET(N-1,L)+1,K)
+C
+             ZE(OFFSET(N,L)+2,K)= RL*VLN(OFFSET(N,L)+1,K)
+     1       -RN*EPS(OFFSET(N+1,L)+2)*ULN(OFFSET(N+1,L)+2,K)
+     2       +(RN+1.)*EPS(OFFSET(N,L)+2)*ULN(OFFSET(N-1,L)+2,K)
+C
+             DI(OFFSET(N,L)+1,K)=-RL*ULN(OFFSET(N,L)+2,K)
+     1       +RN*EPS(OFFSET(N+1,L)+1)*VLN(OFFSET(N+1,L)+1,K)
+     2       -(RN+1.)*EPS(OFFSET(N,L)+1)*VLN(OFFSET(N-1,L)+1,K)
+C
+             DI(OFFSET(N,L)+2,K)= RL*ULN(OFFSET(N,L)+1,K)
+     1       +RN*EPS(OFFSET(N+1,L)+2)*VLN(OFFSET(N+1,L)+2,K)
+     2       -(RN+1.)*EPS(OFFSET(N,L)+2)*VLN(OFFSET(N-1,L)+2,K)
+C
+C           END DO
+         END DO
+      END DO
+C DO TOP ROW INVOLVING U,V AT N=JCAP+1
+CCCCCCC
+          N =  JCAP
+          RN=N
+      DO L = 0, JCAP
+       RL=L
+C           DO K = 1, #LEVS
+             ZE(OFFSET(N,L)+1,K)=-RL*VLN(OFFSET(N,L)+2,K)
+     2       +(RN+1.)*EPS(OFFSET(N,L)+1)*ULN(OFFSET(N-1,L)+1,K)
+C
+             ZE(OFFSET(N,L)+2,K)= RL*VLN(OFFSET(N,L)+1,K)
+     2       +(RN+1.)*EPS(OFFSET(N,L)+2)*ULN(OFFSET(N-1,L)+2,K)
+C
+             DI(OFFSET(N,L)+1,K)=-RL*ULN(OFFSET(N,L)+2,K)
+     2       -(RN+1.)*EPS(OFFSET(N,L)+1)*VLN(OFFSET(N-1,L)+1,K)
+C
+             DI(OFFSET(N,L)+2,K)= RL*ULN(OFFSET(N,L)+1,K)
+     2       -(RN+1.)*EPS(OFFSET(N,L)+2)*VLN(OFFSET(N-1,L)+2,K)
+C
+C           END DO
+      END DO
+CCCCCCC
+      DO L = 0, JCAP
+C           DO K = 1, #LEVS
+             ZE(OFFSET(N,L)+1,K)=ZE(OFFSET(N,L)+1,K)
+     1       -RN*TOPEPS(L)*TOPULN(1,L,K)
+C
+             ZE(OFFSET(N,L)+2,K)=ZE(OFFSET(N,L)+2,K)
+     1       -RN*TOPEPS(L)*TOPULN(2,L,K)
+C
+             DI(OFFSET(N,L)+1,K)=DI(OFFSET(N,L)+1,K)
+     1       +RN*TOPEPS(L)*TOPVLN(1,L,K)
+C
+             DI(OFFSET(N,L)+2,K)=DI(OFFSET(N,L)+2,K)
+     1       +RN*TOPEPS(L)*TOPVLN(2,L,K)
+C
+C           END DO
+      END DO
+CCCCCCC
+C           DO K = 1, #LEVS
+             DO J=1,#LNT2
+              DI(J,K)=DI(J,K)/#RERTH
+              ZE(J,K)=ZE(J,K)/#RERTH
+             END DO
+C           END DO
+1000  CONTINUE
+      RETURN
+      END
+      SUBROUTINE UVSUMS(FPU,FMU,FPV,FMV,TOPULN,TOPVLN,QVV,LEVS,WGT)
+C
+C            THIS SR ASSUMES JCAP IS EVEN
+C            THIS SR ASSUMES JCAP IS EVEN
+C            THIS SR ASSUMES JCAP IS EVEN
+C
+      DIMENSION     FPU(2,0:#JCAP,LEVS)
+      DIMENSION     FPV(2,0:#JCAP,LEVS)
+      DIMENSION     FMU(2,0:#JCAP,LEVS)
+      DIMENSION     FMV(2,0:#JCAP,LEVS)
+      DIMENSION   TOPULN(2,0:#JCAP,LEVS)
+      DIMENSION   TOPVLN(2,0:#JCAP,LEVS)
+      DIMENSION   TOPPLN(0:#JCAP)
+      DIMENSION   QVV(#LNUT2)
+C
+C     ----------------------------------------------------------------
+C     COMPUTE EXPANSION COEFFS. FOR TOP ROWS OF U AND V
+C     ----------------------------------------------------------------
+CC
+C     WRITE(60,101)WGT
+C101  FORMAT(1H ,'WGT=   ',E12.3)
+      LEN=2*#JCAP1
+      J=LEN+1
+      DO 10 L=0,#JCAP
+      TOPPLN(L) = QVV(J)*WGT
+      J=LEN+J
+      LEN=LEN-2
+   10 CONTINUE
+C     WRITE(60,100)TOPPLN
+C100  FORMAT(1H ,'TOPPLN ',#JCAP1(1X,E12.3))
+CC
+       N=#JCAP+1
+CCCCCCCCFPUP$ CNCAL
+CMIC$ DO ALL
+CMIC$1 AUTOSCOPE
+      DO L = 1, #JCAP  ,2
+C
+C        COMPUTE THE EVEN (N-L) EXPANSION COEFFICIENTS FOR EACH LEVEL
+C        ------------------------------------------------------------
+C
+C        REAL PART
+C
+            DO K = 1, LEVS
+             TOPULN(1,L,K) = TOPULN(1,L,K)+FPU(1,L,K)*TOPPLN(L)
+             TOPVLN(1,L,K) = TOPVLN(1,L,K)+FPV(1,L,K)*TOPPLN(L)
+            END DO
+C
+C        IMAGINARY PART
+C
+            DO K = 1, LEVS
+             TOPULN(2,L,K) = TOPULN(2,L,K)+FPU(2,L,K)*TOPPLN(L)
+             TOPVLN(2,L,K) = TOPVLN(2,L,K)+FPV(2,L,K)*TOPPLN(L)
+            END DO
+      END DO
+C
+CMIC$ DO ALL
+CMIC$1 AUTOSCOPE
+      DO L = 0, #JCAP  ,2
+C        COMPUTE THE ODD (N-L) EXPANSION COEFFICIENTS FOR EACH LEVEL
+C        -----------------------------------------------------------
+C
+C        REAL PART
+C
+            DO K = 1, LEVS
+             TOPULN(1,L,K) = TOPULN(1,L,K)+FMU(1,L,K)*TOPPLN(L)
+             TOPVLN(1,L,K) = TOPVLN(1,L,K)+FMV(1,L,K)*TOPPLN(L)
+            END DO
+C
+C        IMAGINARY PART
+C
+            DO K = 1, LEVS
+             TOPULN(2,L,K) = TOPULN(2,L,K)+FMU(2,L,K)*TOPPLN(L)
+             TOPVLN(2,L,K) = TOPVLN(2,L,K)+FMV(2,L,K)*TOPPLN(L)
+            END DO
+      END DO
+C
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE GOZRIN(QLNT,QLNV,QDERT,EPSI,LAT,RCS2,WGT)
+CC
+      DIMENSION          QLNT(#LNT2)
+      DIMENSION          QLNV(#LNUT2)
+      DIMENSION         QDERT(#LNT2)
+      DIMENSION          EPSI(#JCAP2,#JCAP1)
+      DIMENSION          RCS2(#LATG2)
+      DIMENSION           WGT(#LATG2)
+CC
+      COMMON /GOZCOM/ DXA(#LNT2),DXB(#LNT2)
+CC
+CCC         PART BETWEEN GUARDS MADE INTO SR GGOZRI.
+CCC         7 DEC 1990      M. ROZWODOSKI
+CC
+CC    COMPUTE PLN DERIVATIVES IN IBM ORDER.
+      WCSA=RCS2(LAT)/#RERTH
+CC
+      LP0 = 0
+      LP1 = 2
+      LEN = #TWOJ1
+      DO 640  I=1,#JCAP1
+      DO 620 LL=1,LEN
+             QDERT(LL+LP0) = QLNV(LL+LP1) * DXB(LL+LP0)
+  620 CONTINUE
+      LP1 = LP1 + LEN + 2
+      LP0 = LP0 + LEN
+      LEN = LEN - 2
+  640 CONTINUE
+CC
+                  LEND = #LNT2 - 4
+      DO 720 LL=1,LEND
+             QDERT(LL+2) = QDERT(LL+2) + QLNT(LL) * DXA(LL+2)
+  720 CONTINUE
+CC
+      DO 760 LL=1,#LNT2
+             QDERT(LL) = QDERT(LL) * WCSA
+              QLNT(LL) =  QLNT(LL) * WGT(LAT)
+  760 CONTINUE
+CC
+      RETURN
+      END

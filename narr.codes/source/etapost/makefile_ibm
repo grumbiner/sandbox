@@ -1,0 +1,121 @@
+################################################################################
+# 
+#     Makefile for Eta Coordinate Post
+#
+#     Use:
+#     make         -  build the executable
+#     make clean   -  start with a clean slate
+#
+#     The following macros will be of interest:
+#
+#         TARGET   - name of the executable
+#         FC       - name of Fortran compiler
+#         CPP      - name of CPP
+#         ARCH     - architecture
+#         CPPFLAGS - CPP flags
+#         OPTS     - compiler code optimizations
+#         LIST     - source listing
+#         SMP      - threading
+#         TRAPS    - runtime traps for floating point exceptions
+#         PROFILE  - source code profiling ( -pg )
+#         DEBUG    - -g
+#         MEM      - user data area and stack size
+#         MAP      - load map
+#         W3LIB    - w3lib
+#         BACIO    - bacio lib
+#         ESSL     - ESSL library
+#         MASS     - MASS library
+#         SEARCH   - library search location
+#
+#################################################################################
+#
+# Define the name of the executable
+#
+TARGET = etapost.x
+#
+# CPP, Compiler, and Linker Options
+#
+FC       = mpxlf
+CPP      = /lib/cpp -P
+ARCH     = pwr3
+CPPFLAGS = 
+OPTS     = -O -qnosave -qarch=$(ARCH) -qmaxmem=-1 -NS2000
+LIST     = -qsource -qxref=full -qattr=full
+SMP      = 
+TRAPS    = -qinitauto=FF -qflttrap=ov:zero:inv:en -qsigtrap
+TRAPS    =
+PROFILE  = 
+DEBUG    = -g 
+MEM      = -bmaxdata:0x80000000 -bmaxstack:0x10000000
+MAP      = -bmap:map -bloadmap:lm
+W3LIB    = /nwprod/w3lib90/w3lib_4
+BACIO    = /nwprod/w3lib90/bacio_4
+ESSL     = -lessl
+MASS     = -lmass
+SEARCH   =
+#
+# Assemble Options
+#
+FFLAGS   = $(OPTS) $(LIST) $(TRAPS) $(PROFILE) $(DEBUG)
+FFLAGST  = $(OPTS) $(LIST) $(SMP) $(TRAPS) $(PROFILE) $(DEBUG)
+LDFLAGS  = $(MEM) $(MAP) $(SMP) $(PROFILE)
+LIBS     = $(W3LIB) $(BACIO) $(ESSL) $(MASS) $(SEARCH) 
+#
+#
+# Non-threaded object files
+#
+OBJT=
+#
+# Threaded object files
+#
+OBJS=	BLOSFC2.o    BNDLYR2.o   BOUND.o    BOUNDL.o    CALCAPE.o   CALDRG.o  \
+	CALDWP2.o    CALEKM.o    CALEKM2.o  CALHEL.o    CALLCL.o  \
+	CALMCVG.o    CALMXW.o    CALPOT2.o  CALPW.o     CALRCH.o  \
+	CALRH2.o     CALSTRM.o   CALTAU.o   CALTHTE.o   CALVIS.o  \
+	CALVOR.o     CALWXT.o    CETLIH4.o  CHR2INT.o   CLDRAD.o  CLMAX.o  \
+	COEFI.o      COEFJ.o     COLLECT.o  DEWPOINT.o  DIST.o    DIR.o     \
+	E2OUT.o      E2TLL.o     EFILL.o    EFILT.o     ETA2P.o   \
+	ETAFLD2.o    ETAPOST.o   EUVGUV.o   EXCH.o      EXCH2.o   EXTEND.o  EXTRACT.o  \
+	FDLVL.o      FILLH.o      FILLV.o     FILTER.o   FIXED.o  FRZLVL.o  \
+	FRZLVL2.o    GD2EG.o     GD2EGK.o   GD2TLL.o    GENBIL.o  \
+	GENEUV.o     GENLL.o     GET_BITS.o GRIBIT.o    H2V.o     \
+	INITPOST.o   INTERP3.o   LFMFLD.o   LL2EG.o     MINMAX.o  \
+	MISCLN.o     MIXLEN.o    MPI_FIRST.o MPI_LAST.o NETAL.o   NGMFLD2.o  NGMSLP2.o \
+	NOPACK.o     OTLIFT2.o   OTLFT2.o   OUTPUT.o    PARA_RANGE.o  \
+	P2FILT.o     P2FLTV.o    POSTDATA.o PROCESS.o   RDRST2D.o   \
+	READCNTRL2.o SCLFLD.o    STAT.o     SURFCE2.o  TRNSEG.o   TRNSGD.o  \
+	TRPAUS.o     TTBLEX.o    WDIR.o     WETBULB.o   P2FILTF.o P2FLTVF.o \
+        CANRES.o     ETCALC.o    HPBLCAL.o  SNFRAC.o
+#
+# Includes
+#
+INCLUDES= parm.tbl parmeta parmout parmsoil cuparm
+#
+# Common Blocks
+#
+COMMS=	ACMCLD.comm   BITMAP.comm   DYNAMD.comm   IOUNIT.comm   OMGAOT.comm   PHYS2.comm \
+	ACMCLH.comm   BOCO.comm     E2PFLG.comm   LLGRDS.comm   OPTIONS.comm  PVRBLS.comm \
+	ACMPRE.comm   CLDWTR.comm   EGRID.comm    LOOPS.comm    OUTFIL.comm   RQSTFLD.comm \
+	ACMRDL.comm   CNVCLD.comm   EXTRA.comm    MAPOT.comm    OUTGRD.comm   SOIL.comm \
+	ACMRDS.comm   CTLBLK.comm   GRBDAT.comm   MAPOT1.comm   PHYS.comm     SRFDSP.comm \
+	ACMSFC.comm   DYNAM.comm    INDX.comm     MASKS.comm    PHYS1.comm    VRBLS.comm
+
+DEPS= $(COMMS) $(INCLUDES)
+
+.SUFFIXES:	.F .f .o
+
+.F.f:
+	$(CPP) $(CPPFLAGS) $< > $*.f
+
+$(TARGET):	$(OBJS) $(OBJST)
+	$(FC) $(LDFLAGS) -o $@ $(OBJS) $(OBJST) $(LIBS) 
+
+$(OBJS):	$(DEPS)
+	$(FC) $(FFLAGS) -c $<
+
+$(OBJST):	$(DEPS)
+	$(FC) $(FFLAGST) -c $<
+
+clean:	
+	/bin/rm -f  $(TARGET) *.lst *.o
+#

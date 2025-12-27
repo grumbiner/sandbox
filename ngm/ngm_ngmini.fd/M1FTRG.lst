@@ -1,0 +1,155 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/M1FTRG.f 09/30/06 19:43:50
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE M1FTRG(TRIGS,N,MODE)
+          2 |      implicit double precision (a-h,o-z)
+          3 |      DIMENSION TRIGS(1)
+          4 |      PI=2.0d0*ASIN(1.0d0)
+          5 |      IMODE=IABS(MODE)
+          6 |      NN=N
+          7 |      IF (IMODE.GT.1.AND.IMODE.LT.6) NN=N/2
+          8 |      DEL=(PI+PI)/FLOAT(NN)
+          9 |      L=NN+NN
+         10 |      DO 10 I=1,L,2
+         11 |      ANGLE=0.5 d0*FLOAT(I-1)*DEL
+         12 |      TRIGS(I)=COS(ANGLE)
+         13 |      TRIGS(I+1)=SIN(ANGLE)
+         14 |   10 CONTINUE
+         15 |      IF (IMODE.EQ.1) RETURN
+         16 |      IF (IMODE.EQ.8) RETURN
+         17 |      DEL=0.5 d0*DEL
+         18 |      NH=(NN+1)/2
+         19 |      L=NH+NH
+         20 |      LA=NN+NN
+         21 |      DO 20 I=1,L,2
+         22 |      ANGLE=0.5 d0*FLOAT(I-1)*DEL
+         23 |      TRIGS(LA+I)=COS(ANGLE)
+         24 |      TRIGS(LA+I+1)=SIN(ANGLE)
+         25 |   20 CONTINUE
+         26 |      IF (IMODE.LE.3) RETURN
+         27 |      DEL=0.5 d0*DEL
+         28 |      LA=LA+NN
+         29 |      IF (MODE.EQ.5) GO TO 40
+         30 |      DO 30 I=2,NN
+         31 |      ANGLE=FLOAT(I-1)*DEL
+         32 |      TRIGS(LA+I)=2.0 d0*SIN(ANGLE)
+         33 |   30 CONTINUE
+         34 |      RETURN
+         35 |   40 CONTINUE
+         36 |      DEL=0.5 d0*DEL
+         37 |      DO 50 I=2,N
+         38 |      ANGLE=FLOAT(I-1)*DEL
+         39 |      TRIGS(LA+I)=SIN(ANGLE)
+         40 |   50 CONTINUE
+         41 |      RETURN
+         42 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+angle                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-11.7@  0-12.20  0-13.22  0-22.7@  0-23.23  0-24.25  0-31.7@  0-32.30  0-38.7@  0-39.23
+ 
+asin                             Pure Intrinsic
+                                 0-4.16
+ 
+cos                              Pure Intrinsic
+                                 0-12.16  0-23.19
+ 
+del                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-8.7@  0-11.31  0-17.7@  0-17.18  0-22.31  0-27.7@  0-27.18  0-31.24  0-36.7@  0-36.18  0-38.24
+ 
+float                            Pure Intrinsic
+                                 0-8.19  0-11.20  0-22.20  0-31.13  0-38.13
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-10.13@  0-11.26  0-12.13  0-13.13  0-21.13@  0-22.26  0-23.16  0-24.16  0-30.13@  0-31.19
+                                 0-32.16  0-37.13@  0-38.19  0-39.16
+ 
+iabs                             Pure Intrinsic
+                                 0-5.13
+ 
+imode                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-5.7@  0-7.11  0-7.26  0-15.11  0-16.11  0-26.11
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-9.7@  0-10.17  0-19.7@  0-21.17
+ 
+la                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-20.7@  0-23.13  0-24.13  0-28.7@  0-28.10  0-32.13  0-39.13
+ 
+m1ftrg                           Subroutine
+                                 0-1.18$
+ 
+mode                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-5.18  0-29.11
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.31  0-6.10  0-7.41  0-37.17
+ 
+nh                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-18.7@  0-19.9  0-19.12
+ 
+nn                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-6.7@  0-7.38@  0-8.25  0-9.9  0-9.12  0-18.11  0-20.10  0-20.13  0-28.13  0-30.17
+ 
+pi                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-4.7@  0-8.12  0-8.15
+ 
+sin                              Pure Intrinsic
+                                 0-13.18  0-24.21  0-32.26  0-39.19
+ 
+trigs                            Reference argument, Real(8) (1:1), Offset: 0, Alignment: double word
+                                 0-3.17$  0-1.25  0-12.7@  0-13.7@  0-23.7@  0-24.7@  0-32.7@  0-39.7@
+ 
+** m1ftrg   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    M1FTRG.f                    10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      42
+1501-510  Compilation successful for file M1FTRG.f.
+1501-543  Object file created.

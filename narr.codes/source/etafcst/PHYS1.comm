@@ -1,0 +1,21 @@
+C-----------------------------------------------------------------------
+      REAL MXSNAL
+C-----------------------------------------------------------------------
+                             C O M M O N /PHYS/
+     & KTM,PT1,DTQ2,TDTQ2,DTD,TDTD
+     &,ROS,CS,DS,ROI,CI,DI
+     &,PL,THL,RDQ,RDTH,RDP,RDTHE
+     &,PLQ,RDPQ,RDTHEQ
+     &,DETA1(LM),AETA1(LM),DFRLG(LP1)
+     &,QS0   (JTB),SQS   (JTB),THE0  (ITB),STHE  (ITB)
+     &,                        THE0Q(ITBQ),STHEQ(ITBQ)
+C
+     &,MXSNAL(IM,JM),EPSR  (IM,JM),RADIN (IM,JM),RADOT (IM,JM)
+     &,GLAT  (IM,JM),GLON  (IM,JM),CZEN  (IM,JM)
+     &,HTOP  (IM,JM),HBOT  (IM,JM)
+     &,TG    (IM,JM),GFFC  (IM,JM),SST   (IM,JM),ALBASE(IM,JM)
+     &,ALBEDO(IM,JM)
+     &,HDAC  (IM,JM),HDACV (IM,JM),CZMEAN(IM,JM),SIGT4 (IM,JM)
+C
+     &,PTBL  (ITB,JTB),TTBL  (JTB,ITB),TTBLQ(JTBQ,ITBQ)
+C-----------------------------------------------------------------------

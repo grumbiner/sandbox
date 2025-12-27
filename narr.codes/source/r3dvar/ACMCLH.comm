@@ -1,0 +1,3 @@
+!
+      real(4),pointer::train(:,:,:),tcucn(:,:,:)
+      COMMON/ACMCLH/THEAT,NHEAT,AVRAIN,AVCNVC,ARATIM,ACUTIM,TRAIN,TCUCN

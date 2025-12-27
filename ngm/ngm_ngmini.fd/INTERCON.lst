@@ -1,0 +1,798 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/INTERCON.f 09/30/06 19:43:55
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE INTERCON(IK,RK,BITK,XPT,NPT,X,NX,NKX,EXTRAP)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    INTERCON    GET INTERPOLATION CONSTANTS
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+          6 |C
+          7 |C ABSTRACT: DO ONE ITERATION OF INITIALIZATION.
+          8 |C ABSTRACT: OBTAIN INTERPOLATION CONSTANTS FOR POINTS XPT ON
+          9 |C   INTERVAL OF NX POINTS WHICH ARE MONOTONIC.
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   88-08-08  PARRISH
+         13 |C
+         14 |C USAGE:    CALL INTERCON(IK,RK,BITK,XPT,NPT,X,NX,NKX,EXTRAP)
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     BITK     - =1--INTERPOLATEE.
+         17 |C              - =0--EXTRAPOLATEE.
+         18 |C     XPT      - COORDINATES OF INTERPOLATEE POINTS.
+         19 |C     NPT      - NUMBER OF INTERPOLATEE POINTS.
+         20 |C     X        - COORDINATES OF INTERPOLATOR POINTS (MONOTONIC)
+         21 |C     NX       - NUMBER OF INTERPOLATOR POINTS.
+         22 |C     NKX      - ORDER OF INTERPOLATION
+         23 |C              -    =1--ASSIGN VALUE OF NEAREST POINT
+         24 |C              -    =2--2-POINT (LINEAR)
+         25 |C              -    =3--3-POINT (QUADRATIC)
+         26 |C              -    =4--4-POINT (CUBIC)
+         27 |C     EXTRAP   - FRACTION OF FIRST AND LAST INTERVAL WE ARE ALLOWED TO
+         28 |C              - EXTRAPOLATE TO.
+         29 |C
+         30 |C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+         31 |C     IK       - GATHER INDEX FOR INTERPOLATORS
+         32 |C     RK       - INTERPOLATOR WEIGHTS
+         33 |C     BITK     - =1--INTERPOLATEE
+         34 |C              - =0--EXTRAPOLATEE
+         35 |C
+         36 |C ATTRIBUTES:
+         37 |C   LANGUAGE: FORTRAN200
+         38 |C   MACHINE:  CYBER
+         39 |C
+         40 |C$$$
+         41 |C--------
+         42 |         include "myparam"
+  1       1 |        INCLUDE 'parmodel'
+  2       1 |C     PARAMETER FILE
+  2       2 |C
+  2       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  2       4 |C     ON OUTPUT
+  2       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  2       6 |C
+  2       7 |      PARAMETER (
+  2       8 |     *      IBPW      =      4,
+  2       9 |     *      IBPOR     = 120000,
+  2      10 |     *      INUMREC   = IBPOR / IBPW,
+  2      11 |     *      INSPECS   =    700,
+  2      12 |     *      ILATG2    =    120,
+  2      13 |     *      ILEVH     =     12,
+  2      14 |     *      ILEVS     =     16,
+  2      15 |     *      ILONF     =    360,
+  2      16 |     *      INLATSH   =      5,
+  2      17 |     *      IIJMAX    =  23668,
+  2      18 |     *      IIJMAXB   =  25536,
+  2      19 |     *      IIJRAD    =    892,
+  2      20 |     *      IJCAP     =     80,
+  2      21 |     *      IWPCPL    =     80,
+  2      22 |     *      IKM       =     16 )
+  2      23 |      PARAMETER (
+  2      24 |     *      ILBCH     =   7*(147+111-7),
+  2      25 |     *      ILBHI     =    (147+111-26),
+  2      26 |     *      ILBUI     =    (2*147+111-39),
+  2      27 |     *      ILBUO     =   (8*147+7*111-56),
+  2      28 |     *      ILBVI     =    (147+2*111-39),
+  2      29 |     *      ILBVO     =   (7*147+8*111-56),
+  2      30 |     *      ILMOUT    =     20 )
+  2      31 |      PARAMETER (
+  2      32 |     *      IMAXOUTF  =     17,
+  2      33 |     *      IMAXOUTT  =      3,
+  2      34 |     *      IMAXOUTV  =    100,
+  2      35 |     *      IMAXPROF  =      6,
+  2      36 |     *      INFILLER  =  10000,
+  2      37 |     *      INH       =     65,
+  2      38 |     *      INGRDUSE  =      2,
+  2      39 |     *      INGRDUS1  =      1,
+  2      40 |     *      INIADDRS  =     44,
+  2      41 |     *      INSCR     =     23,
+  2      42 |     *      INSCRGEO  =     12,
+  2      43 |     *      INSCR3    =     10,
+  2      44 |     *      INSOIL    =      2,
+  2      45 |     *      INSUMG    =  42164,
+  2      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  2      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  2      48 |     *      INSHEM    = 13 * INH + 23,
+  2      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  2      50 |      PARAMETER (
+  2      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  2      52 |     *  IKMP1     = IKM + 1,
+  2      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  2      54 |     *  ILONFP1   = ILONF + 1,
+  2      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  2      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  2      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  2      58 |     *  IBLK1D    =  2 * IKM + 14,
+  2      59 |     *  IBLK2D    = 16 * IKM + 36,
+  2      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  2      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  2      62 |C
+  1       2 |C-------
+  1       3 |C------- FOLLOWING IS EXTRA STUFF FOR INITIALIZATION
+  1       4 |C-------
+  1       5 |         PARAMETER (INLATH=101,INUMCOEF=3*INLATH+35,
+  1       6 |     *        INUMGRID=4,IJCAPDP=80,INLON=300,INKLON=2,INKLAT=2,
+  1       7 |     *        IIORBPL=3,IIORDPL=3,IIORBLP=3,IIORDLP=3,IMCUBIC=1,
+  1       8 |     *        INUMVERT=2,INSIG=IKM,INMODES=18,INGMAX=3000,
+  1       9 |     *        INKSIG=2,INSIGP1=INSIG+1,INLONEX=INLON+INKLON,
+  1      10 |     *        INLATDP=2*INLATH,INLOLA=INLATDP*INLONEX,
+  1      11 |     *        IJCAP1DP=IJCAPDP+1,IJCAP12=2*IJCAP1DP,
+  1      12 |     *        INCOEFS=IJCAP1DP*(IJCAPDP+2),
+  1      13 |     *     IDPFILLR=(4*IKM+1)*INSUMG+       3*(IIJKMAX*4+IIJMAX) )
+  1      14 |C    *     IDPFILLR=(4*IKM+1)*INSUMG+INGRDUSE*(IIJKMAX*4+IIJMAX) )
+         43 |         REAL RK(NPT,NKX),XPT(NPT),X(NX)
+         44 |         INTEGER IK(NPT)
+         45 |         LOGICAL BITK(NPT)
+         46 |C--------
+         47 |         IF(NX.EQ.1) THEN
+         48 |           DO 10002 I=1,NPT
+         49 |             IK(I)=0
+         50 |             RK(I,1)=1.
+         51 |10002      CONTINUE
+         52 |           RETURN
+         53 |         END IF
+         54 |         MKX=MIN(NX,NKX,4)
+         55 |C--------
+         56 |C-------- DETERMINE ORDERING OF INTERPOLATOR POINTS (THEY MUST BE
+         57 |C-------- EITHER MONOTONIC INCREASING OR DECREASING)
+         58 |C--------
+         59 |         DIRX=X(2)-X(1)
+         60 |C        IF(DIRX.EQ.0.) STOP 'DIRX=0. IN INTERCON'
+         61 |         IF(DIRX.EQ.0.) WRITE(6,99471)
+         62 |99471    FORMAT(' DIRX = 0 IN INTERCON')
+         63 |         DELX1=EXTRAP*ABS(DIRX)
+         64 |         DELXN=EXTRAP*ABS(X(NX)-X(NX-1))
+         65 |C        XPTMAX=Q8SMAX(XPT(1;NPT))
+         66 |C        XPTMIN=Q8SMIN(XPT(1;NPT))
+         67 |C        XMAX=Q8SMAX(X(1;NX))
+         68 |C        XMIN=Q8SMIN(X(1;NX))
+         69 |C        WRITE(6,21)XPTMAX,XPTMIN,XMAX,XMIN,DELX1,DELXN,EXTRAP,DIRX
+         70 |C21      FORMAT(' XPX,XPMN,XX,XMN,DLX1,DLXN,EXTP,DIRX=',8E11.3)
+         71 |C--------
+         72 |C-------- FLAG EXTRAPOLATEES
+         73 |C--------
+         74 |         IF(DIRX.GT.0.) THEN
+         75 |           DO 10004 I=1,NPT
+         76 |             BITK(I)=BITK(I).AND.
+         77 |     *                       (XPT(I).GT.X(1)-DELX1).AND.
+         78 |     *                       (XPT(I).LT.X(NX)+DELXN)
+         79 |10004      CONTINUE
+         80 |         END IF
+         81 |         IF(DIRX.LT.0.) THEN
+         82 |           DO 10006 I=1,NPT
+         83 |             BITK(I)=BITK(I).AND.
+         84 |     *                       (XPT(I).LT.X(1)+DELX1).AND.
+         85 |     *                       (XPT(I).GT.X(NX)-DELXN)
+         86 |10006      CONTINUE
+         87 |         END IF
+         88 |C--------
+         89 |C-------- DETERMINE GATHER INDEX.
+         90 |C--------
+         91 |C        IF(DIRX.GT.0.) IK(1;NPT)=Q8VLTI(XPT(1;NPT),X(1;NX);IK(1;NPT))
+         92 |         DO 10008 I=1,NPT
+         93 |           IK(I)=0
+         94 |10008    CONTINUE
+         95 |         IF(DIRX.GT.0.) THEN
+         96 |c          DO 10012 K=1,NX-1
+         97 |c            DO 10010 I=1,NPT
+         98 |c              IF(X(K).LE.XPT(I).AND.XPT(I).LT.X(K+1)) IK(I)=K
+         99 |c              if(xpt(i).le.x(1)) ik(i)=1
+        100 |c              if(xpt(i).ge.x(nx)) ik(i)=nx
+        101 |c0010        CONTINUE
+        102 |c0012      CONTINUE
+        103 |           do 10012 i=1,npt
+        104 |             if(xpt(i).le.x(1)) then
+        105 |               ik(i)=1
+        106 |             else
+        107 |               ik(i)=isrchfge(nx-1,x,1,xpt(i))-1
+        108 |             end if
+        109 |10012      continue
+        110 |         END IF
+        111 |C        IF(DIRX.LT.0.) IK(1;NPT)=Q8VGEI(XPT(1;NPT),X(1;NX);IK(1;NPT))
+        112 |         IF(DIRX.LT.0.) THEN
+        113 |c          DO 19012 K=1,NX-1
+        114 |c            DO 19010 I=1,NPT
+        115 |c              IF(X(K).GE.XPT(I).AND.XPT(I).GT.X(K+1)) IK(I)=K
+        116 |c              if(xpt(i).ge.x(1)) ik(i)=1
+        117 |c              if(xpt(i).le.x(nx)) ik(i)=nx
+        118 |c9010        CONTINUE
+        119 |c9012      CONTINUE
+        120 |           do 19012 i=1,npt
+        121 |             if(xpt(i).ge.x(1)) then
+        122 |               ik(i)=1
+        123 |             else
+        124 |               ik(i)=isrchfle(nx-1,x,1,xpt(i))-1
+        125 |             end if
+        126 |19012      continue
+        127 |         END IF
+        128 |         DO 10014 I=1,NPT
+        129 |           IK(I)=MAX(1,IK(I))
+        130 |10014    CONTINUE
+        131 |C--------
+        132 |C-------- NOW DETERMINE INTERPOLATION WEIGHTS
+        133 |C--------
+        134 |         GO TO (100,200,300,400),MKX
+        135 |100      CONTINUE
+        136 |C----------
+        137 |C---------- 0 ORDER INTERPOLATION
+        138 |C----------
+        139 |C---------- FIND NEAREST POINT, AND ADJUST IK ACCORDINGLY
+        140 |C----------
+        141 |           DO 198 I=1,NPT
+        142 |             IK(I)=MIN(IK(I),NX-1)
+        143 |             W1D=X(IK(I))
+        144 |             W2D=X(IK(I)+1)
+        145 |             W1D=ABS(W1D-XPT(I))
+        146 |             W2D=ABS(W2D-XPT(I))
+        147 |             IF(W2D.LT.W1D) IK(I)=IK(I)+1
+        148 |             RK(I,1)=1.
+        149 |198        CONTINUE
+        150 |           GO TO 500
+        151 |200      CONTINUE
+        152 |C----------
+        153 |C---------- 1ST ORDER (LINEAR) INTERPOLATION
+        154 |C----------
+        155 |           DO 298 I=1,NPT
+        156 |             IK(I)=MIN(IK(I),NX-1)
+        157 |             W1D=X(IK(I))
+        158 |             W2D=X(IK(I)+1)
+        159 |             W12ID=1./(W1D-W2D)
+        160 |             RK(I,1)=(XPT(I)-W2D)*W12ID
+        161 |             RK(I,2)=(W1D-XPT(I))*W12ID
+        162 |298        CONTINUE
+        163 |           GO TO 500
+        164 |300      CONTINUE
+        165 |C----------
+        166 |C---------- 2ND ORDER (QUADRATIC) INTERPOLATION
+        167 |C----------
+        168 |C---------- COMPUTE WEIGHTS RK, AND ADJUST IK ACCORDINGLY
+        169 |C----------
+        170 |           DO 398 I=1,NPT
+        171 |             IK(I)=MIN(IK(I),NX-1)
+        172 |             W1D=X(IK(I))
+        173 |             W2D=X(IK(I)+1)
+        174 |             W1D=ABS(W1D-XPT(I))
+        175 |             W2D=ABS(W2D-XPT(I))
+        176 |             IF(W2D.LT.W1D) IK(I)=IK(I)+1
+        177 |             IK(I)=IK(I)-1
+        178 |             IK(I)=MAX(1,MIN(IK(I),NX-2))
+        179 |             W1D=X(IK(I))
+        180 |             W2D=X(IK(I)+1)
+        181 |             W3D=X(IK(I)+2)
+        182 |             W12ID=1./(W1D-W2D)
+        183 |             W13ID=1./(W1D-W3D)
+        184 |             W23ID=1./(W2D-W3D)
+        185 |             RK(I,1)=(XPT(I)-W2D)*(XPT(I)-W3D)*W12ID*W13ID
+        186 |             RK(I,2)=(W1D-XPT(I))*(XPT(I)-W3D)*W12ID*W23ID
+        187 |             RK(I,3)=(W1D-XPT(I))*(W2D-XPT(I))*W13ID*W23ID
+        188 |398        CONTINUE
+        189 |           GO TO 500
+        190 |400      CONTINUE
+        191 |C----------
+        192 |C---------- 3RD ORDER (CUBIC) INTERPOLATION
+        193 |C----------
+        194 |C---------- IF MCUBIC = 1, THEN
+        195 |C---------- USE CUBIC FITTED TO NEAREST 4 POINTS
+        196 |C----------
+        197 |C---------- IF MCUBIC = 2, THEN
+        198 |C---------- USE QUASI-HERMITE CUBIC SPLINE IN INTERIOR
+        199 |C---------- USE QUADRATIC IN END INTERVALS
+        200 |C----------
+        201 |C          IK(1;NPT)=IK(1;NPT)-2
+        202 |           MCUBIC = IMCUBIC
+        203 |           DO 498 I=1,NPT
+        204 |             IK(I)=IK(I)-1
+        205 |             IF (MCUBIC.EQ.2) THEN
+        206 |               IEND=0
+        207 |               IF(IK(I).LT.1) IEND=-1
+        208 |               IF(IK(I).GT.NX-3) IEND=1
+        209 |             END IF
+        210 |             IK(I)=MAX(1,MIN(IK(I),NX-3))
+        211 |             W1D=X(IK(I))
+        212 |             W2D=X(IK(I)+1)
+        213 |             W3D=X(IK(I)+2)
+        214 |             W4D=X(IK(I)+3)
+        215 |             W12ID=1./(W1D-W2D)
+        216 |             W13ID=1./(W1D-W3D)
+        217 |             W14ID=1./(W1D-W4D)
+        218 |             W23ID=1./(W2D-W3D)
+        219 |             W24ID=1./(W2D-W4D)
+        220 |             W34ID=1./(W3D-W4D)
+        221 |             IF (MCUBIC.EQ.2) THEN
+        222 |               WM21=(W2D-W3D)*W12ID*W13ID
+        223 |               WM22=(W1D+W3D-2.*W2D)*W12ID*W23ID
+        224 |               WM23=(W2D-W1D)*W13ID*W23ID
+        225 |               WM24=0.
+        226 |               WM31=0.
+        227 |               WM32=(W3D-W4D)*W23ID*W24ID
+        228 |               WM33=(W2D+W4D-2.*W3D)*W23ID*W34ID
+        229 |               WM34=(W3D-W2D)*W24ID*W34ID
+        230 |               IF(IEND.EQ.-1) THEN
+        231 |                 WM31=(W3D-W2D)*W12ID*W13ID
+        232 |                 WM32=(W1D-W3D)*W12ID*W23ID
+        233 |                 WM33=(2.*W3D-W1D-W2D)*W13ID*W23ID
+        234 |                 WM34=0.
+        235 |               END IF
+        236 |               IF(IEND.EQ.1) THEN
+        237 |                 WM21=0.
+        238 |                 WM22=(2.*W2D-W3D-W4D)*W23ID*W24ID
+        239 |                 WM23=(W4D-W2D)*W23ID*W34ID
+        240 |                 WM24=(W2D-W3D)*W24ID*W34ID
+        241 |               END IF
+        242 |               WM2=(XPT(I)-W2D)*(((XPT(I)-W3D)*W23ID)**2)
+        243 |               WM3=(XPT(I)-W3D)*(((XPT(I)-W2D)*W23ID)**2)
+        244 |               RK(I,1)=WM2*WM21+WM3*WM31
+        245 |               RK(I,2)=WM2*WM22+WM3*WM32-
+        246 |     *               ((XPT(I)-W3D)**2)*
+        247 |     *               (2.*XPT(I)-3.*W2D+W3D)*W23ID**3
+        248 |               RK(I,3)=WM2*WM23+WM3*WM33+
+        249 |     *               ((XPT(I)-W2D)**2)*
+        250 |     *               (2.*XPT(I)-3.*W3D+W2D)*W23ID**3
+        251 |               RK(I,4)=WM2*WM24+WM3*WM34
+        252 |             ELSE
+        253 |               RK(I,1)=(XPT(I)-W2D)*(XPT(I)-W3D)
+        254 |     *               *(XPT(I)-W4D)*W12ID*W13ID*W14ID
+        255 |               RK(I,2)=(W1D-XPT(I))*(XPT(I)-W3D)
+        256 |     *               *(XPT(I)-W4D)*W12ID*W23ID*W24ID
+        257 |               RK(I,3)=(W1D-XPT(I))*(W2D-XPT(I))
+        258 |     *               *(XPT(I)-W4D)*W13ID*W23ID*W34ID
+        259 |               RK(I,4)=(W1D-XPT(I))*(W2D-XPT(I))
+        260 |     *               *(W3D-XPT(I))*W14ID*W24ID*W34ID
+        261 |             END IF
+        262 |498        CONTINUE
+        263 |500      CONTINUE
+        264 |C--------
+        265 |C-------- FINALLY SUBTRACT ONE FROM IK
+        266 |C--------
+        267 |         DO 60002 I=1,NPT
+        268 |           IK(I)=IK(I)-1
+        269 |60002    CONTINUE
+        270 |       RETURN
+        271 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-63.23  0-64.23  0-145.18  0-146.18  0-174.18  0-175.18
+ 
+bitk                             Reference argument, Logical(4) (1:?), Offset: 0, Alignment: full word
+                                 0-45.18$  0-1.34  0-76.14@  0-76.22  0-83.14@  0-83.22
+ 
+delx1                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-63.10@  0-77.46  0-84.46
+ 
+delxn                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-64.10@  0-78.47  0-85.47
+ 
+dirx                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-59.10@  0-61.13  0-63.27  0-74.13  0-81.13  0-95.13  0-112.13
+ 
+extrap                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.56  0-63.16  0-64.16
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.21@  0-49.17  0-50.17  0-75.21@  0-76.19  0-76.27  0-77.35  0-78.35  0-82.21@  0-83.19
+                                 0-83.27  0-84.35  0-85.35  0-92.19@  0-93.15  0-103.21@  0-104.21  0-105.19  0-107.19  0-107.44
+                                 0-120.21@  0-121.21  0-122.19  0-124.19  0-124.44  0-128.19@  0-129.15  0-129.27  0-141.19@
+                                 0-142.17  0-142.27  0-143.23  0-144.23  0-145.30  0-146.30  0-147.32  0-147.38  0-148.17  0-155.19@
+                                 0-156.17  0-156.27  0-157.23  0-158.23  0-160.17  0-160.27  0-161.17  0-161.31  0-170.19@  0-171.17
+                                 0-171.27  0-172.23  0-173.23  0-174.30  0-175.30  0-176.32  0-176.38  0-177.17  0-177.23  0-178.17
+                                 0-178.33  0-179.23  0-180.23  0-181.23  0-185.17  0-185.27  0-185.40  0-186.17  0-186.31  0-186.40
+                                 0-187.17  0-187.31  0-187.44  0-203.19@  0-204.17  0-204.23  0-207.22  0-208.22  0-210.17  0-210.33
+                                 0-211.23  0-212.23  0-213.23  0-214.23  0-242.25  0-242.40  0-243.25  0-243.40  0-244.19  0-245.19
+                                 0-246.28  0-247.30  0-248.19  0-249.28  0-250.30  0-251.19  0-253.19  0-253.29  0-253.42  0-254.28
+                                 0-255.19  0-255.33  0-255.42  0-256.28  0-257.19  0-257.33  0-257.46  0-258.28  0-259.19  0-259.33
+                                 0-259.46  0-260.32  0-267.19@  0-268.15  0-268.21
+ 
+iblk1d                           Parameter, Integer(4)
+                                 2-58.9$  2-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 2-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 2-59.9$  2-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 2-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 2-9.13$  2-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 2-8.13$  2-10.33
+ 
+idpfillr                         Parameter, Integer(4)
+                                 1-13.12$
+ 
+iend                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-206.16@  0-207.31@  0-208.34@  0-230.19  0-236.19
+ 
+iijkmax                          Parameter, Integer(4)
+                                 2-49.13$  1-13.48  2-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 2-17.13$  1-13.58  2-49.31  2-56.21  2-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 2-18.13$  2-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 2-19.13$  2-57.30  2-61.21
+ 
+iiorblp                          Parameter, Integer(4)
+                                 1-7.35$
+ 
+iiorbpl                          Parameter, Integer(4)
+                                 1-7.15$
+ 
+iiordlp                          Parameter, Integer(4)
+                                 1-7.45$
+ 
+iiordpl                          Parameter, Integer(4)
+                                 1-7.25$
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 2-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 2-20.13$
+ 
+ijcap12                          Parameter, Integer(4)
+                                 1-11.34$
+ 
+ijcap1dp                         Parameter, Integer(4)
+                                 1-11.15$  1-11.44  1-12.23
+ 
+ijcapdp                          Parameter, Integer(4)
+                                 1-6.26$  1-11.24  1-12.33
+ 
+ik                               Reference argument, Integer(4) (1:?), Offset: 0, Alignment: full word
+                                 0-44.18$  0-1.28  0-49.14@  0-93.12@  0-105.16@  0-107.16@  0-122.16@  0-124.16@  0-129.12@
+                                 0-129.24  0-142.14@  0-142.24  0-143.20  0-144.20  0-147.29@  0-147.35  0-156.14@  0-156.24
+                                 0-157.20  0-158.20  0-171.14@  0-171.24  0-172.20  0-173.20  0-176.29@  0-176.35  0-177.14@
+                                 0-177.20  0-178.14@  0-178.30  0-179.20  0-180.20  0-181.20  0-204.14@  0-204.20  0-207.19
+                                 0-208.19  0-210.14@  0-210.30  0-211.20  0-212.20  0-213.20  0-214.20  0-268.12@  0-268.18
+ 
+ikm                              Parameter, Integer(4)
+                                 2-22.13$  1-8.32  1-13.24  2-49.25  2-52.21  2-53.25  2-57.39  2-58.26  2-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 2-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 2-12.13$  2-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 2-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 2-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 2-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 2-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 2-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 2-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 2-13.13$  2-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 2-14.13$  2-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 2-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 2-15.13$  2-46.25  2-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 2-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 2-53.9$  2-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 2-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 2-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 2-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 2-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 2-56.9$
+ 
+imcubic                          Parameter, Integer(4)
+                                 1-7.55$  0-202.21
+ 
+incoefs                          Parameter, Integer(4)
+                                 1-12.15$
+ 
+infiller                         Parameter, Integer(4)
+                                 2-36.13$  2-56.62
+ 
+ingmax                           Parameter, Integer(4)
+                                 1-8.47$
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 2-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 2-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 2-37.13$  2-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 2-40.13$
+ 
+inklat                           Parameter, Integer(4)
+                                 1-6.56$
+ 
+inklon                           Parameter, Integer(4)
+                                 1-6.47$  1-9.54
+ 
+inksig                           Parameter, Integer(4)
+                                 1-9.15$
+ 
+inlat                            Parameter, Integer(4)
+                                 2-47.13$
+ 
+inlatdp                          Parameter, Integer(4)
+                                 1-10.15$  1-10.39
+ 
+inlath                           Parameter, Integer(4)
+                                 1-5.21$  1-5.43  1-10.25
+ 
+inlatsh                          Parameter, Integer(4)
+                                 2-16.13$  2-47.34
+ 
+inlola                           Parameter, Integer(4)
+                                 1-10.32$
+ 
+inlon                            Parameter, Integer(4)
+                                 1-6.37$  1-9.48
+ 
+inlonex                          Parameter, Integer(4)
+                                 1-9.40$  1-10.47
+ 
+inmodes                          Parameter, Integer(4)
+                                 1-8.36$
+ 
+inscr                            Parameter, Integer(4)
+                                 2-41.13$  2-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 2-43.13$  2-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 2-42.13$  2-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 2-48.13$
+ 
+insig                            Parameter, Integer(4)
+                                 1-8.26$  1-9.32
+ 
+insigp1                          Parameter, Integer(4)
+                                 1-9.24$
+ 
+insigstp                         Parameter, Integer(4)
+                                 2-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 2-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 2-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 2-45.13$  1-13.31  2-55.31
+ 
+intercon                         Subroutine
+                                 0-1.19$
+ 
+inumcoef                         Parameter, Integer(4)
+                                 1-5.32$
+ 
+inumgrid                         Parameter, Integer(4)
+                                 1-6.15$
+ 
+inumrec                          Parameter, Integer(4)
+                                 2-10.13$
+ 
+inumvert                         Parameter, Integer(4)
+                                 1-8.15$
+ 
+invbl                            Parameter, Integer(4)
+                                 2-55.9$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 2-57.9$
+ 
+isrchfge                         External Function Integer(4)
+                                 0-107.22
+ 
+isrchfle                         External Function Integer(4)
+                                 0-124.22
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 2-21.13$  2-57.21
+ 
+max                              Pure Intrinsic
+                                 0-129.18  0-178.20  0-210.20
+ 
+mcubic                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-202.12@  0-205.18  0-221.18
+ 
+min                              Pure Intrinsic
+                                 0-54.14  0-142.20  0-156.20  0-171.20  0-178.26  0-210.26
+ 
+mkx                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-54.10@  0-134.34
+ 
+nkx                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.52  0-43.22  0-43.22  0-54.21
+ 
+npt                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.43  0-43.18  0-43.18  0-43.31  0-43.31  0-44.21  0-44.21  0-45.23  0-45.23  0-48.25  0-75.25
+                                 0-82.25  0-92.23  0-103.25  0-120.25  0-128.23  0-141.23  0-155.23  0-170.23  0-203.23  0-267.23
+ 
+nx                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.49  0-43.38  0-43.38  0-47.13  0-54.18  0-64.29  0-64.35  0-78.43  0-85.43  0-107.31  0-124.31
+                                 0-142.30  0-156.30  0-171.30  0-178.36  0-208.28  0-210.36
+ 
+rk                               Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-43.15$  0-1.31  0-50.14@  0-148.14@  0-160.14@  0-161.14@  0-185.14@  0-186.14@  0-187.14@
+                                 0-244.16@  0-245.16@  0-248.16@  0-251.16@  0-253.16@  0-255.16@  0-257.16@  0-259.16@
+ 
+w12id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-159.14@  0-160.35  0-161.35  0-182.14@  0-185.48  0-186.48  0-215.14@  0-222.31  0-223.38
+                                 0-231.33  0-232.33  0-254.36  0-256.36
+ 
+w13id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-183.14@  0-185.54  0-187.48  0-216.14@  0-222.37  0-224.31  0-231.39  0-233.40  0-254.42
+                                 0-258.36
+ 
+w14id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-217.14@  0-254.48  0-260.36
+ 
+w1d                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-143.14@  0-145.14@  0-145.22  0-147.24  0-157.14@  0-159.24  0-161.23  0-172.14@  0-174.14@
+                                 0-174.22  0-176.24  0-179.14@  0-182.24  0-183.24  0-186.23  0-187.23  0-211.14@  0-215.24
+                                 0-216.24  0-217.24  0-223.22  0-224.26  0-232.24  0-233.31  0-255.25  0-257.25  0-259.25
+ 
+w23id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-184.14@  0-186.54  0-187.54  0-218.14@  0-223.44  0-224.37  0-227.31  0-228.38  0-232.39
+                                 0-233.46  0-238.40  0-239.33  0-242.48  0-243.48  0-247.45  0-250.45  0-256.42  0-258.42
+ 
+w24id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-219.14@  0-227.37  0-229.31  0-238.46  0-240.33  0-256.48  0-260.42
+ 
+w2d                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-144.14@  0-146.14@  0-146.22  0-147.17  0-158.14@  0-159.28  0-160.30  0-173.14@  0-175.14@
+                                 0-175.22  0-176.17  0-180.14@  0-182.28  0-184.24  0-185.30  0-187.36  0-212.14@  0-215.28
+                                 0-218.24  0-219.24  0-222.22  0-223.33  0-224.22  0-228.22  0-229.26  0-231.28  0-233.35  0-238.27
+                                 0-239.28  0-240.24  0-242.28  0-243.43  0-247.36  0-249.31  0-250.40  0-253.32  0-257.38  0-259.38
+ 
+w34id                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-220.14@  0-228.44  0-229.37  0-239.39  0-240.39  0-258.48  0-260.48
+ 
+w3d                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-181.14@  0-183.28  0-184.28  0-185.43  0-186.43  0-213.14@  0-216.28  0-218.28  0-220.24
+                                 0-222.26  0-223.26  0-227.22  0-228.33  0-229.22  0-231.24  0-232.28  0-233.27  0-238.31  0-240.28
+                                 0-242.43  0-243.28  0-246.31  0-247.40  0-250.36  0-253.45  0-255.45  0-260.24
+ 
+w4d                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-214.14@  0-217.28  0-219.28  0-220.28  0-227.26  0-228.26  0-238.35  0-239.24  0-254.31  0-256.31
+                                 0-258.31
+ 
+wm2                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-242.16@  0-244.24  0-245.24  0-248.24  0-251.24
+ 
+wm21                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-222.16@  0-237.18@  0-244.28
+ 
+wm22                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-223.16@  0-238.18@  0-245.28
+ 
+wm23                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-224.16@  0-239.18@  0-248.28
+ 
+wm24                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-225.16@  0-240.18@  0-251.28
+ 
+wm3                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-243.16@  0-244.33  0-245.33  0-248.33  0-251.33
+ 
+wm31                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-226.16@  0-231.18@  0-244.37
+ 
+wm32                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-227.16@  0-232.18@  0-245.37
+ 
+wm33                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-228.16@  0-233.18@  0-248.37
+ 
+wm34                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-229.16@  0-234.18@  0-251.37
+ 
+x                                Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-43.36$  0-1.47  0-59.15  0-59.20  0-64.27  0-64.33  0-77.41  0-78.41  0-84.41  0-85.41  0-104.27
+                                 0-107.36  0-121.27  0-124.36  0-143.18  0-144.18  0-157.18  0-158.18  0-172.18  0-173.18  0-179.18
+                                 0-180.18  0-181.18  0-211.18  0-212.18  0-213.18  0-214.18
+ 
+xpt                              Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-43.27$  0-1.39  0-77.31  0-78.31  0-84.31  0-85.31  0-104.17  0-107.40  0-121.17  0-124.40
+                                 0-145.26  0-146.26  0-160.23  0-161.27  0-174.26  0-175.26  0-185.23  0-185.36  0-186.27  0-186.36
+                                 0-187.27  0-187.40  0-242.21  0-242.36  0-243.21  0-243.36  0-246.24  0-247.26  0-249.24  0-250.26
+                                 0-253.25  0-253.38  0-254.24  0-255.29  0-255.38  0-256.24  0-257.29  0-257.42  0-258.24  0-259.29
+                                 0-259.42  0-260.28
+ 
+** intercon   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    INTERCON.f                  10/09/02   12:45:07
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/myparam
+                                      02/09/00   18:27:58      0      42
+     2    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      1       1
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     347
+1501-510  Compilation successful for file INTERCON.f.
+1501-543  Object file created.

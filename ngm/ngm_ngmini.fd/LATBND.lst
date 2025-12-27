@@ -1,0 +1,1930 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/LATBND.f 09/30/06 19:43:58
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE LATBND( NC, KHINTERP )
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C
+          4 |C SUBPROGRAM:    LATBND      INTERPOLATE BOUNDARY VALUES FOR THE NGM
+          5 |C   PRGMMR:  JIM TUCCILLO       ORG: W/NMC4     DATE: 90-06-13
+          6 |C
+          7 |C ABSTRACT: INTERPOLATES INNER BNDRY VALUES FOR THE
+          8 |C   .       COARSER AND OUTER BNDRY VALUES FOR THE
+          9 |C   .       FINER MEMBERS OF AN OVERLAPPING
+         10 |C   .       PAIR OF GRIDS IN THE NGM (NESTED
+         11 |C   .       GRID MODEL).
+         12 |C   .
+         13 |C   BILINEAR INTERPOLATION ON THE COARSE GRID GIVES NEEDED
+         14 |C   VALUES ON THE FINE GRID, AND VICE-VERSA.  DIFFERENT PROCEDURES
+         15 |C   MUST BE USED FOR THREE VARIABLE TYPES--THE TWO VELOCITY
+         16 |C   COMPONENTS U AND V, AND THE MASS VARIABLE TYPE DENOTED BY ''H''
+         17 |C   BECAUSE THESE VARIABLE TYPES ARE AT STAGGERED LOCATIONS IN
+         18 |C   THE HORIZONTAL.  ADDRESS INTEGERS AND INTERPOLATION
+         19 |C   COEFFICIENTS ARE COMPUTED ON THE FIRST CALL.
+         20 |C
+         21 |C PROGRAM HISTORY LOG:
+         22 |C   90-06-13  J TUCCILLO
+         23 |C
+         24 |C USAGE:  CALL LATBND( NC, KHINTERP)
+         25 |C   INPUT ARGUMENT LIST:
+         26 |C     NC       - GRID NUMBER OF THE COARSER GRID OF THE
+         27 |C                PAIR (OUTER HEMISPHERIC GRID HAS NC=1).
+         28 |C
+         29 |C     KHINTERP - NUMBER OF HORIZONTAL ARRAYS OF H-TYPE VBLS
+         30 |C                THAT NEED BNDRY VALUES.
+         31 |C
+         32 |C   OUTPUT FILES:
+         33 |C     IOUTUPRT - FOR ERROR MESSAGE PRINTOUTS
+         34 |C
+         35 |C   SUBPROGRAMS CALLED:
+         36 |C     UNIQUE:    - ERRPRINT
+         37 |C     LIBRARY:
+         38 |C       COMMON   - COMCONST
+         39 |C                  COMBLANK
+         40 |C
+         41 |C REMARKS: ALSO SEE COMMENTS AFTER DOCBLOCK
+         42 |C   .
+         43 |C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+         44 |C   .
+         45 |C   NAMES      MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         46 |C   -----      ----------------------------------        ---------
+         47 |C   VBL        ARRAY CONTAINING ALL VBLS FOR ALL GRIDS   COMMON
+         48 |C   .
+         49 |C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+         50 |C   .
+         51 |C   NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         52 |C   -----       ----------------------------------        ---------
+         53 |C   VBL         ARRAY OF ALL VBLS NOW HAS BNDRY VALUES    COMMON
+         54 |C   .           ADDED FOR GRIDS NC AND NC+1.
+         55 |C
+         56 |C
+         57 |C ATTRIBUTES:
+         58 |C   LANGUAGE: FORTRAN
+         59 |C   MACHINE:  CRAY Y-MP
+         60 |C
+         61 |C$$$
+         62 |C
+         63 |      include 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      3,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =  10000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         64 |C
+         65 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:45:47
+         66 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+         67 |C
+         68 |C          PROGRAM TO INTERPOLATE LATERAL BOUNDARY VALUES BETWEEN
+         69 |C          THE COARSE GRID  NC  , AND THE FINE GRID NF=NC+1.
+         70 |C
+         71 |C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+         72 |C          AND A FEW OTHER COMMON CONSTANTS.
+         73 |      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+         74 |     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+         75 |     2                  NTIME, ITIME, NSTEPS,
+         76 |     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+         77 |     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+         78 |     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+         79 |     6                  IADDRG(INIADDRS, INGRDUSE),
+         80 |     7                  NPTSFH(2, INGRDUSE),
+         81 |     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+         82 |     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+         83 |     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+         84 |     2                  SIGINT(IKMP1),
+         85 |     3                  DTOVDX, ANGVEL,
+         86 |     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+         87 |     5                  SATDEL, RHFACTOR, QBOUND,
+         88 |     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+         89 |     7                  SCALEHT, SIGDOT, DLAMNGM
+         90 |C
+         91 |      COMMON            SCR     (IIJMAX,  INSCR),
+         92 |     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+         93 |     2                  SCR3    (IIJKMAX, INSCR3),
+         94 |     3                  FILLER  (INFILLER),
+         95 |     4                  VBL     (INVBL),
+         96 |     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+         97 |     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+         98 |     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+         99 |     8                  BITSEA  (IIJMAX, INGRDUSE),
+        100 |     9                  BITSNO  (IIJMAX, INGRDUSE),
+        101 |     1                  BITWVL  (IIJMAX, INGRDUSE)
+        102 |C
+        103 |      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+        104 |C
+        105 |      COMMON /COM1WAY/ ITIMSTEP, ITBOUND, INGLB
+        106 |C
+        107 |C     TEMPORARY SCRATCH ARRAYS
+        108 |      DIMENSION X(IIJMAX),X1(IIJMAX),X2(IIJMAX),X3(IIJMAX),
+        109 |     *          X4(IIJMAX),Y(IIJMAX)
+        110 |      EQUIVALENCE (X(1),SCR(1,1) ), (Y(1), SCR(1,5) ),
+        111 |     1 (X1(1), SCR(1,1) ),(X2(1),SCR(1,2) ), (X3(1),SCR(1,3) ),
+        112 |     2 (X4(1),SCR(1,4) )
+        113 |C
+        114 |C     PERMANENT STORAGE
+        115 |      DIMENSION CH(ILBCH,INGRDUS1,4)
+        116 |      DIMENSION LGSUO(ILBUO,INGRDUS1,2), LGSVO(ILBVO,INGRDUS1,2),
+        117 |     1          LGSHO(ILBCH,INGRDUS1,2), LGSUI(ILBUI,INGRDUS1,2),
+        118 |     2          LGSVI(ILBVI,INGRDUS1,2), LGSHI(ILBHI,INGRDUS1,2)
+        119 |C
+        120 |      INTEGER I1X,I2X,I3X,I4X,I5X,I6X,I7X,I8X,I9X,I10X,I11X,I12X,I13X,I1
+        121 |     .4X,I15X,I16X,I17X,I18X,I19X,I20X
+        122 |      DATA ICALL /0/
+        123 |C
+        124 |C
+        125 |C              SPECIFY THE UNIT NUMBER OF THE PRINTER.
+        126 |C
+        127 |C
+        128 |C              SPECIFY THE UNIT NUMBER OF THE PRINTER.
+        129 |      IOUTUPRT = 6
+        130 |C
+        131 |C          ON 1ST CALL, MUST COMPUTE INTERPOLATION ARRAYS
+        132 |C
+        133 |      IF( ICALL .GT. 0) GO TO 200
+        134 |C
+        135 |      ICALL=1
+        136 |C
+        137 |C          ARRAY SIZES
+        138 |      LBCH=ILBCH
+        139 |      LBHI=ILBHI
+        140 |      LBUI=ILBUI
+        141 |      LBUO=ILBUO
+        142 |      LBVI=ILBVI
+        143 |      LBVO=ILBVO
+        144 |C
+        145 |C
+        146 |C          ENTER OUTER LOOP ON THE NGDUSE - 1 GRID PAIRS THAT EXIST
+        147 |      NINTPR=NGRDUSE-1
+        148 |C
+        149 |      DO 120 NG=1,NINTPR
+        150 |C
+        151 |C          GET THE GRID DIMENSION NUMBERS FOR THE
+        152 |C          COARSE AND FINE GRIDS,
+        153 |      IMC=IMG(NG)
+        154 |      JMC=JMG(NG)
+        155 |      IJC=IMC*JMC
+        156 |      IMF=IMG(NG+1)
+        157 |      JMF=JMG(NG+1)
+        158 |      IJF=IMF*JMF
+        159 |      IA=IAG(NG)
+        160 |      JA=JAG(NG)
+        161 |      IB=IBG(NG)
+        162 |      JB=JBG(NG)
+        163 |C          MUST HAVE JB .GT. (JA+2) AND IB .GT. (IA+2).
+        164 |      IF(JB .LE. (JA+2) ) GO TO 1
+        165 |      IF(IB .LE. (IA+2) ) GO TO 1
+        166 |      GO TO 5
+        167 |C          ERROR
+        168 |    1 WRITE (IOUTUPRT, 3) IA,IB,JA,JB,NG
+        169 |    3 FORMAT(1H1,2X,'*****SR LATBND ENCOUNTERED IA,IB,JA,JB=',
+        170 |     1 4I10,', ON GRID',I10)
+        171 |C
+        172 |      CALL EXIT(16)
+        173 |C
+        174 |    5 CONTINUE
+        175 |C
+        176 |CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        177 |C          L IS STORE INTEGER FOR FINE GRID U INTEGER ARRAYS.
+        178 |      L=0
+        179 |C          I AND J WILL BE FINE GRID PT INDICES FOR U
+        180 |C          JODD(OR IODD) WILL BE +1 FOR EVEN J(OR I) AND -1 FOR
+        181 |C          ODD J (OR I).
+        182 |C
+        183 |      JODD=1
+        184 |      IRET=1
+        185 |        J = 1
+        186 |8884    IF ( J.GT.4) GOTO 9994
+        187 |        JODD=-JODD
+        188 |        IODD=1
+        189 |          I = 1
+        190 |8882      IF ( I .GT. IMF ) GOTO 9992
+        191 |          GO TO 16
+        192 |    2     I = I + 1
+        193 |          GOTO 8882
+        194 |9992      CONTINUE
+        195 |    4   J = J + 1
+        196 |        GOTO 8884
+        197 |9994    CONTINUE
+        198 |      J1=JMF-4
+        199 |        J = 5
+        200 |88810   IF ( J .GT. J1 ) GOTO 99910
+        201 |        JODD=-JODD
+        202 |        IODD=1
+        203 |        IRET=2
+        204 |          I = 1
+        205 |8886      IF ( I .GT. 4 ) GOTO 9996
+        206 |          GO TO 16
+        207 |    6     I = I + 1
+        208 |          GOTO 8886
+        209 |9996      CONTINUE
+        210 |C          IMF-2 IS ODD
+        211 |        I1=IMF-2
+        212 |        IRET=3
+        213 |          I = I1
+        214 |8888      IF ( I .GT. IMF ) GOTO 9998
+        215 |          GO TO 16
+        216 |    8     I = I + 1
+        217 |          GOTO 8888
+        218 |9998      CONTINUE
+        219 |   10   J = J + 1
+        220 |        GOTO 88810
+        221 |99910   CONTINUE
+        222 |      J1=JMF-3
+        223 |      IRET=4
+        224 |        J = J1
+        225 |88814   IF ( J .GT. JMF ) GOTO 99914
+        226 |        JODD=-JODD
+        227 |        IODD=1
+        228 |          I = 1
+        229 |88812     IF ( I .GT. IMF ) GOTO 99912
+        230 |          GO TO 16
+        231 |   12     I = I + 1
+        232 |          GOTO 88812
+        233 |99912     CONTINUE
+        234 |   14   J = J + 1
+        235 |        GOTO 88814
+        236 |99914   CONTINUE
+        237 |C
+        238 |C          DONE WITH OUTER U,, GO TO OUTER V INTEGER COMPNS.
+        239 |      GO TO 20
+        240 |C
+        241 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        242 |C          COMPUTED GO TO ROUTINE FOR OUTER U GATHER-SCATTER INTEGERS
+        243 |C
+        244 |   16 IODD=-IODD
+        245 |      L=L+1
+        246 |      IF(L .LE. LBUO ) GO TO 18
+        247 |C          ERROR
+        248 |      WRITE (IOUTUPRT, 17) L,LBUO,NG
+        249 |   17 FORMAT(1H1,2X,'**IN SR LATBND,L=',I8,' IS .GT. LBUO=',I8,
+        250 |     1 '. COARSE GRID=',I8)
+        251 |C
+        252 |C*****  Code Expanded From Routine:  ERRPRINT
+        253 |      PRINT 77052
+        254 |77052 FORMAT (1H1, '  **********  PRINT FROM SUBROUTINE ERRPRINT ',
+        255 |     1             'FOLLOWS. ***********')
+        256 |C
+        257 |      PRINT 77053, IJMAX, KM, LVLTOT, NGRDUSE, NH
+        258 |77053 FORMAT (1H1, 2X, 'IJMAX, KM, LVLTOT, NGRDUSE, NH =', 5I10)
+        259 |C
+        260 |      PRINT 77054, NTIME, ITIME, NSTEPS
+        261 |77054 FORMAT (1H0, 2X, 'NTIME, ITIME, NSTEPS= ', 3I10 /)
+        262 |C*****  End of Code Expanded From Routine:  ERRPRINT
+        263 |      CALL EXIT(16)
+        264 |C
+        265 |   18 CONTINUE
+        266 |C          IJA WILL BE COARSE GRID ADDRESS OF U POINT IN LOWER LEFT
+        267 |C          CORNER OF GRID BOX.
+        268 |      JC=J/2 + JA-4
+        269 |      IC=I/2 +IA -4
+        270 |      IJA=IC+(JC-1)*IMC
+        271 |C          L2 WILL BE 0,1,2,3 FOR FINE GRID U TO LOWER LEFT,LOWER
+        272 |C          RIGHT,UPPER LEFT, OR UPPER RIGHT IN COARSE GRID U BOX
+        273 |      L2=1-JODD + (1-IODD)/2
+        274 |C          THE GATHER INTS FROM 4 SCRATCH ARRAYS TO VECTOR OF NEEDED
+        275 |C          U VALUES
+        276 |      LGSUO(L, NG, 1)=IJA+L2*IJC
+        277 |C          SCATTER INTS FROM VECTOR OF NEEDED VALUES TO FINE U ARRAY
+        278 |      LGSUO( L, NG, 2)=I+(J-1)*IMF
+        279 |C
+        280 |      GO TO ( 2, 6, 8, 12 ),IRET
+        281 |C
+        282 |CBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        283 |C
+        284 |C          L IS STORING INTEGER FOR FINE GRID OUTER V INTEGERS
+        285 |   20 L=0
+        286 |C          I,J WILL BE FINE GRID V INDICES
+        287 |C          JODD(OR IODD) WILL BE +1 FOR EVEN J (OR I) AND -1 FOR
+        288 |C          ODD J (OR I).
+        289 |      JODD=1
+        290 |      IRET=1
+        291 |        J = 1
+        292 |88824   IF ( J .GT. 4 ) GOTO 99924
+        293 |        JODD=-JODD
+        294 |        IODD=1
+        295 |          I = 1
+        296 |88822     IF ( I .GT. IMF ) GOTO 99922
+        297 |          GO TO 36
+        298 |   22     I = I + 1
+        299 |          GOTO 88822
+        300 |99922     CONTINUE
+        301 |   24   J = J + 1
+        302 |        GOTO 88824
+        303 |99924   CONTINUE
+        304 |      J1=JMF-3
+        305 |        J = 5
+        306 |88830   IF ( J .GT. J1 ) GOTO 99930
+        307 |        JODD=-JODD
+        308 |        IODD=1
+        309 |        IRET=2
+        310 |          I = 1
+        311 |88826     IF ( I .GT. 4 ) GOTO 99926
+        312 |          GO TO 36
+        313 |   26     I = I + 1
+        314 |          GOTO 88826
+        315 |99926     CONTINUE
+        316 |C          IMF - 3 WILL BE EVEN
+        317 |        IODD=-1
+        318 |        I1=IMF-3
+        319 |        IRET=3
+        320 |          I = I1
+        321 |88828     IF ( I .GT. IMF ) GOTO 99928
+        322 |          GO TO 36
+        323 |   28     I = I + 1
+        324 |          GOTO 88828
+        325 |99928     CONTINUE
+        326 |   30   J = J + 1
+        327 |        GOTO 88830
+        328 |99930   CONTINUE
+        329 |      J1=JMF-2
+        330 |      IRET=4
+        331 |        J = J1
+        332 |88834   IF ( J .GT. JMF ) GOTO 99934
+        333 |        JODD=-JODD
+        334 |        IODD=1
+        335 |          I = 1
+        336 |88832     IF ( I .GT. IMF ) GOTO 99932
+        337 |          GO TO 36
+        338 |   32     I = I + 1
+        339 |          GOTO 88832
+        340 |99932     CONTINUE
+        341 |   34   J = J + 1
+        342 |        GOTO 88834
+        343 |99934   CONTINUE
+        344 |C
+        345 |C          DONE WITH OUTER V,, GO TO COMPUTATION OF OUTER H NUMBERS
+        346 |C
+        347 |      GO TO 40
+        348 |C
+        349 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        350 |C          COMPTD GO TO ROUTINE FOR FINE GRID V GATHER-SCATTER INTS.
+        351 |C
+        352 |   36 IODD=-IODD
+        353 |      L=L+1
+        354 |      IF(L .LE. LBVO ) GO TO 38
+        355 |C          ERROR
+        356 |      WRITE (IOUTUPRT, 37) L,LBVO,NG
+        357 |   37 FORMAT(1H1,2X,'*****IN SR LATBND L=',I8,'IS  .GT. LBVO=',I8,
+        358 |     1 '. COARSE GRID=',I8)
+        359 |C
+        360 |      CALL EXIT(16)
+        361 |   38 CONTINUE
+        362 |C          IJA WILL BE ADDRESS OF COARSE GRID V IN LOWER LEFT CORNER
+        363 |C          OF GRID BOX.
+        364 |      IC=IA-4+ (I/2)
+        365 |      JC=JA-4+ (J/2)
+        366 |      IJA=IC+(JC-1)*IMC
+        367 |C          L2 WILL BE 0,1,2,3 FOR FINE GRID V IN LOWER LEFT,UPPER LEFT,
+        368 |C          LOWER RIGHT, OR UPPER RIGHT WITHIN COARSE GRID V BOX.
+        369 |      L2=1-IODD + (1-JODD)/2
+        370 |C          THE GATHER INTS FROM 4 SCRATCH ARRAYS INTO A
+        371 |C          VECTOR OF THE NEEDED V S.
+        372 |      LGSVO( L,NG, 1)=IJA+L2*IJC
+        373 |C          THE INTS FOR SCATTER INTO THE FINE GRID V ARRAY.
+        374 |      LGSVO(L, NG, 2)=I+(J-1)*IMF
+        375 |C
+        376 |      GO TO ( 22, 26, 28, 32 ),IRET
+        377 |C
+        378 |CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+        379 |C
+        380 |C          L IS STORE INTEGER FOR FINE GRID H INTEGERS AND COEFFS.
+        381 |   40 L=0
+        382 |C          SOME CONSTANTS FOR THE COEFFICIENT COMPUTATIONS.
+        383 |      ONE=1.E0
+        384 |      SIX=6.E0
+        385 |      FOUR=4.E0
+        386 |      SCALE=1.E0/32.E0
+        387 |C          DJ(OR DI) WILL BE +1. FOR EVEN J(OR I) AND -1. FOR
+        388 |C          ODD J(OR I).
+        389 |      DJ=ONE
+        390 |      IRET=1
+        391 |        J = 1
+        392 |88844   IF ( J .GT. 4 ) GOTO 99944
+        393 |        DJ=-DJ
+        394 |        DI=ONE
+        395 |          I = 1
+        396 |88842     IF ( I .GT. IMF ) GOTO 99942
+        397 |          GO TO 56
+        398 |   42     I = I + 1
+        399 |          GOTO 88842
+        400 |99942     CONTINUE
+        401 |   44   J = J + 1
+        402 |        GOTO 88844
+        403 |99944   CONTINUE
+        404 |      J1=JMF-3
+        405 |        J = 5
+        406 |88850   IF ( J .GT. J1 ) GOTO 99950
+        407 |        DJ=-DJ
+        408 |        DI=ONE
+        409 |        IRET=2
+        410 |          I = 1
+        411 |88846     IF ( I .GT. 4 ) GOTO 99946
+        412 |          GO TO 56
+        413 |   46     I = I + 1
+        414 |          GOTO 88846
+        415 |99946     CONTINUE
+        416 |C          IM-2 IS ODD
+        417 |        I1=IMF-2
+        418 |        IRET=3
+        419 |          I = I1
+        420 |88848     IF ( I .GT. IMF ) GOTO 99948
+        421 |          GO TO 56
+        422 |   48     I = I + 1
+        423 |          GOTO 88848
+        424 |99948     CONTINUE
+        425 |   50   J = J + 1
+        426 |        GOTO 88850
+        427 |99950   CONTINUE
+        428 |      J1=JMF-2
+        429 |      IRET=4
+        430 |        J = J1
+        431 |88854   IF ( J .GT. JMF ) GOTO 99954
+        432 |        DJ=-DJ
+        433 |        DI=ONE
+        434 |          I = 1
+        435 |88852     IF ( I .GT. IMF ) GOTO 99952
+        436 |          GO TO 56
+        437 |   52     I = I + 1
+        438 |          GOTO 88852
+        439 |99952     CONTINUE
+        440 |   54   J = J + 1
+        441 |        GOTO 88854
+        442 |99954   CONTINUE
+        443 |C
+        444 |C          SHUFFLE THESE TABLES TO ELIMINATE BANK CONFLICT.
+        445 |C          L WAS THE NUMBER OF ENTRIES(SHOULD BE ODD).
+        446 |      LL=L-4
+        447 |CMIC$ DO ALL SHARED(LL, NG, LGSHO, CH) PRIVATE(M, MM, LSV, K, CHSV)
+        448 |      DO 53 M=1,LL,2
+        449 |      MM=M+3
+        450 |      LSV=LGSHO(M,NG,1)
+        451 |      LGSHO(M,NG,1)=LGSHO(MM,NG,1)
+        452 |      LGSHO(MM,NG,1)=LSV
+        453 |      LSV=LGSHO(M,NG,2)
+        454 |      LGSHO(M,NG,2)=LGSHO(MM,NG,2)
+        455 |      LGSHO(MM,NG,2)=LSV
+        456 |        DO 51 K=1,4
+        457 |        CHSV=CH(M,NG,K)
+        458 |        CH(M,NG,K)=CH(MM,NG,K)
+        459 |        CH(MM,NG,K)=CHSV
+        460 |   51   CONTINUE
+        461 |   53 CONTINUE
+        462 |C
+        463 |C          DONE WITH OUTER HS, GO TO COMPUTE INNER U BNDRY INTEGERS
+        464 |C
+        465 |      GO TO 60
+        466 |C
+        467 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        468 |C          COMPUTED GO TO ROUTINE FOR FINE GRID H INTEGERS AND COEFFS.
+        469 |C
+        470 |   56 L=L+1
+        471 |      IF(L .LE. LBCH ) GO TO 58
+        472 |C          ERROR
+        473 |      WRITE (IOUTUPRT, 57) L,LBCH,NG
+        474 |   57 FORMAT(1H1,2X,'*****IN SR LATBND L=',I8,' IS .GT. LBCH=',I8,
+        475 |     1 '. COARSE GRID=',I8)
+        476 |C
+        477 |      CALL EXIT(16)
+        478 |C
+        479 |   58 CONTINUE
+        480 |      DI=-DI
+        481 |C          GET INTERPOLATION COEFFS INTO ARRAY CH
+        482 |      SUM=DJ+DI
+        483 |      DIF=DJ-DI
+        484 |      CH(L,NG,1)=SCALE*(SIX+SUM*(FOUR+SUM) )
+        485 |      CH(L,NG,2)=SCALE*(SIX+DIF*(FOUR+DIF) )
+        486 |      CH(L,NG,3)=SCALE*(SIX-DIF*(FOUR-DIF) )
+        487 |      CH(L,NG,4)=SCALE*(SIX-SUM*(FOUR-SUM) )
+        488 |C          GATHER INTEGERS FOR LOWER LEFT COARSE GRID H POINTS.
+        489 |      IC=IA-4+(I/2)
+        490 |      JC=JA-4+(J/2)
+        491 |      LGSHO(L,NG,1)=IC+(JC-1)*IMC
+        492 |C          INTEGERS FOR SCATTER INTO FINE GRID H ARRAY
+        493 |      LGSHO(L,NG,2)=I+(J-1)*IMF
+        494 |C
+        495 |      GO TO ( 42, 46, 48, 52 ),IRET
+        496 |C
+        497 |CDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+        498 |C
+        499 |C          L IS STORE INTEGER FOR COARSE GRID U INTEGERS.
+        500 |   60 L=0
+        501 |C          CONSTANTS FOR CONVERSION TO FINE GRID I AND J
+        502 |      II=7-2*IA
+        503 |      JJ=8-2*JA
+        504 |C
+        505 |C          I AND J NOW REPRESENT COARSE GRID INDEXES.
+        506 |C
+        507 |      J1=JA-1
+        508 |        J = J1
+        509 |88864   IF ( J .GT. JA ) GOTO 99964
+        510 |        IRET=1
+        511 |          I = IA
+        512 |88862     IF ( I .GT. IB ) GOTO 99962
+        513 |          GO TO 74
+        514 |   62     I = I + 1
+        515 |          GOTO 88862
+        516 |99962     CONTINUE
+        517 |   64   J = J + 1
+        518 |        GOTO 88864
+        519 |99964   CONTINUE
+        520 |      J1=JA+1
+        521 |      J2=JB-2
+        522 |        J = J1
+        523 |88868   IF ( J .GT. J2 ) GOTO 99968
+        524 |        IRET=2
+        525 |        I=IA
+        526 |        GO TO 74
+        527 |   66   I=IB
+        528 |        IRET=3
+        529 |        GO TO 74
+        530 |   68   J = J + 1
+        531 |        GOTO 88868
+        532 |99968   CONTINUE
+        533 |      J1=JB-1
+        534 |        J = J1
+        535 |88872   IF ( J .GT. JB ) GOTO 99972
+        536 |        IRET=4
+        537 |          I = IA
+        538 |88870     IF ( I .GT. IB ) GOTO 99970
+        539 |          GO TO 74
+        540 |   70     I = I + 1
+        541 |          GOTO 88870
+        542 |99970     CONTINUE
+        543 |   72   J = J + 1
+        544 |        GOTO 88872
+        545 |99972   CONTINUE
+        546 |C
+        547 |C          DONE WITH COARSE GRID U INTS,, GO TO COARSE GRID V INTS.
+        548 |      GO TO 80
+        549 |C
+        550 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        551 |C          COMPUTED GO TO ROUTINE FOR COARSE GRID U INTEGERS
+        552 |C
+        553 |   74 L=L+1
+        554 |      IF(L .LE. LBUI ) GO TO 76
+        555 |C          ERROR
+        556 |      WRITE (IOUTUPRT, 75) L,LBUI,NG
+        557 |   75 FORMAT(1H1,2X,'*****IN SR LATBND,L=',I8,' IS .GT. LBUI=',I8,
+        558 |     1 '. COARSE GRID=',I8)
+        559 |C
+        560 |C*****  Code Expanded From Routine:  ERRPRINT
+        561 |      PRINT 77055
+        562 |77055 FORMAT (1H1, '  **********  PRINT FROM SUBROUTINE ERRPRINT ',
+        563 |     1             'FOLLOWS. ***********')
+        564 |C
+        565 |      PRINT 77056, IJMAX, KM, LVLTOT, NGRDUSE, NH
+        566 |77056 FORMAT (1H1, 2X, 'IJMAX, KM, LVLTOT, NGRDUSE, NH =', 5I10)
+        567 |C
+        568 |      PRINT 77057, NTIME, ITIME, NSTEPS
+        569 |77057 FORMAT (1H0, 2X, 'NTIME, ITIME, NSTEPS= ', 3I10 /)
+        570 |C*****  End of Code Expanded From Routine:  ERRPRINT
+        571 |C
+        572 |      CALL EXIT(16)
+        573 |C
+        574 |   76 CONTINUE
+        575 |C          (III,JJJ) IS INDEX OF FINE GRID U TO LEFT OF COARSE GRID U.
+        576 |      III=2*I+II
+        577 |      JJJ=2*J+JJ
+        578 |C          GATHER INTEGER FOR THAT FINE GRID U.
+        579 |      LGSUI(L,NG,1)=III+(JJJ-1)*IMF
+        580 |C          INTEGERS FOR SCATTER INTO COARSE GRID U ARRAY.
+        581 |      LGSUI(L,NG,2)=I+(J-1)*IMC
+        582 |C
+        583 |      GO TO ( 62, 66, 68, 70 ),IRET
+        584 |C
+        585 |CEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        586 |C
+        587 |C          L IS STORE INTEGER FOR COARSE GRID V GATHER-SCATTER OPNS.
+        588 |   80 L=0
+        589 |C          CONSTANTS FOR CONVERSION INTO FINE GRID I,J.
+        590 |      II=8-2*IA
+        591 |      JJ=7-2*JA
+        592 |C
+        593 |      J=JA
+        594 |      I1=IA-1
+        595 |      IRET=1
+        596 |        I = I1
+        597 |88882   IF ( I .GT. IB ) GOTO 99982
+        598 |        GO TO 92
+        599 |   82   I = I + 1
+        600 |        GOTO 88882
+        601 |99982   CONTINUE
+        602 |      J1=JA+1
+        603 |      J2=JB-1
+        604 |        J = J1
+        605 |88888   IF ( J .GT. J2 ) GOTO 99988
+        606 |        IRET=2
+        607 |        I1=IA-1
+        608 |          I = I1
+        609 |88884     IF ( I .GT. IA ) GOTO 99984
+        610 |          GO TO 92
+        611 |   84     I = I + 1
+        612 |          GOTO 88884
+        613 |99984     CONTINUE
+        614 |        IRET=3
+        615 |        I1=IB-1
+        616 |          I = I1
+        617 |88886     IF ( I .GT. IB ) GOTO 99986
+        618 |          GO TO 92
+        619 |   86     I = I + 1
+        620 |          GOTO 88886
+        621 |99986     CONTINUE
+        622 |   88   J = J + 1
+        623 |        GOTO 88888
+        624 |99988   CONTINUE
+        625 |      J=JB
+        626 |      IRET=4
+        627 |      I1=IA-1
+        628 |        I = I1
+        629 |88890   IF ( I .GT. IB ) GOTO 99990
+        630 |        GO TO 92
+        631 |   90   I = I + 1
+        632 |        GOTO 88890
+        633 |99990   CONTINUE
+        634 |C
+        635 |C          DONE WITH COARSE GRID V INTS,, GO TO COARSE GRID H INTS.
+        636 |      GO TO 100
+        637 |C
+        638 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        639 |CC          COMPTD GO TO ROUTINE FOR COARSE GRID V GATHER-SCATTER INTS.
+        640 |C
+        641 |   92 L=L+1
+        642 |      IF(L .LE. LBVI ) GO TO 94
+        643 |C          ERROR
+        644 |      WRITE (IOUTUPRT, 93) L,LBVI,NG
+        645 |   93 FORMAT(1H1,2X,'*****IN SR LATBND L=',I8,' IS .GT. LBVI=',I8,
+        646 |     1 '. COARSE GRID=',I8)
+        647 |C
+        648 |C*****  Code Expanded From Routine:  ERRPRINT
+        649 |      PRINT 77058
+        650 |77058 FORMAT (1H1, '  **********  PRINT FROM SUBROUTINE ERRPRINT ',
+        651 |     1             'FOLLOWS. ***********')
+        652 |C
+        653 |      PRINT 77059, IJMAX, KM, LVLTOT, NGRDUSE, NH
+        654 |77059 FORMAT (1H1, 2X, 'IJMAX, KM, LVLTOT, NGRDUSE, NH =', 5I10)
+        655 |C
+        656 |      PRINT 77060, NTIME, ITIME, NSTEPS
+        657 |77060 FORMAT (1H0, 2X, 'NTIME, ITIME, NSTEPS= ', 3I10 /)
+        658 |C*****  End of Code Expanded From Routine:  ERRPRINT
+        659 |      CALL EXIT(16)
+        660 |C
+        661 |   94 CONTINUE
+        662 |C          III,JJJ ARE INDEXES FOR FINE GRID V BELOW COARSE GRID V.
+        663 |      III=2*I+II
+        664 |      JJJ=2*J+JJ
+        665 |C          INTS TO GATHER THAT FINE GRID V.
+        666 |      LGSVI(L,NG,1)=III+(JJJ-1)*IMF
+        667 |C          INTEGER TO SCATTER COARSE GRID V INTO ITS ARRAY.
+        668 |      LGSVI(L,NG,2)=I+(J-1)*IMC
+        669 |C
+        670 |      GO TO ( 82, 84, 86, 90 ),IRET
+        671 |C
+        672 |CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        673 |C          L IS STORE INTEGER FOR COARSE GRID H GATHER-SCATTER OPNS.
+        674 |  100 L=0
+        675 |C          CONSTANTS TO CONVERT TO FINE GRID I AND J.
+        676 |      II=7-2*IA
+        677 |      JJ=7-2*JA
+        678 |C
+        679 |      J=JA
+        680 |      IRET=1
+        681 |        I = IA
+        682 |88102   IF ( I .GT. IB ) GOTO 99102
+        683 |        GO TO 110
+        684 |  102   I = I + 1
+        685 |        GOTO 88102
+        686 |99102   CONTINUE
+        687 |      J1=JA+1
+        688 |      J2=JB-1
+        689 |        J = J1
+        690 |88106   IF ( J .GT. J2 ) GOTO 99106
+        691 |        IRET=2
+        692 |        I=IA
+        693 |        GO TO 110
+        694 |  104   IRET=3
+        695 |        I=IB
+        696 |        GO TO 110
+        697 |  106   J = J + 1
+        698 |        GOTO 88106
+        699 |99106   CONTINUE
+        700 |      J=JB
+        701 |      IRET=4
+        702 |        I = IA
+        703 |88108   IF ( I .GT. IB ) GOTO 99108
+        704 |        GO TO 110
+        705 |  108   I = I + 1
+        706 |        GOTO 88108
+        707 |99108   CONTINUE
+        708 |C
+        709 |C         DONE WITH COARSE GRID H NUMBERS,, SKIP TO END OF GRID LOOP.
+        710 |      GO TO 120
+        711 |C
+        712 |C    *    *    *    *    *    *    *    *    *    *    *    *    *
+        713 |C          COMPTD GO TO ROUTINE TO GET COARSE GRID H INTEGERS.
+        714 |C
+        715 |  110 L=L+1
+        716 |      IF(L .LE. LBHI ) GO TO 112
+        717 |C          ERROR
+        718 |      WRITE (IOUTUPRT, 111) L,LBHI,NG
+        719 |  111 FORMAT(1H1,2X,'*****IN SR LATBND, L=',I8,' IS .GT. LBHI=',I8,
+        720 |     1 '. COARSE GRID=',I8)
+        721 |C
+        722 |      CALL EXIT(16)
+        723 |C
+        724 |  112 CONTINUE
+        725 |C          III,JJJ ARE INDEXES FOR FINE GRID H TO LOWER LEFT OF
+        726 |C          A COARSE GRID H POINT.
+        727 |      III=2*I+II
+        728 |      JJJ=2*J+JJ
+        729 |C          INTEGER TO GATHER THAT FINE GRID H VALUE.
+        730 |      LGSHI(L,NG,1)=III+(JJJ-1)*IMF
+        731 |C          INTEGER TO SCATTER COARSE GRID H INTO ITS ARRAY.
+        732 |      LGSHI(L,NG,2)=I+(J-1)*IMC
+        733 |C
+        734 |      GO TO ( 102, 104, 106, 108 ),IRET
+        735 |C
+        736 |CGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+        737 |C
+        738 |C          END OF GRID LOOP IN COMPUTING INTERPOLATION NUMBERS.
+        739 |  120 CONTINUE
+        740 |C
+        741 |C          GATHER-SCATTER INTEGERS AND COEFFS HAVE NOW BEEN
+        742 |C          COMPUTED FOR ALL GRIDS.  PROCEED TO JOB AT HAND.
+        743 |C
+        744 |C         ENTRY FOR ACTUAL COMPUTATIONS ON BNDRYS.
+        745 |C
+        746 |  200 CONTINUE
+        747 |      NF=NC+1
+        748 |C
+        749 |C          DO ONEWAY FROM GLOBAL WHEN NF .EQ. INGLB
+        750 |C          0 MEANS REPLACE THE LATBND DATA, BUT NOT
+        751 |C          UPDATE THE TENDENCY.
+        752 |C
+        753 |      IF( NF .EQ. INGLB ) THEN
+        754 |         CALL ONEWAY (0)
+        755 |         RETURN
+        756 |      ENDIF
+        757 |C
+        758 |C          FIRST GET THE GRID DIMENSIONS FOR THE TWO GRIDS.
+        759 |      IMC=IMG(NC)
+        760 |      JMC=JMG(NC)
+        761 |      IMF=IMG(NF)
+        762 |      JMF=JMG(NF)
+        763 |      IJC=IMC*JMC
+        764 |      IJF=IMF*JMF
+        765 |C
+        766 |      IA=IAG(NC)
+        767 |      IB=IBG(NC)
+        768 |      JA=JAG(NC)
+        769 |      JB=JBG(NC)
+        770 |C
+        771 |C
+        772 |CHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+        773 |C          FIRST COMPUTE THE FINE GRID OUTER U VALUES.
+        774 |C
+        775 |C          GET THE BASE ADDRESSES FOR COARSE AND FINE GRID U.
+        776 |      IADC=IADDRG(1,NC) - IJC
+        777 |      IADF=IADDRG(1,NF) - IJF
+        778 |C          NEEDUF IS NUMBER OF U VALUES NEEDED FOR FINE GRID.
+        779 |      NEEDUF=8*IMF+7*JMF-56
+        780 |C
+        781 |      DO 210 K=1,KM
+        782 |C
+        783 |      IADC=IADC+IJC
+        784 |      IADF=IADF+IJF
+        785 |C          COMPUTE FULL COARSE GRID ARRAY OF LOWER LEFT FINE GRID U S.
+        786 |CMIC$ DO ALL VECTOR SHARED(IJC, IADC, VBL, X) PRIVATE(IQ2W6E)
+        787 |      DO 88891 IQ2W6E = 1, IJC
+        788 |         X(IQ2W6E) = 0.75E0*VBL(IADC+IQ2W6E-1) + 0.25E0*VBL(IADC+IQ2W6E)
+        789 |         X(IJC+IQ2W6E) = 0.25E0*VBL(IADC+IQ2W6E-1) + 0.75E0*VBL(IADC+
+        790 |     1      IQ2W6E)
+        791 |88891 CONTINUE
+        792 |C          GET UPPER LEFT AND UPPER RIGHT U S BY J AVERAGING.
+        793 |CMIC$ DO ALL VECTOR IF (ABS(IMC-2*IJC).GE.2*IJC .OR. IMC-2*IJC.EQ.0)
+        794 |CMIC$1    SHARED(IJC, IMC, X) PRIVATE(IQ2W6E)
+        795 |      DO 88910 IQ2W6E=1,2*IJC
+        796 |         X(2*IJC+IQ2W6E)=0.5E0*(X(IQ2W6E)+X(IMC+IQ2W6E))
+        797 |88910 CONTINUE
+        798 |C          GATHER INTO ONE ARRAY OF NEEDED U VALUES.
+        799 |C*****  Code Expanded From Routine:  RDHGATHR
+        800 |CMIC$ DO ALL VECTOR SHARED(NEEDUF, NC, LGSUO, X, Y) PRIVATE(I1X)
+        801 |      DO 77061 I1X = 1, NEEDUF
+        802 |         Y(I1X) = X(LGSUO(I1X,NC,1))
+        803 |77061 CONTINUE
+        804 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        805 |C          CORRECT U ADDRESS AND DO SCATTER INTO FINE GRID U.
+        806 |C
+        807 |      IADF1=IADF-1
+        808 |C*****  Code Expanded From Routine:  RDHSCATR
+        809 |      DO 77062 I2X = 1, NEEDUF
+        810 |         VBL(LGSUO(I2X,NC,2)+IADF-1) = Y(I2X)
+        811 |77062 CONTINUE
+        812 |C*****  End of Code Expanded From Routine:  RDHSCATR
+        813 |C
+        814 |  210 CONTINUE
+        815 |C
+        816 |CIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+        817 |C          COMPUTE THE FINE GRID V VALUES.
+        818 |C
+        819 |C          BASE ADDRESSES FOR COARSE AND FINE MESH V POINTS.
+        820 |      IADC=IADDRG(2,NC)-IJC
+        821 |      IADF=IADDRG(2,NF)-IJF
+        822 |C          NEEDVF IS NUMBER OF FINE GRID V S NEEDED.
+        823 |      NEEDVF=7*IMF+8*JMF-56
+        824 |C
+        825 |      DO 220 K=1,KM
+        826 |C
+        827 |      IADC=IADC+IJC
+        828 |      IADF=IADF+IJF
+        829 |C          COMPUTE FULL COARSE GRID ARRAY OF LOWER LEFT FINE GRID V S.
+        830 |CMIC$ DO ALL VECTOR SHARED(IJC, IADC, IMC, VBL, X) PRIVATE(IQ2W6E)
+        831 |      DO 88920 IQ2W6E = 1, IJC
+        832 |         X(IQ2W6E) = 0.75E0*VBL(IADC+IQ2W6E-1) + 0.25E0*VBL(IADC+IMC+
+        833 |     1      IQ2W6E-1)
+        834 |         X(IJC+IQ2W6E) = 0.25E0*VBL(IADC+IQ2W6E-1) + 0.75E0*VBL(IADC+IMC
+        835 |     1      +IQ2W6E-1)
+        836 |88920 CONTINUE
+        837 |C          GET LOWER RIGHT AND UPPER RIGHT V S BY I-AVERAGING.
+        838 |CMIC$ DO ALL VECTOR IF (ABS(1-2*IJC).GE.2*IJC .OR. 1-2*IJC.EQ.0) SHARED(
+        839 |CMIC$1   IJC, X) PRIVATE(IQ2W6E)
+        840 |      DO 88940 IQ2W6E=1,2*IJC
+        841 |         X(2*IJC+IQ2W6E)=0.5E0*(X(IQ2W6E)+X(IQ2W6E+1))
+        842 |88940 CONTINUE
+        843 |C          DO GATHER INTO Y OF THE NEEDED V VALUES.
+        844 |C*****  Code Expanded From Routine:  RDHGATHR
+        845 |CMIC$ DO ALL VECTOR SHARED(NEEDVF, NC, LGSVO, X, Y) PRIVATE(I3X)
+        846 |      DO 77063 I3X = 1, NEEDVF
+        847 |         Y(I3X) = X(LGSVO(I3X,NC,1))
+        848 |77063 CONTINUE
+        849 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        850 |C          CORRECT V ADDRESS AND SCATTER INTO FINE GRID V ARRAY
+        851 |      IADF1=IADF-1
+        852 |C*****  Code Expanded From Routine:  RDHSCATR
+        853 |      DO 77064 I4X = 1, NEEDVF
+        854 |         VBL(LGSVO(I4X,NC,2)+IADF-1) = Y(I4X)
+        855 |77064 CONTINUE
+        856 |C*****  End of Code Expanded From Routine:  RDHSCATR
+        857 |C
+        858 |  220 CONTINUE
+        859 |C
+        860 |CJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+        861 |C          COMPUTE THE FINE GRID OUTER H POINTS.
+        862 |C
+        863 |C          BASE ADDRESS FOR COARSE AND FINE GRID H POINTS.
+        864 |      IADC=IADDRG(3,NC)-IJC
+        865 |      IADF=IADDRG(3,NF)-IJF
+        866 |C          NEEDHF IS THE NUMBER OF FINE GRID H S NEEDED.
+        867 |      NEEDHF=7*(IMF+JMF-7)
+        868 |C          KHINTERP FROM THE CALLING STATEMENT IS THE NUMBER OF
+        869 |C          H ARRAYS TO BE PROCESSED.
+        870 |C
+        871 |      DO 230 K=1,KHINTERP
+        872 |C
+        873 |      IADC=IADC+IJC
+        874 |      IADF=IADF+IJF
+        875 |C          GATHER LOWER RIGHT COARSE H VALUES INTO X2.
+        876 |C*****  Code Expanded From Routine:  RDHGATHR
+        877 |CMIC$ DO ALL VECTOR SHARED(NEEDHF,NC,IADC,LGSHO,VBL,X2)PRIVATE(I5X)
+        878 |      DO 77065 I5X = 1, NEEDHF
+        879 |         X2(I5X) = VBL(LGSHO(I5X,NC,1)+IADC)
+        880 |77065 CONTINUE
+        881 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        882 |C          GATHER LOWER LEFT ONES INTO X1
+        883 |      IADC1=IADC-1
+        884 |C*****  Code Expanded From Routine:  RDHGATHR
+        885 |CMIC$ DO ALL VECTOR SHARED(NEEDHF,NC,IADC,LGSHO,VBL,X1)PRIVATE(I6X)
+        886 |      DO 77066 I6X = 1, NEEDHF
+        887 |         X1(I6X) = VBL(LGSHO(I6X,NC,1)+IADC-1)
+        888 |77066 CONTINUE
+        889 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        890 |C          GET UPPER LEFT AND UPPER RIGHT VALUES, USING CORRECTED ADDR.
+        891 |      IADC1=IADC1+IMC
+        892 |C*****  Code Expanded From Routine:  RDHGATHR
+        893 |CMIC$ DO ALL VECTOR SHARED(NEEDHF,NC,IADC1,LGSHO,VBL,X3)PRIVATE(I7X)
+        894 |      DO 77067 I7X = 1, NEEDHF
+        895 |         X3(I7X) = VBL(LGSHO(I7X,NC,1)+IADC1)
+        896 |77067 CONTINUE
+        897 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        898 |      IADC1=IADC1+1
+        899 |C*****  Code Expanded From Routine:  RDHGATHR
+        900 |CMIC$ DO ALL VECTOR SHARED(NEEDHF,NC,IADC1,LGSHO,VBL,X4)PRIVATE(I8X)
+        901 |      DO 77068 I8X = 1, NEEDHF
+        902 |         X4(I8X) = VBL(LGSHO(I8X,NC,1)+IADC1)
+        903 |77068 CONTINUE
+        904 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        905 |C          FORM LINEAR COMBINATION USING COEFF. ARRAY CH.
+        906 |CMIC$ DO ALL VECTOR SHARED(NEEDHF, NC, X1, CH, X2, X3, X4) PRIVATE(
+        907 |CMIC$1   IQ2W6E)
+        908 |      DO 88950 IQ2W6E=1,NEEDHF
+        909 |         X1(IQ2W6E)=X1(IQ2W6E)*CH(IQ2W6E,NC,1) +
+        910 |     *              X2(IQ2W6E)*CH(IQ2W6E,NC,2) +
+        911 |     *              X3(IQ2W6E)*CH(IQ2W6E,NC,3) +
+        912 |     *              X4(IQ2W6E)*CH(IQ2W6E,NC,4)
+        913 |88950 CONTINUE
+        914 |C          SCATTER INTO THE FINE GRID H ARRAY
+        915 |      IADF1=IADF-1
+        916 |C*****  Code Expanded From Routine:  RDHSCATR
+        917 |      DO 77069 I9X = 1, NEEDHF
+        918 |         VBL(LGSHO(I9X,NC,2)+IADF-1) = X1(I9X)
+        919 |77069 CONTINUE
+        920 |C*****  End of Code Expanded From Routine:  RDHSCATR
+        921 |C
+        922 |  230 CONTINUE
+        923 |C
+        924 |C          DO LATBND FROM NGM COARSE GRID ONLY
+        925 |C          SO NO UPDATE TO THE COARSE GRIDS,
+        926 |C          I.E.  ONEWAY INFLENCE OF NGM.
+        927 |C
+        928 |C          DO TWO-WAY LATBND ONLY WHEN INGLB = 0
+        929 |C
+        930 |      IF( INGLB .NE. 0 ) RETURN
+        931 |C
+        932 |CKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+        933 |C          DO THE COARSE GRID U VALUES.
+        934 |C
+        935 |C          NEEDUC IS THE NUMBER OF COARSE GRID U VALUES NEEDED.
+        936 |      NEEDUC=4*(IB-IA)+2*(JB-JA)
+        937 |C          BASE ADDRESSES FOR COARSE AND FINE GRID U VBLS.
+        938 |      IADC=IADDRG(1,NC)-IJC
+        939 |      IADF=IADDRG(1,NF)-IJF
+        940 |C
+        941 |      DO 240 K=1,KM
+        942 |C
+        943 |      IADC=IADC+IJC
+        944 |      IADF=IADF+IJF
+        945 |C          GATHER FINE GRID U S TO RIGHT AND LEFT OF COARSE GRID U.
+        946 |C*****  Code Expanded From Routine:  RDHGATHR
+        947 |CMIC$ DO ALL VECTOR SHARED(NEEDUC,NC,IADF,LGSUI,VBL,X2)PRIVATE(I10X)
+        948 |      DO 77070 I10X = 1, NEEDUC
+        949 |         X2(I10X) = VBL(LGSUI(I10X,NC,1)+IADF)
+        950 |77070 CONTINUE
+        951 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        952 |      IADF1=IADF-1
+        953 |C*****  Code Expanded From Routine:  RDHGATHR
+        954 |CMIC$ DO ALL VECTOR SHARED(NEEDUC,NC,IADF,LGSUI,VBL,X1)PRIVATE(I11X)
+        955 |      DO 77071 I11X = 1, NEEDUC
+        956 |         X1(I11X) = VBL(LGSUI(I11X,NC,1)+IADF-1)
+        957 |77071 CONTINUE
+        958 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        959 |C          AVERAGE THEM TO GET COARSE GRID U S.
+        960 |CMIC$ DO ALL VECTOR SHARED(NEEDUC, X1, X2, X3) PRIVATE(IQ2W6E)
+        961 |      DO 89020 IQ2W6E=1,NEEDUC
+        962 |         X3(IQ2W6E)=0.5E0*(X1(IQ2W6E)+X2(IQ2W6E))
+        963 |89020 CONTINUE
+        964 |C          SCATTER THEM INTO THE COARSE GRID U ARRAY.
+        965 |      IADC1=IADC-1
+        966 |C*****  Code Expanded From Routine:  RDHSCATR
+        967 |      DO 77072 I12X = 1, NEEDUC
+        968 |         VBL(LGSUI(I12X,NC,2)+IADC-1) = X3(I12X)
+        969 |77072 CONTINUE
+        970 |C*****  End of Code Expanded From Routine:  RDHSCATR
+        971 |C
+        972 |  240 CONTINUE
+        973 |C
+        974 |CLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        975 |C          START ON COARSE GRID V VALUES.
+        976 |C
+        977 |C          NEEDVC IS THE NUMBER OF COARSE GRID V S NEEDED,
+        978 |      NEEDVC=2*(IB-IA)+4*(JB-JA)
+        979 |C          BASE ADDRESSES FOR THE V POINTS.
+        980 |      IADC=IADDRG(2,NC)-IJC
+        981 |      IADF=IADDRG(2,NF)-IJF
+        982 |C
+        983 |      DO 250 K=1,KM
+        984 |C
+        985 |      IADC=IADC+IJC
+        986 |      IADF=IADF+IJF
+        987 |C          GATHER FINE GRID V ABOVE AND BELOW THE COARSE GRID V POINT.
+        988 |      IADF1=IADF-1
+        989 |C*****  Code Expanded From Routine:  RDHGATHR
+        990 |CMIC$ DO ALL VECTOR SHARED(NEEDVC,NC,IADF,LGSVI,VBL,X1)PRIVATE(I13X)
+        991 |      DO 77073 I13X = 1, NEEDVC
+        992 |         X1(I13X) = VBL(LGSVI(I13X,NC,1)+IADF-1)
+        993 |77073 CONTINUE
+        994 |C*****  End of Code Expanded From Routine:  RDHGATHR
+        995 |      IADF1=IADF1+IMF
+        996 |C*****  Code Expanded From Routine:  RDHGATHR
+        997 |CMIC$ DO ALL VECTOR SHARED(NEEDVC,NC,IADF1,LGSVI,VBL,X2)PRIVATE(I14X)
+        998 |      DO 77074 I14X = 1, NEEDVC
+        999 |         X2(I14X) = VBL(LGSVI(I14X,NC,1)+IADF1)
+       1000 |77074 CONTINUE
+       1001 |C*****  End of Code Expanded From Routine:  RDHGATHR
+       1002 |C          AVERAGE THEM TO GET THE COARSE GRID V S.
+       1003 |CMIC$ DO ALL VECTOR SHARED(NEEDVC, X1, X2, X3) PRIVATE(IQ2W6E)
+       1004 |      DO 89030 IQ2W6E=1,NEEDVC
+       1005 |         X3(IQ2W6E)=0.5E0*(X1(IQ2W6E)+X2(IQ2W6E))
+       1006 |89030 CONTINUE
+       1007 |C          SCATTER THEM INTO THE COARSE GRID V ARRAY.
+       1008 |      IADC1=IADC-1
+       1009 |C*****  Code Expanded From Routine:  RDHSCATR
+       1010 |      DO 77075 I15X = 1, NEEDVC
+       1011 |         VBL(LGSVI(I15X,NC,2)+IADC-1) = X3(I15X)
+       1012 |77075 CONTINUE
+       1013 |C*****  End of Code Expanded From Routine:  RDHSCATR
+       1014 |C
+       1015 |  250 CONTINUE
+       1016 |C
+       1017 |CMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+       1018 |C          START THE COARSE GRID H POINTS.
+       1019 |C
+       1020 |C          NEEDHC IS THE NEEDED NUMBER OF COARSE GRID H VALUES.
+       1021 |      NEEDHC=2*(IB-IA+JB-JA)
+       1022 |C          BASE ADDRESSES FOR THE H VBLS.
+       1023 |      IADC=IADDRG(3,NC)-IJC
+       1024 |      IADF=IADDRG(3,NF)-IJF
+       1025 |C          KHINTERP FROM THE CALLING STATEMENT IS THE TOTAL NUMBER OF
+       1026 |C          H ARRAYS TO BE PROCESSED.
+       1027 |C
+       1028 |      DO 260 K=1,KHINTERP
+       1029 |C
+       1030 |      IADC=IADC+IJC
+       1031 |      IADF=IADF+IJF
+       1032 |C     GATHER 4 SURROUNDING FINE GRID H VALUES.
+       1033 |C*****  Code Expanded From Routine:  RDHGATHR
+       1034 |CMIC$ DO ALL VECTOR SHARED(NEEDHC,NC,IADF,LGSHI,VBL,X2)PRIVATE(I16X)
+       1035 |      DO 77076 I16X = 1, NEEDHC
+       1036 |         X2(I16X) = VBL(LGSHI(I16X,NC,1)+IADF)
+       1037 |77076 CONTINUE
+       1038 |C*****  End of Code Expanded From Routine:  RDHGATHR
+       1039 |      IADF1=IADF-1
+       1040 |C*****  Code Expanded From Routine:  RDHGATHR
+       1041 |CMIC$ DO ALL VECTOR SHARED(NEEDHC,NC,IADF,LGSHI,VBL,X1)PRIVATE(I17X)
+       1042 |      DO 77077 I17X = 1, NEEDHC
+       1043 |         X1(I17X) = VBL(LGSHI(I17X,NC,1)+IADF-1)
+       1044 |77077 CONTINUE
+       1045 |C*****  End of Code Expanded From Routine:  RDHGATHR
+       1046 |      IADF1=IADF1+IMF
+       1047 |C*****  Code Expanded From Routine:  RDHGATHR
+       1048 |CMIC$ DO ALL VECTOR SHARED(NEEDHC,NC,IADF1,LGSHI,VBL,X3)PRIVATE(I18X)
+       1049 |      DO 77078 I18X = 1, NEEDHC
+       1050 |         X3(I18X) = VBL(LGSHI(I18X,NC,1)+IADF1)
+       1051 |77078 CONTINUE
+       1052 |C*****  End of Code Expanded From Routine:  RDHGATHR
+       1053 |      IADF1=IADF1+1
+       1054 |C*****  Code Expanded From Routine:  RDHGATHR
+       1055 |CMIC$ DO ALL VECTOR SHARED(NEEDHC,NC,IADF1,LGSHI,VBL,X4)PRIVATE(I19X)
+       1056 |      DO 77079 I19X = 1, NEEDHC
+       1057 |         X4(I19X) = VBL(LGSHI(I19X,NC,1)+IADF1)
+       1058 |77079 CONTINUE
+       1059 |C*****  End of Code Expanded From Routine:  RDHGATHR
+       1060 |C          AVERAGE THESE FOUR VALUES.
+       1061 |CMIC$ DO ALL VECTOR SHARED(NEEDHC, X1, X2, X3, X4) PRIVATE(IQ2W6E)
+       1062 |      DO 89040 IQ2W6E=1,NEEDHC
+       1063 |         X3(IQ2W6E)=0.25E0*(X1(IQ2W6E)+X2(IQ2W6E)+
+       1064 |     *              X3(IQ2W6E)+X4(IQ2W6E))
+       1065 |89040 CONTINUE
+       1066 |C          SCATTER THESE INTO THE COARSE GRID H ARRAY.
+       1067 |      IADC1=IADC-1
+       1068 |C*****  Code Expanded From Routine:  RDHSCATR
+       1069 |      DO 77080 I20X = 1, NEEDHC
+       1070 |         VBL(LGSHI(I20X,NC,2)+IADC-1) = X3(I20X)
+       1071 |77080 CONTINUE
+       1072 |C*****  End of Code Expanded From Routine:  RDHSCATR
+       1073 |C
+       1074 |  260 CONTINUE
+       1075 |C
+       1076 |C
+       1077 |      RETURN
+       1078 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+#BLNK_COM                        Common Block, Alignment: double word
+                                 0-91.6$
+ 
+anem                             Common member, Real(4), Offset: 812, Alignment: full word
+                                 0-88.25$
+ 
+angvel                           Common member, Real(4), Offset: 780, Alignment: full word
+                                 0-85.33$
+ 
+bitgrdh                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 43630784, Alignment: quadruple word
+                                 0-96.25$  0-103.15$
+ 
+bitgrdu                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44009472, Alignment: quadruple word
+                                 0-97.25$  0-103.24$
+ 
+bitgrdv                          Common member, Logical(4) (1:23668, 1:2, 1:2), Offset: 44388160, Alignment: quadruple word
+                                 0-98.25$  0-103.33$
+ 
+bitsea                           Common member, Logical(4) (1:23668, 1:2), Offset: 44766848, Alignment: quadruple word
+                                 0-99.25$  0-103.42$
+ 
+bitsno                           Common member, Logical(4) (1:23668, 1:2), Offset: 44956192, Alignment: quadruple word
+                                 0-100.25$  0-103.50$
+ 
+bitwvl                           Common member, Logical(4) (1:23668, 1:2), Offset: 45145536, Alignment: quadruple word
+                                 0-101.25$  0-103.58$
+ 
+blkdr                            Common member, Real(4), Offset: 816, Alignment: quadruple word
+                                 0-88.31$
+ 
+ch                               Static, Real(4) (1:1757, 1:1, 1:4), Offset: 0, Alignment: full word
+                                 0-115.17$  0-457.14  0-458.9@  0-458.20  0-459.9@  0-484.7@  0-485.7@  0-486.7@  0-487.7@  0-909.32
+                                 0-910.32  0-911.32  0-912.32
+ 
+charn                            Common member, Real(4), Offset: 820, Alignment: full word
+                                 0-88.38$
+ 
+chsv                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-457.9@  0-459.21
+ 
+com1way                          Common Block, Alignment: double word
+                                 0-105.15$
+ 
+comconst                         Common Block, Alignment: double word
+                                 0-73.15$
+ 
+conaust                          Common member, Real(4), Offset: 824, Alignment: double word
+                                 0-88.45$
+ 
+critconv                         Common member, Real(4), Offset: 796, Alignment: full word
+                                 0-86.54$
+ 
+ddorf                            Common member, Real(4), Offset: 828, Alignment: full word
+                                 0-88.54$
+ 
+delsig                           Common member, Real(4) (1:16), Offset: 516, Alignment: full word
+                                 0-83.25$
+ 
+di                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-394.9@  0-408.9@  0-433.9@  0-480.7@  0-480.11  0-482.14  0-483.14
+ 
+dif                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-483.7@  0-485.29  0-485.39  0-486.29  0-486.39
+ 
+dj                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-389.7@  0-393.9@  0-393.13  0-407.9@  0-407.13  0-432.9@  0-432.13  0-482.11  0-483.11
+ 
+dlamngm                          Common member, Real(4), Offset: 844, Alignment: full word
+                                 0-89.42$
+ 
+dtovdx                           Common member, Real(4), Offset: 776, Alignment: double word
+                                 0-85.25$
+ 
+exit                             External Subroutine
+                                 0-172.12  0-263.12  0-360.12  0-477.12  0-572.12  0-659.12  0-722.12
+ 
+filler                           Common member, Real(4) (1:10000), Offset: 18461040, Alignment: quadruple word
+                                 0-94.25$
+ 
+four                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-385.7@  0-484.34  0-485.34  0-486.34  0-487.34
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-189.11@  0-190.16  0-192.11@  0-192.15  0-204.11@  0-205.16  0-207.11@  0-207.15  0-213.11@
+                                 0-214.16  0-216.11@  0-216.15  0-228.11@  0-229.16  0-231.11@  0-231.15  0-269.10  0-278.24
+                                 0-295.11@  0-296.16  0-298.11@  0-298.15  0-310.11@  0-311.16  0-313.11@  0-313.15  0-320.11@
+                                 0-321.16  0-323.11@  0-323.15  0-335.11@  0-336.16  0-338.11@  0-338.15  0-364.17  0-374.23
+                                 0-395.11@  0-396.16  0-398.11@  0-398.15  0-410.11@  0-411.16  0-413.11@  0-413.15  0-419.11@
+                                 0-420.16  0-422.11@  0-422.15  0-434.11@  0-435.16  0-437.11@  0-437.15  0-489.16  0-493.21
+                                 0-511.11@  0-512.16  0-514.11@  0-514.15  0-525.9@  0-527.9@  0-537.11@  0-538.16  0-540.11@
+                                 0-540.15  0-576.13  0-581.21  0-596.9@  0-597.14  0-599.9@  0-599.13  0-608.11@  0-609.16
+                                 0-611.11@  0-611.15  0-616.11@  0-617.16  0-619.11@  0-619.15  0-628.9@  0-629.14  0-631.9@
+                                 0-631.13  0-663.13  0-668.21  0-681.9@  0-682.14  0-684.9@  0-684.13  0-692.9@  0-695.9@  0-702.9@
+                                 0-703.14  0-705.9@  0-705.13  0-727.13  0-732.21
+ 
+i1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-211.9@  0-213.15  0-318.9@  0-320.15  0-417.9@  0-419.15  0-594.7@  0-596.13  0-607.9@  0-608.15
+                                 0-615.9@  0-616.15  0-627.7@  0-628.13
+ 
+i10x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.51$  0-948.16@  0-949.13  0-949.31
+ 
+i11x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.56$  0-955.16@  0-956.13  0-956.31
+ 
+i12x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.61$  0-967.16@  0-968.20  0-968.44
+ 
+i13x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.66$  0-991.16@  0-992.13  0-992.31
+ 
+i14x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.71$  0-998.16@  0-999.13  0-999.31
+ 
+i15x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.10$  0-1010.16@  0-1011.20  0-1011.44
+ 
+i16x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.15$  0-1035.16@  0-1036.13  0-1036.31
+ 
+i17x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.20$  0-1042.16@  0-1043.13  0-1043.31
+ 
+i18x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.25$  0-1049.16@  0-1050.13  0-1050.31
+ 
+i19x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.30$  0-1056.16@  0-1057.13  0-1057.31
+ 
+i1x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.15$  0-801.16@  0-802.12  0-802.27
+ 
+i20x                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-121.35$  0-1069.16@  0-1070.20  0-1070.44
+ 
+i2x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.19$  0-809.16@  0-810.20  0-810.42
+ 
+i3x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.23$  0-846.16@  0-847.12  0-847.27
+ 
+i4x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.27$  0-853.16@  0-854.20  0-854.42
+ 
+i5x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.31$  0-878.16@  0-879.13  0-879.30
+ 
+i6x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.35$  0-886.16@  0-887.13  0-887.30
+ 
+i7x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.39$  0-894.16@  0-895.13  0-895.30
+ 
+i8x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.43$  0-901.16@  0-902.13  0-902.30
+ 
+i9x                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.47$  0-917.16@  0-918.20  0-918.43
+ 
+ia                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-159.7@  0-165.19  0-168.27  0-269.15  0-364.10  0-489.10  0-502.14  0-511.15  0-525.11  0-537.15
+                                 0-590.14  0-594.10  0-607.12  0-609.23  0-627.10  0-676.14  0-681.13  0-692.11  0-702.13  0-766.7@
+                                 0-936.20  0-978.20  0-1021.20
+ 
+iadc                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-776.7@  0-783.7@  0-783.12  0-788.33  0-788.61  0-789.37  0-789.65  0-820.7@  0-827.7@  0-827.12
+                                 0-832.33  0-832.61  0-834.37  0-834.65  0-864.7@  0-873.7@  0-873.12  0-879.40  0-883.13  0-887.40
+                                 0-938.7@  0-943.7@  0-943.12  0-965.13  0-968.31  0-980.7@  0-985.7@  0-985.12  0-1008.13
+                                 0-1011.31  0-1023.7@  0-1030.7@  0-1030.12  0-1067.13  0-1070.31
+ 
+iadc1                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-883.7@  0-891.7@  0-891.13  0-895.40  0-898.7@  0-898.13  0-902.40  0-965.7@  0-1008.7@
+                                 0-1067.7@
+ 
+iaddrg                           Common member, Integer(4) (1:44, 1:2), Offset: 108, Alignment: full word
+                                 0-79.25$  0-776.12  0-777.12  0-820.12  0-821.12  0-864.12  0-865.12  0-938.12  0-939.12  0-980.12
+                                 0-981.12  0-1023.12  0-1024.12
+ 
+iadf                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-777.7@  0-784.7@  0-784.12  0-807.13  0-810.30  0-821.7@  0-828.7@  0-828.12  0-851.13  0-854.30
+                                 0-865.7@  0-874.7@  0-874.12  0-915.13  0-918.30  0-939.7@  0-944.7@  0-944.12  0-949.42  0-952.13
+                                 0-956.42  0-981.7@  0-986.7@  0-986.12  0-988.13  0-992.42  0-1024.7@  0-1031.7@  0-1031.12
+                                 0-1036.42  0-1039.13  0-1043.42
+ 
+iadf1                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-807.7@  0-851.7@  0-915.7@  0-952.7@  0-988.7@  0-995.7@  0-995.13  0-999.42  0-1039.7@
+                                 0-1046.7@  0-1046.13  0-1050.42  0-1053.7@  0-1053.13  0-1057.42
+ 
+iag                              Common member, Integer(4) (1:1), Offset: 92, Alignment: full word
+                                 0-77.25$  0-159.10  0-766.10
+ 
+ib                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-161.7@  0-165.10  0-168.30  0-512.23  0-527.11  0-538.23  0-597.21  0-615.12  0-617.23  0-629.21
+                                 0-682.21  0-695.11  0-703.21  0-767.7@  0-936.17  0-978.17  0-1021.17
+ 
+ibg                              Common member, Integer(4) (1:1), Offset: 100, Alignment: full word
+                                 0-78.25$  0-161.10  0-767.10
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ibucket                          Common member, Integer(4), Offset: 492, Alignment: full word
+                                 0-81.60$
+ 
+ic                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-269.7@  0-270.11  0-364.7@  0-366.11  0-489.7@  0-491.21
+ 
+icall                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-122.12*  0-133.11  0-135.7@
+ 
+icallrad                         Common member, Integer(4), Offset: 48, Alignment: quadruple word
+                                 0-74.25$
+ 
+ii                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-502.7@  0-576.15  0-590.7@  0-663.15  0-676.7@  0-727.15
+ 
+iii                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-576.7@  0-579.21  0-663.7@  0-666.21  0-727.7@  0-730.21
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  0-93.34  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  0-91.34  0-92.34  0-96.34  0-97.34  0-98.34  0-99.34  0-100.34  0-101.34  0-108.19
+                                 0-108.30  0-108.41  0-108.52  0-109.20  0-109.30  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ija                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-270.7@  0-276.23  0-366.7@  0-372.23
+ 
+ijc                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-155.7@  0-276.30  0-372.30  0-763.7@  0-776.27  0-783.17  0-787.28  0-789.12  0-795.27  0-796.14
+                                 0-820.25  0-827.17  0-831.28  0-834.12  0-840.27  0-841.14  0-864.25  0-873.17  0-938.25  0-943.17
+                                 0-980.25  0-985.17  0-1023.25  0-1030.17
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ijf                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-158.7@  0-764.7@  0-777.27  0-784.17  0-821.25  0-828.17  0-865.25  0-874.17  0-939.25  0-944.17
+                                 0-981.25  0-986.17  0-1024.25  0-1031.17
+ 
+ijmax                            Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-73.25$  0-257.20  0-565.20  0-653.20
+ 
+ijrad                            Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-73.44$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  0-83.32  0-83.41  0-83.53  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$  0-84.32
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$  0-115.20  0-117.23  0-138.12
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$  0-118.48  0-139.12
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$  0-117.48  0-140.12
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$  0-116.23  0-141.12
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$  0-118.23  0-142.12
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$  0-116.48  0-143.12
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+imc                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-153.7@  0-155.11  0-270.21  0-366.21  0-491.31  0-581.29  0-668.29  0-732.29  0-759.7@  0-763.11
+                                 0-796.45  0-832.66  0-834.70  0-891.19
+ 
+imf                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-156.7@  0-158.11  0-190.23  0-211.12  0-214.23  0-229.23  0-278.32  0-296.23  0-318.12  0-321.23
+                                 0-336.23  0-374.31  0-396.23  0-417.12  0-420.23  0-435.23  0-493.29  0-579.33  0-666.33  0-730.33
+                                 0-761.7@  0-764.11  0-779.16  0-823.16  0-867.17  0-995.19  0-1046.19
+ 
+img                              Common member, Integer(4) (1:2), Offset: 76, Alignment: full word
+                                 0-76.25$  0-153.11  0-156.11  0-759.11  0-761.11
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  0-94.34  1-56.62
+ 
+inglb                            Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-105.43$  0-753.19  0-930.11
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$  0-77.29  0-77.44  0-78.29  0-78.44  0-115.26  0-116.29  0-116.54  0-117.29  0-117.54
+                                 0-118.29  0-118.54
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$  0-76.29  0-76.44  0-79.42  0-80.35  0-82.32  0-82.50  0-96.45  0-97.45  0-98.45  0-99.42
+                                 0-100.42  0-101.42
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$  0-79.32
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  0-91.43  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  0-93.43  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  0-92.43  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$  0-95.34
+ 
+iodd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-188.9@  0-202.9@  0-227.9@  0-244.7@  0-244.13  0-273.22  0-294.9@  0-308.9@  0-317.9@  0-334.9@
+                                 0-352.7@  0-352.13  0-369.12
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-129.7@  0-168.14  0-248.14  0-356.14  0-473.14  0-556.14  0-644.14  0-718.14
+ 
+iphyspl                          Common member, Integer(4), Offset: 52, Alignment: full word
+                                 0-74.35$
+ 
+iq2w6e                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-787.16@  0-788.12  0-788.38  0-788.66  0-789.16  0-789.42  0-790.13  0-795.16@  0-796.18
+                                 0-796.35  0-796.49  0-831.16@  0-832.12  0-832.38  0-833.13  0-834.16  0-834.42  0-835.14
+                                 0-840.16@  0-841.18  0-841.35  0-841.45  0-908.16@  0-909.13  0-909.24  0-909.35  0-910.24
+                                 0-910.35  0-911.24  0-911.35  0-912.24  0-912.35  0-961.16@  0-962.13  0-962.31  0-962.42
+                                 0-1004.16@  0-1005.13  0-1005.31  0-1005.42  0-1062.16@  0-1063.13  0-1063.32  0-1063.43  0-1064.24
+                                 0-1064.35
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+iret                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-184.7@  0-203.9@  0-212.9@  0-223.7@  0-280.29  0-290.7@  0-309.9@  0-319.9@  0-330.7@  0-376.32
+                                 0-390.7@  0-409.9@  0-418.9@  0-429.7@  0-495.32  0-510.9@  0-524.9@  0-528.9@  0-536.9@  0-583.32
+                                 0-595.7@  0-606.9@  0-614.9@  0-626.7@  0-670.32  0-680.7@  0-691.9@  0-694.9@  0-701.7@  0-734.36
+ 
+itbound                          Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-105.34$
+ 
+itime                            Common member, Integer(4), Offset: 68, Alignment: full word
+                                 0-75.32$  0-260.27  0-568.27  0-656.27
+ 
+itimstep                         Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-105.24$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-185.9@  0-186.14  0-195.9@  0-195.13  0-199.9@  0-200.14  0-219.9@  0-219.13  0-224.9@  0-225.14
+                                 0-234.9@  0-234.13  0-268.10  0-278.27  0-291.9@  0-292.14  0-301.9@  0-301.13  0-305.9@  0-306.14
+                                 0-326.9@  0-326.13  0-331.9@  0-332.14  0-341.9@  0-341.13  0-365.17  0-374.26  0-391.9@  0-392.14
+                                 0-401.9@  0-401.13  0-405.9@  0-406.14  0-425.9@  0-425.13  0-430.9@  0-431.14  0-440.9@  0-440.13
+                                 0-490.16  0-493.24  0-508.9@  0-509.14  0-517.9@  0-517.13  0-522.9@  0-523.14  0-530.9@  0-530.13
+                                 0-534.9@  0-535.14  0-543.9@  0-543.13  0-577.13  0-581.24  0-593.7@  0-604.9@  0-605.14  0-622.9@
+                                 0-622.13  0-625.7@  0-664.13  0-668.24  0-679.7@  0-689.9@  0-690.14  0-697.9@  0-697.13  0-700.7@
+                                 0-728.13  0-732.24
+ 
+j1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-198.7@  0-200.21  0-222.7@  0-224.13  0-304.7@  0-306.21  0-329.7@  0-331.13  0-404.7@  0-406.21
+                                 0-428.7@  0-430.13  0-507.7@  0-508.13  0-520.7@  0-522.13  0-533.7@  0-534.13  0-602.7@  0-604.13
+                                 0-687.7@  0-689.13
+ 
+j2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-521.7@  0-523.21  0-603.7@  0-605.21  0-688.7@  0-690.21
+ 
+ja                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-160.7@  0-164.19  0-168.33  0-268.16  0-365.10  0-490.10  0-503.14  0-507.10  0-509.21  0-520.10
+                                 0-591.14  0-593.9  0-602.10  0-677.14  0-679.9  0-687.10  0-768.7@  0-936.30  0-978.30  0-1021.26
+ 
+jag                              Common member, Integer(4) (1:1), Offset: 96, Alignment: quadruple word
+                                 0-77.40$  0-160.10  0-768.10
+ 
+jb                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-162.7@  0-164.10  0-168.36  0-521.10  0-533.10  0-535.21  0-603.10  0-625.9  0-688.10  0-700.9
+                                 0-769.7@  0-936.27  0-978.27  0-1021.23
+ 
+jbg                              Common member, Integer(4) (1:1), Offset: 104, Alignment: double word
+                                 0-78.40$  0-162.10  0-769.10
+ 
+jc                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-268.7@  0-270.15  0-365.7@  0-366.15  0-490.7@  0-491.25
+ 
+jj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-503.7@  0-577.15  0-591.7@  0-664.15  0-677.7@  0-728.15
+ 
+jjj                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-577.7@  0-579.26  0-664.7@  0-666.26  0-728.7@  0-730.26
+ 
+jmc                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-154.7@  0-155.15  0-760.7@  0-763.15
+ 
+jmf                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-157.7@  0-158.15  0-198.10  0-222.10  0-225.21  0-304.10  0-329.10  0-332.21  0-404.10  0-428.10
+                                 0-431.21  0-762.7@  0-764.15  0-779.22  0-823.22  0-867.21
+ 
+jmg                              Common member, Integer(4) (1:2), Offset: 84, Alignment: full word
+                                 0-76.40$  0-154.11  0-157.11  0-760.11  0-762.11
+ 
+jodd                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-183.7@  0-187.9@  0-187.15  0-201.9@  0-201.15  0-226.9@  0-226.15  0-273.12  0-289.7@  0-293.9@
+                                 0-293.15  0-307.9@  0-307.15  0-333.9@  0-333.15  0-369.22
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-456.15@  0-457.22  0-458.17  0-458.29  0-459.18  0-781.14@  0-825.14@  0-871.14@  0-941.14@
+                                 0-983.14@  0-1028.14@
+ 
+khinterp                         Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-871.18  0-1028.18
+ 
+klift1                           Common member, Integer(4), Offset: 484, Alignment: full word
+                                 0-81.44$
+ 
+klift2                           Common member, Integer(4), Offset: 488, Alignment: double word
+                                 0-81.52$
+ 
+km                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-73.32$  0-257.27  0-565.27  0-653.27  0-781.18  0-825.18  0-941.18  0-983.18
+ 
+kumulus                          Common member, Integer(4), Offset: 476, Alignment: full word
+                                 0-81.25$
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-178.7@  0-245.7@  0-245.9  0-246.10  0-248.28  0-276.13  0-278.14  0-285.7@  0-353.7@  0-353.9
+                                 0-354.10  0-356.28  0-372.14  0-374.13  0-381.7@  0-446.10  0-470.7@  0-470.9  0-471.10  0-473.28
+                                 0-484.10  0-485.10  0-486.10  0-487.10  0-491.13  0-493.13  0-500.7@  0-553.7@  0-553.9  0-554.10
+                                 0-556.28  0-579.13  0-581.13  0-588.7@  0-641.7@  0-641.9  0-642.10  0-644.28  0-666.13  0-668.13
+                                 0-674.7@  0-715.7@  0-715.9  0-716.10  0-718.29  0-730.13  0-732.13
+ 
+l2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-273.7@  0-276.27  0-369.7@  0-372.27
+ 
+latbnd                           Subroutine
+                                 0-1.18$
+ 
+lbch                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-138.7@  0-471.17  0-473.30
+ 
+lbhi                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-139.7@  0-716.17  0-718.31
+ 
+lbui                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-140.7@  0-554.17  0-556.30
+ 
+lbuo                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-141.7@  0-246.17  0-248.30
+ 
+lbvi                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-142.7@  0-642.17  0-644.30
+ 
+lbvo                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-143.7@  0-354.17  0-356.30
+ 
+lgridppt                         Common member, Integer(4), Offset: 480, Alignment: quadruple word
+                                 0-81.34$
+ 
+lgshi                            Static, Integer(4) (1:232, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-118.42$  0-730.7@  0-732.7@  0-1036.25  0-1043.25  0-1050.25  0-1057.25  0-1070.14
+ 
+lgsho                            Static, Integer(4) (1:1757, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-117.17$  0-450.11  0-451.7@  0-451.21  0-452.7@  0-453.11  0-454.7@  0-454.21  0-455.7@  0-491.7@
+                                 0-493.7@  0-879.24  0-887.24  0-895.24  0-902.24  0-918.14
+ 
+lgsui                            Static, Integer(4) (1:366, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-117.42$  0-579.7@  0-581.7@  0-949.25  0-956.25  0-968.14
+ 
+lgsuo                            Static, Integer(4) (1:1897, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-116.17$  0-276.7@  0-278.7@  0-802.21  0-810.14
+ 
+lgsvi                            Static, Integer(4) (1:330, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-118.17$  0-666.7@  0-668.7@  0-992.25  0-999.25  0-1011.14
+ 
+lgsvo                            Static, Integer(4) (1:1861, 1:1, 1:2), Offset: 0, Alignment: full word
+                                 0-116.42$  0-372.7@  0-374.7@  0-847.21  0-854.14
+ 
+ll                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-446.7@  0-448.17
+ 
+lofclds                          Common member, Integer(4) (1:2, 1:4), Offset: 16, Alignment: quadruple word
+                                 0-73.51$
+ 
+lsv                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-450.7@  0-452.22  0-453.7@  0-455.22
+ 
+lvltot                           Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-73.36$  0-257.31  0-565.31  0-653.31
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-448.13@  0-449.10  0-450.17  0-451.13  0-453.17  0-454.13  0-457.17  0-458.12
+ 
+mm                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-449.7@  0-451.27  0-452.13  0-454.27  0-455.13  0-458.23  0-459.12
+ 
+nc                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.26  0-747.10  0-759.15  0-760.15  0-766.14  0-767.14  0-768.14  0-769.14  0-776.21  0-802.31
+                                 0-810.24  0-820.21  0-847.31  0-854.24  0-864.21  0-879.34  0-887.34  0-895.34  0-902.34  0-909.42
+                                 0-910.42  0-911.42  0-912.42  0-918.24  0-938.21  0-949.36  0-956.36  0-968.25  0-980.21  0-992.36
+                                 0-999.36  0-1011.25  0-1023.21  0-1036.36  0-1043.36  0-1050.36  0-1057.36  0-1070.25
+ 
+needhc                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-1021.7@  0-1035.26  0-1042.26  0-1049.26  0-1056.26  0-1062.25  0-1069.26
+ 
+needhf                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-867.7@  0-878.25  0-886.25  0-894.25  0-901.25  0-908.25  0-917.25
+ 
+needuc                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-936.7@  0-948.26  0-955.26  0-961.25  0-967.26
+ 
+needuf                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-779.7@  0-801.25  0-809.25
+ 
+needvc                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-978.7@  0-991.26  0-998.26  0-1004.25  0-1010.26
+ 
+needvf                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-823.7@  0-846.25  0-853.25
+ 
+nf                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-747.7@  0-753.11  0-761.15  0-762.15  0-777.21  0-821.21  0-865.21  0-939.21  0-981.21  0-1024.21
+ 
+ng                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-149.14@  0-153.15  0-154.15  0-156.15  0-157.15  0-159.14  0-160.14  0-161.14  0-162.14  0-168.39
+                                 0-248.35  0-276.16  0-278.17  0-356.35  0-372.16  0-374.16  0-450.19  0-451.15  0-451.30  0-452.16
+                                 0-453.19  0-454.15  0-454.30  0-455.16  0-457.19  0-458.14  0-458.26  0-459.15  0-473.35  0-484.12
+                                 0-485.12  0-486.12  0-487.12  0-491.15  0-493.15  0-556.35  0-579.15  0-581.15  0-644.35  0-666.15
+                                 0-668.15  0-718.36  0-730.15  0-732.15
+ 
+ngrduse                          Common member, Integer(4), Offset: 56, Alignment: double word
+                                 0-74.44$  0-147.14  0-257.39  0-565.39  0-653.39
+ 
+nh                               Common member, Integer(4), Offset: 60, Alignment: full word
+                                 0-74.53$  0-257.48  0-565.48  0-653.48
+ 
+nintpr                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-147.7@  0-149.19
+ 
+nptsfh                           Common member, Integer(4) (1:2, 1:2), Offset: 460, Alignment: full word
+                                 0-80.25$
+ 
+nsteps                           Common member, Integer(4), Offset: 72, Alignment: double word
+                                 0-75.39$  0-260.34  0-568.34  0-656.34
+ 
+ntime                            Common member, Integer(4), Offset: 64, Alignment: quadruple word
+                                 0-75.25$  0-260.20  0-568.20  0-656.20
+ 
+one                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-383.7@  0-389.10  0-394.12  0-408.12  0-433.12
+ 
+oneway                           External Subroutine
+                                 0-754.15
+ 
+pkato                            Common member, Real(4), Offset: 832, Alignment: quadruple word
+                                 0-88.61$
+ 
+pr                               Common member, Real(4) (1:16), Offset: 580, Alignment: full word
+                                 0-83.38$
+ 
+press                            Common member, Real(4) (1:16), Offset: 644, Alignment: full word
+                                 0-83.47$
+ 
+qbound                           Common member, Real(4), Offset: 808, Alignment: double word
+                                 0-87.43$
+ 
+radius                           Common member, Real(4), Offset: 512, Alignment: quadruple word
+                                 0-82.61$
+ 
+rhfactor                         Common member, Real(4), Offset: 804, Alignment: full word
+                                 0-87.33$
+ 
+satdel                           Common member, Real(4), Offset: 800, Alignment: quadruple word
+                                 0-87.25$
+ 
+scale                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-386.7@  0-484.18  0-485.18  0-486.18  0-487.18
+ 
+scaleht                          Common member, Real(4), Offset: 836, Alignment: full word
+                                 0-89.25$
+ 
+scr                              Common member, Real(4) (1:23668, 1:23), Offset: 0, Alignment: quadruple word
+                                 0-91.25$  0-110.25  0-110.44  0-111.16  0-111.34  0-111.53  0-112.15
+ 
+scr3                             Common member, Real(4) (1:378688, 1:10), Offset: 3313520, Alignment: quadruple word
+                                 0-93.25$
+ 
+scrgeog                          Common member, Real(4) (1:23668, 1:12), Offset: 2177456, Alignment: quadruple word
+                                 0-92.25$
+ 
+sigdot                           Common member, Real(4), Offset: 840, Alignment: double word
+                                 0-89.34$
+ 
+sigint                           Common member, Real(4) (1:17), Offset: 708, Alignment: full word
+                                 0-84.25$
+ 
+sigmacc                          Common member, Real(4), Offset: 784, Alignment: quadruple word
+                                 0-86.25$
+ 
+sigmadhq                         Common member, Real(4), Offset: 792, Alignment: double word
+                                 0-86.44$
+ 
+sigmagsp                         Common member, Real(4), Offset: 788, Alignment: full word
+                                 0-86.34$
+ 
+six                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-384.7@  0-484.25  0-485.25  0-486.25  0-487.25
+ 
+sum                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-482.7@  0-484.29  0-484.39  0-487.29  0-487.39
+ 
+vbl                              Common member, Real(4) (1:6282436), Offset: 18501040, Alignment: quadruple word
+                                 0-95.25$  0-788.29  0-788.57  0-789.33  0-789.61  0-810.10@  0-832.29  0-832.57  0-834.33  0-834.61
+                                 0-854.10@  0-879.20  0-887.20  0-895.20  0-902.20  0-918.10@  0-949.21  0-956.21  0-968.10@
+                                 0-992.21  0-999.21  0-1011.10@  0-1036.21  0-1043.21  0-1050.21  0-1057.21  0-1070.10@
+ 
+x                                Common member, Real(4) (1:23668), Offset: 0, Alignment: quadruple word
+                                 0-108.17$  0-110.20  0-788.10@  0-789.10@  0-796.10@  0-796.33  0-796.43  0-802.19  0-832.10@
+                                 0-834.10@  0-841.10@  0-841.33  0-841.43  0-847.19
+ 
+x1                               Common member, Real(4) (1:23668), Offset: 0, Alignment: quadruple word
+                                 0-108.27$  0-111.9  0-887.10@  0-909.10@  0-909.21  0-918.40  0-956.10@  0-962.28  0-992.10@
+                                 0-1005.28  0-1043.10@  0-1063.29
+ 
+x2                               Common member, Real(4) (1:23668), Offset: 94672, Alignment: quadruple word
+                                 0-108.38$  0-111.28  0-879.10@  0-910.21  0-949.10@  0-962.39  0-999.10@  0-1005.39  0-1036.10@
+                                 0-1063.40
+ 
+x3                               Common member, Real(4) (1:23668), Offset: 189344, Alignment: quadruple word
+                                 0-108.49$  0-111.47  0-895.10@  0-911.21  0-962.10@  0-968.41  0-1005.10@  0-1011.41  0-1050.10@
+                                 0-1063.10@  0-1064.21  0-1070.41
+ 
+x4                               Common member, Real(4) (1:23668), Offset: 284016, Alignment: quadruple word
+                                 0-109.17$  0-112.9  0-902.10@  0-912.21  0-1057.10@  0-1064.32
+ 
+xpoleh                           Common member, Real(4) (1:2), Offset: 496, Alignment: quadruple word
+                                 0-82.25$
+ 
+y                                Common member, Real(4) (1:23668), Offset: 378688, Alignment: quadruple word
+                                 0-109.28$  0-110.38  0-802.10@  0-810.40  0-847.10@  0-854.40
+ 
+ypoleh                           Common member, Real(4) (1:2), Offset: 504, Alignment: double word
+                                 0-82.43$
+ 
+** latbnd   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    LATBND.f                    10/09/02   12:45:07
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      0      63
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................    1140
+1501-510  Compilation successful for file LATBND.f.
+1501-543  Object file created.

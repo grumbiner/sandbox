@@ -1,0 +1,108 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/qfrmtp.f 09/30/06 19:43:48
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      FUNCTION qfrmtp(T,P)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    qfrmtp      SPEC. HUM. FROM TEMP AND PRESSURE
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 88-03-31
+          6 |C
+          7 |C ABSTRACT: COMPUTE SPECIFIC HUMIDITY (SATURATED VALUE) AT THE
+          8 |C   INDICATED TEMPERATURE AND PRESSURE
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   75-03-31  DORIS GORDON
+         12 |C   88-06-30  DIMEGO      DOCBLOCK HALF / FTN200
+         13 |C   90-09-18  DIMEGO      for the CRAY
+         14 |C
+         15 |C USAGE:    WXYZ=qfrmtp(T,P)
+         16 |C   INPUT ARGUMENT LIST:
+         17 |C     T        - TEMPERATURE IN DEGREES KELVIN
+         18 |C     P        - PRESSURE IN MB
+         19 |C
+         20 |C   OUTPUT ARGUMENT LIST:
+         21 |C     qfrmtp   - FUNCTION VALUE RETURNED G/G
+         22 |C
+         23 |C ATTRIBUTES:
+         24 |C   LANGUAGE: standard FORTRAN
+         25 |C   MACHINE:
+         26 |C
+         27 |C$$$
+         28 |      IMPLICIT REAL (A-H,O-Z)
+         29 |      A = T - 273.16
+         30 |      ES = 6.1078 * EXP((17.269*A)/(A+237.3))
+         31 |      QFRMTP = 0.622 * ES/(P - 0.378 * ES)
+         32 |      RETURN
+         33 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-29.7@  0-30.33  0-30.37
+ 
+es                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-30.7@  0-31.24  0-31.40
+ 
+exp                              Pure Intrinsic
+                                 0-30.21
+ 
+p                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.25  0-31.28
+ 
+qfrmtp                           Function Real(4)
+                                 0-1.16$  0-31.7@
+ 
+t                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.23  0-29.11
+ 
+** qfrmtp   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    qfrmtp.f                    12/17/02   09:24:04
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      33
+1501-510  Compilation successful for file qfrmtp.f.
+1501-543  Object file created.

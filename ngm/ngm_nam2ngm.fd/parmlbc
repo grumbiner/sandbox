@@ -1,0 +1,18 @@
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+C---------------------NGM parameters for ngmPTS-------------------------
+C-----------------------------------------------------------------------
+C  NGUSED = NUMBER OF GRIDS, CORRESPONDS TO NGM PLI #NGRDUSE
+C  NGBD = NUMBER OF GRID FOR WHICH BOUNDARY POINTS ARE NEEDED
+C  LTBGRI = NUMBER OF PAIRS OF BOUNDARY ROWS = JUANG'S PLI #LTBGRD
+C  LBDIM = SIZE OF INTERNAL WORK ARRAYS, MUST >=  NUMBER OF BDY PTS
+C        NUMBER OF BDY PTS (IF LTBGRI=2) =
+C        ( IMG + JGM -2 )*2 + (IMG-2 + JMG-2 -2)*2
+C Here IMG=147 JMG=111
+C
+      PARAMETER (NGUSED=2)
+      PARAMETER (NGBD=2)
+      PARAMETER (LTBGRI=2)
+      PARAMETER (LBDIM=1016)
+      PARAMETER (KB=1016)
+C-------setting KB equal to LBDIM indicates NGM model-------------------

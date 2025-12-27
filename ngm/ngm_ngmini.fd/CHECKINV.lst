@@ -1,0 +1,130 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/CHECKINV.f 09/30/06 19:43:57
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE CHECKINV(E,EINV,N)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    CHECKINV    CHECK INVERSE OF A MATRIX
+          5 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-09-08
+          6 |C
+          7 |C ABSTRACT: CHECK ACCURACY OF MATRIX INVERSE.
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   88-09-08  PARRISH
+         11 |C
+         12 |C USAGE:    CALL CHECKINV(E,EINV,N)
+         13 |C   INPUT ARGUMENT LIST:
+         14 |C     E        - MATRIX
+         15 |C     EINV     - INVERSE OF MATRIX TO BE TESTED
+         16 |C     N        - DIMENSION OF MATRICES
+         17 |C
+         18 |C ATTRIBUTES:
+         19 |C   LANGUAGE: FORTRAN200
+         20 |C   MACHINE:  CYBER
+         21 |C
+         22 |C$$$
+         23 |         REAL E(N,N),EINV(N,N)
+         24 |         ERMAX=0.
+         25 |         DO 300 J=1,N
+         26 |           DO 200 I=1,N
+         27 |             PROD=0.
+         28 |             IF(I.EQ.J) PROD=-1.
+         29 |             DO 100 K=1,N
+         30 |               PROD=PROD+E(I,K)*EINV(K,J)
+         31 |100          CONTINUE
+         32 |             ERMAX=AMAX1(ERMAX,ABS(PROD))
+         33 |200        CONTINUE
+         34 |300      CONTINUE
+         35 |c        WRITE(6,400)N,ERMAX
+         36 | 400     FORMAT(' CHECK MATRIX INVERSE, N,ERMAX=',I5,G12.4)
+         37 |       RETURN
+         38 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-32.32
+ 
+amax1                            Pure Intrinsic Real(4)
+                                 0-32.20
+ 
+checkinv                         Subroutine
+                                 0-1.19$
+ 
+e                                Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-23.15$  0-1.28  0-30.26
+ 
+einv                             Reference argument, Real(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-23.22$  0-1.30  0-30.33
+ 
+ermax                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-24.10@  0-32.14@  0-32.26
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-26.19@  0-28.17  0-30.28
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-25.17@  0-28.22  0-30.40
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-29.21@  0-30.30  0-30.38
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.35  0-23.17  0-23.17  0-23.19  0-23.19  0-23.27  0-23.27  0-23.29  0-23.29  0-25.21  0-26.23
+                                 0-29.25
+ 
+prod                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-27.14@  0-28.25@  0-30.16@  0-30.21  0-32.36
+ 
+** checkinv   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    CHECKINV.f                  10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      38
+1501-510  Compilation successful for file CHECKINV.f.
+1501-543  Object file created.

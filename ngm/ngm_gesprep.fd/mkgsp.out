@@ -1,0 +1,57 @@
+
+ ########################################################################
+ #                        Cray5   UNICOS    10.0.0.2                    #
+ ########################################################################
+ 
+ > If you don't know how to access news articles.   Enter: news news.help 
+
+*************************************************************************
+SEE /usr/news/dailybul for SCHEDULE OF COMPUTER EVENTS.
+
+*************************************************************************
+======== SCHEDULED SYSTEM UNVAILABILITY UPDATE
+ Day Date     From--To       System        Reason
+
+*************************************************************************
+ #####################################################################XXX
+ #                                                                    XXX
+ # PROGRAMMING ALERT!   There are 276 days left before the year 2000. XXX
+ #                                                                    XXX
+ #####################################################################XXX
++ mkdir -p /tmp/wd20er/gesprep
++ cd /tmp/wd20er/gesprep
++ rm *
+cmd-1025 rm: *: No such file or directory
++ cp /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/ADABAT.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/CHGRES.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/CMPIND.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/CMPWND.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/COF2GRD.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/CONLEV.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/DZ2OLD.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/DZTOUV.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/EZSKCH.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/FFTidim.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/GESPRP.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/HIMEMBLK /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/IJ2LL.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/MAXHEAP /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/ODABAT.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/PLN2H.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/PPUV.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/PPZT.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/R30FLP.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/SHLLET.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/SHUFLS.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/SUMSHS.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/SUMVHS.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/TRANSI.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/TRANSO.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/TRANVI.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/TRNCAT.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/TSTATS.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/ZSTATS.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/makefile /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/mkgsp.out /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/parmanl /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/qfrmtp.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/runcomp /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/vexpnd.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/vrtpsl.f /emcsrc3/wd20er/ngm/sorc/gsp12628.fd/xintrp.f .
++ make
+	f90 -Ovector3 -ev -c ADABAT.f
+	f90 -Ovector3 -ev -c CONLEV.f
+	f90 -Ovector3 -ev -c FFTidim.f
+	f90 -Ovector3 -ev -c PLN2H.f
+	f90 -Ovector3 -ev -c TRANSI.f
+	f90 -Ovector3 -ev -c qfrmtp.f
+	f90 -Ovector3 -ev -c CHGRES.f
+	f90 -Ovector3 -ev -c DZ2OLD.f
+	f90 -Ovector3 -ev -c GESPRP.f
+	f90 -Ovector3 -ev -c PPUV.f
+	f90 -Ovector3 -ev -c SHLLET.f
+	f90 -Ovector3 -ev -c TRANSO.f
+	f90 -Ovector3 -ev -c CMPIND.f
+	f90 -Ovector3 -ev -c ODABAT.f
+	f90 -Ovector3 -ev -c DZTOUV.f
+	f90 -Ovector3 -ev -c PPZT.f
+	f90 -Ovector3 -ev -c TRANVI.f
+	f90 -Ovector3 -ev -c vexpnd.f
+	f90 -Ovector3 -ev -c CMPWND.f
+	f90 -Ovector3 -ev -c EZSKCH.f
+	f90 -Ovector3 -ev -c SUMSHS.f
+	f90 -Ovector3 -ev -c TRNCAT.f
+	f90 -Ovector3 -ev -c ZSTATS.f
+	f90 -Ovector3 -ev -c vrtpsl.f
+	f90 -Ovector3 -ev -c COF2GRD.f
+	f90 -Ovector3 -ev -c IJ2LL.f
+	f90 -Ovector3 -ev -c SUMVHS.f
+	f90 -Ovector3 -ev -c TSTATS.f
+	f90 -Ovector3 -ev -c xintrp.f
+	f90    -o gsp12628.xc -l /nwprod/w3lib90/w3lib ADABAT.o   CONLEV.o   FFTidim.o  PLN2H.o    TRANSI.o   qfrmtp.o  CHGRES.o   DZ2OLD.o   GESPRP.o   PPUV.o     SHLLET.o   TRANSO.o  CMPIND.o   ODABAT.o   DZTOUV.o   PPZT.o     TRANVI.o   vexpnd.o  CMPWND.o   EZSKCH.o   SUMSHS.o   TRNCAT.o   ZSTATS.o   vrtpsl.o  COF2GRD.o  IJ2LL.o    SUMVHS.o   TSTATS.o   xintrp.o
++ cp gsp12628.xc /dm/wd20er/exec.ngm/gsp12628.x

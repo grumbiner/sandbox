@@ -1,0 +1,207 @@
+#!/bin/sh
+#
+################################################################################
+####  UNIX Script Documentation Block
+#                      .                                             .
+# Script name:         exngm.sh
+# Script description:  Gets all input fields for NDAS run
+#
+# Author:        Eric Rogers       Org: NP22         Date: 1999-06-23
+#
+# Abstract: The scripts gets all the input files needed for the NGM run,
+#           and runs all codes for processing the initial and lateral
+#           boundary conditions. IT then runs a 48-h NGM forecast.
+#           processes first guess accordingly.
+#
+# Script history log:
+# 1999-11-26  Eric Rogers
+# 2000-02-08  Implemented into production on IBM
+# 2007-02-28  Added chgres execution to convert hybrid GDAS coefficient file to sigma
+#
+
+set -x
+
+cd $DATA
+
+export CYCLE=$PDY$cyc
+
+TM12=`/nwprod/util/exec/ndate -12 $CYCLE`
+TM09=`/nwprod/util/exec/ndate -09 $CYCLE`
+TM06=`/nwprod/util/exec/ndate -06 $CYCLE`
+TM03=`/nwprod/util/exec/ndate -03 $CYCLE`
+
+echo $CYCLE > date
+yyyymmdd=`cut -c 1-8 date`
+hh=`cut -c 9-10 date`
+
+echo $TM12 > datetm12
+yyyymmddm12=`cut -c 1-8 datetm12`
+hh12=`cut -c 9-10 datetm12`
+
+echo $TM06 > datetm06
+yyyymmddm06=`cut -c 1-8 datetm06`
+hh06=`cut -c 9-10 datetm06`
+
+cp /com/date/t${hh12}z nmcdate.tm12
+
+cp $COMNAM/nam.${cycle}.grbgrd00.tm00 GRBGRD00.tm00
+cp $COMNAM/nam.${cycle}.grbgrdi00 GRBGRDi00
+
+$utilscript/getges.sh -t sigges -v $CYCLE sges.hybrid
+$utilscript/getges.sh -t sstgrb -v $CYCLE sstgrb
+$utilexec/grbindex sstgrb sstgrb.index
+export err=$?
+if test $err -ne 0
+then
+  msg="Problem with $pgm on file sstgrb"
+  postmsg "$jlogfile" "$msg"
+  err_chk
+fi
+
+$utilscript/getsnow_nam.sh $CYCLE
+err=$?
+if test $err -ne 0
+then
+  err_exit "SNOW grib files not found.  FATAL ERROR"
+fi
+
+cp $FIXngm/ngm_terrainw terrainw
+cp $PARMngm/ngm_gesprep.parm gesprep.parm
+
+# convert hybrid GDAS coefficient file to sigma
+
+export CHGRESEXEC=/nwprod/exec/global_chgres
+export SIGINP=sges.hybrid
+export SIGOUT=sges
+export OROGRAPHY=/dev/null
+export JCAP=382
+export LEVS=64
+export LONB=768
+export LATB=384
+export IDVC=1
+export VERBOSE=YES
+export SIGLEVEL=/nwprod/fix/global_siglevel.l64.txt
+$USHngm/global_chgres.sh
+
+export pgm=ngm_gesprep;. prep_step
+rm fort.*
+export XLFUNIT_11="sges"
+export XLFUNIT_13="terrainw"
+export XLFUNIT_51="gesgrd"
+export XLFUNIT_52="errgrd"
+export XLFUNIT_53="grdspecs"
+export XLFUNIT_54="rvspecs2"
+export XLFUNIT_55="rvguess"
+date
+$EXECngm/ngm_gesprep < gesprep.parm >> $pgmout
+export err=$?;err_chk
+
+cp $PARMngm/ngm_cinpt.prm.1165 cinpt.prm.1165
+cp $FIXngm/ngm_rffhlwc rffhlwc
+cp $FIXngm/ngm_rfdrag rfdrag
+cp $FIXngm/ngm_rfalbedo rfalbedo
+cp $FIXngm/ngm_rfzeenot rfzeenot
+cp $FIXngm/ngm_rfmavail rfmavail
+cp $FIXngm/ngm_rftersd rftersd
+cp $FIXngm/ngm_rfssoilt rfssoilt
+cp $FIXngm/ngm_imsmask imsmask
+cp $PARMngm/ngm_cinput.parm cinput.parm
+
+export pgm=ngm_rgcinp;. prep_step
+rm fort.*
+export XLFUNIT_11="cinpt.prm.1165"
+export XLFUNIT_20="rvspecs2"
+export XLFUNIT_21="rvguess"
+export XLFUNIT_22="imssnow.grb"
+export XLFUNIT_24="sstgrb"
+export XLFUNIT_25="sstgrb.index"
+export XLFUNIT_31="rffhlwc"
+export XLFUNIT_32="rfdrag"
+export XLFUNIT_33="rfalbedo"
+export XLFUNIT_34="rfzeenot"
+export XLFUNIT_35="rfmavail"
+export XLFUNIT_36="rftersd"
+export XLFUNIT_37="rfssoilt"
+export XLFUNIT_40="rvlatbnd"
+export XLFUNIT_43="imsmask"
+export XLFUNIT_51="rvgesrs"
+export XLFUNIT_52="rvbound"
+ln -s -f imssnow.grb fort.22
+ln -s -f sstgrb      fort.24
+ln -s -f sstgrb.index fort.25
+date
+$EXECngm/ngm_rgcinp < cinput.parm >> $pgmout
+export err=$?;err_chk
+
+cp $PARMngm/ngm_n65ini.prm.i32 n65ini.prm.i32
+cp $PARMngm/ngm_ngmini.parm ngmini.parm
+
+export pgm=ngm_ngmini;. prep_step
+rm fort.*
+export XLFUNIT_21="rvgesrs"
+export XLFUNIT_32="n65ini.prm.i32"
+export XLFUNIT_93="rvgesrs.ini"
+date
+$EXECngm/ngm_ngmini >> $pgmout < ngmini.parm
+export err=$?;err_chk
+
+cp $PARMngm/ngm_cinlb.prm.1165 cinlb.prm.1165
+
+export pgm=ngm_nam2ngm;. prep_step
+rm fort.*
+export XLFUNIT_11="cinlb.prm.1165"
+export XLFUNIT_12="rvgesrs.ini"
+export XLFUNIT_13="GRBGRD00.tm00"
+export XLFUNIT_14="GRBGRDi00"
+export XLFUNIT_51="rvinirs"
+ln -s -f GRBGRD00.tm00 fort.13
+ln -s -f GRBGRDi00 fort.14
+date
+$EXECngm/ngm_nam2ngm >> $pgmout
+export err=$?;err_chk
+
+mv rvinirs rvinirs.out
+
+cp $PARMngm/ngm_n65ini.prm.i32 n65ini.prm.i32
+cp $PARMngm/ngm_ngmini.parm ngmini.parm
+
+export pgm=ngm_ngmini;. prep_step
+rm fort.*
+export XLFUNIT_21="rvinirs.out"
+export XLFUNIT_32="n65ini.prm.i32"
+export XLFUNIT_93="rvinirs"
+date
+$EXECngm/ngm_ngmini >> $pgmout < ngmini.parm
+export err=$?;err_chk
+
+cp $PARMngm/ngm_wfgsta wfgsta
+cp $PARMngm/ngm_wfngmfgt0048_twoway wfngmfgt0048_twoway
+cp $PARMngm/ngm_wfngmfgc2 wfngmfgc2
+cp $PARMngm/ngm_wfngmfgc3 wfngmfgc3
+cp $PARMngm/ngm_wfngmfgc4 wfngmfgc4
+
+export pgm=ngm_ngmfcst;. prep_step
+export COMSP=$COMOUT/ngm.${cycle}.
+export XLFUNIT_20="rvbound"
+export XLFUNIT_21="rvinirs"
+export XLFUNIT_22="wfgsta"
+export XLFUNIT_32="wfngmfgt0048_twoway"
+export XLFUNIT_33="wfngmfgc2"
+export XLFUNIT_34="wfngmfgc3"
+export XLFUNIT_35="wfngmfgc4"
+export XLFUNIT_92="wvsnd"
+export XLFUNIT_93="wvrstrt"  
+export XLFUNIT_99="holdfhr"
+#
+export XLSMPOPTS="parthds=1:stack=128000000:schedule=guided"
+date
+$EXECngm/ngm_ngmfcst >> $pgmout
+export err=$?;err_chk
+
+cp wvsnd $COMOUT/ngm.${cycle}.wvsnd
+echo 1 > $DATA/fcstdone48
+
+
+date
+exit
+

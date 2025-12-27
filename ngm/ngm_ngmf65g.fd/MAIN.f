@@ -1,0 +1,2220 @@
+      PROGRAM MAIN
+CFPP$ NOCONCUR R
+C
+C$$$  MAIN PROGRAM DOCUMENTATION BLOCK
+C
+C MAIN PROGRAM: NGM_NGMFCST
+C   PRGMMR: ROGERS           ORG: NP22        DATE: 2000-02-10
+C
+C ABSTRACT:  MAKES A NESTED GRID MODEL (NGM) FORECAST WITH
+C   POSTPROCESSING.
+C
+C PROGRAM HISTORY LOG:
+C   90-06-13  JIM TUCCILLO
+C   98-09-12  HANN-MING HENRY JUANG/ERIC ROGERS CODE TO BE
+C             Y2K COMPLIANT
+C   99-05-20  JIM TUCCILLO IBM SP VERSION
+C
+C
+C USAGE:
+C
+C   INPUT FILES:
+C     UNIT21     - THE FORECAST VARIABLES OF THE NGM ON THE NGM
+C                  GRIDS, THE SPECIFICATIONS ARRAY FOR THIS JOB,
+C                  AND THE LOCATION OF ICE-FREE WATER SURFACE.
+C     UNIT22     - THE RESTART FILE, WHICH HAS THE SAME FORMAT
+C                  AS UNIT21.
+C     UNIT32     - DATA CARDS SPECIFYING THE VARIOUS OPTIONS
+C                  USED WHEN MAKING THE FORECAST AND DOING THE
+C                  POSTPROCESSING.
+C                  THE FORMAT AND INFORMATION ON THE CARDS IS
+C                  DESCRIBED ON THE CARDS THEMSELVES.
+C     UNIT33     - DATA CARDS SPECIFYING THE POLAR STEREOGRAPHIC
+C                  GRID TYPE AND THE FIELDS TO BE POSTPROCESSED
+C                  FOR THE FIRST SET (TRACK) OF OUTPUT FILES.
+C                  THE FORMAT AND INFORMATION ON THE CARDS IS
+C                  DESCRIBED ON THE CARDS THEMSELVES.
+C     UNIT34     - DATA CARDS SPECIFYING THE POLAR STEREOGRAPHIC
+C                  GRID TYPE AND THE FIELDS TO BE POSTPROCESSED
+C                  FOR THE SECOND SET (TRACK) OF OUTPUT FILES.
+C                  THE FORMAT AND INFORMATION ON THE CARDS IS
+C                  DESCRIBED ON THE CARDS THEMSELVES.
+C     UNIT91     - DATA CARDS SPECIFYING THE STATION ID, LATITUDE AND
+C                  LONGITUDE FOR THE SOUNDING OUTPUT.
+C
+C   OUTPUT FILES:
+C     UNIT6      - PRINTS
+C     UNIT22     - THE RESTART FILE, WHICH HAS THE SAME FORMAT
+C                  AS UNIT21.
+C     UNIT51, UNIT52, ...
+C                - POSTPROCESSED FIELDS AT THE SPECIFIED
+C                  OUTPUT TIMES FOR THE FIRST TRACK OF OUTPUT FILES.
+C                  EACH SEQUENTIAL FILE BEGINS WITH AN OFFICE NOTE 85
+C                  RECORD FOLLOWED BY THE FIELDS IN OFFICE NOTE 84
+C                  FORMAT.
+C
+C                  IF THIS IS AN OPERATIONAL JOB (THAT IS, IRUNMARK=2)
+C                  AND IF THE JOB NUMBER IS THE OPERATIONAL JOB NUMBER
+C                  FOR THE FORECAST MODEL, THEN THE POSTPROCESSED
+C                  OUTPUT FILES ARE GIVEN TO THE OPERATIONAL SPINOFF
+C                  JOB.
+C
+C     UNIT61, UNIT62, ...
+C                - POSTPROCESSED FIELDS AT THE SPECIFIED
+C                  OUTPUT TIMES FOR THE SECOND TRACK OF OUTPUT FILES.
+C                  EACH SEQUENTIAL FILE BEGINS WITH AN OFFICE NOTE 85
+C                  RECORD FOLLOWED BY THE FIELDS IN OFFICE NOTE 84
+C                  FORMAT.
+C
+C     UNIT92     - SOUNDING OUTPUT READY FOR MFLINKING TO THE F.E.
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    -
+C                  ALLGRIDS
+C                  BIGCHG
+C                  BITHOLE
+C                  BITOUT
+C                  BLEND
+C                  CONVRT
+C                  DEWPOINT
+C                  DRYADB
+C                  DUMPBIT
+C                  DUMPINT
+C                  DUMPREAL
+C                  ERRPRINT
+C                  FILLHOLE
+C                  GRIBIT
+C                  GTBITS   
+C                  I84TGB
+C                  IDSDEF
+C                  LATBND
+C                  MSTADB
+C                  ONEGRID
+C                  ONEWAY
+C                  OUTABVOR
+C                  OUTAREA
+C                  OUTLIFT
+C                  OUTCLOSE
+C                  OUTDAT2P
+C                  OUTFDTUV
+C                  OUTFIXED
+C                  OUTHORIZ
+C                  OUTHYDRO
+C                  OUTLOLA
+C                  OUTNULAB
+C                  OUTOMEGA
+C                  OUTOPEN
+C                  OUTOPENGB
+C                  OUTPACK
+C                  OUTPREP
+C                  OUTPUT
+C                  OUTRPAUS
+C                  OUTSCALE
+C                  OUTSIGMA
+C                  OUTSIG2P
+C                  OUTSMOO
+C                  OUTSVALU
+C                  OUT2FILE
+C                  PARITY
+C                  PHYPREP
+C                  PRECIP
+C                  PRINTBIT
+C                  PRINTTIM
+C                  PRT
+C                  PRTSQARE
+C                  PRT25
+C                  P2KAP
+C                  RESTARTR
+C                  RESTARTW
+C                  SEALDIAG
+C                  SHEM
+C                  SHEMPRE
+C                  SMOOTH
+C                  TEMPADJ
+C                  SOUNDING
+C                  VAPTAB
+C                  WRYTE
+C                  ZONEDIAG
+C
+C     LIBRARY:
+C       W3LIB    -
+C                  W3FI32
+C                  W3FI63
+C                  W3FI72
+C                  W3FI47
+C                  W3FI48
+C                  W3FP06
+C                  W3FP12
+C                  W3YMDH4
+C                  W3UTCDAT
+C                  IW3JDN
+C                  W3TAGB
+C                  W3TAGE
+C
+C   EXIT STATES:
+C     COND =  0 -- SUCCESSFUL RUN.
+C
+C REMARKS:
+C
+C ATTRIBUTES:
+C   LANGUAGE:  FORTRAN
+C   SOURCE STATEMENTS:
+C
+C$$$
+C
+C
+      INCLUDE 'parmodel'
+C...TRANSLATED BY FPP 3.00Z51 12/10/90  07:57:19   OPTON=I7,OPTOFF=EAV0
+C
+      CHARACTER*1  EASTWEST,NORTHSOU,EASTWES2,NORTHSO2
+      CHARACTER*6  DATASET
+      CHARACTER*39 DISPNAME
+      CHARACTER*6  DATANAME
+      CHARACTER*6  FEHOLD
+      CHARACTER*39 FENAME
+      CHARACTER*61 FILGRB, filgrbi
+      CHARACTER*256 shlarg
+      common /comgrb/ filgrb, filgrbi
+C
+C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+C          AND A FEW OTHER COMMON CONSTANTS.
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+C
+C     COMMON BLOCK /COMDIAG/ CONTAINS QUANTITIES SAVED FOR
+C          DIAGNOSTIC PURPOSES.
+      COMMON /COMDIAG/  KADIAB( IKM, INGRDUSE ),
+     1                  NPTSDHQ (2, INGRDUSE),
+     2                  KKCLOUD2(2, INGRDUSE), NPTSBUOY(2, INGRDUSE),
+     3                  NPTSWATR(2, INGRDUSE), NPTSCC  (2, INGRDUSE),
+     4                  KKGSP2  (2, INGRDUSE),
+     5                  KKGSE2  (2, INGRDUSE),
+     6                  NPTSSAT (IKM, 2, INGRDUSE),
+     7                  NPTSEVAP(IKM, 2, INGRDUSE),
+     8                  NPTSGSP (2, INGRDUSE), NUMPROF,
+     9                  PPTCC   (2, INGRDUSE), PPTGSP  (2, INGRDUSE),
+     1                  ALATPR  (IMAXPROF),    ALONPR  (IMAXPROF),
+     2                  DESCRP  (IMAXPROF)
+C
+      CHARACTER*24 DESCRP
+C
+C     COMMON BLOCK /COMOUT/ CONTAINS OUTPUT CODE PARAMETERS
+C               AND ARRAYS.
+C
+      CHARACTER*20 DESCRIPT
+C          DESCRIPTORS USED IN SR  OUTHORIZ
+C
+      COMMON /COMOUT/
+C
+C          THE FOLLOWING ARE STORED BY OUT2FILE FROM DATA CARDS.
+C          (THE LAST 6 WILL BE OVERWRITTEN BY  OUTPUT  IF KGTYPE
+C          IS 5 OR 26 (I.E. AN LFM GRID DEFINED IN TABLE 7 OF
+C          OFFICE NOTE 84.))
+C
+     1     INUNIT, IOUTUNIT, IOUTGRIB,
+     2     KGTYPE, IMOUT, JMOUT, DNPEQOUT, DLAMOUT, XIPOUT, YJPOUT,
+C
+C          THE FOLLOWING COME FROM  MAIN  READING THE DATA CARDS.
+     2   LQTYPE(IMAXOUTV),   LSTYPE(IMAXOUTV),
+     3   DESCRIPT(IMAXOUTV), LEVELS(ILMOUT,IMAXOUTV),  NOUTVBLS,
+C
+C          THE FOLLOWING ARE DERIVED BY   OUTPUT  .
+     4       IJOUT, LMOUT, NFILLER, NS2, NS3NGM, NS3OUT,
+     5       COSOUT,   SINOUT,    DXOUT,    ZSIGLYR(IKM),
+C
+C           ARRAYS  PLOUT  AND  HTFD  ARE SET BY DATA STATEMENTS IN
+C           THE SR  OUTPUT  .  'PADDER' FILLS OUT TO FULL WORD BNDRY.
+     6      PLOUT(ILMOUT),   HTFD( 6),  PADDER,
+C
+C          THE FOLLOWING ADDRESSES AND ADDRESS ARRAYS ARE SET UP
+C          BY   OUTPREP  WHEN IT IS CALLED BY   OUTPUT  .
+     7  J1(INGRDUSE),          J2(INGRDUSE),   JADDK2L(INGRDUSE,2),
+     8  JADDFNGM(INGRDUSE), JHREC(INGRDUSE),   JHKAP(INGRDUSE),
+     9  JSCR2(12),    JSCR3NGM(INGRDUSE,12),   JSCR3OUT(12),
+     A  LENGD(INGRDUSE), LTYPE(ILMOUT,INGRDUSE), MB1, MB2, MINT,
+     B   MSOUT1,  MSOUT2,  MZGNDOUT,  MNGM3,  MHOUT, MZFR, MZTRO,
+     C      MSZGND(INGRDUSE), NGRIDATA(INGRDUSE),
+C
+C            NUMGDREQ, THE NUMBER OF NGM GRIDS NEEDED TO COVER THE
+C            OUTPUT GRID, AND ZLOUT, ARE SET BY  OUTPREP  .
+     D                NUMGDREQ,    ZLOUT(ILMOUT),
+C
+C          OUTPREP ALSO ASSIGNS THE FOLLOWING DESCRIPTORS TO BE
+C          USED BY  OUTHORIZ  FOR HORIZONTAL INTERPOLATION.
+     E    AHORD,BHORD,CHORD,DHORD, ILLD,IULD,  SCRHORD,  OUTHORD,
+C
+C
+C          THE FOLLOWING ARRAY CONTAINS THE INTEGERS NEEDED TO
+C          FORM THE LABEL THAT GOES WITH EACH OUTPUT ARRAY.
+     F               LABEL84( 27 ),
+C
+C          THE FOLLOWING SYMBOLS REPRESENT TEMPORARY VALUES OF
+C          INTEGERS TO GO INTO  LABEL84 WHEN THE OUTPUT ARRAY
+C          HAS BEEN PREPARED FOR PACKING.
+C
+     G  LABQTYPE, LABSSUB1, LABTMARK,  S1VALUE,  S2VALUE,
+     H  LABMLDIF, LABSSUB2, LABFSUB2, LABKGRID, LABNUMPT
+C
+C
+      COMMON /COM1WAY/ ITIMSTEP, ITBOUND, INGLB
+C
+      DIMENSION SPECS(700)
+C
+      DIMENSION ISTROFIL(IMAXOUTT), INTOFIL(IMAXOUTT)
+      DIMENSION ISTPOFIL(IMAXOUTT)
+      DIMENSION IOUTUOUT(IMAXOUTF, IMAXOUTT)
+      DIMENSION DATASET (IMAXOUTF, IMAXOUTT)
+      DIMENSION DISPNAME(IMAXOUTF, IMAXOUTT)
+      DIMENSION FEHOLD ( 100 ), FENAME ( 100 )
+      DIMENSION IREFOFLD(IMAXOUTT), INTOFLD (IMAXOUTT)
+      DIMENSION ITIMOFLD(IMAXOUTT), ITIMCFIL(IMAXOUTT)
+      DIMENSION INUOUT  (IMAXOUTT)
+      DIMENSION IFILE(IMAXOUTT), NFILES  (IMAXOUTT)
+      DIMENSION DTNOW(IKM), DTACCUM(IKM)
+C
+      INTEGER LEN1,LEN2,NPAI1X,IADD,IQ2W6E,J
+C
+      real(8) ist, isp, rtc, acc
+      DATA LOFCLDS / 1,16,1,4,5,9,10,12 /
+      DATA DATANAME /'RSTNGM'/
+C
+C              WRITE TO THE W3LOG.
+      CALL W3TAGB('NGM_NGMFCST',2000,0041,0055,'NP22')                  
+C
+      acc = 0.
+C              INITIALIZE THE PARITY COUNTER.
+      JPARITY = 0
+C
+C              UNIT NUMBERS
+C              FOR THE PRINT PRODUCED BY THIS RUN AND INDICATING
+C              ON WHAT UNIT ARE THE DATA CARDS SPECIFYING
+C              FUNDAMENTAL MODEL OPTIONS.
+      IOUTUPRT = 6
+      INUOPTS = 32
+C
+C              PRINT THE CURRENT WALL TIME.
+      WRITE (IOUTUPRT, 150)
+  150 FORMAT ('1', '***************', ' EXECUTION OF THE NESTED GRID ',
+     1             'MODEL IS BEGINNING. ', '***************' /)
+C
+      CALL PRINTTIM
+C
+C              ECHO CHECK THE DATA CARDS JUST READ IN.
+      WRITE (IOUTUPRT, 200) IOUTUPRT, INUOPTS
+  200 FORMAT ('0', 'THE UNIT NUMBER FOR THE PRINT PRODUCED BY ',
+     1             'THIS RUN IS', I3, '.' /
+     2        ' ', 'THE DATA CARDS SPECIFYING FUNDAMENTAL MODEL ',
+     3             'OPTIONS WILL BE READ FROM UNIT', I3, '.')
+C
+C              READ THE DATA CARDS SPECIFYING FUNDAMENTAL MODEL
+C              OPTIONS.
+      READ (INUOPTS, 300, END=9998)
+     1      IRUNMARK, IVERFCST, INUINPUT, IOUTURST, IREFRST,
+     2      INTRST,   ISTOPTIM, ITIMSTEP, ITBOUND,  INGLB,
+     3      IREFSMO,  INTSMO,   IREFBUCK, INTBUCK,
+     4      IREFPPTO, INTPPTO,  IREFSIGO, INTSIGO,
+     5      PRSLAT,   NORTHSOU, PRSLON,   EASTWEST,
+     6      ANEM,     BLKDR,    CHARN,    CONAUST,
+     7      DDORF,    PKATO,    SCALEHT
+C
+  300 FORMAT
+     1       (27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 / 27X, I10 /
+     2        27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 / 27X, I10 /
+     3        27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 /
+     4        27X, I10   / 27X, I10   / 27X, I10 / 27X, I10 /
+     5        27X, F9.0,        A1,      3X, F9.0,      A1   /
+     6        27X, F10.0 / 27X, F10.0 / 27X, F10.0 / 27X, F10.0 /
+     7        27X, F10.0 / 27X, F10.0 / 27X, F10.0 )
+C
+         IREFDRY  =      0
+         INTDRY   = 172801
+         IREFDIAG =      0
+         INTDIAG  =  43200
+C
+C     INPUT THE PRECIPITATION PARAMETERS.
+      READ (INUOPTS, 320, END=9998)
+     1      KUMULUS,  LGRIDPPT, SIGMACC,  SIGMAGSP,
+     2      SIGMADHQ, CRITCONV, KLIFT1,   KLIFT2,
+     3      SATDEL,   RHFACTOR, QBOUND
+C
+  320 FORMAT (27X, I10   / 27X, I10   / 27X, F10.0 / 27X, F10.0 /
+     1        27X, F10.0 / 27X, E10.0 / 27X, I10   / 27X, I10   /
+     2        27X, F10.0 / 27X, F10.0 / 27X, E10.0 )
+C
+C
+C     INPUT RADIATION SPECIFICATIONS.
+C
+      READ (INUOPTS, 340, END=9998)
+     1      ICALLRAD,IREFSWR,INTSWR,IREFLWR,INTLWR,IREFSEB,INTSEB,
+     2      IPHYSPL,IREFPHY,INTPHY
+C
+      IF ( IPHYSPL .EQ. 0 ) THEN
+         PRINT 5882
+5882     FORMAT(' **** THIS OPTION DISABLED, IPHYSPL RESET TO 1 ')
+         IPHYSPL = 1
+      END IF
+  340 FORMAT (27X, I10 / 27X, I10 / 27X, I10 / 27X, I10  /  27X, I10
+     1  /   27X, I10  /  27X, I10  / 27X, I10  / 27X, I10 / 27X, I10 )
+C
+C
+      READ (INUOPTS, 350, END=9998)
+     1      IREFTADJ, INTTADJ, IREFTPRT, INTTPRT
+C
+  350 FORMAT (27X, I10   / 27X, I10   / 27X, I10   / 27X, I10   )
+C
+C
+C     INPUT SOUNDING OUTPUT SPECIFICATIONS.
+C
+      READ (INUOPTS, 360, END=9998)
+     1      INUSTAID, IOUTUSND, IREFSND, INTSND
+C
+  360 FORMAT (27X, I10   / 27X, I10   / 27X, I10  / 27X, I10   )
+C
+C    INPUT INFORMATION FOR QUEUING TO FRONT-END
+C
+      READ(INUOPTS, 365, END=9998)
+     1        IREFFE, INTFE, ISTPFE
+365   FORMAT(27X,I10 / 27X, I10 / 27X, I10 )
+      PRINT 3990
+      PRINT 3991, IREFFE, INTFE, ISTPFE
+3991  FORMAT('    IREFFE = ',I10, '  INTFE = ',I10, '  ISTPFE = ', I10 )
+3990  FORMAT(' PARAMETERS FOR QUEUEING OF JOBS TO THE F.E. ARE:')
+C
+      INUMFE = ( ( ISTPFE - IREFFE ) / INTFE ) + 1
+      IF ( IREFFE .GT. ISTPFE ) INUMFE = 0
+      PRINT 6001
+6001  FORMAT(' SUBMIT THE FOLLOWING MEMBERS TO THE F.E.')
+      DO 3992 I = 1, INUMFE
+          READ(INUOPTS,366) FEHOLD(I), FENAME(I)
+          PRINT 6002, FEHOLD(I), FENAME(I)
+6002     FORMAT(' FEHOLD = ',2X,A6,' FENAME = ',2X,A39)
+3992  CONTINUE
+366   FORMAT(27X, A6, 2X, A39 )
+C
+C
+C    INPUT SPECIFICATIONS FOR THE 6 HOURLY TIME SECTIONS
+C
+      READ (INUOPTS, 370, END=9998) NUMPROF
+  370 FORMAT (27X, I10)
+C
+      IF (NUMPROF .EQ. 0) GO TO 379
+C
+      DO 375 ISTA = 1, NUMPROF
+      IF (ISTA .GT. IMAXPROF) GO TO 377
+      READ (INUOPTS, 376, END=9998)
+     1      ALATPR(ISTA),NORTHSO2,ALONPR(ISTA),EASTWES2,DESCRP(ISTA)
+      IF( NORTHSO2 .EQ. 'S') ALATPR(ISTA) = - ALATPR(ISTA)
+      IF( EASTWES2 .EQ. 'W') ALONPR(ISTA) = - ALONPR(ISTA)
+  375 CONTINUE
+  376 FORMAT(27X, F6.0, A1, 3X, F6.0, A1, 3X, A24)
+      GO TO 379
+  377 WRITE ( IOUTUPRT,378)
+  378 FORMAT( ' ISTA IS GREATER THAN MAXPROF, NO MORE ROOM')
+  379 CONTINUE
+C
+C
+C              ECHO CHECK THE DATA CARDS.
+C              (OUTPUT SOME VALUES IN SECONDS AND IN HOURS.)
+      SEC2HOUR = 1.0E0 / 3600.0E0
+      REFRST   = FLOAT(IREFRST)  * SEC2HOUR
+      RSTINT   = FLOAT(INTRST)   * SEC2HOUR
+      TIMESTOP = FLOAT(ISTOPTIM) * SEC2HOUR
+      STEPTIME = FLOAT(ITIMSTEP) * SEC2HOUR
+      REFSMO   = FLOAT(IREFSMO)  * SEC2HOUR
+      SMOINT   = FLOAT(INTSMO)   * SEC2HOUR
+      REFBUCK  = FLOAT(IREFBUCK) * SEC2HOUR
+      BUCKINT  = FLOAT(INTBUCK)  * SEC2HOUR
+      REFPPTO  = FLOAT(IREFPPTO) * SEC2HOUR
+      PPTOINT  = FLOAT(INTPPTO)  * SEC2HOUR
+      REFSIGO  = FLOAT(IREFSIGO) * SEC2HOUR
+      SIGOINT  = FLOAT(INTSIGO)  * SEC2HOUR
+      REFTADJ  = FLOAT(IREFTADJ) * SEC2HOUR
+      TADJINT  = FLOAT(INTTADJ)  * SEC2HOUR
+      REFTPRT  = FLOAT(IREFTPRT) * SEC2HOUR
+      TPRTINT  = FLOAT(INTTPRT)  * SEC2HOUR
+C
+      WRITE (IOUTUPRT, 400)
+     1       INUOPTS,
+     2       IRUNMARK,
+     3       IVERFCST,
+     4       INUINPUT, IOUTURST,
+     5       IREFRST,  REFRST,   INTRST,   RSTINT,
+     6       ISTOPTIM, TIMESTOP,
+     7       ITIMSTEP, STEPTIME
+C
+  400 FORMAT ('0', 'THE FOLLOWING FUNDAMENTAL OPTIONS WERE ',
+     1             'READ IN FROM DATA CARDS ON UNIT', I3, ':'/
+     2        ' ', 5X, 'THE RUN MARKER FOR THIS RUN IS', I2,
+     3             ', WHERE 2 INDICATES AN OPERATIONAL RUN.'/
+     4        ' ', 5X, 'THE VERSION OF THE FORECAST MODEL IS',I11, '.'/
+     5        '0', 5X, 'THE UNIT NUMBER FOR  INPUT OF MODEL ',
+     6             'FIELDS FOR STARTING/RESTARTING NOW IS', I3, '.'/
+     7        ' ', 5X, 'THE UNIT NUMBER FOR OUTPUT OF MODEL ',
+     8             'FIELDS FOR RESTARTING LATER IS', I3, '.'//
+     9        ' ', 5X, 'THE REFERENCE TIME FOR OUTPUT OF ',
+     1             'MODEL FIELDS FOR RESTARTING LATER IS',
+     2             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     3        ' ', 5X, 'THE TIME INTERVAL  FOR OUTPUT OF ',
+     4             'MODEL FIELDS FOR RESTARTING LATER IS',
+     5             I8, ' SECONDS = ', F8.4, ' HOURS.'//
+     6        ' ', 5X, 'THE PLANNED STOP TIME FOR THE FORECAST ',
+     7             'AFTER THE TIME OF THE INITIAL CONDITIONS IS',
+     8             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     9        ' ', 5X, 'THE TIME STEP FOR GRID A IS',
+     1             I8, ' SECONDS = ', F8.4, ' HOURS.'/)
+C
+      WRITE (IOUTUPRT, 500)
+     1       IREFSMO,  REFSMO,   INTSMO,   SMOINT,
+     2       IREFBUCK, REFBUCK,  INTBUCK,  BUCKINT
+C
+  500 FORMAT (' ', 5X, 'THE REFERENCE TIME FOR SMOOTHING OF MODEL ',
+     1             'FIELDS IS', I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     2        ' ', 5X, 'THE TIME INTERVAL  FOR SMOOTHING OF MODEL ',
+     3             'FIELDS IS', I8, ' SECONDS = ', F8.4, ' HOURS.'//
+     4        ' ', 5X, 'THE REFERENCE TIME FOR EMPTYING THE ',
+     5             'PRECIPITATION BUCKETS IS',
+     6             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     7        ' ', 5X, 'THE TIME INTERVAL  FOR EMPTYING THE ',
+     8             'PRECIPITATION BUCKETS IS',
+     9             I8, ' SECONDS = ', F8.4, ' HOURS.'/ )
+C
+      WRITE (IOUTUPRT, 550)
+     1       IREFPPTO, REFPPTO,  INTPPTO,  PPTOINT,
+     2       IREFSIGO, REFSIGO,  INTSIGO,  SIGOINT,
+     3       PRSLAT,   NORTHSOU, PRSLON,   EASTWEST
+C
+C
+  550 FORMAT (' ', 5X, 'THE REFERENCE TIME FOR PRINTING THE ',
+     1             'PRECIPITATION DIAGNOSTICS IS',
+     2             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     3        ' ', 5X, 'THE TIME INTERVAL  FOR PRINTING THE ',
+     4             'PRECIPITATION DIAGNOSTICS IS',
+     5             I8, ' SECONDS = ', F8.4, ' HOURS.'//
+     6        ' ', 5X, 'THE REFERENCE TIME FOR PRINTING THE ',
+     7             'POINT SURFACE PRESSURE AND RMS SIGMA DOT IS',
+     8             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     9        ' ', 5X, 'THE TIME INTERVAL  FOR PRINTING THE ',
+     1             'POINT SURFACE PRESSURE AND RMS SIGMA DOT IS',
+     2             I8, ' SECONDS = ', F8.4, ' HOURS.'//
+     3        ' ', 5X, 'THE LATITUDE  OF DIAGNOSTIC POINT 1 IS',
+     4             F8.2,A1,'.'/
+     3        ' ', 5X, 'THE LONGITUDE OF DIAGNOSTIC POINT 1 IS',
+     4             F8.2,A1,'.'/)
+C
+      IF (NUMPROF .EQ. 0) GO TO 576
+C
+      WRITE (IOUTUPRT, 571)
+  571 FORMAT (//'0','THE LOCATIONS AT WHICH TIME-HEIGHT PRINTOUT ',
+     1             'WILL BE PRODUCED ARE:')
+C
+      DO 575 ISTA=1,NUMPROF
+         WRITE (IOUTUPRT, 573)
+     1          ISTA, DESCRP(ISTA), ALATPR(ISTA), ALONPR(ISTA)
+C
+  573    FORMAT('0', 5X, 'LOCATION NUMBER', I2, ' IS ', A24,
+     1               ', ITS LATITUDE IS ',
+     2               F6.2, ' AND ITS LONGITUDE IS ', F7.2, ' .')
+  575 CONTINUE
+  576 CONTINUE
+C
+      WRITE (IOUTUPRT, 600)
+     1  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,  SCALEHT
+C
+  600 FORMAT (/'0',     'SOME CONSTANTS USED IN PHYSICS ARE:'/
+     1         ' ', 5X, 'ANEM    =', 1PE14.6/
+     2         ' ', 5X, 'BLKDR   =', 1PE14.6/
+     3         ' ', 5X, 'CHARN   =', 1PE14.6/
+     4         ' ', 5X, 'CONAUST =', 1PE14.6/
+     5         ' ', 5X, 'DDORF   =', 1PE14.6/
+     6         ' ', 5X, 'PKATO   =', 1PE14.6/
+     7         ' ', 5X, 'SCALEHT =', 1PE14.6/)
+C
+C
+C               PRINT THE PRECIPITATION SPECIFICATIONS.
+      WRITE (IOUTUPRT, 605) KUMULUS, LGRIDPPT, SIGMACC, SIGMAGSP,
+     1          SIGMADHQ, CRITCONV, KLIFT1, KLIFT2, SATDEL,
+     2          RHFACTOR, QBOUND
+C
+  605 FORMAT (/'0', 'SPECIFICATIONS RELATED TO THE ',
+     1             'PRECIPITATION CALCULATIONS:'/
+     2        ' ', 5X, 'KUMULUS  =', T17, I5 /
+     3        ' ', 5X, 'LGRIDPPT =', T17, I5 /
+     4        ' ', 5X, 'SIGMACC  =', T17, F9.3/
+     5        ' ', 5X, 'SIGMAGSP =', T17, F9.3/
+     6        ' ', 5X, 'SIGMADHQ =', T17, F9.3/
+     7        ' ', 5X, 'CRITCONV =', T20, 1PE13.6/
+     8        ' ', 5X, 'KLIFT1   =', T17, I5/
+     9        ' ', 5X, 'KLIFT2   =', T17, I5/
+     1        ' ', 5X, 'SATDEL   =', T17, 0PF9.3/
+     2        ' ', 5X, 'RHFACTOR =', T17, 0PF9.3/
+     3        ' ', 5X, 'QBOUND   =', T20, 1PE13.6/)
+C
+C
+C               PRINT THE PHYSICAL PARAMETERIZATION SPECIFICATIONS.
+      WRITE (IOUTUPRT , 610) ICALLRAD, IREFSWR, INTSWR, IREFLWR,INTLWR,
+     1                       IREFSEB, INTSEB, IPHYSPL, IREFPHY, INTPHY
+  610 FORMAT (/'0', 'SPECIFICATIONS RELATED TO THE ',
+     1             'PHYSICAL PARAMETERIZATIONS:'/
+     2        ' ', 5X, 'ICALLRAD =', T18, I9 /
+     3        ' ', 5X, 'IREFSWR  =', T18, I9 /
+     4        ' ', 5X, 'INTSWR   =', T18, I9 /
+     5        ' ', 5X, 'IREFLWR  =', T18, I9 /
+     6        ' ', 5X, 'INTLWR   =', T18, I9 /
+     7        ' ', 5X, 'IREFSEB  =', T18, I9 /
+     8        ' ', 5X, 'INTSEB   =', T18, I9 /
+     9        ' ', 5X, 'IPHYSPL  =', T18, I9 /
+     1        ' ', 5X, 'IREFPHY  =', T18, I9 /
+     2        ' ', 5X, 'INTPHY   =', T18, I9 /)
+C
+C
+C               PRINT THE SPECIFICATIONS FOR ADJUSTING THE
+C               LAYER-MEAN TEMPERATURES.
+C
+      WRITE (IOUTUPRT, 620)
+     1       IREFTADJ, REFTADJ,  INTTADJ,  TADJINT,
+     2       IREFTPRT, REFTPRT,  INTTPRT,  TPRTINT
+C
+  620 FORMAT (' ', 5X, 'THE REFERENCE TIME FOR RESTORING THE LAYER-',
+     1             'MEAN POTENTIAL TEMPERATURES IS', I8,
+     2             ' SECONDS = ', F8.4, ' HOURS.'/
+     3        ' ', 5X, 'THE TIME INTERVAL  FOR RESTORING THE LAYER-',
+     4             'MEAN POTENTIAL TEMPERATURES IS', I8,
+     5             ' SECONDS = ', F8.4, ' HOURS.'//
+     6        ' ', 5X, 'THE REFERENCE TIME FOR PRINTING THE ',
+     7             'ADJUSTMENTS TO THE LAYER-MEAN POTENTIAL ',
+     8             'TEMPERATURES IS',
+     9             I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     1        ' ', 5X, 'THE TIME INTERVAL  FOR PRINTING THE ',
+     2             'ADJUSTMENTS TO THE LAYER-MEAN POTENTIAL ',
+     3             'TEMPERATURES IS',
+     4             I8, ' SECONDS = ', F8.4, ' HOURS.'/ )
+C
+C
+C               PRINT THE SOUNDING OUTPUT INFORMATION
+C
+      WRITE (IOUTUPRT , 630) INUSTAID, IOUTUSND, IREFSND, INTSND
+  630 FORMAT (/'0', 'SPECIFICATIONS RELATED TO THE ',
+     1             'SOUNDING OUTPUT:'/
+     2        ' ', 5X, 'INUSTAID =', T17, I9 /
+     3        ' ', 5X, 'IOUTUSND =', T17, I9 /
+     4        ' ', 5X, 'IREFSND  =', T17, I9 /
+     5        ' ', 5X, 'INTSND   =', T17, I9 /)
+C
+C
+C              READ IN THE START/RESTART FIELDS FROM DISK.
+C
+      CALL RESTARTR(INUINPUT,IOUTUPRT,SPECS,VBL,BITSEA,BITSNO,BITWVL)
+C
+C              COPY ELEMENTS FROM THE SPECS ARRAY.
+      IVERINPT = NINT (SPECS(1))
+C
+      GMT0     = SPECS(2)
+      DAY0     = SPECS(3)
+      AMONTH0  = SPECS(4)
+      YEAR0    = SPECS(5)
+CHMHJ -------------------------------------------------------------
+C          FULL DIGITS OF YEAR IS ASSUMED TO PASS IN FROM SPECS
+C          IF NOT, A WINDOW TO HAVE UP TO YEAR 2050 IS ENFORCED
+C
+      IF(YEAR0.LT.100.) THEN
+        PRINT *,' YEAR IS NOT FULL DIGIT AND IT IS ',YEAR0
+        YEAR0=2050-MOD(2050-NINT(YEAR0),100)
+        PRINT *,' MAKE IT FULL DIGIT YEAR AS ',YEAR0
+      ELSE
+        PRINT *,' YEAR IS FULL DIGIT AS ',YEAR0
+      ENDIF
+C ------------------------------------------------------------  HMHJ
+C
+      JMAXANAL = NINT(SPECS(401))
+      IMAXANAL = NINT(SPECS(402))
+C
+      LATG = NINT (SPECS(11))
+      LONF = NINT (SPECS(12))
+      LEVS = NINT (SPECS(13))
+      LEVH = NINT (SPECS(14))
+C
+      KM   = NINT (SPECS(13))
+C
+      DO 700 K=1, KM
+         DELSIG(K) = SPECS(21 + K)
+  700 CONTINUE
+C
+      NH      = NINT( SPECS(131))
+      NGRDUSE = NINT( SPECS(132))
+      DLAMNGM =       SPECS(133)
+C
+      DO 800 NG=1, NGRDUSE
+         IMG(NG)    = NINT (SPECS(140 + NG))
+         JMG(NG)    = NINT (SPECS(150 + NG))
+         XPOLEH(NG) =       SPECS(200 + NG)
+         YPOLEH(NG) =       SPECS(210 + NG)
+  800 CONTINUE
+C
+      NGRDUSM1 = NGRDUSE - 1
+      DO 900 NG = 1, NGRDUSM1
+         IAG(NG) = NINT (SPECS(160 + NG))
+         IBG(NG) = NINT (SPECS(170 + NG))
+         JAG(NG) = NINT (SPECS(180 + NG))
+         JBG(NG) = NINT (SPECS(190 + NG))
+  900 CONTINUE
+C
+      IBUCKET = NINT (SPECS(243))
+      BUCKETI = SPECS(243) * SEC2HOUR
+C
+      ITIME0  = NINT (SPECS(233))
+      ITIME   = ITIME0
+      TIMEHRS = FLOAT(ITIME) * SEC2HOUR
+      TIMEI0  = SPECS(233) * SEC2HOUR
+C
+      NSTEPS0 = NINT (SPECS(234))
+      NSTEPS  = NSTEPS0
+C
+C        INITTYPE = 0 IF WE ARE RUNNING FROM SPHERICAL HARMONICS
+C                 = 1 IF FROM THE SPINUP PROCEDURE
+C
+      INITTYPE = NINT (SPECS(236))
+C
+C    CONVERT THE LATITUDE AND LONGITUDE OF THE DIAGNOSTIC
+C    POINT TO GRID COORDINATES USING LL2GR. THE VALUES PLACED
+C    IN IBARO AND JBARO WILL BE THE POINT CLOSEST TO THE DIAGNOSTIC
+C    POINT.
+C
+      IF( NORTHSOU .EQ. 'S') PRSLAT = - PRSLAT
+      IF( EASTWEST .EQ. 'W') PRSLON = - PRSLON
+C
+      CALL LL2GR(PRSLAT,PRSLON,0,XDIAG,YDIAG,IN00D,NGRDDI,
+     1            DICF00,DICF10,DICF01,DICF11,IERR)
+C
+      IBARO = NINT(XDIAG)
+      JBARO = NINT(YDIAG)
+C
+C              PRINT THE VALUES OF PARAMETERS IN ARRAY SPECS READ IN
+C              FROM DISK.
+      WRITE (IOUTUPRT, 1000)
+     1       INUINPUT,
+     2       IVERINPT,
+     3       GMT0, DAY0, AMONTH0, YEAR0,
+     4       ITIME0, TIMEI0, NSTEPS0,
+     5       IBUCKET, BUCKETI, INITTYPE
+C
+ 1000 FORMAT ('0', 'THE FOLLOWING FUNDAMENTAL PARAMETERS WERE READ ',
+     1             'IN FROM ARRAY SPECS ON UNIT', I3, ':' /
+     2        ' ', 5X, 'THE VERSION OF THE INPUT MODEL IS', I11, '.' /
+     3        '0', 5X, 'THE TIME OF THE INITIAL CONDITIONS IS ',
+     4             F3.0, ' GMT ', F3.0, ' / ', F3.0, ' / ', F6.0 /
+     5        '0', 5X, 'THE TIME SINCE THE INITIAL CONDITIONS AT ',
+     6             'WHICH THE FORECAST IS BEING STARTED/RESTARTED IS',
+     7             I8, ' SECONDS =', F8.4, ' HOURS.'/
+     8        '0', 5X, 'THE NUMBER OF TIME STEPS INTO THE FORECAST AT',
+     9             ' WHICH THE FORECAST IS BEING STARTED/RESTARTED IS',
+     1             I5, '.'/
+     2        '0', 5X, 'THE TIME SINCE THE INITIAL CONDITIONS AT ',
+     3             'WHICH THE PRECIPITATION BUCKETS WERE LAST ',
+     4             'EMPTIED IS', I8, ' SECONDS =', F8.4, ' HOURS.'/
+     5        '0', 5X, 'THE FLAG TO INDICATE THE SOURCE OF THE   ',
+     6             'INITIAL CONDITIONS, INITTYPE, IS',I8, '.',/)
+C
+      WRITE (IOUTUPRT, 1050)
+     1       JMAXANAL, IMAXANAL,
+     2       LATG, LONF, LEVS, LEVH
+C
+ 1050 FORMAT ('0', 5X, 'THE RESOLUTION OF THE ANALYSIS ON THE ',
+     1             'LATITUDE/LONGITUDE GRID WAS:'/
+     2        ' ', 9X, 'NUMBER OF LATITUDES  =', I4 /
+     3        ' ', 9X, 'NUMBER OF LONGITUDES =', I4 /
+     4        '0', 5X, 'THE RESOLUTION OF THE INITIAL CONDITIONS ',
+     5             'ON THE LATITUDE/LONGITUDE GRID WAS:'/
+     6        ' ', 9X, 'LATG =', I4 /
+     7        ' ', 9X, 'LONF =', I4 /
+     8        ' ', 9X, 'LEVS =', I4 /
+     9        ' ', 9X, 'LEVH =', I4 , '.')
+C
+      WRITE (IOUTUPRT, 1100)
+     1       KM, (K, DELSIG(K), K=KM, 1, -1)
+C
+ 1100 FORMAT ('0', 5X, 'THE NUMBER OF FORECAST LAYERS IS', I3, '.'/
+     1        '0', 5X, 'THE SIGMA THICKNESSES OF THESE LAYERS ARE:'/
+     2       (' ', 9X, 'DELSIG(', I3, ') =', 1PE14.6))
+C
+      WRITE (IOUTUPRT, 1200) NH, DLAMNGM, NGRDUSE
+C
+ 1200 FORMAT ('0', 5X, 'THE NUMBER OF GRID POINTS (MINUS 0.5) ',
+     1             'ON GRID A BETWEEN THE POLE AND THE EQUATOR ',
+     2             'IS', I3, '.'/
+     3        ' ', 5X, 'THE ROTATION ANGLE OF THE POSITIVE X AXIS ',
+     4             'COUNTERCLOCKWISE FROM THE GREENWICH MERIDIAN ',
+     5             'IS', F8.3, '.'/
+     6        ' ', 5X, 'THE NUMBER OF FORECAST GRIDS IS', I2, '.'/
+     7        '0', 5X, 'INDIVIDUAL GRID PARAMETERS:'/
+     8        ' ', T10, 'GRID', T20, 'IMG', T30, 'JMG',
+     9             T40, 'XPOLEH', T50, 'YPOLEH', T60, 'IAG',
+     1             T70, 'IBG', T80, 'JAG', T90, 'JBG' /)
+C
+      DO 1400 NG = 1, NGRDUSE
+         IF (NG .EQ. NGRDUSE) THEN
+            WRITE (IOUTUPRT, 1300)
+     1             NG, IMG(NG), JMG(NG), XPOLEH(NG), YPOLEH(NG)
+C
+ 1300       FORMAT (' ', T10, I3, T20, I3, T30, I3, T38, F8.3,
+     1                   T48, F8.3, T60, I3, T70, I3,
+     2                   T80, I3, T90, I3)
+C
+         ELSE
+            WRITE (IOUTUPRT, 1300)
+     1             NG, IMG(NG), JMG(NG), XPOLEH(NG), YPOLEH(NG),
+     2             IAG(NG), IBG(NG), JAG(NG), JBG(NG)
+         END IF
+ 1400 CONTINUE
+C
+C             STORE INTO ARRAY SPECS THE FUNDAMENTAL MODEL OPTIONS
+C             INPUT FROM DATA CARDS IN THIS STEP.  PREVIOUSLY
+C             SPECIFIED VALUES OF THESE OPTIONS IN ARRAY SPECS
+C             WILL BE OVERWRITTEN.
+      SPECS(231) = FLOAT (IVERFCST)
+      SPECS(232) = FLOAT (ITIMSTEP)
+      SPECS(235) = FLOAT (IRUNMARK)
+C
+      SPECS(241) = FLOAT (IREFBUCK)
+      SPECS(242) = FLOAT (INTBUCK)
+C
+      SPECS(251) = FLOAT (IREFSMO)
+      SPECS(252) = FLOAT (INTSMO)
+C
+      SPECS(261) = ANEM
+      SPECS(265) = SCALEHT
+C
+      SPECS(271) = FLOAT (IOUTUPRT)
+      SPECS(272) = FLOAT (INUOPTS)
+      SPECS(273) = FLOAT (INUINPUT)
+      SPECS(274) = FLOAT (IOUTURST)
+      SPECS(275) = FLOAT (IREFRST)
+      SPECS(276) = FLOAT (INTRST)
+C
+      SPECS(281) = FLOAT (IREFSIGO)
+      SPECS(282) = FLOAT (INTSIGO)
+      SPECS(283) = FLOAT (IBARO)
+      SPECS(284) = FLOAT (JBARO)
+C
+      SPECS(291) = FLOAT (IREFPPTO)
+      SPECS(292) = FLOAT (INTPPTO)
+C
+C              CALCULATE THE STARTING ADDRESSES FOR THE VARIOUS
+C              FIELDS OF ARRAY VBL.
+      LSTART = 1
+C
+      DO 1460 NG=1, NGRDUSE
+         IJ  = IMG(NG) * JMG(NG)
+         IJK = IJ * KM
+C
+         DO 1420 LVAR=1, 4
+            IADDRG (LVAR, NG) = LSTART
+            LSTART = LSTART + IJK
+ 1420    CONTINUE
+C
+         DO 1440 LVAR=5, 13
+            IADDRG (LVAR, NG) = LSTART
+            LSTART = LSTART + IJ
+ 1440    CONTINUE
+C
+         LVAR = 14
+         IADDRG (LVAR, NG) = LSTART
+         LSTART = LSTART + IJK
+C
+         DO 1445 LVAR=15, 22
+            IADDRG (LVAR, NG) = LSTART
+            LSTART = LSTART + IJ
+ 1445    CONTINUE
+C
+         LVAR = 23
+         IADDRG (LVAR, NG) = LSTART
+         LSTART = LSTART + IJK
+ 
+         DO 1446 LVAR=24, 37
+            IADDRG (LVAR, NG) = LSTART
+            LSTART = LSTART + IJ
+ 1446    CONTINUE
+ 
+         LVAR = 38
+         IADDRG (LVAR, NG) = LSTART
+         LSTART = LSTART + IJK
+ 
+         DO 1447 LVAR=39, 44
+            IADDRG (LVAR, NG) = LSTART
+            LSTART = LSTART + IJ
+ 1447    CONTINUE
+C
+C
+ 1460 CONTINUE
+C
+      LSTOP = LSTART - 1
+C
+      WRITE (IOUTUPRT, 1490) LSTOP
+ 1490 FORMAT ('0', 5X, 'LAST LOCATION IN VBL =', I10 / )
+C
+C              THE  PARAMETERS THAT ARE USED IN STATEMENTS
+C              BESIDE DIMENSION STATEMENTS ARE MATERIALIZED.
+      IJMAX    = IIJMAX
+      LMOUT    = ILMOUT
+      LVLTOT   = ILVLTOT
+      IJRAD    = IIJRAD
+      MAXOUTF  = IMAXOUTF
+      MAXOUTT  = IMAXOUTT
+      MAXOUTV  = IMAXOUTV
+      NFILLER  = INFILLER
+      NSCR     = INSCR
+      NSCRGEO  = INSCRGEO
+      NSCR3    = INSCR3
+C
+C              THOSE PARAMETERS THAT ARE USED ONLY IN
+C              DIMENSION STATEMENTS ARE MATERIALIZED.
+      IJKMAX0  = IIJKMAX
+      IJMAXB0  = IIJMAXB
+      IWORDSB0 = IIWORDSB
+      KM0      = IKM
+      KMP10    = IKMP1
+      LBCH0    = ILBCH
+      LBHI0    = ILBHI
+      LBUI0    = ILBUI
+      LBUO0    = ILBUO
+      LBVI0    = ILBVI
+      LBVO0    = ILBVO
+      MAXPROF  = IMAXPROF
+      NGUSE0   = INGRDUSE
+      NGUSM10  = INGRDUS1
+      NH0      = INH
+      NIADRS0  = INIADDRS
+      NSHEM0   = INSHEM
+      NSUMG0   = INSUMG
+      NVBL0    = INVBL
+C
+C              PRINT THE PARAMETERS USED IN THIS COMPILATION.
+      WRITE (IOUTUPRT, 1500)
+     1       IJKMAX0, IJMAX, IJMAXB0, IWORDSB0, KM0,   IJRAD,
+     2       KMP10,   LBCH0, LBHI0,   LBUI0,    LBUO0, LBVI0, LBVO0
+C
+ 1500 FORMAT(/'0', 'THE FOLLOWING PARAMETERS WERE SPECIFIED ',
+     1             'BEFORE COMPILATION OF THIS FORECAST CODE:'/
+     2        ' ', 5X, 'IJKMAX0 =', I8, ',', 5X, 'IJMAX   =', I8, ',',
+     3             5X, 'IJMAXB0 =', I8, ',',
+     4             5X, 'IWORDSB0=', I8, ',', /
+     5        ' ', 5X, 'KM0     =', I8, ',', 5X, 'IJRAD   =', I8, ',',
+     6             5X, 'KMP10   =', I8, ',', /
+     7        ' ', 5X, 'LBCH0   =', I8, ',', 5X, 'LBHI0   =', I8, ',',
+     8             5X, 'LBUI0   =', I8, ',', 5X, 'LBUO0   =', I8, ','/
+     9        ' ', 5X, 'LBVI0   =', I8, ',', 5X, 'LBVO0   =', I8, ',')
+C
+      WRITE (IOUTUPRT, 1600)
+     1       LMOUT,  LVLTOT,  MAXOUTF, MAXOUTT, MAXOUTV,  MAXPROF,
+     2       NFILLER,
+     3       NGUSE0, NGUSM10, NH0,     NIADRS0, NSCR,   NSCRGEO,
+     4       NSCR3,  NSHEM0,  NSUMG0,   NVBL0
+C
+ 1600 FORMAT (' ', 5X, 'LMOUT   =', I8, ',', 5X, 'LVLTOT  =', I8, ',',
+     1             5X, 'MAXOUTF =', I8, ',', 5X, 'MAXOUTT =', I8, ','/
+     2        ' ', 5X, 'MAXOUTV =', I8, ',', 5X, 'MAXPROF =', I8, ','/
+     3        ' ', 5X, 'NFILLER =', I8, ',', 5X, 'NGUSE0  =', I8, ','/
+     4        ' ', 5X, 'NGUSM10 =', I8, ',', 5X, 'NH0     =', I8, ','/
+     5        ' ', 5X, 'NIADRS0 =', I8, ',',
+     6             5X, 'NSCR    =', I8, ',',
+     7             5X, 'NSCRGEO =', I8, ',', 5X, 'NSCR3   =', I8, ','/
+     8        ' ', 5X, 'NSHEM0  =', I8, ',', 5X, 'NSUMG0  =', I8, ',',
+     9             5X, 'NVBL0   =', I8, '.' / )
+C
+C              SPECIFY FUNDAMENTAL PHYSICAL AND GEOGRAPHICAL CONSTANTS
+C              AND THEIR DERIVATIVES.
+      RADIUS = 6371.22E+3
+      ANGVEL = 7.292116E-5
+C
+      RGASD    = 287.05E+0
+      CSUBP    = 1005.E+0
+C
+      CKAPPA   = RGASD / CSUBP
+      CKAPPAI  = CSUBP / RGASD
+      CKAPPAP1 = CKAPPA + 1.0
+C
+C              CALCULATE DERIVATIVE GRID AND TIME STEPPING INFORMATION.
+      DELTAXA = (2.0 * RADIUS) / (FLOAT(NH) + 0.5)
+      DELTATA = FLOAT (ITIMSTEP)
+      DTOVDX  = DELTATA / DELTAXA
+C
+C              CALCULATE THE INTERFACE VALUES OF SIGMA.
+      SIGINT(1) = 0.0
+C
+      DO 1800 K=1, KM
+         SIGINT(K+1) = SIGINT(K) + DELSIG(K)
+ 1800 CONTINUE
+C
+      SIGINT(KM+1) = 1.0
+C
+C              COMPUTE PR(K), WHICH WHEN MULTIPLIED BY 2 TIMES
+C              H ** KAPPA YIELDS PI, THE EXNER FUNCTION.
+      PR(1) = 1.0
+C
+      DO 1900 K=2, KM
+         ONEMSIG = 1. - SIGINT(K)
+         PR(K) =  ONEMSIG ** CKAPPAP1
+ 1900 CONTINUE
+C
+      C1 = 1.0 / (2. * CKAPPAP1)
+C
+      DO 2000 K=1, KM-1
+         PR(K) = C1 * (PR(K) - PR(K+1) ) / DELSIG(K)
+ 2000 CONTINUE
+C
+      PR(KM) = C1 * PR(KM) / DELSIG(KM)
+C
+C              CALCULATE PRESS(K), WHICH WHEN MULTIPLIED BY
+C              H (THE SURFACE PRESSURE) YIELDS THE LAYER PRESSURE.
+      DO 2100 K=1, KM
+         PRESS(K) = (2.0 * PR(K)) ** CKAPPAI
+ 2100 CONTINUE
+C
+      PRESS(1) = 0.98230
+      PRESS(2) = 0.94316
+      PRESS(4) = 0.84367
+      PRESS(7) = 0.65307
+      PRESS(16)= 0.022330
+C
+C              PRINT THE VERTICAL FUNCTIONS.
+      WRITE (IOUTUPRT, 2500) SIGINT (KM + 1)
+C
+ 2500 FORMAT ('0', 'THE VERTICAL FUNCTIONS FOR THE FORECAST MODEL ',
+     1             'ARE:'/
+     2        '0', T8, 'K', T17, 'DELSIG', T32, 'SIGINT',
+     3             T48, 'PRESS', T64, 'PR'/
+     4        ' ', T30, 0PF9.7)
+C
+      DO 2700 K= KM, 1, -1
+         WRITE (IOUTUPRT, 2600)
+     1          K, DELSIG(K), PRESS(K), PR(K), SIGINT(K)
+C
+ 2600    FORMAT (' ', T6, I3, T15, F9.7, T45, F9.7, T60, F9.7/
+     1           ' ', T30, 0PF9.7 )
+C
+ 2700 CONTINUE
+C
+C              SET UP THE ARRAYS NEEDED FOR APPLYING THE EQUATORIAL
+C              SYMMETRY CONDITIONS.  ALSO, BIT VECTORS ARE SET TO
+C              INDICATE THE NONFORECAST POINTS NEAR THE EQUATOR.
+      CALL SHEMPRE (NH)
+C
+C                CHECK INGLB (PRESET BY DATACARD)
+      PRINT *,' **********************************************'
+      PRINT *,' ***** CHECK PRESET CONDITIONS ON ONEWAY ******'
+      PRINT *,' **                                          **'
+      IF( INGLB .GT. 1 .AND. INGLB .LE. NGRDUSE ) THEN
+         PRINT *,' **  ONEWAY IS PRESET AT GRID ',INGLB
+         PRINT *,' **  CALL ONEWAY TO CHECK AVN DATASET.       **'
+         CALL ONEWAY(0)
+C                 IF DATASET NOT OK, INGLB BACK TO 0
+         IF( INGLB .EQ. 0 ) THEN
+            PRINT *,' **  DATASET ERROR, ONEWAY(AVN) TURNS OFF.   **'
+            PRINT *,' **  ORIGINAL NGM IS ASSUMED. (TWO-WAY)      **'
+         ELSE
+            PRINT *,' **  ONE-WAY FROM AVN AT GRID ',INGLB
+            PRINT *,' **  ONE-WAY FROM NGM ITSELF FOR OTHER GRIDS.**'
+         ENDIF
+      ELSE IF( INGLB .LT. 0 ) THEN
+    1    PRINT *,' **  ONE-WAY FROM NGM ITSELF IS SET ON.      **'
+      ELSE IF( INGLB .EQ. 0 ) THEN
+    2    PRINT *,' **  ORIGINAL NGM IS SET ON. (TWO-WAY)       **'
+      ELSE
+         PRINT *,' **  ERROR FOR SETTING INGLB=',INGLB
+         PRINT *,' **  ORIGINAL NGM IS ASSUMED. (TWO-WAY)      **'
+         INGLB = 0
+      ENDIF
+      PRINT *,' **********************************************'
+C
+      IF(NGRDUSE .GT. 1 ) THEN
+C
+C              FOR EACH OF THE INTERIOR GRIDS, THE BIT VECTORS
+C              ARE SET TO INDICATE FORECAST POINTS.  THE
+C              EXISTENCE OF A HOLE OF NONFORECAST POINTS
+C              IS NOT CONSIDERED YET.
+         DO 2800 NG=2,NGRDUSE
+            CALL BITOUT (BITGRDH (1, 1, NG),
+     1                   BITGRDU (1, 1, NG),
+     2                   BITGRDV (1, 1, NG),
+     3                   IMG(NG), JMG(NG), NG)
+ 2800    CONTINUE
+C
+C              FOR EACH GRID EXCEPT THE INNERMOST GRID
+C              THE BIT VECTORS ARE SET TO INDICATE THE HOLE OF
+C              NONFORECAST POINTS.
+C           TURN ON BITHOLE AND FILLHOLE(SEE SMOOTH) WHILE ONEWAY OFF.
+         IF( INGLB .EQ. 0 ) THEN
+         DO 2900 NG=1, NGRDUSE-1
+C*****  Code Expanded From Routine:  BITHOLE
+      LEN1 = IBG(NG) - IAG(NG) + 1
+C              LENGTH FOR I-RANGE OF BITV
+      LEN2 = LEN1 + 1
+C
+      DO 77053 NPAI1X = 1, 2
+C              ADDRESS FOR I=IA ON ROW JA-1.
+         IADD = (JAG(NG)-2)*IMG(NG) + IAG(NG)
+C              PUT IN ZEROS FOR ROW JA-1 IN BITU
+         DO 77054 IQ2W6E = 1, LEN1
+            BITGRDU(IADD+IQ2W6E-1,NPAI1X,NG) = .FALSE.
+77054    CONTINUE
+C
+C              DO ROWS JA THRU JB FOR ALL BIT VECTORS.
+C
+         DO 77055 J = JAG(NG), JBG(NG)
+            IADD = IADD + IMG(NG)
+            DO 77056 IQ2W6E = 1, LEN1
+               BITGRDU(IADD+IQ2W6E-1,NPAI1X,NG) = .FALSE.
+               BITGRDH(IADD+IQ2W6E-1,NPAI1X,NG) = .FALSE.
+77056       CONTINUE
+            DO 77057 IQ2W6E = 1, LEN2
+               BITGRDV(IADD+IQ2W6E-2,NPAI1X,NG) = .FALSE.
+77057       CONTINUE
+77055    CONTINUE
+C
+77053 CONTINUE
+C*****  End of Code Expanded From Routine:  BITHOLE
+ 2900    CONTINUE
+         ENDIF
+C
+      END IF
+C
+C              CALCULATE AND PRINT THE NUMBER OF H FORECAST POINTS
+C              FOR EACH GRID FOR EACH PAIR OF TIME STEPS.
+      WRITE (IOUTUPRT, 3150)
+ 3150 FORMAT ('0', 'THE NUMBER OF FORECAST POINTS ON:' )
+C
+      DO 3400 NG=1, NGRDUSE
+         IJ = IMG(NG) * JMG(NG)
+C
+         DO 3300 NPAIR=1, 2
+            NPTS = 0
+            DO 33001 I = 1, IJ
+               IF ( BITGRDH(I, NPAIR, NG) ) NPTS = NPTS + 1
+33001       CONTINUE
+            NPTSFH(NPAIR, NG) = NPTS
+            IF ((NG .EQ. 1) .AND. (NPAIR .EQ. 2)) GO TO 3300
+C
+            PERCENT = 100.E0 * FLOAT(NPTSFH(NPAIR, NG)) / FLOAT(IJ)
+C
+            WRITE (IOUTUPRT, 3200)
+     1             NG, NPAIR, NPTSFH(NPAIR, NG), IJ, PERCENT
+ 3200       FORMAT (' ', 5X, 'GRID',
+     1                   I2, ' FOR NPAIR=', I2, ' IS', I6,
+     2                   ' OUT OF A TOTAL OF', I6, ' POINTS, WHICH IS',
+     3                   F5.1, ' PERCENT.')
+ 3300    CONTINUE
+C
+ 3400 CONTINUE
+C
+C              BECAUSE WE ARE STARTING OR RESTARTING WE WILL
+C              INTERPOLATE ALL VARIABLES IN VBL AT THE BOUNDARIES.
+C             (THERE ARE KHINTERP LEVELS OF VARIABLES AT H POINTS).
+C
+C            INTERPOLATE H*THETA  THRU ROUGHNESS COEFFICIENT
+C
+         KHINTERP = 2 * KM + 7
+C
+      IF (NGRDUSE .GT. 1) THEN
+C              THE INTERIOR LATERAL BOUNDARY CONDITIONS ARE APPLIED
+C              BEFORE THE START/CONTINUATION OF THE FORECAST IN CASE
+C              THIS HAS NOT BEEN DONE YET.
+C
+         DO 3500 NG=1, NGRDUSE-1
+            CALL LATBND (NG, KHINTERP)
+ 3500    CONTINUE
+C
+      END IF
+C
+C              THE EQUATORIAL SYMMETRY CONDITIONS ARE APPLIED BEFORE
+C              THE START/CONTINUATION OF THE FORECAST IN CASE
+C              THIS HAS NOT BEEN DONE YET.
+C
+          CALL SHEM (KHINTERP)
+C
+C              WE NEED ONLY TO INTERPOLATE HTH , HQ , H , TG ,
+C              QG , ALBEDO.
+C
+         KHINTERP =  2 * KM + 4
+C
+C
+C***********************************************************************
+C
+C              PERFORM PRELIMINARY POSTPROCESSING WORK FOR EACH
+C              OUTPUT TRACK.
+C
+C              FIRST, READ THE OPTIONS REGARDING POSTPROCESSING.
+C
+      NTRACKS = 0
+C
+      DO 3640 ITRACK=1, 1000000
+C
+C              ENSURE THAT THE NUMBER OF OUTPUT TRACKS DOES NOT
+C              EXCEED THE MAXIMUM PERMITTED BY THE  PARAMETER.
+         IF (ITRACK .GT. MAXOUTT) THEN
+            WRITE (IOUTUPRT, 3605) ITRACK, MAXOUTT
+ 3605       FORMAT ('0', 'THE NUMBER OF OUTPUT TRACKS REQUIRED IS ',
+     1                   'AT LEAST',
+     2                   I3, ', WHICH IS GREATER THAN THE MAXIMUM ',
+     3                   'OF ', I3, 'PERMITTED.' /
+     4              ' ', 'EXECUTION CONTINUING.  THE EXCESS OUTPUT ',
+     5                   'TRACKS ARE NOT POSTPROCESSED.')
+            GO TO 3660
+         END IF
+C
+C              READ THE TIME SPECIFICATIONS OF THE OUTPUT FILES.
+         READ (INUOPTS, 3610, END=3660)
+     1         ISTROFIL(ITRACK), INTOFIL(ITRACK), ISTPOFIL(ITRACK)
+C
+ 3610    FORMAT (27X, I10 / 27X, I10 / 27X, I10)
+C
+         NTRACKS = ITRACK
+C
+C              CALCULATE THE NUMBER OF OUTPUT FILES FOR THIS OUTPUT
+C              TRACK.
+         LENGTH = ISTPOFIL(ITRACK) - ISTROFIL(ITRACK)
+         NFILES(ITRACK) = (LENGTH / INTOFIL(ITRACK)) + 1
+         IF (MOD(LENGTH, INTOFIL(ITRACK)) .NE. 0)
+     1       NFILES(ITRACK) = NFILES(ITRACK) + 1
+C
+C              CHECK THAT THERE IS AT LEAST ONE FILE SPECIFIED
+C              FOR THIS OUTPUT TRACK.
+         IF (NFILES(ITRACK) .LE. 0) THEN
+            WRITE (IOUTUPRT, 3612) ITRACK, NFILES(ITRACK)
+ 3612       FORMAT('0', 'THE NUMBER OF FILES SPECIFIED FOR OUTPUT ',
+     1                  'TRACK', I3, ' IS', I5, '.'/
+     2             ' ', 'NO POSTPROCESSING WILL BE DONE FOR THIS ',
+     3                  'TRACK.'// )
+            NFILES(ITRACK) = 0
+            GO TO 3640
+         END IF
+C
+C              CHECK THE SIZE OF NFILES TO ENSURE THAT IT DOES NOT
+C              EXCEED THE SPECIFICATION.
+         IF (NFILES(ITRACK) .GT. MAXOUTF) THEN
+            WRITE (IOUTUPRT, 3615) ITRACK, NFILES(ITRACK)
+ 3615       FORMAT('0', 'FOR OUTPUT TRACK', I2, ' THERE WERE', I3,
+     1                  ' OUTPUT FILES SPECIFIED.  THIS IS MORE ',
+     2                  'THAN ALLOWED BY THE SPECIFICATION.' /
+     3             ' ', 'EXECUTION TERMINATED.')
+            GO TO 9998
+         END IF
+C
+C              READ IN THE OUTPUT FILE NAMES AND THE OUTPUT
+C              UNIT NUMBERS.
+CGRIB    HARDWIRE GRIB OUTPUT UNIT TO BE UNIT 50.  93-12-22 TREADON
+	 IOUTUOUTGB = 50
+         READ (INUOPTS, 3620, END=9998)
+     1        (DATASET(IIFILE, ITRACK), IOUTUOUT(IIFILE, ITRACK),
+     2         DISPNAME(IIFILE,ITRACK),
+     3         IIFILE= 1, NFILES(ITRACK))
+C
+ 3620    FORMAT (27X, A6, 2X, I2, 2X, A39)
+C
+C              READ THE TIME SPECIFICATIONS OF THE FIELDS TO BE
+C              PLACED IN THE OUTPUT FILES AND THE UNIT NUMBER
+C              FOR THE CARD IMAGES SPECIFYING WHICH FIELDS ARE
+C              TO BE POSTPROCESSED.
+         READ (INUOPTS, 3630, END=9998)
+     1         IREFOFLD(ITRACK), INTOFLD(ITRACK),
+     2         INUOUT  (ITRACK)
+C
+ 3630    FORMAT (27X, I10 / 27X, I10 / 27X, I10)
+C
+ 3640 CONTINUE
+C
+C              WE SHOULD NOT HAVE FALLEN THROUGH THE LOOP TO
+C              TO THIS POINT.
+      WRITE (IOUTUPRT, 3650)
+ 3650 FORMAT ('0', 'IMPOSSIBLE PATH TAKEN AFTER STATEMENT 3640 IN ',
+     1             'THE MAIN PROGRAM.' /
+     2        ' ', 'EXECUTION CONTINUING.')
+C
+ 3660 CONTINUE
+C
+C              ECHO CHECK THESE POSTPROCESSING DATA CARDS.
+C
+      WRITE (IOUTUPRT, 3662)
+ 3662 FORMAT (/ '0', 'THE FOLLOWING INFORMATION REGARDING ',
+     1               'POSTPROCESSING WAS SPECIFIED ON DATA CARDS:')
+C
+      IF (NTRACKS .EQ. 0) THEN
+         WRITE (IOUTUPRT, 3665)
+ 3665    FORMAT ('0', 5X, 'NO POSTPROCESSING WILL BE DONE BECAUSE ',
+     1                'NO DATA CARDS WERE INCLUDED FOR THIS.')
+C
+      ELSE
+C
+         DO 3695 ITRACK=1, NTRACKS
+C
+            STROFIL = FLOAT(ISTROFIL(ITRACK)) * SEC2HOUR
+            OFILINT = FLOAT(INTOFIL (ITRACK)) * SEC2HOUR
+            STPOFIL = FLOAT(ISTPOFIL(ITRACK)) * SEC2HOUR
+            REFOFLD = FLOAT(IREFOFLD(ITRACK)) * SEC2HOUR
+            OFLDINT = FLOAT(INTOFLD (ITRACK)) * SEC2HOUR
+C
+            WRITE (IOUTUPRT, 3668)
+     1             ITRACK,
+     2             ISTROFIL(ITRACK), STROFIL,
+     3             ISTPOFIL(ITRACK), STPOFIL,
+     4             INTOFIL (ITRACK), OFILINT
+ 
+ 3668       FORMAT ('0', 5X, 'FOR OUTPUT TRACK', I2, ':' /
+     1              ' ', 10X, 'THE ENDING TIME FOR THE FIRST OUTPUT ',
+     2                   'FILE IS', I12, ' SECONDS = ', F8.4,
+     3                   ' HOURS OR WITHIN 1 TIME STEP AFTER IT.'/
+     4              ' ', 15X, 'NOTE THAT ANY POSTPROCESSING SPECIFIED ',
+     5                   'BY IREFOFLD AND INTOFLD THAT IS DONE AFTER ',
+     6                   'THE START/RESTART UNTIL '/
+     7              ' ', 15X, 'THIS ENDING TIME IS PLACED INTO THE ',
+     8                   'FIRST OUTPUT FILE.'/
+     9              ' ', 10X, 'THE ENDING TIME FOR THE LAST  OUTPUT ',
+     1                   'FILE IS', I12, ' SECONDS = ', F8.4,
+     2                   ' HOURS OR WITHIN 1 TIME STEP AFTER IT.'/
+     3              ' ', 10X, 'THE TIME INTERVAL BETWEEN THE ',
+     4                   'ENDING TIMES OF THE ',
+     4                   'OUTPUT FILES IS', I8, ' SECONDS = ', F8.4,
+     5                   ' HOURS.' / )
+C
+            IF (NFILES(ITRACK) .GE. 1) THEN
+               WRITE (IOUTUPRT, 3670)
+     1                NFILES  (ITRACK),
+     2               (DATASET(IIFILE,ITRACK), IOUTUOUT(IIFILE, ITRACK),
+     3                DISPNAME(IIFILE,ITRACK),
+     3                IIFILE=1, NFILES(ITRACK))
+C
+ 3670          FORMAT ('0', 5X, 'THE', I3, ' FILE NAME(S) AND ',
+     1                      'ITS (THEIR) ASSOCIATED ',
+     2                      'OUTPUT UNIT NUMBER(S) WILL BE:' /
+     3             (' ', 6X, 'FILE =', 1X, A6, ',  UNIT =', I3,
+     4              ' ,  DISPNAME =', A39 ) )
+            END IF
+C
+            WRITE (IOUTUPRT, 3675)
+     1             IREFOFLD(ITRACK), REFOFLD,
+     2             INTOFLD (ITRACK), OFLDINT,
+     3             INUOUT  (ITRACK)
+C
+ 3675       FORMAT ('0', 10X, 'THE REFERENCE TIME (IREFOFLD) ',
+     1                   'FOR POSTPROCESSING ',
+     2                   'OF MODEL FIELDS FOR THIS TRACK IS',
+     3                   I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     4              ' ', 10X, 'THE TIME INTERVAL  (INTOFLD)  ',
+     5                   'FOR POSTPROCESSING ',
+     6                   'OF MODEL FIELDS FOR THIS TRACK IS',
+     7                   I8, ' SECONDS = ', F8.4, ' HOURS.'/
+     8              ' ', 10X, 'THE UNIT NUMBER OF THE FILE ',
+     9                   'CONTAINING THE DATA CARDS SPECIFYING WHICH ',
+     1                   'FIELDS TO POSTPROCESS IS', I3, '.' /)
+C
+C              ALL THE DATA CARDS SPECIFYING THE OUTPUT GRID
+C              CONFIGURATIONS AND OUTPUT FIELDS FOR EACH GRID
+C              ARE READ IN SOLELY FOR THE PURPOSE OF PRINTING THEM.
+C              THE FIELDS ARE NOT ACTUALLY POSTPROCESSED, HOWEVER
+C              (BECAUSE ISKIPOUT IS NOT ZERO.)
+            ISKIPPRT = 0
+            ISKIPOUT = 1
+CGRIB       ADD GRIB UNIT NUMBER AND DATASET NAME TO CALL.  93-12-22 TREADON
+cgrib       added itrack to argument list 4/19/94 deaven
+            CALL OUT2FILE (IOUTUOUT(      1      , ITRACK),
+     X	                   IOUTUOUTGB,
+     X	                   DATASET (      1      , ITRACK),
+     1                     INUOUT(ITRACK),ISKIPPRT, ISKIPOUT, IOUTUPRT,
+     2                     itrack)
+C
+ 3695    CONTINUE
+C
+      END IF
+C
+C     INITIALIZE DHQ TO HQ
+C
+C     INITIALIZE DHQ PORTION OF VBL WITH INITIAL Q
+C     IF WE ARE RUNNING WITH SPLIT PHYSICS AND NOT RESTARTING
+C
+      IF ( (IPHYSPL .EQ. 1) .AND. (ITIME .EQ. 0) ) THEN
+C
+      DO 8822 NG=1, NGRDUSE
+         IM = IMG(NG)
+         JM = JMG(NG)
+         IJ = IM * JM
+         JADHQ  = IADDRG(4,  NG) - 1
+         JADDHQ = IADDRG(23, NG) - 1
+         DO 8821  I = 1, IJ * KM
+            VBL ( I + JADDHQ ) = VBL ( I + JADHQ )
+8821     CONTINUE
+8822  CONTINUE
+C
+      END IF
+C
+C              INITIALIZE  RADIATIVE TEMPERATURE CHANGES , RADIATION
+C              QUANTITIES AND TG IF WE ARE STARTING FROM INITIAL
+C              CONDITIONS AND WE WISH TO DO RADIATION
+      CALL SEALDIAG
+      CALL ZONEDIAG
+C
+      IF ( ICALLRAD .EQ. 1 )  THEN
+C
+C        SETUP INITIAL TIME VALUES FOR RADIATION
+C
+         GMT = GMT0 + FLOAT(INTSWR)*SEC2HOUR*0.5E0
+         IDY  = INT(DAY0)
+         IMN  = INT(AMONTH0)
+         IYR  = INT(YEAR0)
+C
+         IF ( (ITIME .EQ. 0) .AND. (INITTYPE .NE. 1) ) THEN
+C
+            CALL HMDY( IDY, IMN, IYR, GMT, ITIME, JD, GMTNOW )
+            CALL SKTGRND0 ( JD, GMTNOW )
+            WRITE (IOUTUPRT, 3725)
+C
+ 3725       FORMAT ('0', 10X, 'THE SOIL TEMPERATURES AND  ',
+     1                   'RADIATIVE HEATING RATES IN THE ',
+     2                   'ATMOSPHERE HAVE BEEN INITIALIZED',/)
+C
+         END IF
+C
+C
+      END IF
+C
+C              BECAUSE WE ARE STARTING OR RESTARTING WE WILL
+C              PRINT HORIZONTAL-MEAN STATISTICS
+C              FOR EACH GRID (UP TO 4 GRIDS) AND
+C              PRINT ZONAL-MEAN STATISTICS.
+C
+      CALL SEALDIAG
+      CALL ZONEDIAG
+C
+C
+C              CALCULATE THE INITIAL LAYER-MEAN POTENTIAL
+C              TEMPERATURES.
+      CALL TEMPADJ (DTNOW, DTACCUM)
+C
+C
+C              CALCULATE AND PRINT THE SURFACE PRESSURE
+C              FOR THE SPECIFIED DIAGNOSTIC POINT OF THE FINEST GRID.
+C              NGRDDI IS A PARAMETER OBTAINED FROM THE LL2GR CALL AND
+C              IT REPRESENTS THE FINEST GRID UPON WHICH THE POINT
+C              IS DEFINED.
+C     HBARO = VBL( IADDRG(5, NGRDUSE)
+C    1        -1 + IBARO + (IMG(NGRDUSE) * (JBARO -1)))
+C
+      IMH = IMG(NGRDDI)
+      IN10 = IN00D + 1
+      IN01 = IN00D + IMH
+      IN11 = IN00D + IMH + 1
+      IADBAS = IADDRG(5, NGRDDI) - 1
+      HBARO = VBL(IADBAS+IN00D)*DICF00 +
+     1        VBL( IADBAS+IN10)*DICF10 +
+     2        VBL( IADBAS+IN01)*DICF01 +
+     3        VBL( IADBAS+IN11)*DICF11
+C
+      WRITE (IOUTUPRT, 3800)
+     1       NSTEPS, ITIME, TIMEHRS,
+     2       HBARO
+C
+ 3800 FORMAT('0', 'FOR NSTEPS =', I5,
+     1            ', ITIME =', I8, ' S, TIMEHRS =',
+     2            F8.4, ' H AFTER I.C.:  ',
+     3            'H AT PT 1 = ',
+     4            3PF9.4, ' MB.' )
+C
+C
+C              IF THERE ARE ANY OUTPUT TRACKS, CONTINUE WITH THE
+C              PRELIMINARY POSTPROCESSING.
+      IF (NTRACKS .EQ. 0) GO TO 4080
+C
+C              INSERT INTO THE OFFICE NOTE 84 LABEL, ALL QUANTITIES
+C              THAT ARE THE SAME FOR ALL FILES OF ALL TRACKS FOR THE
+C              ENTIRE FORECAST.
+C*****  Code Expanded From Routine:  OUTFIXED
+C
+C              SPECIFY THE EXCEPTION MARKER X (TABLE 4).
+      LABEL84(8) = 0
+C
+C              SPECIFY THE MISCELLANEOUS MARKER N (TABLE 5).
+      LABEL84(11) = 0
+C
+C              SPECIFY THE CLIMATE MARKERS CD AND CM (TABLE 6).
+      LABEL84(14) = 0
+      LABEL84(15) = 0
+C
+C              SPECIFY THE DERIVATION MARKER KS (TABLE 8) INDICATING
+C              THAT THE FIELD IS NOT EXPRESSED IN A DEVIATION FROM
+C              A CLIMATOLOGICAL NORM.
+      LABEL84(16) = 0
+C
+C              SPECIFY THE GUESS FLAG.
+      LABEL84(18) = 0
+C
+C              INITIALIZE LOCATIONS RN AND NW FOR INTERNAL USE
+C              BY THE I/O ROUTINES ONLY.
+      LABEL84(19) = 0
+      LABEL84(20) = 0
+C
+C              SPECIFY THE YEAR OF THE CENTURY, THE MONTH, THE DAY OF
+C              THE MONTH, AND THE GMT ALL OF THE INITIAL TIME.
+      LABEL84(21) = NINT(YEAR0)
+      LABEL84(22) = NINT(AMONTH0)
+      LABEL84(23) = NINT(DAY0)
+      LABEL84(24) = NINT(GMT0)
+C
+C              SPECIFY THE RUN MARKER (TABLE 9).
+      LABEL84(25) = IRUNMARK
+C
+C              SPECIFY THE GENERATING PROGRAM (TABLE 10).
+C              THE NGM IS INDICATED BY A DECIMAL 39.
+      LABEL84(26) = 39
+C*****  End of Code Expanded From Routine:  OUTFIXED
+C
+C              OPEN THE APPROPRIATE OUTPUT FILE FOR EACH OUTPUT TRACK:
+C              1)  IF WE ARE JUST STARTING THE FORECAST (ITIME .EQ. 0)
+C              OPEN THE FIRST FILE.
+C              2)  IF WE ARE RESTARTING THE FORECAST (ITIME .GT. 0)
+C              OPEN THE FIRST FILE TO BE CLOSED AFTER THIS TIME,
+C              ACCORDING TO THE DATA CARDS.
+C
+      DO 4000 ITRACK=1, NTRACKS
+C
+         IF (NFILES(ITRACK) .LE. 0) THEN
+C              SET IFILE TO INDICATE THAT THERE WILL BE NO MORE
+C              POSTPROCESSING FOR THIS TRACK.
+            IFILE(ITRACK) = NFILES(ITRACK) + 1
+C
+         ELSE
+            IF (ITIME .EQ. 0) THEN
+C              WE ARE STARTING THE FORECAST FROM THE INITIAL CONDITIONS
+               IFILE(ITRACK) = 1
+C
+            ELSE
+C              WE ARE RESTARTING THE FORECAST.
+               IFILE(ITRACK) = (ITIME - ISTROFIL(ITRACK)
+     1                         + 2 * INTOFIL(ITRACK))
+     2                         / INTOFIL(ITRACK)
+               IFILE(ITRACK) = MAX (IFILE(ITRACK), 1)
+            END IF
+C
+            CALL OUTOPEN (DATASET(IFILE(ITRACK), ITRACK),
+     1                    YEAR0, AMONTH0, DAY0, GMT0,
+     2                    IRUNMARK, IVERFCST, IOUTUPRT,
+     3                    IOUTUOUT(IFILE(ITRACK), ITRACK),
+     4                    1)
+C
+C              IF WE ARE STARTING THE FORECAST FROM THE INITIAL
+C              CONDITIONS AND IT WAS SPECIFIED ON THE DATA CARDS
+C              TO POSTPROCESS THE INITIAL CONDITIONS, THEN WE DO
+C              SO NOW.
+            IF((ITIME .EQ. 0) .AND. (IREFOFLD(ITRACK) .EQ. 0)) THEN
+               ISKIPPRT = 1
+               ISKIPOUT = 0
+
+CGRIB       ADD GRIB UNIT NUMBER AND DATASET NAME TO CALL.  93-12-22 TREADON
+cgrib       added itrack to argument list 4/19/94 deaven
+               CALL OUT2FILE (IOUTUOUT(IFILE(ITRACK), ITRACK),
+     X	                      IOUTUOUTGB,
+     X	                      DATASET (IFILE(ITRACK), ITRACK),
+     1                        INUOUT(ITRACK),
+     2                        ISKIPPRT, ISKIPOUT, IOUTUPRT, itrack)
+            END IF
+C
+         END IF
+C
+ 4000 CONTINUE
+c	 shlarg ="/nwprod/util/grbindex/exec.grbindex/grbindex "//
+c    1   	     filgrb // filgrbi
+c	 call ishell(shlarg)
+c	 call ishell("makestat")
+C
+C              NOW, IF APPROPRIATE, CLOSE THE OUTPUT FILES AND OPEN
+C              THE NEXT ONES.
+      DO 4020 ITRACK =1, NTRACKS
+         IF ((NFILES(ITRACK) .GT. 0) .AND. (ITIME .EQ. 0)) THEN
+C
+C              FIRST, CLOSE THE FILE, IF APPROPRIATE.
+            IF (ISTROFIL(ITRACK) .EQ. 0) THEN
+               CALL OUTCLOSE (DATASET (IFILE(ITRACK), ITRACK),
+     1                        IOUTUOUT(IFILE(ITRACK), ITRACK),
+     2                        DISPNAME(IFILE(ITRACK), ITRACK),
+     2                        IRUNMARK, IOUTUPRT, ITIME, NSTEPS)
+C
+C              NOW OPEN THE NEXT FILE, IF APPROPRIATE.
+               IFILE(ITRACK) = IFILE(ITRACK) + 1
+               IF (IFILE(ITRACK) .LE. NFILES(ITRACK)) THEN
+C
+                  CALL OUTOPEN (DATASET(IFILE(ITRACK), ITRACK),
+     1                          YEAR0, AMONTH0, DAY0, GMT0,
+     2                          IRUNMARK, IVERFCST, IOUTUPRT,
+     3                          IOUTUOUT(IFILE(ITRACK), ITRACK),
+     4                          1)
+C
+               END IF
+C
+            END IF
+C
+         END IF
+C
+ 4020 CONTINUE
+C
+ 4080 CONTINUE
+C              DONE WITH THE PRELIMINARY POSTPROCESSING FOR ALL
+C              OUTPUT TRACKS, IF ANY.
+C
+C              CHECK TO MAKE SURE THAT THE TIME INTERVALS SPECIFIED
+C              ON THE DATA CARDS FOR VARIOUS PERIODIC OPERATIONS
+C              ARE REALISTIC.
+      IF (INTRST .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTRST, ISTOPTIM
+ 4090    FORMAT ('0', 'WARNING -- ONE OF THE TIME INTERVALS ',
+     1                'SPECIFIED ON DATA CARDS FOR VARIOUS PERIODIC ',
+     2                'OPERATIONS WAS', I10, ' SECONDS.' /
+     3           ' ', 'IT WAS CHANGED TO', I8, ' SECONDS.  EXECUTION ',
+     4                'CONTINUING.' /)
+C
+         INTRST  = ISTOPTIM
+      END IF
+C
+      IF (INTDRY .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTDRY, ISTOPTIM
+         INTDRY  = ISTOPTIM
+      END IF
+C
+      IF (INTSMO .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTSMO, ISTOPTIM
+         INTSMO  = ISTOPTIM
+      END IF
+C
+      IF (INTSND .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTSND, ISTOPTIM
+         INTSND  = ISTOPTIM
+      END IF
+C
+      IF (INTDIAG .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTDIAG, ISTOPTIM
+         INTDIAG = ISTOPTIM
+      END IF
+C
+      IF (INTBUCK .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTBUCK, ISTOPTIM
+         INTBUCK = ISTOPTIM
+      END IF
+C
+      IF (INTPPTO .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTPPTO, ISTOPTIM
+         INTPPTO = ISTOPTIM
+      END IF
+C
+      IF (INTSIGO .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTSIGO, ISTOPTIM
+         INTSIGO = ISTOPTIM
+      END IF
+C
+      IF (INTTADJ .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTTADJ, ISTOPTIM
+         INTTADJ = ISTOPTIM
+      END IF
+C
+      IF (INTTPRT .LE. 0) THEN
+         WRITE (IOUTUPRT, 4090) INTTPRT, ISTOPTIM
+         INTTPRT = ISTOPTIM
+      END IF
+C
+      IF (NTRACKS .GT. 0) THEN
+         DO 4100 ITRACK=1, NTRACKS
+            IF (INTOFLD(ITRACK) .LE. 0) THEN
+               WRITE (IOUTUPRT, 4090) INTOFLD(ITRACK), ISTOPTIM
+               INTOFLD(ITRACK) = ISTOPTIM
+            END IF
+C
+            IF (INTOFIL(ITRACK) .LE. 0) THEN
+               WRITE (IOUTUPRT, 4090) INTOFIL(ITRACK), ISTOPTIM
+               INTOFIL(ITRACK) = ISTOPTIM
+            END IF
+ 4100    CONTINUE
+C
+      END IF
+C
+C              DETERMINE THE LAST TIMES OF THE VARIOUS PERIODIC
+C              OPERATIONS, BASED ON THE SPECIFICATIONS READ IN
+C              ABOVE FROM DATA CARDS.  THESE ARE USED ONLY TO
+C              DETERMINE THE TIMES FOR THE NEXT EXECUTIONS OF
+C              THESE OPTIONS.  THE CALCULATED TIMES MAY BE
+C              DIFFERENT FROM THE ACTUAL LAST TIMES THE OPTIONS
+C              WERE EXECUTED, BUT THIS IS IMMATERIAL.
+      ITIMRST  = ((ITIME - IREFRST ) / INTRST ) * INTRST  + IREFRST
+      ITIMDRY  = ((ITIME - IREFDRY ) / INTDRY ) * INTDRY  + IREFDRY
+      ITIMSMO  = ((ITIME - IREFSMO ) / INTSMO ) * INTSMO  + IREFSMO
+      ITIMDIAG = ((ITIME - IREFDIAG) / INTDIAG) * INTDIAG + IREFDIAG
+      ITIMBUCK = ((ITIME - IREFBUCK) / INTBUCK) * INTBUCK + IREFBUCK
+      ITIMPPTO = ((ITIME - IREFPPTO) / INTPPTO) * INTPPTO + IREFPPTO
+      ITIMSIGO = ((ITIME - IREFSIGO) / INTSIGO) * INTSIGO + IREFSIGO
+      ITIMSWR  = ((ITIME - IREFSWR ) / INTSWR ) * INTSWR  + IREFSWR
+      ITIMLWR  = ((ITIME - IREFLWR ) / INTLWR ) * INTLWR  + IREFLWR
+      ITIMSEB  = ((ITIME - IREFSEB ) / INTSEB ) * INTSEB  + IREFSEB
+      ITIMPHY  = ((ITIME - IREFPHY ) / INTPHY ) * INTPHY  + IREFPHY
+      ITIMTADJ = ((ITIME - IREFTADJ) / INTTADJ) * INTTADJ + IREFTADJ
+      ITIMTPRT = ((ITIME - IREFTPRT) / INTTPRT) * INTTPRT + IREFTPRT
+      ITIMSND  = ((ITIME - IREFSND ) / INTSND ) * INTSND  + IREFSND
+      ITIMFE   = ((ITIME - IREFFE  ) / INTFE  ) * INTFE   + IREFFE
+C
+      IF (NTRACKS .GT. 0) THEN
+         DO 4120 ITRACK=1, NTRACKS
+C
+            ITIMOFLD(ITRACK) = ((ITIME - IREFOFLD(ITRACK))
+     1                         / INTOFLD(ITRACK))
+     2                         * INTOFLD(ITRACK) + IREFOFLD(ITRACK)
+C
+            ITIMCFIL(ITRACK) = ((ITIME - ISTROFIL(ITRACK))
+     1                         / INTOFIL(ITRACK))
+     2                         * INTOFIL(ITRACK) + ISTROFIL(ITRACK)
+C
+ 4120    CONTINUE
+      END IF
+C
+C     INITIAL CALL FOR SOUNDING INFORMATION
+C DiMego added 3/3/92  BUT only if itime=0 (i.e. not restarting
+C
+      IF ( INTSND .LE. ISTOPTIM .and. itime.eq.0 ) THEN
+         CALL SOUNDING ( SPECS, INUSTAID, IOUTUSND )
+      END IF
+C
+C              CHECK WHETHER WE SHOULD SKIP THE TIME STEPPING.
+      IF (ITIME .GE. ISTOPTIM) GO TO 5100
+C
+C
+C              QUEUE JOB TO FRONT-END
+      IFE = 1
+      IF ( ITIME .EQ. 0 .AND. IREFFE .EQ. 0 ) THEN
+CGRIB    CALL FEQUEUE ( FEHOLD(IFE), FENAME(IFE), IRUNMARK )
+CGRIB    DISPOSE 00 HOUR POSTED FIELDS 
+         IFE = IFE + 1
+      END IF
+C
+C              WE ARE FINALLY READY TO BEGIN/CONTINUE THE TIME STEPPING.
+C
+C
+      DO 5000 ISTEP = 1, 1000000
+C
+         ITIME = ITIME + ITIMSTEP
+         SPECS(233) = FLOAT (ITIME)
+         TIMEHRS = FLOAT(ITIME) * SEC2HOUR
+C
+         NSTEPS = NSTEPS + 1
+         print *, ' nsteps, timehrs = ',nsteps, timehrs
+         SPECS(234) = FLOAT (NSTEPS)
+C
+      ist = rtc()
+         CALL ALLGRIDS (NGRDUSE, KHINTERP)
+      isp = rtc()
+      acc = acc + isp - ist
+C
+C              PHYSICS CALCULATIONS
+C
+         IF ( IPHYSPL .EQ. 1 ) THEN
+C
+            IF (ITIME - ITIMPHY  .GE. INTPHY ) THEN
+               CALL PHYPREP ( FLOAT(INTPHY), KHINTERP )
+               WRITE (IOUTUPRT, 4333) NSTEPS, ITIME, TIMEHRS
+ 4333          FORMAT('0', 'FOR NSTEPS =', I5,
+     1                     ', ITIME =', I8, ' S, TIMEHRS =',
+     2                     F8.4, ' H AFTER I.C.:  PHYSICS ',
+     3                     'WAS PERFORMED.')
+               ITIMPHY = ((ITIME - IREFPHY ) / INTPHY ) * INTPHY  +
+     1                   IREFPHY
+            END IF
+C
+         END IF
+C
+         IF (ICALLRAD .EQ. 1) THEN
+C
+            IF (ITIME - ITIMSEB  .GE. INTSEB ) THEN
+               CALL SKSTEPAL( FLOAT(INTSEB) )
+               WRITE (IOUTUPRT, 4366) NSTEPS, ITIME, TIMEHRS
+ 4366          FORMAT('0', 'FOR NSTEPS =', I5,
+     1                     ', ITIME =', I8, ' S, TIMEHRS =',
+     2                     F8.4, ' H AFTER I.C.: THE SUR ENRG BUDG ',
+     3                     'WAS PERFORMED.')
+               ITIMSEB = ((ITIME - IREFSEB ) / INTSEB ) * INTSEB  +
+     1                   IREFSEB
+            END IF
+C
+            ISW = 0
+            IF (ITIME - ITIMSWR  .GE. INTSWR ) THEN
+               ISW = ISW + 1
+               WRITE (IOUTUPRT, 4367) NSTEPS, ITIME, TIMEHRS
+ 4367          FORMAT('0', 'FOR NSTEPS =', I5,
+     1                     ', ITIME =', I8, ' S, TIMEHRS =',
+     2                     F8.4, ' H AFTER I.C.:  SW RADIATION ',
+     3                     'WAS PERFORMED.')
+               ITIMSWR = ((ITIME - IREFSWR ) / INTSWR ) * INTSWR  +
+     1                   IREFSWR
+            END IF
+C
+            IF (ITIME - ITIMLWR  .GE. INTLWR ) THEN
+               ISW = ISW + 2
+               WRITE (IOUTUPRT, 4368) NSTEPS, ITIME, TIMEHRS
+ 4368          FORMAT('0', 'FOR NSTEPS =', I5,
+     1                     ', ITIME =', I8, ' S, TIMEHRS =',
+     2                     F8.4, ' H AFTER I.C.:  LW RADIATION ',
+     3                     'WAS PERFORMED.')
+               ITIMLWR = ((ITIME - IREFLWR ) / INTLWR ) * INTLWR  +
+     1                   IREFLWR
+C
+            END IF
+C
+            IF ( ISW .GT. 0 ) THEN
+               CALL HMDY( IDY, IMN, IYR, GMT, ITIME, JD, GMTNOW )
+               CALL RDSTEPAL ( JD, GMTNOW, ISW )
+            END IF
+C
+         END IF
+C
+C              IF IT IS TIME TO DO SO, PRINT THE PRECIPITATION
+C              DIAGNOSTICS.
+         IF (ITIME - ITIMPPTO .GE. INTPPTO) THEN
+C
+            WRITE (IOUTUPRT, 4180) NSTEPS, ITIME, TIMEHRS
+C
+ 4180       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.,' ,
+     3                  ' THE PRECIPITATION DIAGNOSTICS ARE:'/
+     4             ' ', 20X, ' NPTSFH ', 3X,
+     5                        'NPTSDHQ ', 3X, 'KKCLOUD2', 3X,
+     6                        'NPTSBUOY', 3X, 'NPTSWATR', 3X,
+     7                        ' NPTSCC ', 3X, ' PPTCC  ', 3X,
+     8                        ' KKGSP2 ', 3X, 'NPTSGSP ', 3X,
+     9                        ' PPTGSP ')
+C
+            NG = 1
+            NPAIR = 1
+            WRITE (IOUTUPRT, 4190) NG, NPAIR,
+     1             NPTSFH  (NPAIR, NG), NPTSDHQ (NPAIR, NG),
+     2             KKCLOUD2(NPAIR, NG), NPTSBUOY(NPAIR, NG),
+     3             NPTSWATR(NPAIR, NG), NPTSCC  (NPAIR, NG),
+     4             PPTCC   (NPAIR, NG),
+     5             KKGSP2  (NPAIR, NG), NPTSGSP (NPAIR, NG),
+     6             PPTGSP  (NPAIR, NG)
+C
+ 4190       FORMAT(' ', 'GRID', I2, ', NPAIR=', I2, ' :  ',
+     1                   I6, I11, I10, I12, I11, I11, 1PE15.6,
+     2                   I6, I11, 1PE16.6)
+C
+            IF (NGRDUSE .GE. 2) THEN
+C
+               DO 4200 NG=2,NGRDUSE
+                  NPAIR = 2
+C BECAUSE ONEWAY IN GRID INGLB, WE DO ONLY NPAIR=1 SO SPECIFY
+C NPAIR=1 FOR GRID INGLB BELOW TO GET NONZERO PRINTOUT.
+                  IF( NG .EQ. INGLB ) NPAIR = 1
+                  WRITE (IOUTUPRT, 4190) NG, NPAIR,
+     1                   NPTSFH  (NPAIR, NG), NPTSDHQ (NPAIR, NG),
+     2                   KKCLOUD2(NPAIR, NG), NPTSBUOY(NPAIR, NG),
+     3                   NPTSWATR(NPAIR, NG), NPTSCC  (NPAIR, NG),
+     4                   PPTCC   (NPAIR, NG),
+     5                   KKGSP2  (NPAIR, NG), NPTSGSP (NPAIR, NG),
+     6                   PPTGSP  (NPAIR, NG)
+C
+ 4200          CONTINUE
+            END IF
+C
+            ITIMPPTO
+     1            = ((ITIME - IREFPPTO) / INTPPTO) * INTPPTO + IREFPPTO
+C
+         END IF
+C
+         IF (SIGDOT .LE. 0.0E0) GO TO 4290
+C
+         EXPON = ALOG10(SIGDOT)
+         IF (EXPON .GE. 0.0E0) THEN
+C              SIGDOT IS GREATER THAN OR EQUAL TO 1.
+            FACTOR = 10.0E+0 ** REAL(INT(EXPON))
+C
+         ELSE
+C              SIGDOT IS LESS THAN 1 (AND GREATER THAN ZERO.)
+            FACTOR = 10.0E+0 ** REAL(INT( EXPON  - 1.0E+0))
+C
+         END IF
+C
+         NORMAL = INT( (SIGDOT / FACTOR) * 1.0E+6)
+         IQUOT1 = NORMAL
+C
+         DO 4280 NN = 1,7
+            IQUOT2  = IQUOT1 / 10
+            IREM    = IQUOT1 - 10 * IQUOT2
+            JPARITY = JPARITY + IREM
+            IQUOT1  = IQUOT2
+ 4280    CONTINUE
+C
+ 4290    CONTINUE
+C
+C              IF IT IS TIME TO DO SO, PRINT THE RMS SIGMA DOT
+C              FOR THE FINEST GRID, THE SURFACE PRESSURE
+C              FOR THE SPECIFIED POINT, AND THE PARITY COUNTER
+C             (WHICH IS BASED ON THE RMS SIGMA DOT OF THE FINEST
+C              GRID AND IS ACCUMULATED AFTER EACH GRID A TIME STEP.)
+         IF (ITIME - ITIMSIGO .GE. INTSIGO) THEN
+C
+            IMH = IMG(NGRDDI)
+            IN10 = IN00D + 1
+            IN01 = IN00D + IMH
+            IN11 = IN00D + IMH + 1
+            IADBAS = IADDRG(5, NGRDDI) - 1
+            HBARO = VBL(IADBAS+IN00D)*DICF00 +
+     1              VBL( IADBAS+IN10)*DICF10 +
+     2              VBL( IADBAS+IN01)*DICF01 +
+     3              VBL( IADBAS+IN11)*DICF11
+C
+            WRITE (IOUTUPRT, 4300)
+     1             NSTEPS, ITIME, TIMEHRS,
+     2             SIGDOT, HBARO, JPARITY
+C
+ 4300       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.:  SIGDOT =',
+     3                  1PE12.6, ' AND H AT PT 1 = ',
+     4                  3PF9.4, ' MB, PC=', I6, '.' )
+C
+C              COMPUTE MEAN H
+C
+            IADH = IADDRG(5, NGRDUSE)
+            HBARM = 0
+CFPP$ NOCONCUR L
+            DO 55543 I = 1, IJ
+               HBARM = HBARM + VBL ( I + IADH -1 )
+55543       CONTINUE
+            WRITE (IOUTUPRT, 4325)
+     1             NSTEPS, ITIME, TIMEHRS,
+     2             HBARM
+C
+ 4325       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.:  HBAR =',
+     3                  1PE12.6)
+C
+            ITIMSIGO
+     1            = ((ITIME - IREFSIGO) / INTSIGO) * INTSIGO + IREFSIGO
+C
+         END IF
+C
+C
+C              IF IT IS TIME TO DO SO, PRINT OUT DRY ADIABATIC
+C              ADJUSTMENT INFORMATION.
+         IF (ITIME - ITIMDRY  .GE. INTDRY ) THEN
+C
+            WRITE (IOUTUPRT, 4350)
+     1             NSTEPS, ITIME, TIMEHRS
+ 4350       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.,',
+     3                  ' THE NUMBER OF DRY ADIABATS BY LAYER IS:')
+C
+            DO 4352 NG=1,NGRDUSE
+C
+               KLIMIT = MIN (KM, 24)
+               WRITE (IOUTUPRT, 4351) NG, (KADIAB(K,NG), K=1,KLIMIT)
+ 4351          FORMAT (' ',  '     GRID',I2,':', 24I5 )
+C
+ 4352       CONTINUE
+C
+            ITIMDRY
+     1            = ((ITIME - IREFDRY ) / INTDRY ) * INTDRY  + IREFDRY
+C
+         END IF
+C
+C
+C              IF IT IS TIME TO DO SO, SMOOTH THE FIELDS.
+         IF (ITIME - ITIMSMO  .GE. INTSMO ) THEN
+            CALL SMOOTH
+            ITIMSMO
+     1            = ((ITIME - IREFSMO ) / INTSMO ) * INTSMO  + IREFSMO
+C
+         END IF
+C
+C
+C              IF IT IS TIME TO DO SO, ADJUST THE MEAN-LAYER
+C              POTENTIAL TEMPERATURES BACK TO THEIR INITIAL VALUES.
+         IF (ITIME - ITIMTADJ  .GE. INTTADJ ) THEN
+            CALL TEMPADJ (DTNOW, DTACCUM)
+C
+            ITIMTADJ
+     1            = ((ITIME - IREFTADJ) / INTTADJ ) * INTTADJ + IREFTADJ
+C
+         END IF
+C
+C
+C              IF IT IS TIME TO DO SO, PRINT THE ADJUSTMENTS
+C              THAT WERE MADE TO THE LAYER-MEAN TEMPERATURES
+C              TO RESTORE THEM TO THEIR INITIAL VALUES.
+         IF (ITIME - ITIMTPRT .GE. INTTPRT) THEN
+C
+            WRITE (IOUTUPRT, 4365) NSTEPS, ITIME, TIMEHRS
+C
+ 4365       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.:  THE PRESENT ',
+     3                  'AND ACCUMULATED THETA ADJUSTMENTS ARE:'/)
+C
+            DO 4375 K = KM, 1, -1
+               WRITE (IOUTUPRT, 4370)
+     1             K, DTNOW(K), DTACCUM(K)
+ 4370          FORMAT(' ', 5X, 'LAYER', I3, ':', 1PE14.6, 1PE20.6)
+ 4375       CONTINUE
+C
+            ITIMTPRT
+     1            = ((ITIME - IREFTPRT) / INTTPRT) * INTTPRT + IREFTPRT
+C
+         END IF
+C
+C
+C              IF IT IS TIME TO DO SO, OUTPUT SOUNDING INFORMATION.
+C
+         IF (ITIME - ITIMSND  .GE. INTSND ) THEN
+C
+            CALL SOUNDING ( SPECS, INUSTAID, IOUTUSND )
+            ITIMSND
+     1            = ((ITIME - IREFSND ) / INTSND ) * INTSND  + IREFSND
+C
+         END IF
+C
+C
+C              FOR EACH OUTPUT TRACK, IF IT IS TIME TO DO SO AND
+C              AN OUTPUT FILE IS OPEN, DO THE POSTPROCESSING.
+         IF (NTRACKS .GT. 0) THEN
+            DO 4400 ITRACK=1, NTRACKS
+C
+               IF ((ITIME - ITIMOFLD(ITRACK) .GE. INTOFLD(ITRACK))
+     1            .AND. (IFILE(ITRACK) .LE. NFILES(ITRACK))) THEN
+                  ISKIPPRT = 1
+                  ISKIPOUT = 0
+CGRIB       ADD GRIB UNIT NUMBER AND DATASET NAME TO CALL.  93-12-22 TREADON
+cgrib       added itrack to argument list 4/19/94 deaven
+                  CALL OUT2FILE (IOUTUOUT(IFILE(ITRACK), ITRACK),
+     X                           IOUTUOUTGB,
+     X	                         DATASET (IFILE(ITRACK), ITRACK),
+     1                           INUOUT(ITRACK),
+     2                           ISKIPPRT, ISKIPOUT, IOUTUPRT, itrack)
+C
+                  ITIMOFLD(ITRACK) = ((ITIME - IREFOFLD(ITRACK))
+     1                               / INTOFLD(ITRACK))
+     2                               * INTOFLD(ITRACK)
+     3                               + IREFOFLD(ITRACK)
+               END IF
+C
+ 4400       CONTINUE
+c           IF (mod(itime,3600*3).eq.0) then
+c        	 shlarg ="/nwprod/util/grbindex/exec.grbindex/grbindex "//
+c    1           filgrb // filgrbi
+c           	 call ishell(shlarg)
+c           	 call ishell("makestat")
+c	    end if
+C
+         END IF
+C
+C              FOR EACH OUTPUT TRACK, IF IT IS TIME TO DO SO,
+C              CLOSE THE OUTPUT FILE AND, IF APPROPRIATE,
+C              OPEN THE NEXT ONE.
+         IF (NTRACKS .GT. 0) THEN
+            DO 4450 ITRACK=1, NTRACKS
+C
+               IF ((ITIME - ITIMCFIL(ITRACK) .GE. INTOFIL(ITRACK))
+     1            .AND. (IFILE(ITRACK) .LE. NFILES(ITRACK))) THEN
+C
+C              FIRST, CLOSE THE FILE.
+                  CALL OUTCLOSE (DATASET (IFILE(ITRACK), ITRACK),
+     1                           IOUTUOUT(IFILE(ITRACK), ITRACK),
+     2                           DISPNAME(IFILE(ITRACK), ITRACK),
+     2                           IRUNMARK, IOUTUPRT, ITIME, NSTEPS)
+C
+                  ITIMCFIL(ITRACK) = ((ITIME - ISTROFIL(ITRACK))
+     1                               / INTOFIL(ITRACK))
+     2                               * INTOFIL(ITRACK)
+     3                               + ISTROFIL(ITRACK)
+C
+C              NOW OPEN THE NEXT FILE, IF APPROPRIATE.
+                  IFILE(ITRACK) = IFILE(ITRACK) + 1
+                  IF (IFILE(ITRACK) .LE. NFILES(ITRACK)) THEN
+C
+                     CALL OUTOPEN (DATASET(IFILE(ITRACK), ITRACK),
+     1                             YEAR0, AMONTH0, DAY0, GMT0,
+     2                             IRUNMARK, IVERFCST, IOUTUPRT,
+     3                             IOUTUOUT(IFILE(ITRACK), ITRACK),
+     4                             1)
+C
+                  END IF
+C
+               END IF
+C
+ 4450       CONTINUE
+C
+         END IF
+C
+C        QUEUE JOB TO FRONT-END
+C
+c        IF ( ITIME - ITIMFE .GE. INTFE .AND. IFE .LE. INUMFE ) THEN
+CGRIB       CALL FEQUEUE ( FEHOLD(IFE), FENAME(IFE), IRUNMARK )
+CGRIB       DISPOSE POST PROCESSED FIELDS AT 12, 24, 36, AND 48 HOURS.
+CGRIB       DO THE FOLLOWING NEED TO BE AFTER ITIMFE IS UPDATED?
+C
+C 12/3/98 - E. ROGERS MOVED ISHELLS TO OUTOPENGB
+C
+c           IF (itime/3600.EQ.12.and.mod(itime,3600).eq.0) then
+c             CALL ISHELL("qsub do12disp")
+c             WRITE (IOUTUPRT, *) "do12disp qsub now"
+c           end if
+c           IF (itime/3600.EQ.24.and.mod(itime,3600).eq.0) then
+c             CALL ISHELL("qsub do24disp")
+c             WRITE (IOUTUPRT, *) "do24disp qsub now"
+c           end if
+c           IF (itime/3600.EQ.36.and.mod(itime,3600).eq.0) then
+c             CALL ISHELL("qsub do36disp")
+c             WRITE (IOUTUPRT, *) "do36disp qsub now"
+c           end if
+            ITIMFE
+     1           = ((ITIME - IREFFE) / INTFE) * INTFE + IREFFE
+            IFE = IFE + 1
+c        END IF
+C              IF IT IS TIME TO DO SO, PRINT HORIZONTAL-MEAN STATISTICS
+C              FOR EACH GRID (UP TO 4 GRIDS) AND PRINT ZONAL-MEAN
+C              STATISTICS.
+         IF (ITIME - ITIMDIAG .GE. INTDIAG) THEN
+C
+            CALL SEALDIAG
+C
+            CALL ZONEDIAG
+C
+            ITIMDIAG
+     1            = ((ITIME - IREFDIAG) / INTDIAG) * INTDIAG + IREFDIAG
+         END IF
+C
+C              IF IT IS TIME TO DO SO, EMPTY THE PRECIPITATION BUCKETS.
+         IF (ITIME - ITIMBUCK .GE. INTBUCK) THEN
+C
+            DO 4500 NG=1, NGRDUSE
+               JADDCC  = IADDRG(12, NG) - 1
+               JADDGSP = IADDRG(13, NG) - 1
+               JADDEVP = IADDRG(39, NG) - 1
+               IJ      = IMG(NG) * JMG(NG)
+               DO 45001 I = 1, IJ
+                  VBL ( I + JADDCC ) = 0.
+                  VBL ( I + JADDGSP ) = 0.
+                  VBL ( I + JADDEVP ) = 0.
+45001          CONTINUE
+ 4500       CONTINUE
+C
+            WRITE (IOUTUPRT, 4600) NSTEPS, ITIME, TIMEHRS
+C
+ 4600       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.:  PRECIPITATION ',
+     3                  'BUCKETS WERE EMPTIED.')
+C
+            IBUCKET    = ITIME
+            SPECS(243) = FLOAT(IBUCKET)
+C
+            ITIMBUCK
+     1            = ((ITIME - IREFBUCK) / INTBUCK) * INTBUCK + IREFBUCK
+         END IF
+C
+C              IF IT IS TIME TO DO SO, WRITE THE RESTART
+C              FIELDS TO DISK.
+         IF (ITIME - ITIMRST  .GE. INTRST ) THEN
+C              RESTART FIELDS FROM A PREVIOUS WRITING TO THIS DISK ARE
+C              OVERWRITTEN.  NOTE THAT THE ARRAYS INDICATING THE
+C              LOCATIONS OF THE SEA (IBITSEA, BITSEA0, BITSEA) HAVE
+C              NOT CHANGED SINCE THEY WERE READ IN.
+            REWIND IOUTURST
+            CALL RESTARTW (IOUTURST, IOUTUPRT, DATANAME, SPECS, VBL,
+     1                     BITSEA, BITSNO, BITWVL)
+C
+            WRITE (IOUTUPRT, 4700) NSTEPS, ITIME, TIMEHRS
+ 4700       FORMAT('0', 'FOR NSTEPS =', I5,
+     1                  ', ITIME =', I8, ' S, TIMEHRS =',
+     2                  F8.4, ' H AFTER I.C.:  RESTART FIELDS ',
+     3                  'WERE WRITTEN TO DISK.')
+            ITIMRST
+     1            = ((ITIME - IREFRST ) / INTRST ) * INTRST  + IREFRST
+         END IF
+C
+C              CHECK WHETHER WE ARE DONE WITH THE TIME STEPPING.
+         IF (ITIME .GE. ISTOPTIM) GO TO 5100
+ 5000 CONTINUE
+C
+C
+ 5100 CONTINUE
+C              WE ARE DONE WITH THE FORECAST.
+C
+C              CLOSE ANY OUTPUT FILES THAT STILL MAY BE OPEN.
+      IF (NTRACKS .GT. 0) THEN
+         DO 5400 ITRACK=1, NTRACKS
+C
+            IF (IFILE(ITRACK) .LE. NFILES(ITRACK)) THEN
+C
+               CALL OUTCLOSE (DATASET (IFILE(ITRACK), ITRACK),
+     1                        IOUTUOUT(IFILE(ITRACK), ITRACK),
+     2                        DISPNAME(IFILE(ITRACK), ITRACK),
+     2                        IRUNMARK, IOUTUPRT, ITIME, NSTEPS)
+C
+            END IF
+C
+ 5400    CONTINUE
+C
+      END IF
+C
+C              THE STEP REACHED THE NORMAL TERMINATION POINT.
+      WRITE (IOUTUPRT, 9000)
+ 9000 FORMAT ('0', 'THE STEP TERMINATED AT THE NORMAL LOCATION IN ',
+     1             'THE CODE.')
+C
+C              PRINT THE CURRENT WALL TIME.
+      CALL PRINTTIM
+      print *, ' time for allgrids = ',acc
+C
+      WRITE (IOUTUPRT, 9100)
+ 9100 FORMAT ('0'///)
+C
+      CALL W3TAGE('NGM_NGMFCST')                                           
+C
+      STOP
+C
+C
+C
+ 9998 CONTINUE
+C              WE HIT THE INPUT END-OF-FILE.  THIS SHOULD NOT HAVE
+C              HAPPENED.
+      WRITE (IOUTUPRT, 9999)
+ 9999 FORMAT ('0', 'INPUT END-OF-FILE ENCOUNTERED AT THE WRONG PLACE ',
+     1             'WHEN READING DATA CARDS SPECIFYING ',
+     2             'FUNDAMENTAL MODEL OPTIONS.'/
+     3        '0', 11X, 'EXECUTION TERMINATING.' /////)
+C
+      CALL W3TAGE('NGM_NGMFCST')                                           
+C
+C
+      CALL EXIT(16)
+      END

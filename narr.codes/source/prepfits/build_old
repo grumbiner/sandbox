@@ -1,0 +1,8 @@
+rm prep.a
+xlf -qcheck -qextchk -qfixed -c *.f
+/bin/rm prepfits.o
+ar -ruv -X 64 prep.a *.o
+xlf -qcheck -qextchk -qfixed -g -o /nfsuser/g01/emcsrc/wx22gd/prepfits/exec.threats/prepfits_8km.x prepfits.f prep.a \
+      /nwprod/lib/libw3_4.a /nfsuser/g01/emcsrc/wx22gd/prepfits/bufrlib/bufrlib_4 \
+      /nwprod/lib/libbacio_4.a -bmaxdata:2000000000 -bmaxstack:256000000
+#rm *.o

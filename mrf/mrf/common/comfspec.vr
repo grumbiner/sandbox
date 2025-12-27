@@ -1,0 +1,30 @@
+C.................................................................
+C................BEGIN comfspec...................................
+C....
+       COMMON /comfspec/ IDATE(4),RELVOR(#LEVS),ABSVOR(#LEVS),
+     1 EPS(#LNUV),EPSI(#LNUV),GZ(#LNT22)
+       COMMON /comfspec/
+     *    ZEM    (#LNT22,#LEVS),
+     *    DIM    (#LNT22,#LEVS),
+     *    TEM    (#LNT22,#LEVS),
+     *    RM     (#LNT22,#LEVH),
+     *    QM     (#LNT22)
+       COMMON /comfspec/
+     *    ZE     (#LNT22,#LEVS),
+     *    DI     (#LNT22,#LEVS),
+     *    TE     (#LNT22,#LEVS),
+     *    RQ     (#LNT22,#LEVH),
+     *    DPDLAM (#LNT22),
+     *    DPDPHI (#LNT22),
+     *    ULN    (#LNT22,#LEVS),
+     *    VLN    (#LNT22,#LEVS),
+     *    Q      (#LNT22)
+       COMMON /comfspec/
+     *    X      (#LNT22,#LEVS),
+     *    Y      (#LNT22,#LEVS),
+     *    RT     (#LNT22,#LEVH),
+     *    Z      (#LNT22),
+     *    W      (#LNT22,#LEVS)
+C.................................................................
+C................sof   comfspec...................................
+C....

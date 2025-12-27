@@ -1,0 +1,483 @@
+      SUBROUTINE SEALDIAG
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    SEALDIAG    COMPUTE AND PRINT HORIZONTAL AVERAGES
+C   PRGMMR: J TUCCILLO       ORG: W/NMC4     DATE: 90-06-18
+C
+C ABSTRACT: COMPUTE AND PRINT HORIZONTAL AVERAGES
+C   .       ON SIGMA SURFACES OF RMS VECTOR WIND SPEED,
+C   .       SPECIFIC HUMIDITY, TEMPERATURE,
+C   .       TEMPERATURE TENDENCY DUE TO RADIATION,
+C   .       PLUS TEMP OF GROUND AND SUBSOIL.
+C   .
+C   .       AVERAGES ARE COMPUTED SEPARATELY FOR EACH SIGMA LEVEL.
+C   .       EACH GRID ( UP TO 4 IN NUMBER ), FOR LAND PTS, AND FOR
+C   .       SEA PTS.  ONLY FORECAST POINTS ARE CONSIDERED.
+C   .
+C   .     THE FIRST (NGRDUSE+2) HORIZONTAL SCRATCH ARRAYS IN
+C   .     THE ARRAY SCR(IJMAX,23) ARE USED FOR WORK SPACE
+C
+C PROGRAM HISTORY LOG:
+C   90-06-18  J TUCCILLO
+C
+C USAGE:  CALL SEALDIAG
+C
+C   SUBPROGRAMS CALLED:
+C     UNIQUE:    - P2KAP
+C     LIBRARY:
+C       COMMON   - COMCONST
+C                  COMBLANK
+C
+C REMARKS:
+C   .
+C   - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - -
+C   .
+C   NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----       ----------------------------------        ---------
+C   .
+C   VBL          BASIC NGM GRID DATA IN UNLABELED COMMON   BLANK
+C   .                                                       COMMON
+C   .
+C   - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C   .
+C   NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C   -----       ----------------------------------        ---------
+C   .
+C   .           ONLY PRINT
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+      INCLUDE 'parmodel'
+C...TRANSLATED BY FPP 3.00Z36 11/09/90  15:07:48  
+C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+C
+C     COMMON BLOCK /COMCONST/ CONTAINS GRID-RELATED PARAMETERS,
+C          AND A FEW OTHER COMMON CONSTANTS.
+      COMMON /COMCONST/ IJMAX, KM, LVLTOT, IJRAD, LOFCLDS(2,4),
+     1                  ICALLRAD, IPHYSPL, NGRDUSE, NH,
+     2                  NTIME, ITIME, NSTEPS,
+     3                  IMG(INGRDUSE), JMG(INGRDUSE),
+     4                  IAG(INGRDUS1), JAG(INGRDUS1),
+     5                  IBG(INGRDUS1), JBG(INGRDUS1),
+     6                  IADDRG(INIADDRS, INGRDUSE),
+     7                  NPTSFH(2, INGRDUSE),
+     8                  KUMULUS, LGRIDPPT, KLIFT1, KLIFT2, IBUCKET,
+     9                  XPOLEH(INGRDUSE), YPOLEH(INGRDUSE), RADIUS,
+     1                  DELSIG(IKM), PR(IKM), PRESS(IKM),
+     2                  SIGINT(IKMP1),
+     3                  DTOVDX, ANGVEL,
+     4                  SIGMACC, SIGMAGSP, SIGMADHQ, CRITCONV,
+     5                  SATDEL, RHFACTOR, QBOUND,
+     6                  ANEM, BLKDR, CHARN, CONAUST, DDORF, PKATO,
+     7                  SCALEHT, SIGDOT, DLAMNGM
+C
+      COMMON            SCR     (IIJMAX,  INSCR),
+     1                  SCRGEOG (IIJMAX,  INSCRGEO),
+     2                  SCR3    (IIJKMAX, INSCR3),
+     3                  FILLER  (INFILLER),
+     4                  VBL     (INVBL),
+     5                  BITGRDH (IIJMAX, 2, INGRDUSE),
+     6                  BITGRDU (IIJMAX, 2, INGRDUSE),
+     7                  BITGRDV (IIJMAX, 2, INGRDUSE),
+     8                  BITSEA  (IIJMAX, INGRDUSE),
+     9                  BITSNO  (IIJMAX, INGRDUSE),
+     1                  BITWVL  (IIJMAX, INGRDUSE)
+C
+      LOGICAL BITGRDH, BITGRDU, BITGRDV, BITSEA, BITSNO, BITWVL
+C
+C
+C      LOCAL BIT ARRAYS TO SEPARATE LAND AND SEA POINTS
+      LOGICAL BITC(IIJMAX,INGRDUSE),    BITL(IIJMAX,INGRDUSE)
+C            LOCAL ARRAYS
+      DIMENSION X(8), NSEA(8), NLAND(8),
+     1           HRD(INGRDUSE)
+C
+      CHARACTER*3 SEA
+      CHARACTER*4 LAND
+      CHARACTER*4 GRID
+C
+      INTEGER I1X
+      REAL COFD1,COFD2,COFD3,COFD4,COFN1,COFN2,COFN3
+      PARAMETER (COFD1 = 1., COFD2 = 5.44053037, COFD3 = 2.27693825, 
+     1   COFD4 = -0.0869930591, COFN1 = 0.34757549, COFN2 = 4.36732956, 
+     2   COFN3 = 3.91557032)
+C
+      DATA SEA  /'SEA'/
+      DATA LAND /'LAND'/
+      DATA GRID /'GRID'/
+C
+      DATA ICALL /0/
+C
+C--------------------------------------------------------------
+C
+      IF( ICALL .NE. 0 ) GO TO 10
+      ICALL = 1
+C               PREPARATORY WORK ON FIRST CALL
+C
+C             ALLOWABLE NUMBER OF GRIDS IS 4 FOR PRINTING.
+      NGRIDLIM = MIN (NGRDUSE, 4)
+C
+CMIC$ DO ALL SHARED(NGRDUSE, IMG, JMG, BITGRDH, BITSEA, BITL, BITC, NSEA
+CMIC$1   , NLAND) PRIVATE(NG, IM, JM, IJ, NS, NL, IQ2)
+      DO 5 NG=1,NGRDUSE
+      IM = IMG(NG)
+      JM = JMG(NG)
+      IJ = IM * JM
+C
+      NS = 0
+      NL = 0
+      DO 1001 IQ2 = 1, IJ
+        BITL(IQ2,NG)=BITGRDH(IQ2,1,NG).AND..NOT.BITSEA(IQ2,NG)
+        BITC(IQ2,NG)=BITGRDH(IQ2,1,NG).AND.     BITSEA(IQ2,NG)
+        IF ( BITC(IQ2,NG) ) NS = NS + 1
+        IF ( BITL(IQ2,NG) ) NL = NL + 1
+1001  CONTINUE
+      NSEA(NG)  = NS
+      NLAND(NG) = NL
+C
+   5  CONTINUE
+C                 DONE WITH PREPARATORY WORK
+   10 CONTINUE
+C
+C----------------------------------------------------
+C            PRINT FORECAST TIME
+      DNHOUR = FLOAT(ITIME) / 3600.E0
+      PRINT 11, DNHOUR
+   11 FORMAT(1H1,30X,'GRID DIAGNOSTICS AT',F8.2,' HOURS')
+C
+C               GET INVERSE H FIELD
+CMIC$ DO ALL SHARED(NGRDUSE, IMG, JMG, IADDRG, VBL, SCR) PRIVATE(NG, IM
+CMIC$1   , JM, IJ, IADH, IQ2)
+      DO 15 NG=1,NGRDUSE
+      IM = IMG(NG)
+      JM = JMG(NG)
+      IJ = IM * JM
+      IADH = IADDRG(5,NG)
+      DO 88900 IQ2=1,IJ
+         SCR(IQ2,NG)=1.E0/VBL(IADH+IQ2-1)
+88900 CONTINUE
+C
+   15 CONTINUE
+C---------------RMS VECTOR WIND SPEED
+C
+      PRINT 20
+   20 FORMAT(/'0','RMS WIND SPEED IN M/S:')
+C
+      PRINT 25, (GRID, NG, NG=1, NGRIDLIM)
+   25 FORMAT('0', 3X, 4(17X, A4, I2, 5X))
+C
+      PRINT 35, (LAND, SEA, NG = 1, NGRIDLIM)
+   35 FORMAT(' ', 5X, 'K',  4(8X, A4, 10X, A3, 3X) )
+C
+      PRINT 30, (NLAND(L), NSEA(L), L=1, NGRIDLIM)
+   30 FORMAT(' ', 2X, 'FCST PTS =  ', 4(I5,  9X, I5,  9X) )
+C
+      DO  60 KK=1,KM
+      K = KM-KK+1
+C            ZERO THE PRINT FIELD
+CMIC$ DO ALL VECTOR SHARED(X) PRIVATE(IQ2)
+      DO 88910 IQ2=1,8
+         X(IQ2)=0.E0
+88910 CONTINUE
+C
+        DO  50 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADU = IADDRG(1,NG) + (K-1)*IJ
+        IADV = IADDRG(2,NG) + (K-1)*IJ
+C            AVERAGE HU TO THE H POINTS BEFORE SQUARING
+C            AVERAGE HV TO THE H POINTS BEFORE SQUARING
+C            ADD SQUARES AND DIVIDE BY H**2
+CMIC$ DO ALL VECTOR SHARED(IJ, IADU, IM, IADV, NG, NGRDUSE, VBL, SCR)
+CMIC$1    PRIVATE(IQ2)
+      DO 88920 IQ2=1,IJ
+         SCR(IQ2,NGRDUSE+1)=
+     *  ((0.5E0*(VBL(IADU+IQ2-1)+VBL(IADU-IM+IQ2-1)))**2  +
+     *   (0.5E0*(VBL(IADV+IQ2-1)+VBL(IADV+IQ2-2)))**2)  *
+     *   SCR(IQ2,NG) * SCR(IQ2,NG)
+88920 CONTINUE
+C              GET THE LAND VALUES
+        SUML = 0.E0
+CFPP$ NOCONCUR L
+        DO 2001 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML + SCR(I,NGRDUSE+1)
+2001    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SQRT(SUML)
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2002 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC + SCR(I,NGRDUSE+1)
+2002    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SQRT(SUMC)
+C
+   50   CONTINUE
+C
+      NTOOGOOD = 2 * NGRIDLIM
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+   55 FORMAT(' ', 4X, I2, 2X, 8(1PE14.6) )
+C
+   60 CONTINUE
+C
+C
+C---------------SPECIFIC HUMIDITY
+C
+      PRINT 120
+  120 FORMAT(/'0', 'SPECIFIC HUMIDITY:')
+      PRINT 25, (GRID, NG, NG=1, NGRIDLIM)
+      PRINT 35, (LAND, SEA, NG = 1, NGRIDLIM)
+      PRINT 30, (NLAND(L), NSEA(L), L=1, NGRIDLIM)
+C
+      DO 160 KK=1,KM
+      K = KM-KK+1
+C            ZERO THE PRINT FIELD
+CMIC$ DO ALL VECTOR SHARED(X) PRIVATE(IQ2)
+      DO 88990 IQ2=1,8
+         X(IQ2)=0.E0
+88990 CONTINUE
+C
+        DO 150 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADQ = IADDRG(4,NG) + (K-1)*IJ
+CMIC$ DO ALL VECTOR SHARED(IJ, IADQ, NG, NGRDUSE, VBL, SCR) PRIVATE(IQ2)
+      DO 89000 IQ2=1,IJ
+         SCR(IQ2,NGRDUSE+1)=VBL(IADQ+IQ2-1)*SCR(IQ2,NG)
+89000 CONTINUE
+C              GET THE LAND VALUES
+        SUML = 0.E0
+        DO 2003 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML + SCR(I,NGRDUSE+1)
+2003    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SUML
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2004 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC + SCR(I,NGRDUSE+1)
+2004    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SUMC
+C
+  150   CONTINUE
+C
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+C
+  160 CONTINUE
+C
+C---------------TEMPERATURE
+C
+C             REPLACE 1/H IN HRD BY  H**KAPPA  /  H
+      DO 210 NG=1,NGRDUSE
+      IM = IMG(NG)
+      JM = JMG(NG)
+      IJ = IM * JM
+      IADH = IADDRG(5,NG)
+C          PUT H**KAPPA INTO SCR(NGRDUSE+1)
+C*****  Code Expanded From Routine:  P2KAP
+CMIC$ DO ALL VECTOR SHARED(IJ, IADH, NGRDUSE, VBL, SCR) PRIVATE(I1X)
+      DO 77001 I1X = 1, IJ
+         SCR(I1X,NGRDUSE+1) = (0.34757549+VBL(I1X+IADH-1)*(4.36732956+
+     1      VBL(I1X+IADH-1)*3.91557032))/(1.+VBL(I1X+IADH-1)*(5.44053037
+     2      +VBL(I1X+IADH-1)*(2.27693825+VBL(I1X+IADH-1)*(-0.0869930591)
+     3      )))
+77001 CONTINUE
+C*****  End of Code Expanded From Routine:  P2KAP
+C             DIVIDE   BY H AND PUT INTO HRD
+CMIC$ DO ALL VECTOR SHARED(IJ, NG, NGRDUSE, SCR) PRIVATE(IQ2)
+      DO 89010 IQ2=1,IJ
+         SCR(IQ2,NG)=SCR(IQ2,NG)*SCR(IQ2,NGRDUSE+1)
+89010 CONTINUE
+  210 CONTINUE
+C
+C
+      PRINT 220
+  220 FORMAT(/'0 ','TEMPERATURE:')
+      PRINT 25, (GRID, NG, NG=1, NGRIDLIM)
+      PRINT 35, (LAND, SEA, NG = 1, NGRIDLIM)
+      PRINT 30, (NLAND(L), NSEA(L), L=1, NGRIDLIM)
+C
+      DO 260 KK=1,KM
+      K = KM-KK+1
+C            ZERO THE PRINT FIELD
+CMIC$ DO ALL VECTOR SHARED(X) PRIVATE(IQ2)
+      DO 89020 IQ2=1,8
+         X(IQ2)=0.E0
+89020 CONTINUE
+C
+        DO 250 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADT = IADDRG(3,NG) + (K-1)*IJ
+CMIC$ DO ALL VECTOR SHARED(IJ, IADT, NG, K, NGRDUSE, VBL, SCR, PR)
+CMIC$1    PRIVATE(IQ2)
+      DO 89030 IQ2=1,IJ
+         SCR(IQ2,NGRDUSE+1)=VBL(IADT+IQ2-1)*SCR(IQ2,NG)*
+     *                      (2.E0*PR(K))
+89030 CONTINUE
+C              GET THE LAND VALUES
+        SUML = 0.E0
+        DO 2005 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML + SCR(I,NGRDUSE+1)
+2005    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SUML
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2006 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC + SCR(I,NGRDUSE+1)
+2006    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SUMC
+C
+  250   CONTINUE
+C
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+C
+  260 CONTINUE
+C
+C--------------------- D TEMP / D TIME    FROM RADIATION
+C
+      PRINT 320
+  320 FORMAT(/'0', 'D(TEMP)/ DT IN DEGREES PER DAY FROM RADIATION:')
+      PRINT 25, (GRID, NG, NG=1, NGRIDLIM)
+      PRINT 35, (LAND, SEA, NG = 1, NGRIDLIM)
+      PRINT 30, (NLAND(L), NSEA(L), L=1, NGRIDLIM)
+C
+      DO 360 KK=1,KM
+      K = KM-KK+1
+      CONST = 8.64E4 * 2.E0 * PR(K)
+C            ZERO THE PRINT FIELD
+CMIC$ DO ALL VECTOR SHARED(X) PRIVATE(IQ2)
+      DO 89050 IQ2=1,8
+         X(IQ2)=0.E0
+89050 CONTINUE
+C
+        DO 350 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADTCHG1 = IADDRG(14,NG) + (K-1)*IJ
+        IADTCHG2 = IADDRG(38,NG) + (K-1)*IJ
+C             MULTIPLY BY ( ( H**KAPPA ) / H  )
+C            CHANGE TO DEGREES PER DAY AND CORRECT FOR P**KAPPA
+CMIC$ DO ALL VECTOR SHARED(IJ, IADTCHG1, IADTCHG2, NG, CONST, NGRDUSE, 
+CMIC$1   VBL, SCR) PRIVATE(IQ2)
+      DO 89060 IQ2=1,IJ
+         SCR(IQ2,NGRDUSE+1)=(VBL(IADTCHG1+IQ2-1)+VBL(IADTCH
+     *   G2+IQ2-1))*SCR(IQ2,NG)* CONST
+89060 CONTINUE
+C              GET THE LAND VALUES
+        SUML = 0.E0
+        DO 2007 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML + SCR(I,NGRDUSE+1)
+2007    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SUML
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2008 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC + SCR(I,NGRDUSE+1)
+2008    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SUMC
+C
+  350   CONTINUE
+C
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+C
+  360 CONTINUE
+C
+C---------------------TEMPERATURE OF GROUND AND SUBSOIL
+C
+      PRINT 420
+  420 FORMAT(/'0', 'GROUND TEMPERATURE:')
+      PRINT 25, (GRID, NG, NG=1, NGRIDLIM)
+      PRINT 35, (LAND, SEA, NG = 1, NGRIDLIM)
+      PRINT 30, (NLAND(L), NSEA(L), L=1, NGRIDLIM)
+C
+C            ZERO THE PRINT FIELD
+CMIC$ PARALLEL SHARED(NGRIDLIM, IMG, JMG, IADDRG, BITL, VBL, NLAND, X, 
+CMIC$1   BITC, NSEA) PRIVATE(NG, IM, JM, IJ, IADTGD, SUML, SUMC, I, IQ2)
+CMIC$ DO PARALLEL VECTOR
+      DO 89080 IQ2=1,8
+         X(IQ2)=0.E0
+89080 CONTINUE
+C
+CMIC$ DO PARALLEL
+        DO 450 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADTGD = IADDRG(6,NG)
+C              GET THE LAND VALUES
+        SUML = 0.E0
+        DO 2009 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML +  VBL(I+IADTGD-1)
+2009    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SUML
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2010 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC + VBL(I+IADTGD-1)
+2010    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SUMC
+C
+  450   CONTINUE
+CMIC$ END PARALLEL
+C
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+C
+      PRINT 520
+  520 FORMAT(/'0', 'SUBSOIL TEMPERATURE:')
+C
+C            ZERO THE PRINT FIELD
+CMIC$ PARALLEL SHARED(NGRIDLIM, IMG, JMG, IADDRG, BITL, VBL, NLAND, X, 
+CMIC$1   BITC, NSEA) PRIVATE(NG, IM, JM, IJ, IADTSS, SUML, SUMC, I, IQ2)
+CMIC$ DO PARALLEL VECTOR
+      DO 89090 IQ2=1,8
+         X(IQ2)=0.E0
+89090 CONTINUE
+C
+CMIC$ DO PARALLEL
+        DO 550 NG=1,NGRIDLIM
+        IM = IMG(NG)
+        JM = JMG(NG)
+        IJ = IM * JM
+        IADTSS = IADDRG(21,NG)
+C              GET THE LAND VALUES
+        SUML = 0.E0
+        DO 2011 I = 1, IJ
+           IF ( BITL(I,NG) ) SUML = SUML +  VBL(I+IADTSS-1)
+2011    CONTINUE
+        IF( NLAND(NG) .NE. 0 ) SUML = SUML / FLOAT(NLAND(NG) )
+        X(2*NG-1 ) = SUML
+C              SEA VALUES
+        SUMC = 0.E0
+        DO 2012 I = 1, IJ
+           IF ( BITC(I,NG) ) SUMC = SUMC +  VBL(I+IADTSS-1)
+2012    CONTINUE
+        IF( NSEA(NG) .NE. 0 ) SUMC = SUMC / FLOAT(NSEA(NG) )
+        X(2*NG) = SUMC
+C
+  550   CONTINUE
+CMIC$ END PARALLEL
+C
+      PRINT 55, K, (X(NG),NG = 1,NTOOGOOD)
+C
+      PRINT 700
+  700 FORMAT ('0')
+C
+C
+      RETURN
+      END

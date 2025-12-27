@@ -1,0 +1,100 @@
+#QSUB -lM 16Mw -lT 2500 -eo -x -s /bin/sh -o /dm/wd21rg/mrfz/thicker.96021700
+# This script makes a global forecast.
+# Imported variable CDATE in yymmddhh format determines date to process.
+
+set -xS
+
+CDATE=96021700
+
+export FILENV NCPUS
+export CDATE FHOUR
+export DIRPRW SIGANL SFCANL
+export DIRRUN SIGFCS SFCFCS PGBFCS FLXFCS ZNLFCS
+
+FHOUR=${FHOUR:-168}
+
+DIRPRW=/dm/wd21rg/mrfz
+#DIRPRW=${DIRPRW:-/gloptmp/datprw}
+#SIGANL=${SIGANL:-$DIRPRW/siganl.$CDATE}
+#SFCANL=${SFCANL:-$DIRPRW/sfcanl.$CDATE}
+
+
+OUTDIR=/dm/wd21rg/mrf.thicker
+export OUTDIR
+if [ ! -d $OUTDIR ] ; then
+  mkdir $OUTDIR
+fi
+SIGFCS=$OUTDIR/sigf'$FH'.$CDATE
+SFCFCS=$OUTDIR/sfcf'$FH'.$CDATE
+PGBFCS=$OUTDIR/pgbf'$FH'.$CDATE
+FLXFCS=$OUTDIR/flxf'$FH'.$CDATE
+ZNLFCS=$OUTDIR/znlf'$FH'.$CDATE
+DIRRUN=/tmp/wd21rg/thicker.$CDATE
+
+mkdir -p $DIRRUN
+cd $DIRRUN
+
+tar xvf $DIRPRW/gz$CDATE siganl.$CDATE
+tar xvf $DIRPRW/gz$CDATE sfcges.$CDATE
+SIGANL=siganl.$CDATE
+SFCANL=sfcges.$CDATE
+
+sigim=$SIGANL
+sigi=/dev/null
+sfci=$SFCANL
+FH=00
+while test $FH -lt $FHOUR;do
+FH=`expr $FH + 12`
+sigfm=sigm.$FH
+eval sigf=$SIGFCS
+eval sfcf=$SFCFCS
+eval flxf=$FLXFCS
+eval znlf=$ZNLFCS
+eval pgbf=$PGBFCS
+
+FILENV=fcstasgn
+#fcstexec=/nwprod/sm6228/exec.sm6228/fcst28.xc
+fcstexec=$DHOME/mrf.thicker/execs/f6228.x
+fcstparm=/dm/datpro/f12.parm62
+fcstcpus=6
+co2const=/nwprod/sm6228/fix.sm6228/co2const.28
+mtnvar=/nwprod/sm6228/fix.sm6228/mtnvar.62
+tune1=/nwprod/sm6228/fix.sm6228/tune1.season
+assign -a $sigim         -Fcos -Cascii -Nibm fort.11
+assign -a $sigi          -Fcos -Cascii -Nibm fort.12
+assign -a $sfci          -Fcos -Cascii -Nibm fort.14
+assign -a $co2const      -Fcos -Cascii -Nibm fort.15
+assign -a $mtnvar        -Fcos -Cascii -Nibm fort.24
+assign -a $tune1         -Fcos -Cascii -Nibm fort.43
+assign -a $sigfm         -Fcos -Cascii -Nibm fort.51
+assign -a $sigf          -Fcos -Cascii -Nibm fort.52
+assign -a $sfcf          -Fcos -Cascii -Nibm fort.53
+assign -a $flxf          -s unblocked        fort.63
+assign -a $znlf          -Fcos -Cascii -Nibm fort.64
+NCPUS=$fcstcpus $fcstexec <$fcstparm;fcsterr=$?
+if test $fcsterr -ne 0;then exit $fcsterr;fi
+
+FILENV=pgbasgn
+pgbexec=/nwprod/sm12628/exec.sm12628/postgp.xc
+pgbparm=/dev/null
+assign -a $sigf          -Fcos -Cascii -Nibm fort.11
+assign -a /dev/null      -Fcos -Cascii -Nibm fort.12
+assign -a $pgbf          -s unblocked        fort.51
+NCPUS=1 $pgbexec <$pgbparm;pgberr=$?
+
+FILENV=fluxterpasgn
+fluxterpexec=/nwprod/sm12628/exec.sm12628/fluxcnv.xc
+fluxterpparm=/dev/null
+/dm/wd20mi/jif/windex1.j9410/windex1 $flxf flxf.ix1
+assign -a $flxf          -s unblocked        fort.11
+assign -a flxf.ix1       -s unblocked        fort.31
+assign -a flx1f          -s unblocked        fort.51
+NCPUS=1 $fluxterpexec <$fluxterpparm;fluxterperr=$?
+cat flx1f >>$pgbf
+
+sigim=$sigfm
+sigi=$sigf
+sfci=$sfcf
+done
+
+qsub $DHOME/mrfz/pfc18.thicker

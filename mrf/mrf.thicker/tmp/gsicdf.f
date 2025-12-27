@@ -1,0 +1,59 @@
+C-----------------------------------------------------------------------
+      SUBROUTINE GSICDF(DELTIM,AM,BM,GV,SV,CM)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    GSICDF      SETUP FOR SEMI-IMPLICIT TIME INTEGRATION.
+C   PRGMMR: JOSEPH SELA      ORG: W/NMC23    DATE: 89-03-15
+C
+C ABSTRACT: COMPUTES MATRIX INVERSE OF RHS DIVERGENCE AUTODEPENDENCE
+C           IN THE SEMI-IMPLICIT TREATMENT OF THE GRAVITY WAVE MODES.
+C
+C PROGRAM HISTORY LOG:
+C   93-03-15  MARK IREDELL
+C
+C USAGE:    CALL GSICDF(DELTIM,AM,BM,GV,SV,CM)
+C   INPUT ARGUMENT LIST:
+C     DELTIM   - TIMESTEP
+C     AM       - DIV DEPENDENCE ON TEMP (HYDROSTATIC)
+C     BM       - TEMP DEPENDENCE ON DIV (ENERGY CONVERSION)
+C     GV       - DIV DEPENDENCE ON LNPS (PRESSURE GRADIENT)
+C     SV       - LNPS DEPENDENCE ON DIV (CONTINUITY)
+C     CM       - DIV AUTODEPENDENCE (CM=SV*GV+AM*BM)
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN 77.
+C   MACHINE:  CRAY YMP.
+C
+C$$$
+      PARAMETER(KM= 28 ,JCAP= 62 ,LNT2= 4032 )
+      DIMENSION AM(KM*KM),BM(KM*KM),SV(KM),GV(KM),CM(KM*KM)
+      PARAMETER(RD= 2.8705E+2 ,RERTH= 6.3712E+6 ,RAA=RD/(RERTH**2))
+      PARAMETER(TOL=1.E-12)
+      COMMON/COMSIC/ DT,GVDT(KM),SVDT(KM),AMDT(KM*KM),BMDT(KM*KM),
+     1               DM(KM*KM,0:JCAP)
+      DIMENSION WORK(2*KM)
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      DT=DELTIM
+      DO K=1,KM
+        GVDT(K)=DT*GV(K)
+        SVDT(K)=DT*SV(K)
+      ENDDO
+      DO KJ=1,KM*KM
+        AMDT(KJ)=DT*AM(KJ)
+        BMDT(KJ)=DT*BM(KJ)
+        DM(KJ,0)=0.
+      ENDDO
+      DO KJ=1,KM*KM,KM+1
+        DM(KJ,0)=1.
+      ENDDO
+CMIC$ DO ALL SHARED(DT,DM,CM) PRIVATE(N,DT2NN1,KJ,WORK,DET)
+      DO N=1,JCAP
+        DT2NN1=DT**2*(N*(N+1))
+        DO KJ=1,KM*KM
+          DM(KJ,N)=DM(KJ,0)-DT2NN1*CM(KJ)
+        ENDDO
+        CALL MINV(DM(1,N),KM,KM,WORK,DET,TOL,0,1)
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END

@@ -1,0 +1,6 @@
+C-----------------------------------------------------------------------
+      LOGICAL LFRST
+                             C O M M O N /MSLP/
+     & KMNTM(LM),KMNTMG(LM),IMNT(IDIM2*JDIM2,LM),JMNT(IDIM2*JDIM2,LM)
+     &,IMNTG(IMJM,LM),JMNTG(IMJM,LM),LFRST,LHMNT
+C-----------------------------------------------------------------------

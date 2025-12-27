@@ -1,0 +1,8 @@
+rm g2o.a
+xlf90 -qfixed -c *.f
+rm gridtobs.o
+ar -ruv -X 64 g2o.a *.o
+xlf90 -qfixed -o gridtobs.x gridtobs.f g2o.a \
+      /nwprod/lib/libw3_4.a /nfsuser/g01/wx20ps/bufrlib_asp/bufrlib_4 \
+      /nwprod/lib/libbacio_4.a -bmaxdata:2000000000 -bmaxstack:256000000
+rm *.o

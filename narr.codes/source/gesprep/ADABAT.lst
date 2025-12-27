@@ -1,0 +1,379 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/ADABAT.f 08/24/05 14:24:45
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE ADABAT(J,TS,PS,ISTO)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    ADABAT      PERFORM ADIABATIC CHECK OF TEMPS
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 86-03-31
+          6 |C
+          7 |C ABSTRACT: PERFORMS A CHECK OF TEMPERATURE PROFILES FOR LAYERS
+          8 |C   WHICH ARE SUPER-ADIABATIC.  A CORRECTION IS CALCULATED AND
+          9 |C   APPLIED IF THE SWITCH IS SET TO DO SO.  BASED ON RALPH JONES
+         10 |C   CODE FROM THE ISENTROPIC.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   86-03-31  DIMEGO
+         14 |C   88-06-30  DIMEGO      HALF PRECISION / PL1 / FTN200
+         15 |C
+         16 |C USAGE:    CALL ADABAT(J,TS,PS,ISTO)
+         17 |C   INPUT ARGUMENT LIST:
+         18 |C     J        - INDEX OF STRIP BEING CHECKED
+         19 |C     TS       - ARRAY OF TEMPERATURES (ANALYSIS STRIP)
+         20 |C     PS       - ARRAY OF PRESSURES (ANALYSIS STRIP)
+         21 |C     ISTO     - SWITCH FOR STORING CORRECTED/ADJUSTED VALUE:
+         22 |C              - 0 DO NOT STORE ; NON ZERO STORE NEW VALUE.
+         23 |C
+         24 |C   OUTPUT ARGUMENT LIST:
+         25 |C     TS       - WHEN ISTO IS NON-ZERO, THE ADJUSTED VALUES
+         26 |C              - ARE WRITTEN IN PLACE OF ORIGINAL VALUES.
+         27 |C
+         28 |C   OUTPUT FILES:
+         29 |C     UNIT6    - DIAGNOSTIC PRINTOUT OF SUMMARY IS PRINTED
+         30 |C              - AFTER LAST STRIP (BASED ON J) IS PROCESSED.
+         31 |C
+         32 |C REMARKS: LAYERS ARE SIMPLY MIXED TO RELIEVE SUPER-ADIABAT
+         33 |C
+         34 |C ATTRIBUTES:
+         35 |C   LANGUAGE: STANDARD FORTRAN
+         36 |C   MACHINE:
+         37 |C
+         38 |C$$$
+         39 |      IMPLICIT REAL (A-H,O-Z)
+         40 |      INCLUDE "parmanl"
+  1       1 |C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       2 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       3 |C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       4 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       5 |C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       6 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       7 |C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       8 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       9 |C  DCL /* LMAX       LMAX IS THE NUMBER OF ETA LAYERS IN THE        */
+  1      10 |C  DCL /*            ANALYSIS GRID                                  */
+  1      11 |C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF ETA-LAYER              */
+  1      12 |C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+  1      13 |C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF ETA-LAYER              */
+  1      14 |C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+  1      15 |C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+  1      16 |C  DCL /*            PROCESSED IN THE ANALYSIS                      */
+  1      17 |C  DCL /* GRID       GRID IS NORTH-SOUTH EXTENT OF A DATA STRIP     */
+  1      18 |C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+  1      19 |C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+  1      20 |       PARAMETER (IMGLO = 720 )
+  1      21 |       PARAMETER (JMGLO = 361  )
+  1      22 |       PARAMETER (IMAX = 440 )
+  1      23 |       PARAMETER (JMAX = 190  )
+  1      24 |c      parameter (imax=237)
+  1      25 |c      parameter (jmax=387)
+  1      26 |       PARAMETER (LMAX = 45    )
+  1      27 |       PARAMETER (LMAXP1 = 46 )
+  1      28 |       PARAMETER (LMXDBL = LMAX + LMAXP1 )
+  1      29 |       PARAMETER (LDMAX = 41 )
+  1      30 |       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+  1      31 |       PARAMETER (GRID_111 = 0.5 )
+  1      32 |       LOGICAL    GLOBAL
+  1      33 |       PARAMETER (GLOBAL = .false. )
+  1      34 |       PARAMETER (YSOUTH =  -4.5 )
+  1      35 |       PARAMETER (DLON =  0.5 )
+         41 |      DIMENSION TS( IMAX , LMAX ),PS( IMAX , LMAX )
+         42 |      DIMENSION PT( LMAX ),PI( LMAX ),NCOUNT( LMAX )
+         43 |      DIMENSION DMEAN( LMAX ),RMSTD( LMAX ),TDMAX( LMAX )
+         44 |      DIMENSION MAXI( LMAX ),MAXJ( LMAX )
+         45 |      DATA NCOUNT,DMEAN/ LMAX *0, LMAX *0.0/
+         46 |      DATA RMSTD,TDMAX/ LMAX *0.0, LMAX *0.0/
+         47 |      DATA MAXI,MAXJ/ LMAX *0, LMAX *0/
+         48 |      LMAXM1= LMAX - 1
+         49 |      ROCP = 287.05 / 1005.
+         50 |      XSTO = 0.0
+         51 |      IF( ISTO.GT.0 )  XSTO = 1.0
+         52 |      DO 7 I=1, IMAX
+         53 |C  COMPUTE PI & THETA AND ADJUST ANY SUPERADIABATIC LAPSE RATES
+         54 |      DO 2 L=1, LMAX
+         55 |      PI(L) = (.001*PS(I,L)) ** ROCP
+         56 |      PT(L) = TS(I,L)/PI(L)
+         57 |    2 CONTINUE
+         58 |      ITER = 0
+         59 |      ITX = 50
+         60 |      CMAX = 0.0
+         61 |      CMEAN = 0.0
+         62 |      NCNT = 0
+         63 |      LEVMAX = 0
+         64 |      DO 4 N=1,ITX
+         65 |      NHS = 0
+         66 |      DO 3 L=1,LMAXM1
+         67 |      DPT = PT(L+1)-PT(L)
+         68 |      IF(DPT.GT.0.0) GO TO 3
+         69 |      NHS = NHS+1
+         70 |      NCNT = NCNT + 1
+         71 |      COR = 0.5*DPT-0.05
+         72 |      TCOR = ABS(COR*0.5*(PI(L)+PI(L+1)))
+         73 |      CMAX = MAX(CMAX,TCOR)
+         74 |      CMEAN = CMEAN + TCOR
+         75 |      IF(NCNT.EQ.1) LEVMAX = L
+         76 |      PT(L+1) = PT(L+1)-COR
+         77 |      PT(L) = PT(L)+COR
+         78 |    3 CONTINUE
+         79 |      IF(NHS.EQ.0) GO TO 5
+         80 |      ITER = N
+         81 |    4 CONTINUE
+         82 |    5 CONTINUE
+         83 |      IF(ITER.EQ.0) GO TO 7
+         84 |      IF( NCNT.GT.1 )  CMEAN = CMEAN / FLOAT(NCNT)
+         85 |C     IF(ITER.GT.3.OR.CMAX.GE.1.0.OR.CMEAN.GT.0.5)
+         86 |C    + WRITE(6,101) I,J,ITER,NCNT,LEVMAX,CMAX,CMEAN
+         87 |C 101 FORMAT('  ADIABATIC ADJUSTMENT AT POINT (',I3,',',I2,')',
+         88 |C    1        ' NEEDED ',I3,' ITERATIONS',2I5,2F10.3)
+         89 |C  NOW RE-COMPUTE ADJUSTED TEMPERATURES
+         90 |      DO 6 L=1,LMAX
+         91 |      TNEW = PT(L) * PI(L)
+         92 |      TDIF = TNEW - TS(I,L)
+         93 |      IF(ABS(TDIF).LE.0.01) GO TO 6
+         94 |      NCOUNT(L) = NCOUNT(L) + 1
+         95 |      DMEAN(L) = DMEAN(L) + TDIF
+         96 |      RMSTD(L) = RMSTD(L) + TDIF*TDIF
+         97 |      TS(I,L) = TS(I,L) + TDIF * XSTO
+         98 |      IF(ABS(TDIF).LE.TDMAX(L)) GO TO 6
+         99 |      TDMAX(L) = ABS(TDIF)
+        100 |      MAXI(L) = I
+        101 |      MAXJ(L) = J
+        102 |    6 CONTINUE
+        103 |    7 CONTINUE
+        104 |      IF( J.LT.  JMAX ) RETURN
+        105 |      WRITE(6,102)NCOUNT
+        106 |  102 FORMAT(' CNT ',18I7)
+        107 |      DO 8 L=1,LMAX
+        108 |      NCOUNT(L) = MAX0(1,NCOUNT(L))
+        109 |      COUNT = 1.0 / FLOAT(NCOUNT(L))
+        110 |      DMEAN(L) = DMEAN(L) * COUNT
+        111 |      RMSTD(L) = SQRT(RMSTD(L)*COUNT)
+        112 |    8 CONTINUE
+        113 |      WRITE(6,103)DMEAN
+        114 |      WRITE(6,104)RMSTD
+        115 |      WRITE(6,105)TDMAX
+        116 |      WRITE(6,106)MAXI
+        117 |      WRITE(6,107)MAXJ
+        118 |  103 FORMAT(' MEAN',18F7.2)
+        119 |  104 FORMAT(' RMS ',18F7.2)
+        120 |  105 FORMAT(' MAX ',18F7.2)
+        121 |  106 FORMAT(' MAXI',18I7)
+        122 |  107 FORMAT(' MAXJ',18I7)
+        123 |      DO 108 N=1,LMAX
+        124 |      NCOUNT(N) = 0
+        125 |      MAXI(N) = 0
+        126 |      MAXJ(N) = 0
+        127 |      DMEAN(N) = 0.0
+        128 |      RMSTD(N) = 0.0
+        129 |      TDMAX(N) = 0.0
+        130 |  108 CONTINUE
+        131 |      RETURN
+        132 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-72.14  0-93.10  0-98.10  0-99.18
+ 
+adabat                           Subroutine
+                                 0-1.18$
+ 
+cmax                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-60.7@  0-73.7@  0-73.18
+ 
+cmean                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-61.7@  0-74.7@  0-74.15  0-84.24@  0-84.32
+ 
+cor                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-72.18  0-76.25  0-77.21
+ 
+count                            Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-109.7@  0-110.29  0-111.32
+ 
+dlon                             Parameter, Real(4)
+                                 1-35.19$
+ 
+dmean                            Static, Real(4) (1:45), Offset: 0, Alignment: full word
+                                 0-43.17$  0-45.19*  0-95.7@  0-95.18  0-110.7@  0-110.18  0-113.19  0-127.7@
+ 
+dpt                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-67.7@  0-68.10  0-71.17
+ 
+float                            Pure Intrinsic
+                                 0-84.40  0-109.21
+ 
+global                           Parameter, Logical(4)
+                                 1-32.19$  1-33.19$
+ 
+grid_111                         Parameter, Real(4)
+                                 1-31.19$
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-52.12@  0-55.24  0-56.18  0-92.24  0-97.10  0-97.20  0-100.17
+ 
+imax                             Parameter, Integer(4)
+                                 1-22.19$  0-41.21  0-41.39  0-52.17
+ 
+imglo                            Parameter, Integer(4)
+                                 1-20.19$
+ 
+isto                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-51.11
+ 
+iter                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-80.7@  0-83.10
+ 
+itx                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-59.7@  0-64.16
+ 
+j                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.25  0-101.17  0-104.11
+ 
+jmax                             Parameter, Integer(4)
+                                 1-23.19$  0-104.18
+ 
+jmglo                            Parameter, Integer(4)
+                                 1-21.19$
+ 
+l                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-54.12@  0-55.10  0-55.26  0-56.10  0-56.20  0-56.26  0-66.12@  0-67.16  0-67.24  0-72.30  0-72.36
+                                 0-75.30  0-76.10  0-76.20  0-77.10  0-77.18  0-90.12@  0-91.17  0-91.25  0-92.26  0-94.14  0-94.26
+                                 0-95.13  0-95.24  0-96.13  0-96.24  0-97.12  0-97.22  0-98.29  0-99.13  0-100.12  0-101.12
+                                 0-107.12@  0-108.14  0-108.33  0-109.34  0-110.13  0-110.24  0-111.13  0-111.29
+ 
+ldmax                            Parameter, Integer(4)
+                                 1-29.19$  1-30.37
+ 
+levmax                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-63.7@  0-75.21@
+ 
+levx                             Parameter, Integer(4)
+                                 1-30.19$
+ 
+lmax                             Parameter, Integer(4)
+                                 1-26.19$  0-41.28  0-41.46  0-42.21  0-42.32  0-42.47  0-43.24  0-43.38  0-43.52  0-44.23  0-44.36
+                                 0-45.26  0-45.35  0-46.25  0-46.36  0-47.23  0-47.32  0-48.15  0-54.17  0-90.16  0-107.16  0-123.18
+                                 1-28.28  1-30.30
+ 
+lmaxm1                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-48.7@  0-66.16
+ 
+lmaxp1                           Parameter, Integer(4)
+                                 1-27.19$  1-28.35
+ 
+lmxdbl                           Parameter, Integer(4)
+                                 1-28.19$
+ 
+max                              Pure Intrinsic
+                                 0-73.14
+ 
+max0                             Pure Intrinsic
+                                 0-108.19
+ 
+maxi                             Static, Integer(4) (1:45), Offset: 0, Alignment: full word
+                                 0-44.17$  0-47.12*  0-100.7@  0-116.19  0-125.7@
+ 
+maxj                             Static, Integer(4) (1:45), Offset: 0, Alignment: full word
+                                 0-44.30$  0-47.17*  0-101.7@  0-117.19  0-126.7@
+ 
+n                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.12@  0-80.14  0-123.14@  0-124.14  0-125.12  0-126.12  0-127.13  0-128.13  0-129.13
+ 
+ncnt                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-62.7@  0-70.7@  0-70.14  0-75.10  0-84.11  0-84.46
+ 
+ncount                           Static, Integer(4) (1:45), Offset: 0, Alignment: full word
+                                 0-42.39$  0-45.12*  0-94.7@  0-94.19  0-105.19  0-108.7@  0-108.26  0-109.27  0-124.7@
+ 
+nhs                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-69.7@  0-69.13  0-79.10
+ 
+pi                               Automatic, Real(4) (1:45), Offset: 0, Alignment: full word
+                                 0-42.28$  0-55.7@  0-56.23  0-72.27  0-72.33  0-91.22
+ 
+ps                               Reference argument, Real(4) (1:440, 1:45), Offset: 0, Alignment: full word
+                                 0-41.35$  0-1.30  0-55.21
+ 
+pt                               Automatic, Real(4) (1:45), Offset: 0, Alignment: full word
+                                 0-42.17$  0-56.7@  0-67.13  0-67.21  0-76.7@  0-76.17  0-77.7@  0-77.15  0-91.14
+ 
+rmstd                            Static, Real(4) (1:45), Offset: 0, Alignment: full word
+                                 0-43.31$  0-46.12*  0-96.7@  0-96.18  0-111.7@  0-111.23  0-114.19  0-128.7@
+ 
+rocp                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-49.7@  0-55.33
+ 
+sqrt                             Pure Intrinsic
+                                 0-111.18
+ 
+tcor                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-72.7@  0-73.23  0-74.23
+ 
+tdif                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-92.7@  0-93.14  0-95.29  0-96.29  0-96.34  0-97.27  0-98.14  0-99.22
+ 
+tdmax                            Static, Real(4) (1:45), Offset: 0, Alignment: full word
+                                 0-43.45$  0-46.18*  0-98.23  0-99.7@  0-115.19  0-129.7@
+ 
+tnew                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-91.7@  0-92.14
+ 
+ts                               Reference argument, Real(4) (1:440, 1:45), Offset: 0, Alignment: full word
+                                 0-41.17$  0-1.27  0-56.15  0-92.21  0-97.7@  0-97.17
+ 
+xsto                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-50.7@  0-51.24@  0-97.34
+ 
+ysouth                           Parameter, Real(4)
+                                 1-34.19$
+ 
+** adabat   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ADABAT.f                    03/26/03   17:35:09
+     1    /mp/emc2/wx20du/narr_source/sorc/gesprep/parmanl
+                                      03/26/03   17:35:10      0      40
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     167
+1501-510  Compilation successful for file ADABAT.f.
+1501-543  Object file created.

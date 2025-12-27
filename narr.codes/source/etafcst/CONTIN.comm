@@ -1,0 +1,8 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /CONTIN/
+     & PDSL(IDIM1:IDIM2,JDIM1:JDIM2),PSDT(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,RTOP(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,OMGALF(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,DIV(IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,ETADT(IDIM1:IDIM2,JDIM1:JDIM2,LM-1)
+C-----------------------------------------------------------------------

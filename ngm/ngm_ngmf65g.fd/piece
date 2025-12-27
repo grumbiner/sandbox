@@ -1,0 +1,38 @@
+
+$ make -f makefile_grib
+        xlf_r -O3 -qstrict -qarch=pwr3 -qmaxmem=-1 -NS2000 -qsource -qxref=full -qattr=full -qsave    -c RDCLDGEN.f
+        165 |     *      ICLUW(IQ2,2).LE. K ) THEN
+            .............a........................
+a - "RDCLDGEN.f", line 165.13: 1516-023 (E) Subscript is out of bounds.
+        191 |         CLD(IQ2,2)=CST(IQ2,KSTMD)
+            ..........a........................
+a - "RDCLDGEN.f", line 191.10: 1516-023 (E) Subscript is out of bounds.
+        192 |         ICLDW(IQ2,2)=KSTMD
+            ..........a.................
+a - "RDCLDGEN.f", line 192.10: 1516-023 (E) Subscript is out of bounds.
+        198 |        IF ( CST(IQ2,K).GT.CLD(IQ2,2) ) THEN
+            ............................a................
+a - "RDCLDGEN.f", line 198.28: 1516-023 (E) Subscript is out of bounds.
+        199 |         CLD(IQ2,2)=CST(IQ2,K)
+            ..........a....................
+a - "RDCLDGEN.f", line 199.10: 1516-023 (E) Subscript is out of bounds.
+        200 |         ICLDW(IQ2,2)=K
+            ..........a.............
+a - "RDCLDGEN.f", line 200.10: 1516-023 (E) Subscript is out of bounds.
+        208 |         CLD(IQ2,3)=CST(IQ2,KSTHI)
+            ..........a........................
+a - "RDCLDGEN.f", line 208.10: 1516-023 (E) Subscript is out of bounds.
+        209 |         ICLDW(IQ2,3)=KSTHI
+            ..........a.................
+a - "RDCLDGEN.f", line 209.10: 1516-023 (E) Subscript is out of bounds.
+        215 |        IF ( CST(IQ2,K).GT.CLD(IQ2,3) ) THEN
+            ............................a................
+a - "RDCLDGEN.f", line 215.28: 1516-023 (E) Subscript is out of bounds.
+        216 |         CLD(IQ2,3)=CST(IQ2,K)
+            ..........a....................
+a - "RDCLDGEN.f", line 216.10: 1516-023 (E) Subscript is out of bounds.
+        217 |         ICLDW(IQ2,3)=K
+            ..........a.............
+a - "RDCLDGEN.f", line 217.10: 1516-023 (E) Subscript is out of bounds.
+** rdcldgen   === End of Compilation 1 ===
+

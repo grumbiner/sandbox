@@ -1,0 +1,9 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /MASKS/
+     & VBM2(IDIM1:IDIM2,JDIM1:JDIM2),VBM3(IDIM1:IDIM2,JDIM1:JDIM2)
+     &,SM  (IDIM1:IDIM2,JDIM1:JDIM2),SICE(IDIM1:IDIM2,JDIM1:JDIM2)
+C
+     &,HTM (IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,VTM (IDIM1:IDIM2,JDIM1:JDIM2,LM)
+     &,HBM2(IDIM1:IDIM2,JDIM1:JDIM2),HBM3(IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

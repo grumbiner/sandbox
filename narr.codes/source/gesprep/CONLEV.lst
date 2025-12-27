@@ -1,0 +1,275 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/CONLEV.f 08/24/05 14:24:46
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE CONLEV (ICT,ZX,ZN)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    CONLEV      DETERMINES NUMBER OF CONTOURS FOR PLOT
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 86-07-18
+          6 |C
+          7 |C ABSTRACT: DETERMINES NUMBER OF CONTOURS FOR PLOT
+          8 |C
+          9 |C PROGRAM HISTORY LOG:
+         10 |C   86-07-18  G DIMEGO
+         11 |C   88-09-22  B SCHMIDT ADDED THE DOCBLOCK
+         12 |C
+         13 |C USAGE:    CALL CONLEV (ICT, ZX, ZN)
+         14 |C   INPUT ARGUMENT LIST:
+         15 |C     ICT      - LOGICAL VARIABLE
+         16 |C     ZX       - MAXIMUM VALUE
+         17 |C     ZN       - MINIMUM VALUE
+         18 |C
+         19 |C   SUBPROGRAMS CALLED:
+         20 |C     LIBRARY:
+         21 |C       COMMON   - BLK3
+         22 |C
+         23 |C ATTRIBUTES:
+         24 |C   LANGUAGE: STANDARD FORTRAN
+         25 |C   MACHINE:
+         26 |C
+         27 |C$$$
+         28 |      IMPLICIT REAL   (A-H,O-Z)
+         29 |      DIMENSION CON(24),XLIM(4),YLIM(4)
+         30 |      CHARACTER*4 YTITLE(20)
+         31 |      CHARACTER*1 XTITLE(30)
+         32 |      LOGICAL IACROS,XREV,YREV,TICK,ALLCON
+         33 |      COMMON /BLK3/ LI,LJ,LID,IACROS,XREV,YREV,TICK,ALLCON,XLIM,YLIM,
+         34 |     + XRG,YRG,IXD,IYD,NPRL,NPRC,NLV,CON,XTITLE,YTITLE
+         35 |      DIF = ABS(ZX-ZN)
+         36 |C WAS XX = HMAX1(ABS(ZX),ABS(ZN))
+         37 |      XX = AMAX1(ABS(ZX),ABS(ZN))
+         38 |      CONT = CON(2)
+         39 |      IEVODD = 0
+         40 |      NLV2 = NLV/2
+         41 |      ENLV = NLV
+         42 |      ENMN = 0.5 * ENLV
+         43 |      ENMX = 1.25 * ENLV
+         44 |      GO TO (10,25,30,40,50,60),ICT
+         45 |   10 IF(IEVODD .EQ. 1) GO TO 41
+         46 |      CON(1) = -CON(2) * 10. * ENLV
+         47 |      RETURN
+         48 |   20 CON(2) = CON(2) + CONT
+         49 |   25 IF(DIF/CON(2) .GT. ENMX - 2.) GO TO 20
+         50 |      GO TO 10
+         51 |   30 IF(DIF/CON(2) - ENLV) 36,10,33
+         52 |   33 IF(DIF/CON(2) .LE. ENMX - 2.) GO TO 10
+         53 |      CON(2) = CON(2) * 2.
+         54 |      IF(DIF/CON(2) .LE.  ENMX   ) GO TO 10
+         55 |      CON(2) = CON(2) * 2.5
+         56 |      IF(DIF/CON(2) .LE. ENMX-2.) GO TO 10
+         57 |      CON(2) = CON(2) * 2.
+         58 |      GO TO 33
+         59 |   36 IF(DIF/CON(2) .GE.ENMN + 1.) GO TO 10
+         60 |      CON(2) = CON(2) * .5
+         61 |      IF(DIF/CON(2) .GE. ENMN) GO TO 10
+         62 |      CON(2) = CON(2) * .4
+         63 |      IF(DIF/CON(2) .GE.ENMN + 1.) GO TO 10
+         64 |      CON(2) = CON(2) * .5
+         65 |      GO TO 36
+         66 |   40 NLV = NLV + 4
+         67 |      NLV2 = NLV2 + 2
+         68 |      CON(NLV2 + 1) = 1. E-21
+         69 |      CON(NLV2 + 2) = .1 * CONT
+         70 |      CON(NLV2 + 3) =.25 * CONT
+         71 |      CON(NLV2 + 4) = .5 * CONT
+         72 |      CON(NLV2 + 5) =      CONT
+         73 |      NST = NLV2 + 6
+         74 |      GO TO 43
+         75 |   41 CONT = CON(2)
+         76 |      CON(NLV2 + 1) = 1. E-21
+         77 |      CON(NLV2 + 2) = .5 * CONT
+         78 |      CON(NLV2 + 3) =      CONT
+         79 |      NST = NLV2 + 4
+         80 |   43 DO 45 II = NST,NLV
+         81 |      CON(II) = CON(II-1) + CONT
+         82 |   45 CONTINUE
+         83 |      DO 47 II = 1,NLV2
+         84 |      III = NLV - II + 1
+         85 |      CON(II) = -CON(III)
+         86 |   47 CONTINUE
+         87 |      ALLCON = .TRUE.
+         88 |      RETURN
+         89 |   50 RAT = ABS( ZX/ZN )
+         90 |      IF( RAT .GT. 100.  .OR.  RAT .LT. .01 )  GO TO 30
+         91 |   60 IEVODD = 1
+         92 |      DIF = 2. * XX
+         93 |      ENMX = ENLV - 1.
+         94 |      ENMN = FLOAT(NLV2 - 3)
+         95 |      GO TO 30
+         96 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-35.13  0-37.18  0-37.26  0-89.13
+ 
+allcon                           Common member, Logical(4), Offset: 28, Alignment: full word
+                                 0-32.37$  0-33.53$  0-87.7@
+ 
+amax1                            Pure Intrinsic Real(4)
+                                 0-37.12
+ 
+blk3                             Common Block, Alignment: double word
+                                 0-33.15$
+ 
+con                              Common member, Real(4) (1:24), Offset: 92, Alignment: full word
+                                 0-29.17$  0-34.38$  0-38.14  0-46.7@  0-46.17  0-48.7@  0-48.16  0-49.14  0-51.14  0-52.14  0-53.7@
+                                 0-53.16  0-54.14  0-55.7@  0-55.16  0-56.14  0-57.7@  0-57.16  0-59.14  0-60.7@  0-60.16  0-61.14
+                                 0-62.7@  0-62.16  0-63.14  0-64.7@  0-64.16  0-68.7@  0-69.7@  0-70.7@  0-71.7@  0-72.7@  0-75.14
+                                 0-76.7@  0-77.7@  0-78.7@  0-81.7@  0-81.17  0-85.7@  0-85.18
+ 
+conlev                           Subroutine
+                                 0-1.18$
+ 
+cont                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-38.7@  0-48.25  0-69.28  0-70.28  0-71.28  0-72.28  0-75.7@  0-77.28  0-78.28  0-81.29
+ 
+dif                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-35.7@  0-49.10  0-51.10  0-52.10  0-54.10  0-56.10  0-59.10  0-61.10  0-63.10  0-92.7@
+ 
+enlv                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-41.7@  0-42.20  0-43.21  0-46.32  0-51.23  0-93.14
+ 
+enmn                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-42.7@  0-59.25  0-61.26  0-63.25  0-94.7@
+ 
+enmx                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-43.7@  0-49.26  0-52.26  0-54.27  0-56.26  0-93.7@
+ 
+float                            Pure Intrinsic
+                                 0-94.14
+ 
+iacros                           Common member, Logical(4), Offset: 12, Alignment: full word
+                                 0-32.15$  0-33.31$
+ 
+ict                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.26  0-44.33
+ 
+ievodd                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-39.7@  0-45.10  0-91.7@
+ 
+ii                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-80.13@  0-81.11  0-81.21  0-83.13@  0-84.19  0-85.11
+ 
+iii                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-84.7@  0-85.22
+ 
+ixd                              Common member, Integer(4), Offset: 72, Alignment: double word
+                                 0-34.16$
+ 
+iyd                              Common member, Integer(4), Offset: 76, Alignment: full word
+                                 0-34.20$
+ 
+li                               Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-33.21$
+ 
+lid                              Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-33.27$
+ 
+lj                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-33.24$
+ 
+nlv                              Common member, Integer(4), Offset: 88, Alignment: double word
+                                 0-34.34$  0-40.14  0-41.14  0-66.7@  0-66.13  0-80.22  0-84.13
+ 
+nlv2                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-40.7@  0-67.7@  0-67.14  0-68.11  0-69.11  0-70.11  0-71.11  0-72.11  0-73.13  0-76.11  0-77.11
+                                 0-78.11  0-79.13  0-83.20  0-94.20
+ 
+nprc                             Common member, Integer(4), Offset: 84, Alignment: full word
+                                 0-34.29$
+ 
+nprl                             Common member, Integer(4), Offset: 80, Alignment: quadruple word
+                                 0-34.24$
+ 
+nst                              Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-73.7@  0-79.7@  0-80.18
+ 
+rat                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-89.7@  0-90.11  0-90.32
+ 
+tick                             Common member, Logical(4), Offset: 24, Alignment: double word
+                                 0-32.32$  0-33.48$
+ 
+xlim                             Common member, Real(4) (1:4), Offset: 32, Alignment: quadruple word
+                                 0-29.25$  0-33.60$
+ 
+xrev                             Common member, Logical(4), Offset: 16, Alignment: quadruple word
+                                 0-32.22$  0-33.38$
+ 
+xrg                              Common member, Real(4), Offset: 64, Alignment: quadruple word
+                                 0-34.8$
+ 
+xtitle                           Common member, Character(1) (1:30), Offset: 188, Alignment: full word
+                                 0-31.19$  0-34.42$
+ 
+xx                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-37.7@  0-92.18
+ 
+ylim                             Common member, Real(4) (1:4), Offset: 48, Alignment: quadruple word
+                                 0-29.33$  0-33.65$
+ 
+yrev                             Common member, Logical(4), Offset: 20, Alignment: full word
+                                 0-32.27$  0-33.43$
+ 
+yrg                              Common member, Real(4), Offset: 68, Alignment: full word
+                                 0-34.12$
+ 
+ytitle                           Common member, Character(4) (1:20), Offset: 218, Alignment: half word
+                                 0-30.19$  0-34.49$
+ 
+zn                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-35.20  0-37.30  0-89.21
+ 
+zx                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-35.17  0-37.22  0-89.18
+ 
+** conlev   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    CONLEV.f                    03/26/03   17:35:09
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      96
+1501-510  Compilation successful for file CONLEV.f.
+1501-543  Object file created.

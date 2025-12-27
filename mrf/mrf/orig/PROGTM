@@ -1,0 +1,1242 @@
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FPVS,FUNCDF,FUNCKT,KTSOIL,TWLT,THSAT)
+      SUBROUTINE PROGTM(IM,KM,PS,U1,V1,T1,Q1,SHELEG,TSKIN,QSURF,
+     &                  SMC,STC,DM,SOILTYP,SIGMAF,CANOPY,
+     &                  SLRAD,SNOWMT,DELT,Z0RL,PLANTR,TG3,
+     &                  GFLUX,F10M,U10M,V10M,T2M,Q2M,ZSOIL,
+     &                  CM, CH, RB,RHSCNPY,RHSMC,AIM,BIM,CIM,
+     &                  RCL,SL1,SLK1,SLIMSK,INISTP,LAT,
+     &                  DRAIN,EVAP,HFLX,RNET,EP,COWAVE,FM,FH)
+
+C CA IS THE VON KARMAN CONSTANT
+      PARAMETER (CHARNOCK=.014,CA=.4)
+      PARAMETER (RD=#RD,RV=#RV,CP=#CP,G=#G,SIGMA=#SBC)
+      PARAMETER (EPS=RD/RV,HVAP=#HVAP,HFUS=#HFUS)
+      PARAMETER (RVRDM1=#RVRDM1,T0C=#T0C,EPSM1=EPS-1.)
+      PARAMETER (ALPHA=5.,A0=-3.975,A1=12.32,B1=-7.755,B2=6.041)
+      PARAMETER (A0P=-7.941,A1P=24.75,B1P=-8.705,B2P=7.899,VIS=1.4E-5)
+      PARAMETER (AA1=-1.076,BB1=.7045,CC1=-.05808)
+      PARAMETER (BB2=-.1954,CC2=.009999)
+      PARAMETER (ELOCP=HVAP/CP,DFSNOW=.31,CH2O=4.2E6,CSOIL=1.26E6)
+      PARAMETER (SCANOP=2.,CFACTR=.5,ZBOT=-3.,TGICE=271.2)
+      PARAMETER (CICE=1880.*917.)
+      PARAMETER (RHOH2O=1000.,CONVRAD=#JCAL*1.E4/60.)
+      PARAMETER (CTFIL1=.5,CTFIL2=1.-CTFIL1)
+      PARAMETER (RNU=1.51E-5,ARNU=.135*RNU)
+      INTEGER SOILTYP
+      REAL KT1, KT2, KTSOIL
+      LOGICAL FLAG, FLAGSNW
+      DIMENSION PS(IM),U1(IM),V1(IM),T1(IM),Q1(IM),SHELEG(IM)
+      DIMENSION TSKIN(IM),QSURF(IM),DM(IM),SLRAD(IM),SNOWMT(IM)
+      DIMENSION SMC(IM,KM),STC(IM,KM),TG3(IM),CANOPY(IM)
+      DIMENSION Z0RL(IM),PLANTR(IM),SOILTYP(IM),GFLUX(IM)
+      DIMENSION U10M(IM),V10M(IM),T2M(IM),Q2M(IM),CM(IM),CH(IM),CQ(IM)
+      DIMENSION SLIMSK(IM),RHSCNPY(IM),RHSMC(IM,KM)
+      DIMENSION AIM(IM,KM),BIM(IM,KM),CIM(IM,KM),SIGMAF(IM)
+      DIMENSION F10M(IM),DRAIN(IM),ZSOIL(IM,KM),DEW(IM)
+      DIMENSION EVAP(IM),HFLX(IM),RNET(IM),EP(IM)
+C
+C     PARAMETER(LM=#LONB2,MM=#LSOIL)
+      DIMENSION RS(IM),PSURF(IM),WIND(IM),THETA1(IM),TV1(IM),TVS(IM)
+      DIMENSION RHO(IM),QS1(IM),QSS(IM),SNOWD(IM),Z1(IM),THV1(IM)
+      DIMENSION ETPFAC(IM),USTAR(IM),TSURF(IM),Q0(IM)
+      DIMENSION EDIR(IM),ET(IM,KM),EC(IM),STSOIL(IM,KM)
+      DIMENSION Z0MAX(IM),ZTMAX(IM),DTV(IM),ADTV(IM),RB(IM)
+      DIMENSION FM(IM),FH(IM),FM10(IM),FH2(IM),HLINF(IM)
+      DIMENSION HL1(IM),PM(IM),PH(IM),HL110(IM),HL12(IM)
+      DIMENSION PM10(IM),PH2(IM),OLINF(IM),RCH(IM)
+      DIMENSION DFT0(IM),T12(IM),T14(IM),RCAP(IM),RSMALL(IM)
+      DIMENSION DELTA(IM),FLAG(IM),TREF(IM),TWILT(IM),DF1(IM)
+      DIMENSION KT1(IM),FX(IM),GX(IM),CANFAC(IM),ETP(IM)
+      DIMENSION SMCZ(IM),DMDZ(IM),DDZ(IM),DMDZ2(IM)
+      DIMENSION DDZ2(IM),DF2(IM),KT2(IM),XX(IM),YY(IM),ZZ(IM)
+      DIMENSION DTDZ1(IM),DFT1(IM),HCPCT(IM),DTDZ2(IM),DFT2(IM)
+      DIMENSION AI(IM,KM),BI(IM,KM),CI(IM,KM),RHSTC(IM,KM)
+      DIMENSION FACTSNW(IM),Z0(IM),SLWD(IM),FLAGSNW(IM)
+      DIMENSION TERM1(IM), TERM2(IM), PARTLND(IM)
+      DIMENSION RESTAR(IM), RAT(IM)
+      LATD = 42
+      LOND = 11
+      DELT2 = DELT * 2.
+C
+C     ESTIMATE SIGMA ** K AT 2 M
+C
+      SIG2K = 1. - 4. * G * 2. / (CP * 280.)
+C
+C  INITIALIZE VARIABLES. ALL UNITS ARE SUPPOSEDLY M.K.S. UNLESS SPECIFIE
+C  PSURF IS IN PASCALS
+C  WIND IS WIND SPEED, THETA1 IS ADIABATIC SURFACE TEMP FROM LEVEL 1
+C  RHO IS DENSITY, QS1 IS SAT. HUM. AT LEVEL1 AND QSS IS SAT. HUM. AT
+C  SURFACE
+C  CONVERT SLRAD TO THE CIVILIZED UNIT FROM LANGLEY MINUTE-1 K-4
+C  SURFACE ROUGHNESS LENGTH IS CONVERTED TO M FROM CM
+C
+      XRCL = SQRT(RCL)
+      DO I = 1, IM
+        PSURF(I) = 1000. * PS(I)
+        SLWD(I) = SLRAD(I) * CONVRAD
+        WIND(I) = XRCL * SQRT(U1(I) * U1(I) + V1(I) * V1(I))
+        WIND(I) = MAX(WIND(I),1.E-6)
+        Q0(I) = MAX(Q1(I),1.E-9)
+        TSURF(I) = TSKIN(I)
+        THETA1(I) = T1(I) / SLK1
+        if(slimsk(i).eq.1..and.theta1(i).lt.tsurf(i))
+     &  wind(i)=max(wind(i),1.) ! fix to daytime land low wind
+        TV1(I) = T1(I) * (1. + RVRDM1 * Q0(I))
+        THV1(I) = THETA1(I) * (1. + RVRDM1 * Q0(I))
+        TVS(I) = TSURF(I) * (1. + RVRDM1 * Q0(I))
+        RHO(I) = (SL1 * PSURF(I)) / (RD * TV1(I))
+        QS1(I) = 1000. * FPVS(T1(I))
+        QS1(I) = EPS * QS1(I) / (SL1 * PSURF(I) + EPSM1 * QS1(I))
+        QS1(I) = MAX(QS1(I), 1.E-8)
+        QSS(I) = 1000. * FPVS(TSURF(I))
+        QSS(I) = EPS * QSS(I) / (PSURF(I) + EPSM1 * QSS(I))
+        RS(I) = PLANTR(I)
+        Z0(I) = .01 * Z0RL(I)
+        CANOPY(I)= MAX(CANOPY(I),0.)
+        DM(I) = 1.
+        FACTSNW(I) = 10.
+        IF(SLIMSK(I).EQ.2.) FACTSNW(I) = 3.
+C
+C  SNOW DEPTH IN WATER EQUIVALENT IS CONVERTED FROM MM TO M UNIT
+C
+        SNOWD(I) = SHELEG(I) / 1000.
+        FLAGSNW(I) = .FALSE.
+C
+C  WHEN SNOW DEPTH IS LESS THAN 1 MM, A PATCHY SNOW IS ASSUMED AND
+C  SOIL IS ALLOWED TO INTERACT WITH THE ATMOSPHERE.
+C  WE SHOULD EVENTUALLY MOVE TO A LINEAR COMBINATION OF SOIL AND
+C  SNOW UNDER THE CONDITION OF PATCHY SNOW.
+C
+        IF(SNOWD(I).GT..001.OR.SLIMSK(I).EQ.2) RS(I) = 0.
+        IF(SNOWD(I).GT..001) FLAGSNW(I) = .TRUE.
+      ENDDO
+C##DG  IF(LAT.EQ.LATD) THEN
+C##DG    I = LOND
+C##DG    PRINT *, ' WIND,TV1,TVS,Q1,QS1,SNOW,SLIMSK=',
+C##DG &   WIND(I),TV1(I),TVS(I),Q1(I),QS1(I),SNOWD(I),SLIMSK(I)
+C##DG    PRINT *, ' SLRAD =', SLRAD(I)
+C##DG  ENDIF
+      DO I = 1, IM
+        IF(SLIMSK(I).EQ.0.) THEN
+          ZSOIL(I,1) = 0.
+        ELSEIF(SLIMSK(I).EQ.1.) THEN
+          ZSOIL(I,1) = -.10
+        ELSE
+          ZSOIL(I,1) = -3. / KM
+        ENDIF
+      ENDDO
+ 100  CONTINUE
+      DO K = 2, KM
+        DO I = 1, IM
+          IF(SLIMSK(I).EQ.0.) THEN
+            ZSOIL(I,K) = 0.
+          ELSEIF(SLIMSK(I).EQ.1.) THEN
+            ZSOIL(I,K) = ZSOIL(I,K-1)
+     &                   + (-2. - ZSOIL(I,1)) / (KM - 1)
+          ELSE
+            ZSOIL(I,K) = - 3. * FLOAT(K) / FLOAT(KM)
+          ENDIF
+        ENDDO
+      ENDDO
+      DO I = 1, IM
+        Z1(I) = -RD * TV1(I) * LOG(SL1) / G
+        DRAIN(I) = 0.
+      ENDDO
+      DO K = 1, KM
+        DO I = 1, IM
+          ET(I,K) = 0.
+          RHSMC(I,K) = 0.
+          AIM(I,K) = 0.
+          BIM(I,K) = 1.
+          CIM(I,K) = 0.
+          STSOIL(I,K) = STC(I,K)
+        ENDDO
+      ENDDO
+      DO I = 1, IM
+        EDIR(I) = 0.
+        EC(I) = 0.
+        EVAP(I) = 0.
+        EP(I) = 0.
+        SNOWMT(I) = 0.
+        GFLUX(I) = 0.
+        RHSCNPY(I) = 0.
+        FX(I) = 0.
+        ETPFAC(I) = 0.
+        CANFAC(I) = 0.
+      ENDDO
+C
+C  COMPUTE STABILITY DEPENDENT EXCHANGE COEFFICIENTS
+C
+C  THIS PORTION OF THE CODE IS PRESENTLY SUPPRESSED
+C
+      DO I = 1, IM
+C       IF(INISTP.EQ.1.AND.SLIMSK(I).NE.0.) THEN
+          USTAR(I) = .1 * WIND(I)
+C       ENDIF
+C       IF(INISTP.EQ.1.AND.SLIMSK(I).EQ.0.) THEN
+        IF(SLIMSK(I).EQ.0.) THEN
+          USTAR(I) = SQRT(G * Z0(I) / CHARNOCK)
+        ENDIF
+      ENDDO
+C
+C  COMPUTE STABILITY INDICES (RB AND HLINF)
+C
+      DO I = 1, IM
+        Z0MAX(I) = MIN(Z0(I),1. * Z1(I))
+        ZTMAX(I) = Z0MAX(I)
+        IF(SLIMSK(I).EQ.0.) THEN
+          RESTAR(I) = USTAR(I) * Z0MAX(I) / VIS
+          RESTAR(I) = MAX(RESTAR(I),.000001)
+          RESTAR(I) = ALOG(RESTAR(I))
+          RESTAR(I) = MIN(RESTAR(I),5.)
+          RESTAR(I) = MAX(RESTAR(I),-5.)
+          RAT(I) = AA1 + BB1 * RESTAR(I) + CC1 * RESTAR(I) ** 2
+          RAT(I) = RAT(I) / (1. + BB2 * RESTAR(I)
+     &                       + CC2 * RESTAR(I) ** 2)
+          ZTMAX(I) = Z0MAX(I) * EXP(-RAT(I))
+        ENDIF
+      ENDDO
+      DO I = 1, IM
+        DTV(I) = THV1(I) - TVS(I)
+        ADTV(I) = ABS(DTV(I))
+        ADTV(I) = MAX(ADTV(I),.001)
+        DTV(I) = SIGN(1.,DTV(I)) * ADTV(I)
+        RB(I) = G * DTV(I) * Z1(I) / (.5 * (THV1(I) + TVS(I))
+     &          * WIND(I) * WIND(I))
+        RB(I) = MAX(RB(I),-5000.)
+        FM(I) = LOG((Z0MAX(I)+Z1(I)) / Z0MAX(I))
+        FH(I) = LOG((ZTMAX(I)+Z1(I)) / ZTMAX(I))
+        FM10(I) = LOG((Z0MAX(I)+10.) / Z0MAX(I))
+        FH2(I) = LOG((ZTMAX(I)+2.) / ZTMAX(I))
+        HLINF(I) = RB(I) * FM(I) * FM(I) / FH(I)
+      ENDDO
+C
+C  STABLE CASE
+C
+      DO I = 1, IM
+        IF(DTV(I).GE.0.) THEN
+          HL1(I) = HLINF(I)
+        ENDIF
+        IF(DTV(I).GE.0..AND.HLINF(I).GT..25) THEN
+          HL0INF = Z0MAX(I) * HLINF(I) / Z1(I)
+          HLTINF = ZTMAX(I) * HLINF(I) / Z1(I)
+          AA = SQRT(1. + 4. * ALPHA * HLINF(I))
+          AA0 = SQRT(1. + 4. * ALPHA * HL0INF)
+          BB = AA
+          BB0 = SQRT(1. + 4. * ALPHA * HLTINF)
+          PM(I) = AA0 - AA + LOG((AA + 1.) / (AA0 + 1.))
+          PH(I) = BB0 - BB + LOG((BB + 1.) / (BB0 + 1.))
+          FMS = FM(I) - PM(I)
+          FHS = FH(I) - PH(I)
+          HL1(I) = FMS * FMS * RB(I) / FHS
+        ENDIF
+      ENDDO
+C
+C  SECOND ITERATION
+C
+      DO I = 1, IM
+        IF(DTV(I).GE.0.) THEN
+          HL0 = Z0MAX(I) * HL1(I) / Z1(I)
+          HLT = ZTMAX(I) * HL1(I) / Z1(I)
+          AA = SQRT(1. + 4. * ALPHA * HL1(I))
+          AA0 = SQRT(1. + 4. * ALPHA * HL0)
+          BB = AA
+          BB0 = SQRT(1. + 4. * ALPHA * HLT)
+          PM(I) = AA0 - AA + LOG((AA + 1.) / (AA0 + 1.))
+          PH(I) = BB0 - BB + LOG((BB + 1.) / (BB0 + 1.))
+          HL110(I) = HL1(I) * 10. / Z1(I)
+          AA = SQRT(1. + 4. * ALPHA * HL110(I))
+          PM10(I) = AA0 - AA + LOG((AA + 1.) / (AA0 + 1.))
+          HL12(I) = HL1(I) * 2. / Z1(I)
+C         AA = SQRT(1. + 4. * ALPHA * HL12(I))
+          BB = SQRT(1. + 4. * ALPHA * HL12(I))
+          PH2(I) = BB0 - BB + LOG((BB + 1.) / (BB0 + 1.))
+        ENDIF
+      ENDDO
+ 200  CONTINUE
+C
+C  UNSTABLE CASE
+C
+C
+C  CHECK FOR UNPHYSICAL OBUKHOV LENGTH
+C
+      DO I = 1, IM
+        IF(DTV(I).LT.0.) THEN
+          OLINF(I) = Z1(I) / HLINF(I)
+          IF(ABS(OLINF(I)).LE.50. * Z0MAX(I)) THEN
+            HLINF(I) = -Z1(I) / (50. * Z0MAX(I))
+          ENDIF
+        ENDIF
+      ENDDO
+C
+C  GET PM AND PH
+C
+      DO I = 1, IM
+        IF(DTV(I).LT.0..AND.HLINF(I).GE.-.5) THEN
+          HL1(I) = HLINF(I)
+          PM(I) = (A0 + A1 * HL1(I)) * HL1(I)
+     &            / (1. + B1 * HL1(I) + B2 * HL1(I) * HL1(I))
+          PH(I) = (A0P + A1P * HL1(I)) * HL1(I)
+     &            / (1. + B1P * HL1(I) + B2P * HL1(I) * HL1(I))
+          HL110(I) = HL1(I) * 10. / Z1(I)
+          PM10(I) = (A0 + A1 * HL110(I)) * HL110(I)
+     &            / (1. + B1 * HL110(I) + B2 * HL110(I) * HL110(I))
+          HL12(I) = HL1(I) * 2. / Z1(I)
+          PH2(I) = (A0P + A1P * HL12(I)) * HL12(I)
+     &            / (1. + B1P * HL12(I) + B2P * HL12(I) * HL12(I))
+        ENDIF
+        IF(DTV(I).LT.0.AND.HLINF(I).LT.-.5) THEN
+          HL1(I) = -HLINF(I)
+          PM(I) = LOG(HL1(I)) + 2. * HL1(I) ** (-.25) - .8776
+          PH(I) = LOG(HL1(I)) + .5 * HL1(I) ** (-.5) + 1.386
+          HL110(I) = HL1(I) * 10. / Z1(I)
+          PM10(I) = LOG(HL110(I)) + 2. * HL110(I) ** (-.25) - .8776
+          HL12(I) = HL1(I) * 2. / Z1(I)
+          PH2(I) = LOG(HL12(I)) + .5 * HL12(I) ** (-.5) + 1.386
+        ENDIF
+      ENDDO
+C
+C  FINISH THE EXCHANGE COEFFICIENT COMPUTATION TO PROVIDE FM AND FH
+C
+      DO I = 1, IM
+        FM(I) = FM(I) - PM(I)
+        FH(I) = FH(I) - PH(I)
+        FM10(I) = FM10(I) - PM10(I)
+        FH2(I) = FH2(I) - PH2(I)
+        CM(I) = CA * CA / (FM(I) * FM(I))
+        CH(I) = CA * CA / (FM(I) * FH(I))
+        CQ(I) = CH(I)
+        USTAR(I) = SQRT(CM(I) * WIND(I) * WIND(I))
+      ENDDO
+C
+C  UPDATE Z0 OVER OCEAN
+C
+      IF(INISTP.LT.2.AND.COWAVE.LE.0.) THEN
+        DO I = 1, IM
+          IF(SLIMSK(I).EQ.0.) THEN
+            Z0(I) = (CHARNOCK / G) * USTAR(I) ** 2
+C  NEW IMPLEMENTATION OF Z0
+C           CC = USTAR(I) * Z0(I) / RNU
+C           PP = CC / (1. + CC)
+C           FF = G * ARNU / (CHARNOCK * USTAR(I) ** 3)
+C           Z0(I) = ARNU / (USTAR(I) * FF ** PP)
+            Z0(I) = MIN(Z0(I),.1)
+            Z0(I) = MAX(Z0(I),1.E-7)
+            Z0RL(I) = 100. * Z0(I)
+          ENDIF
+        ENDDO
+      ENDIF
+C
+C  RCP = RHO CP CH V
+C
+      DO I = 1, IM
+        RCH(I) = RHO(I) * CP * CH(I) * WIND(I)
+      ENDDO
+C
+C  SENSIBLE AND LATENT HEAT FLUX OVER OPEN WATER
+C
+      DO I = 1, IM
+        IF(SLIMSK(I).EQ.0.) THEN
+          EVAP(I) = ELOCP * RCH(I) * (QSS(I) - Q0(I))
+          DM(I) = 1.
+          QSURF(I) = QSS(I)
+        ENDIF
+      ENDDO
+C
+C  COMPUTE SOIL/SNOW/ICE HEAT FLUX IN PREPARATION FOR SURFACE ENERGY
+C  BALANCE CALCULATION
+C
+      DO I = 1, IM
+        GFLUX(I) = 0.
+        IF(SLIMSK(I).EQ.1.) THEN
+C         DFT0(I) = KTSOIL(SMC(I,1),SOILTYP(I))
+          SMCZ(I) = .5 * (SMC(I,1) + .20)
+          DFT0(I) = KTSOIL(SMCZ(I),SOILTYP(I))
+        ELSEIF(SLIMSK(I).EQ.2.) THEN
+C  DF FOR ICE IS TAKEN FROM MAYKUT AND UNTERSTEINER
+C  DF IS IN SI UNIT OF W K-1 M-1
+          DFT0(I) = 2.2
+        ENDIF
+      ENDDO
+ 300  CONTINUE
+      DO I = 1, IM
+        IF(SLIMSK(I).NE.0.) THEN
+C         IF(SNOWD(I).GT..001) THEN
+          IF(FLAGSNW(I)) THEN
+C
+C  WHEN SNOW COVERED, GROUND HEAT FLUX COMES FROM SNOW
+C
+            TFLX = MIN(T1(I), TSURF(I))
+            GFLUX(I) = -DFSNOW * (TFLX - STSOIL(I,1))
+     &                 / (FACTSNW(I) * MAX(SNOWD(I),.001))
+          ELSE
+            GFLUX(I) = DFT0(I) * (STSOIL(I,1) - TSURF(I))
+     &                 / (-.5 * ZSOIL(I,1))
+          ENDIF
+          GFLUX(I) = MAX(GFLUX(I),-200.)
+          GFLUX(I) = MIN(GFLUX(I),+200.)
+        ENDIF
+      ENDDO
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0.
+        PARTLND(I) = 1.
+        IF(SNOWD(I).GT.0..AND.SNOWD(I).LE..001) THEN
+          PARTLND(I) = 1. - SNOWD(I) / .001
+        ENDIF
+      ENDDO
+C
+C  COMPUTE POTENTIAL EVAPORATION FOR LAND AND SEA ICE
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          T12(I) = T1(I) * T1(I)
+          T14(I) = T12(I) * T12(I)
+C
+C  RCAP = FNET - SIGMA T**4 + GFLX - RHO CP CH V (T1-THETA1)
+C
+          RCAP(I) = -SLWD(I) - SIGMA * T14(I) + GFLUX(I)
+     &              - RCH(I) * (T1(I) - THETA1(I))
+C
+C  RSMALL = 4 SIGMA T**3 / RCH + 1
+C
+          RSMALL(I) = 4. * SIGMA * T1(I) * T12(I) / RCH(I) + 1.
+C
+C  DELTA = L / CP * DQS/DT
+C
+          DELTA(I) = ELOCP * EPS * HVAP * QS1(I) / (RD * T12(I))
+C
+C  POTENTIAL EVAPOTRANSPIRATION ( WATTS / M**2 ) AND
+C  POTENTIAL EVAPORATION
+C
+          TERM1(I) = ELOCP * RSMALL(I) * RCH(I)*(QS1(I)-Q0(I))
+          TERM2(I) = RCAP(I) * DELTA(I)
+          EP(I) = (ELOCP * RSMALL(I) * RCH(I) * (QS1(I) - Q0(I))
+     &              + RCAP(I) * DELTA(I))
+          ETP(I) = EP(I) /
+     &              (RSMALL(I) * (1. + RS(I) * WIND(I) * CH(I))
+     &              + DELTA(I))
+          EP(I) = EP(I) / (RSMALL(I) + DELTA(I))
+        ENDIF
+      ENDDO
+C
+C  ACTUAL EVAPORATION OVER LAND IN THREE PARTS : EDIR, ET, AND EC
+C
+C  DIRECT EVAPORATION FROM SOIL, THE UNIT GOES FROM M S-1 TO KG M-2 S-1
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).EQ.1..AND.EP(I).GT.0.
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          TREF(I) = .75 * THSAT(SOILTYP(I))
+          TWILT(I) = TWLT(SOILTYP(I))
+          DF1(I) = FUNCDF(SMC(I,1),SOILTYP(I))
+          KT1(I) = FUNCKT(SMC(I,1),SOILTYP(I))
+          FX(I) = -2. * DF1(I) * (SMC(I,1) - .23) / ZSOIL(I,1)
+     &            - KT1(I)
+          FX(I) = FX(I)
+          FX(I) = MIN(FX(I), EP(I)/HVAP)
+          FX(I) = MAX(FX(I),0.)
+C
+C  SIGMAF IS THE FRACTION OF AREA COVERED BY VEGETATION
+C
+          EDIR(I) = FX(I) * (1. - SIGMAF(I)) * PARTLND(I)
+        ENDIF
+      ENDDO
+C
+C  TRANSPIRATION FROM ALL LEVELS OF THE SOIL
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CANFAC(I) = (CANOPY(I) / SCANOP) ** CFACTR
+          ETPFAC(I) = SIGMAF(I) * ETP(I)
+     &           * (1. - CANFAC(I)) / HVAP
+          GX(I) = (SMC(I,1) - TWILT(I)) / (TREF(I) - TWILT(I))
+          GX(I) = MAX(GX(I),0.)
+          GX(I) = MIN(GX(I),1.)
+          ET(I,1) = (ZSOIL(I,1) / ZSOIL(I,KM)) * GX(I) * ETPFAC(I)
+     &            * PARTLND(I)
+        ENDIF
+      ENDDO
+      DO K = 2, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            GX(I) = (SMC(I,K) - TWILT(I)) / (TREF(I) - TWILT(I))
+            GX(I) = MAX(GX(I),0.)
+            GX(I) = MIN(GX(I),1.)
+            ET(I,K) =
+     &                (ZSOIL(I,K) - ZSOIL(I,K-1)) / ZSOIL(I,KM)
+     &              * GX(I) * ETPFAC(I) * PARTLND(I)
+          ENDIF
+        ENDDO
+      ENDDO
+ 400  CONTINUE
+C
+C  CANOPY RE-EVAPORATION
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          EC(I) = SIGMAF(I) * CANFAC(I) * EP(I) / HVAP
+          EC(I) = EC(I) * PARTLND(I)
+C         EC(I) = MIN(EC(I),CANOPY(I)/DELT2)
+        ENDIF
+      ENDDO
+C
+C  SUM UP TOTAL EVAPORATION
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+         EVAP(I) = EDIR(I) + EC(I)
+        ENDIF
+      ENDDO
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            EVAP(I) = EVAP(I) + ET(I,K)
+          ENDIF
+        ENDDO
+      ENDDO
+C
+C  RETURN EVAP UNIT FROM KG M-2 S-1 TO WATTS M-2
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          EVAP(I) = MIN(EVAP(I)*HVAP,EP(I))
+        ENDIF
+      ENDDO
+C##DG  IF(LAT.EQ.LATD) THEN
+C##DG    I = LOND
+C##DG    PRINT *, 'FX, SIGMAF, EDIR, ETPFAC=', FX(I)*HVAP,SIGMAF(I),
+C##DG &          EDIR(I)*HVAP,ETPFAC(I)*HVAP
+C##DG    PRINT *, ' ET =', (ET(I,K)*HVAP,K=1,KM)
+C##DG    PRINT *, ' CANFAC, EC, EVAP', CANFAC(I),EC(I)*HVAP,EVAP(I)
+C##DG  ENDIF
+C
+C  EVAPORATION OVER BARE SEA ICE
+C
+      DO I = 1, IM
+C       IF(SLIMSK(I).EQ.2.AND.SNOWD(I).LE..001) THEN
+        IF(SLIMSK(I).EQ.2.) THEN
+          EVAP(I) = PARTLND(I) * EP(I)
+        ENDIF
+      ENDDO
+C
+C  TREAT DOWNWARD MOISTURE FLUX SITUATION
+C  (EVAP WAS PRESET TO ZERO SO NO UPDATE NEEDED)
+C  DEW IS CONVERTED FROM KG M-2 TO M TO CONFORM TO PRECIP UNIT
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0..AND.EP(I).LE.0.
+        DEW(I) = 0.
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          DEW(I) = -EP(I) * DELT2 / (HVAP * RHOH2O)
+          EVAP(I) = EP(I)
+          DM(I) = 1.
+        ENDIF
+      ENDDO
+C
+C  SNOW COVERED LAND AND SEA ICE
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0..AND.SNOWD(I).GT.0.
+      ENDDO
+C
+C  CHANGE OF SNOW DEPTH DUE TO EVAPORATION OR SUBLIMATION
+C
+C  CONVERT EVAP FROM KG M-2 S-1 TO M S-1 TO DETERMINE THE REDUCTION OF S
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          BFACT = SNOWD(I) / (DELT2 * EP(I) / (HVAP * RHOH2O))
+          BFACT = MIN(BFACT,1.)
+C
+C  THE EVAPORATION OF SNOW
+C
+          IF(EP(I).LE.0.) BFACT = 1.
+          IF(SNOWD(I).LE..001) THEN
+            EVAP(I) = (SNOWD(I)/.001)*BFACT*EP(I) + EVAP(I)
+          ELSE
+            EVAP(I) = BFACT * EP(I)
+          ENDIF
+          TSURF(I) = T1(I) +
+     &          (RCAP(I) - GFLUX(I) - DFSNOW * (T1(I) - STSOIL(I,1))
+     &           /(FACTSNW(I) * MAX(SNOWD(I),.001))
+     &           + THETA1(I) - T1(I)
+     &           - BFACT * EP(I)) / (RSMALL(I) * RCH(I)
+     &           + DFSNOW / (FACTSNW(I)* MAX(SNOWD(I),.001)))
+          SNOWD(I) = SNOWD(I) - EP(I) * DELT / (RHOH2O * HVAP)
+          SNOWD(I) = MAX(SNOWD(I),0.)
+        ENDIF
+      ENDDO
+C
+C  SNOW MELT RATE (M S-1)
+C
+ 500  CONTINUE
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0.
+     &            .AND.SNOWD(I).GT..0
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I).AND.TSURF(I).GT.T0C) THEN
+          SNOWMT(I) = RCH(I) * RSMALL(I)
+     &              * (TSURF(I) - T0C) / (RHOH2O * HFUS)
+          SNOWD(I) = SNOWD(I) - SNOWMT(I) * DELT
+          SNOWD(I) = MAX(SNOWD(I),0.)
+          SNOWMT(I) = MIN(SNOWMT(I),SNOWD(I) / DELT)
+          TSURF(I) = MAX(T0C,TSURF(I)
+     &             -HFUS*SNOWMT(I)*RHOH2O/(RCH(I)*RSMALL(I)))
+        ENDIF
+      ENDDO
+C
+C  PREPARE TENDENCY TERMS FOR THE SOIL MOISTURE FIELD WITHOUT PRECIPITAT
+C  THE UNIT OF MOISTURE FLUX NEEDS TO BECOME M S-1 FOR SOIL MOISTURE
+C   HENCE THE FACTOR OF RHOH2O
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).EQ.1.
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          RHSCNPY(I) = -EC(I) + SIGMAF(I) * RHOH2O * DEW(I) / DELT2
+          SMCZ(I) = MAX(SMC(I,1), SMC(I,2))
+          DMDZ(I) = (SMC(I,1) - SMC(I,2)) / (-.5 * ZSOIL(I,2))
+          DF1(I) = FUNCDF(SMCZ(I),SOILTYP(I))
+          KT1(I) = FUNCKT(SMCZ(I),SOILTYP(I))
+          RHSMC(I,1) = (DF1(I) * DMDZ(I) + KT1(I)
+     &        + (EDIR(I) + ET(I,1))) / (ZSOIL(I,1) * RHOH2O)
+          DDZ(I) = 1. / (-.5 * ZSOIL(I,2))
+C
+C  AIM, BIM, AND CIM ARE THE ELEMENTS OF THE TRIDIAGONAL MATRIX FOR THE
+C  IMPLICIT UPDATE OF THE SOIL MOISTURE
+C
+          AIM(I,1) = 0.
+          BIM(I,1) = DF1(I) * DDZ(I) / (-ZSOIL(I,1) * RHOH2O)
+          CIM(I,1) = -BIM(I,1)
+        ENDIF
+      ENDDO
+      DO K = 2, KM
+        IF(K.LT.KM) THEN
+          DO I = 1, IM
+            IF(FLAG(I)) THEN
+              DMDZ2(I) = (SMC(I,K) - SMC(I,K+1))
+     &                   / (.5 * (ZSOIL(I,K-1) - ZSOIL(I,K+1)))
+              SMCZ(I) = MAX(SMC(I,K), SMC(I,K+1))
+              DF2(I) = FUNCDF(SMCZ(I),SOILTYP(I))
+              KT2(I) = FUNCKT(SMCZ(I),SOILTYP(I))
+              RHSMC(I,K) = (DF2(I) * DMDZ2(I) + KT2(I)
+     &             - DF1(I) * DMDZ(I) - KT1(I) + ET(I,K))
+     &                     / (RHOH2O*(ZSOIL(I,K) - ZSOIL(I,K-1)))
+              DDZ2(I) = 2. / (ZSOIL(I,K-1) - ZSOIL(I,K+1))
+              CIM(I,K) = -DF2(I) * DDZ2(I)
+     &                / ((ZSOIL(I,K-1) - ZSOIL(I,K))*RHOH2O)
+            ENDIF
+          ENDDO
+        ELSE
+          DO I = 1, IM
+            IF(FLAG(I)) THEN
+              KT2(I) = FUNCKT(SMC(I,K),SOILTYP(I))
+              RHSMC(I,K) = (KT2(I)
+     &             - DF1(I) * DMDZ(I) - KT1(I) + ET(I,K))
+     &                     / (RHOH2O*(ZSOIL(I,K) - ZSOIL(I,K-1)))
+              DRAIN(I) = KT2(I)
+              CIM(I,K) = 0.
+            ENDIF
+          ENDDO
+        ENDIF
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            AIM(I,K) = -DF1(I) * DDZ(I)
+     &                / ((ZSOIL(I,K-1) - ZSOIL(I,K))*RHOH2O)
+            BIM(I,K) = -(AIM(I,K) + CIM(I,K))
+            DF1(I) = DF2(I)
+            KT1(I) = KT2(I)
+            DMDZ(I) = DMDZ2(I)
+            DDZ(I) = DDZ2(I)
+          ENDIF
+        ENDDO
+      ENDDO
+ 600  CONTINUE
+C
+C  UPDATE SOIL TEMPERATURE AND SEA ICE TEMPERATURE
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0.
+      ENDDO
+C
+C  SURFACE TEMPERATURE IS PART OF THE UPDATE WHEN SNOW IS ABSENT
+C
+      DO I = 1, IM
+C       IF(FLAG(I).AND.SNOWD(I).LE..001) THEN
+        IF(FLAG(I).AND..NOT.FLAGSNW(I)) THEN
+          YY(I) = T1(I) +
+     &          (RCAP(I)-GFLUX(I) + THETA1(I) - T1(I)
+     &           - EVAP(I)) / (RSMALL(I) * RCH(I))
+          ZZ(I) = 1. + DFT0(I) / (-.5 * ZSOIL(I,1) * RCH(I) * RSMALL(I))
+          XX(I) = DFT0(I) * (STSOIL(I,1) - YY(I)) /
+     &            (.5 * ZSOIL(I,1) * ZZ(I))
+        ENDIF
+C       IF(FLAG(I).AND.SNOWD(I).GT..001) THEN
+        IF(FLAG(I).AND.FLAGSNW(I)) THEN
+          YY(I) = STSOIL(I,1)
+C
+C  HEAT FLUX FROM SNOW IS EXPLICIT IN TIME
+C
+          ZZ(I) = 1.
+          XX(I) = DFSNOW * (STSOIL(I,1) - TSURF(I))
+     &            / (-FACTSNW(I) * MAX(SNOWD(I),.001))
+        ENDIF
+      ENDDO
+C
+C  COMPUTE THE FORCING AND THE IMPLICIT MATRIX ELEMENTS FOR UPDATE
+C
+C  CH2O IS THE HEAT CAPACITY OF WATER AND CSOIL IS THE HEAT CAPACITY OF
+C
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          SMCZ(I) = MAX(SMC(I,1), SMC(I,2))
+          DTDZ1(I) = (STSOIL(I,1) - STSOIL(I,2)) / (-.5 * ZSOIL(I,2))
+          IF(SLIMSK(I).EQ.1.) THEN
+            DFT1(I) = KTSOIL(SMCZ(I),SOILTYP(I))
+            HCPCT(I) = SMC(I,1) * CH2O + (1. - SMC(I,1)) * CSOIL
+          ELSE
+            DFT1(I) = DFT0(I)
+            HCPCT(I) = CICE
+          ENDIF
+          DFT2(I) = DFT1(I)
+          DDZ(I) = 1. / (-.5 * ZSOIL(I,2))
+C
+C  AI, BI, AND CI ARE THE ELEMENTS OF THE TRIDIAGONAL MATRIX FOR THE
+C  IMPLICIT UPDATE OF THE SOIL TEMPERATURE
+C
+          AI(I,1) = 0.
+          BI(I,1) = DFT1(I) * DDZ(I) / (-ZSOIL(I,1) * HCPCT(I))
+          CI(I,1) = -BI(I,1)
+          BI(I,1) = BI(I,1)
+     &            + DFT0(I) / (.5 * ZSOIL(I,1) **2 * HCPCT(I) * ZZ(I))
+C         SS = DFT0(I) * (STSOIL(I,1) - YY(I))
+C    &         / (.5 * ZSOIL(I,1) * ZZ(I))
+C         RHSTC(I,1) = (DFT1(I) * DTDZ1(I) - SS)
+          RHSTC(I,1) = (DFT1(I) * DTDZ1(I) - XX(I))
+     &                 / (ZSOIL(I,1) * HCPCT(I))
+        ENDIF
+      ENDDO
+      DO K = 2, KM
+        DO I = 1, IM
+          IF(SLIMSK(I).EQ.1.) THEN
+            HCPCT(I) = SMC(I,K) * CH2O + (1. - SMC(I,K)) * CSOIL
+          ELSEIF(SLIMSK(I).EQ.2.) THEN
+            HCPCT(I) = CICE
+          ENDIF
+        ENDDO
+        IF(K.LT.KM) THEN
+          DO I = 1, IM
+            IF(FLAG(I)) THEN
+              DTDZ2(I) = (STSOIL(I,K) - STSOIL(I,K+1))
+     &                   / (.5 * (ZSOIL(I,K-1) - ZSOIL(I,K+1)))
+              SMCZ(I) = MAX(SMC(I,K), SMC(I,K+1))
+              IF(SLIMSK(I).EQ.1.) THEN
+                DFT2(I) = KTSOIL(SMCZ(I),SOILTYP(I))
+              ENDIF
+              DDZ2(I) = 2. / (ZSOIL(I,K-1) - ZSOIL(I,K+1))
+              CI(I,K) = -DFT2(I) * DDZ2(I)
+     &                / ((ZSOIL(I,K-1) - ZSOIL(I,K)) * HCPCT(I))
+            ENDIF
+          ENDDO
+        ELSE
+C
+C  AT THE BOTTOM, CLIMATOLOGY IS ASSUMED AT 2M DEPTH FOR LAND AND
+C  FREEZING TEMPERATURE IS ASSUMED FOR SEA ICE AT Z(I,KM)
+          DO I = 1, IM
+            IF(SLIMSK(I).EQ.1.) THEN
+              DTDZ2(I) = (STSOIL(I,K) - TG3(I))
+     &                   / (.5 * (ZSOIL(I,K-1) + ZSOIL(I,K)) - ZBOT)
+              DFT2(I) = KTSOIL(SMC(I,K),SOILTYP(I))
+              CI(I,K) = 0.
+            ENDIF
+            IF(SLIMSK(I).EQ.2.) THEN
+              DTDZ2(I) = (STSOIL(I,K) - TGICE)
+     &                   / (.5 * ZSOIL(I,K-1) - .5 * ZSOIL(I,K))
+              DFT2(I) = DFT1(I)
+              CI(I,K) = 0.
+            ENDIF
+          ENDDO
+        ENDIF
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            RHSTC(I,K) = (DFT2(I) * DTDZ2(I) - DFT1(I) * DTDZ1(I))
+     &                 / ((ZSOIL(I,K) - ZSOIL(I,K-1)) * HCPCT(I))
+            AI(I,K) = -DFT1(I) * DDZ(I)
+     &                / ((ZSOIL(I,K-1) - ZSOIL(I,K)) * HCPCT(I))
+            BI(I,K) = -(AI(I,K) + CI(I,K))
+            DFT1(I) = DFT2(I)
+            DTDZ1(I) = DTDZ2(I)
+            DDZ(I) = DDZ2(I)
+          ENDIF
+        ENDDO
+      ENDDO
+ 700  CONTINUE
+C
+C  SOLVE THE TRI-DIAGONAL MATRIX
+C
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I))  THEN
+            RHSTC(I,K) = RHSTC(I,K) * DELT2
+            AI(I,K) = AI(I,K) * DELT2
+            BI(I,K) = 1. + BI(I,K) * DELT2
+            CI(I,K) = CI(I,K) * DELT2
+          ENDIF
+        ENDDO
+      ENDDO
+C  FORWARD ELIMINATION
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CI(I,1) = -CI(I,1) / BI(I,1)
+          RHSTC(I,1) = RHSTC(I,1) / BI(I,1)
+        ENDIF
+      ENDDO
+      DO K = 2, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            CC = 1. / (BI(I,K) + AI(I,K) * CI(I,K-1))
+            CI(I,K) = -CI(I,K) * CC
+            RHSTC(I,K) = (RHSTC(I,K) - AI(I,K) * RHSTC(I,K-1)) * CC
+          ENDIF
+        ENDDO
+      ENDDO
+C  BACKWARD SUBSTITUTTION
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CI(I,KM) = RHSTC(I,KM)
+        ENDIF
+      ENDDO
+      DO K = KM-1, 1
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            CI(I,K) = CI(I,K) * CI(I,K+1) + RHSTC(I,K)
+          ENDIF
+        ENDDO
+      ENDDO
+C
+C  UPDATE SOIL AND ICE TEMPERATURE
+C
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            STSOIL(I,K) = STSOIL(I,K) + CI(I,K)
+          ENDIF
+        ENDDO
+      ENDDO
+C
+C  UPDATE SURFACE TEMPERATURE FOR SNOW FREE SURFACES
+C
+      DO I = 1, IM
+C       IF(SLIMSK(I).NE.0..AND.SNOWD(I).LE..001) THEN
+        IF(SLIMSK(I).NE.0..AND..NOT.FLAGSNW(I)) THEN
+          TSURF(I) = (YY(I) + (ZZ(I) - 1.) * STSOIL(I,1)) / ZZ(I)
+        ENDIF
+C       IF(SLIMSK(I).EQ.2..AND.SNOWD(I).LE..001) THEN
+        IF(SLIMSK(I).EQ.2..AND..NOT.FLAGSNW(I)) THEN
+          TSURF(I) = MIN(TSURF(I),T0C)
+        ENDIF
+      ENDDO
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(SLIMSK(I).EQ.2) THEN
+            STC(I,K) = MIN(STSOIL(I,K),T0C)
+          ENDIF
+        ENDDO
+      ENDDO
+C
+C  TIME FILTER FOR SOIL AND SKIN TEMPERATURE
+C
+      IF(INISTP.EQ.0) THEN
+        DO I = 1, IM
+          IF(SLIMSK(I).NE.0.) THEN
+            TSKIN(I) = CTFIL1 * TSURF(I) + CTFIL2 * TSKIN(I)
+          ENDIF
+        ENDDO
+        DO K = 1, KM
+          DO I = 1, IM
+            IF(SLIMSK(I).NE.0.) THEN
+              STC(I,K) = CTFIL1 * STSOIL(I,K) + CTFIL2 * STC(I,K)
+            ENDIF
+          ENDDO
+        ENDDO
+      ENDIF
+C
+C  GFLUX CALCULATION
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).NE.0.
+C    &            .AND.SNOWD(I).GT..001
+     &            .AND.FLAGSNW(I)
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          GFLUX(I) = -DFSNOW * (TSKIN(I) - STC(I,1))
+     &               / (FACTSNW(I) * MAX(SNOWD(I),.001))
+        ENDIF
+      ENDDO
+      DO I = 1, IM
+C       IF(SLIMSK(I).NE.0..AND.SNOWD(I).LE..001) THEN
+        IF(SLIMSK(I).NE.0..AND..NOT.FLAGSNW(I)) THEN
+          GFLUX(I) = DFT0(I) * (STC(I,1) - TSKIN(I))
+     &               / (-.5 * ZSOIL(I,1))
+        ENDIF
+      ENDDO
+C
+C  CALCULATE SENSIBLE HEAT FLUX
+C
+      DO I = 1, IM
+        HFLX(I) = RCH(I) * (TSKIN(I) - THETA1(I))
+      ENDDO
+C
+C  THE REST OF THE OUTPUT
+C
+      DO I = 1, IM
+        QSURF(I) = Q0(I) + EVAP(I) / (ELOCP * RCH(I))
+        DM(I) = 1.
+C
+C  CONVERT SNOW DEPTH BACK TO MM OF WATER EQUIVALENT
+C
+        SHELEG(I) = SNOWD(I) * 1000.
+      ENDDO
+C     IF(INISTP.EQ.3) THEN
+        DO I = 1, IM
+          F10M(I) = FM10(I) / FM(I)
+          U10M(I) = F10M(I) * XRCL * U1(I)
+          V10M(I) = F10M(I) * XRCL * V1(I)
+           T2M(I) = TSKIN(I) * (1. - FH2(I) / FH(I))
+     &           + THETA1(I) * FH2(I) / FH(I)
+           T2M(I) = T2M(I) * SIG2K
+C          Q2M(I) = QSURF(I) * (1. - FH2(I) / FH(I))
+C    &           + Q0(I) * FH2(I) / FH(I)
+C         T2M(I) = T1(I)
+C         Q2M(I) = Q0(I)
+          IF(EVAP(I).GE.0.) THEN
+C
+C  IN CASE OF EVAPORATION, USE THE INFERRED QSURF TO DEDUCE Q2M
+C
+            Q2M(I) = QSURF(I) * (1. - FH2(I) / FH(I))
+     &           + Q0(I) * FH2(I) / FH(I)
+          ELSE
+C
+C  FOR DEW FORMATION SITUATION, USE SATURATED Q AT TSKIN
+C
+            QSS(I) = 1000. * FPVS(TSKIN(I))
+            QSS(I) = EPS * QSS(I) / (PSURF(I) + EPSM1 * QSS(I))
+            Q2M(I) = QSS(I) * (1. - FH2(I) / FH(I))
+     &           + Q0(I) * FH2(I) / FH(I)
+          ENDIF
+          QSS(I) = 1000. * FPVS(T2M(I))
+          QSS(I) = EPS * QSS(I) / (PSURF(I) + EPSM1 * QSS(I))
+          Q2M(I) = MIN(Q2M(I),QSS(I))
+        ENDDO
+C     ENDIF
+ 800  CONTINUE
+      DO I = 1, IM
+        RNET(I) = -SLWD(I) - SIGMA * TSKIN(I) **4
+      ENDDO
+C##DG  IF(LAT.EQ.LATD) THEN
+C##DG    I = LOND
+CC       RBAL = -SLWD(I)-SIGMA*TSKIN(I)**4+GFLUX(I)
+CC    &         -EVAP(I) - HFLX(I)
+C##DG    PRINT *, ' HFLX,EVAP,GFLUX,STC,TS,RNET,SLWD'
+C##DG    PRINT 6000,HFLX(I),EVAP(I),GFLUX(I),
+C##DG &             STC(I,1), STC(I,2),TSKIN(I),RNET(I),SLWD(I)
+C##DG    PRINT *, ' T1 =', T1(I)
+C 6000 FORMAT(8(F8.2,','))
+CC     PRINT *, ' EP, ETP,T2M =', EP(I), ETP(I),T2M(I)
+CC     PRINT *, ' FH, FH2 =', FH(I), FH2(I)
+CC     PRINT *, ' PH, PH2 =', PH(I), PH2(I)
+CC     PRINT *, ' CH, RCH =', CH(I), RCH(I)
+CC     PRINT *, ' TERM1, TERM2 =', TERM1(I), TERM2(I)
+CC     PRINT *, ' RS, PLANTR =', RS(I), PLANTR(I)
+C##DG  ENDIF
+      RETURN
+      END
+C
+C  PROGT2 IS THE SECOND PART OF THE SOIL MODEL THAT IS EXECUTED
+C  AFTER PRECIPITATION FOR THE TIME STEP HAS BEEN CALCULATED
+C
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FUNCDF,FUNCKT,THSAT)
+      SUBROUTINE PROGT2(IM,KM,RHSCNPY,RHSMC,AI,BI,CI,SMC,SLIMSK,
+     &       CANOPY,PRECIP,RUNOFF,SNOWMT,
+     &       ZSOIL,SOILTYP,SIGMAF,DELT,LAT)
+      PARAMETER (SCANOP=2.,RHOH2O=1000.)
+      PARAMETER (CTFIL1=.5,CTFIL2=1.-CTFIL1)
+      PARAMETER (RFFACT=.15)
+      DIMENSION RHSCNPY(IM),RHSMC(IM,KM)
+      DIMENSION AI(IM,KM),BI(IM,KM),CI(IM,KM)
+      DIMENSION SMC(IM,KM),CANOPY(IM),PRECIP(IM),SOILTYP(IM)
+      DIMENSION SIGMAF(IM),SLIMSK(IM),RUNOFF(IM)
+      DIMENSION ZSOIL(IM,KM),DEW(IM),SNOWMT(IM)
+      INTEGER SOILTYP
+      REAL INF, INFMAX, KSAT
+C     PARAMETER (LM=#LONB2,MM=#LSOIL)
+      LOGICAL FLAG(IM)
+C
+      DIMENSION PRCP(IM),INF(IM),INFMAX(IM)
+      DIMENSION TSAT(IM),DSAT(IM),KSAT(IM)
+      DIMENSION SMSOIL(IM,KM),CNPY(IM)
+      LATD = 44
+      LOND = 353
+      DELT2 = DELT * 2.
+C
+C  PRECIPITATION RATE IS NEEDED IN UNIT OF KG M-2 S-1
+C
+      DO I = 1, IM
+        PRCP(I) = RHOH2O * (PRECIP(I)+SNOWMT(I)) / DELT
+        RUNOFF(I) = 0.
+        CNPY(I) = CANOPY(I)
+      ENDDO
+C##DG  IF(LAT.EQ.LATD) THEN
+C##DG    I = LOND
+C##DG    PRINT *, ' BEFORE RUNOFF CAL, RHSMC =', RHSMC(I,1)
+C##DG  ENDIF
+C
+C  UPDATE CANOPY WATER CONTENT
+C
+      DO I = 1, IM
+        IF(SLIMSK(I).EQ.1.) THEN
+          RHSCNPY(I) = RHSCNPY(I) + SIGMAF(I) * PRCP(I)
+          CANOPY(I) = CANOPY(I) + DELT2 * RHSCNPY(I)
+          CANOPY(I) = MAX(CANOPY(I),0.)
+          PRCP(I) = PRCP(I) * (1. - SIGMAF(I))
+          IF(CANOPY(I).GT.SCANOP) THEN
+            DRIP = CANOPY(I) - SCANOP
+            CANOPY(I) = SCANOP
+            PRCP(I) = PRCP(I) + DRIP / DELT2
+          ENDIF
+C
+C  CALCULATE INFILTRATION RATE
+C
+          INF(I) = PRCP(I)
+          TSAT(I) = THSAT(SOILTYP(I))
+C         DSAT(I) = FUNCDF(TSAT(I),SOILTYP(I))
+C         KSAT(I) = FUNCKT(TSAT(I),SOILTYP(I))
+C         INFMAX(I) = -DSAT(I) * (TSAT(I) - SMC(I,1))
+C    &                / (.5 * ZSOIL(I,1))
+C    &                + KSAT(I)
+          INFMAX(I) = (-ZSOIL(I,1)) *
+     &                ((TSAT(I) - SMC(I,1)) / DELT2 - RHSMC(I,1))
+     &                * RHOH2O
+          INFMAX(I) = MAX(RFFACT*INFMAX(I),0.)
+C         IF(SMC(I,1).GE.TSAT(I)) INFMAX(I) = KSAT(I)
+C         IF(SMC(I,1).GE.TSAT(I)) INFMAX(I) = ZSOIL(I,1) * RHSMC(I,1)
+          IF(INF(I).GT.INFMAX(I)) THEN
+            RUNOFF(I) = INF(I) - INFMAX(I)
+            INF(I) = INFMAX(I)
+          ENDIF
+          INF(I) = INF(I) / RHOH2O
+          RHSMC(I,1) = RHSMC(I,1) - INF(I) / ZSOIL(I,1)
+        ENDIF
+      ENDDO
+C##DG  IF(LAT.EQ.LATD) THEN
+C##DG    I = LOND
+C##DG    PRINT *, ' PRCP, INFMAX, RUNOFF =', PRCP(I),INFMAX(I),RUNOFF(I)
+C##DG    PRINT *, ' SMSOIL =', SMC(I,1), SMC(I,2)
+C##DG    PRINT *, ' RHSMC =', RHSMC(I,1)
+C##DG  ENDIF
+C
+C  WE CURRENTLY IGNORE THE EFFECT OF RAIN ON SEA ICE
+C
+      DO I = 1, IM
+        FLAG(I) = SLIMSK(I).EQ.1.
+      ENDDO
+C
+C  SOLVE THE TRI-DIAGONAL MATRIX
+C
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I))  THEN
+            RHSMC(I,K) = RHSMC(I,K) * DELT2
+            AI(I,K) = AI(I,K) * DELT2
+            BI(I,K) = 1. + BI(I,K) * DELT2
+            CI(I,K) = CI(I,K) * DELT2
+          ENDIF
+        ENDDO
+      ENDDO
+C  FORWARD ELIMINATION
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CI(I,1) = -CI(I,1) / BI(I,1)
+          RHSMC(I,1) = RHSMC(I,1) / BI(I,1)
+        ENDIF
+      ENDDO
+      DO K = 2, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            CC = 1. / (BI(I,K) + AI(I,K) * CI(I,K-1))
+            CI(I,K) = -CI(I,K) * CC
+            RHSMC(I,K) = (RHSMC(I,K) - AI(I,K) * RHSMC(I,K-1)) * CC
+          ENDIF
+        ENDDO
+      ENDDO
+C  BACKWARD SUBSTITUTTION
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CI(I,KM) = RHSMC(I,KM)
+        ENDIF
+      ENDDO
+      DO K = KM-1, 1
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            CI(I,K) = CI(I,K) * CI(I,K+1) + RHSMC(I,K)
+          ENDIF
+        ENDDO
+      ENDDO
+ 100  CONTINUE
+C
+C  UPDATE SOIL MOISTURE
+C
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            SMSOIL(I,K) = SMC(I,K) + CI(I,K)
+            SMSOIL(I,K) = MAX(SMSOIL(I,K),0.)
+            TDIF = MAX(SMSOIL(I,K) - TSAT(I),0.)
+            RUNOFF(I) = RUNOFF(I) -
+     &                RHOH2O * TDIF * ZSOIL(I,K) / DELT2
+            SMSOIL(I,K) = SMSOIL(I,K) - TDIF
+          ENDIF
+        ENDDO
+      ENDDO
+      DO K = 1, KM
+        DO I = 1, IM
+          IF(FLAG(I)) THEN
+            SMC(I,K) = CTFIL1 * SMSOIL(I,K) + CTFIL2 * SMC(I,K)
+          ENDIF
+        ENDDO
+      ENDDO
+      DO I = 1, IM
+        IF(FLAG(I)) THEN
+          CANOPY(I) = CTFIL1 * CANOPY(I) + CTFIL2 * CNPY(I)
+        ENDIF
+      ENDDO
+C     I = 1
+C     PRINT *, ' SMC'
+C     PRINT 6000, SMC(I,1), SMC(I,2)
+ 6000 FORMAT(2(F8.5,','))
+      RETURN
+      END
+C
+C  GRDDF SETS UP MOISTURE DIFFUSIVITY AND HYDROLIC CONDUCTIVITY
+C  FOR ALL SOIL TYPES
+C  GRDDFS SETS UP THERMAL DIFFUSIVITY FOR ALL SOIL TYPES
+C
+      BLOCK DATA DFKT
+      PARAMETER (NTYPE=11)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      DATA B/4.05,4.38,4.9,5.3,5.39,7.12,7.75,8.52,
+     &       10.4,10.4,11.4/
+      DATA SATPSI/.121,.09,.218,.786,.478,.299,.356,.63,
+     &            .153,.49,.405/
+      DATA SATKT/1.76E-4,1.5633E-4,3.467E-5,7.2E-6,6.95E-6,
+     &           6.3E-6,1.7E-6,2.45E-6,2.167E-6,1.033E-6,
+     &           1.283E-6/
+      DATA TSAT/.395,.41,.435,.485,.451,.42,.477,.476,
+     &          .426,.492,.482/
+      END
+      SUBROUTINE GRDDF
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDF/ DFK(NGRID,NTYPE)
+      COMMON /COMGKT/ KTK(NGRID,NTYPE)
+      REAL KTK
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      DO K = 1, NTYPE
+        DYNW = TSAT(K) * .05
+        F1 = B(K) * SATKT(K) * SATPSI(K) / TSAT(K) ** (B(K) + 3.)
+        F2 = SATKT(K) / TSAT(K) ** (B(K) * 2. + 3.)
+C
+C  CONVERT FROM M/S TO KG M-2 S-1 UNIT
+C
+        F1 = F1 * 1000.
+        F2 = F2 * 1000.
+        DO I = 1, NGRID
+          THETA = FLOAT(I-1) * DYNW
+          THETA = MIN(TSAT(K),THETA)
+          DFK(I,K) = F1 * THETA ** (B(K) + 2.)
+          KTK(I,K) = F2 * THETA ** (B(K) * 2. + 3.)
+        ENDDO
+      ENDDO
+      RETURN
+      END
+      SUBROUTINE GRDKT
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDFT/ DFKT(NGRID,NTYPE)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      DO K = 1, NTYPE
+        DYNW = TSAT(K) * .05
+        F1 = LOG10(SATPSI(K)) + B(K) * LOG10(TSAT(K)) + 2.
+        DO I = 1, NGRID
+          THETA = FLOAT(I-1) * DYNW
+          THETA = MIN(TSAT(K),THETA)
+          IF(THETA.GT.0.) THEN
+            PF = F1 - B(K) * LOG10(THETA)
+          ELSE
+            PF = 5.2
+          ENDIF
+          IF(PF.LE.5.1) THEN
+            DFKT(I,K) = EXP(-(2.7+PF)) * 420.
+          ELSE
+            DFKT(I,K) = .1744
+          ENDIF
+        ENDDO
+      ENDDO
+      RETURN
+      END
+      REAL FUNCTION KTSOIL(THETA,KTYPE)
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDFT/ DFKT(NGRID,NTYPE)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      W = (THETA / TSAT(KTYPE)) * 20. + 1.
+      KW = W
+      KW = MIN(KW,21)
+      KW = MAX(KW,1)
+      KTSOIL = DFKT(KW,KTYPE)
+     &         + (W - KW) * (DFKT(KW+1,KTYPE) - DFKT(KW,KTYPE))
+      RETURN
+      END
+      FUNCTION FUNCDF(THETA,KTYPE)
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDF/ DFK(NGRID,NTYPE)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      W = (THETA / TSAT(KTYPE)) * 20. + 1.
+      KW = W
+      KW = MIN(KW,21)
+      KW = MAX(KW,1)
+      FUNCDF = DFK(KW,KTYPE)
+     &         + (W - KW) * (DFK(KW+1,KTYPE) - DFK(KW,KTYPE))
+      RETURN
+      END
+      FUNCTION FUNCKT(THETA,KTYPE)
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGKT/ KTK(NGRID,NTYPE)
+      REAL KTK
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      W = (THETA / TSAT(KTYPE)) * 20. + 1.
+      KW = W
+      KW = MIN(KW,21)
+      KW = MAX(KW,1)
+      FUNCKT = KTK(KW,KTYPE)
+     &         + (W - KW) * (KTK(KW+1,KTYPE) - KTK(KW,KTYPE))
+      RETURN
+      END
+      FUNCTION THSAT(KTYPE)
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      THSAT = TSAT(KTYPE)
+      RETURN
+      END
+      FUNCTION TWLT(KTYPE)
+      PARAMETER(NTYPE=11,NGRID=22)
+      COMMON /COMGDFKT/ B(NTYPE),SATPSI(NTYPE),SATKT(NTYPE),TSAT(NTYPE)
+      TWLT = .1
+      RETURN
+      END

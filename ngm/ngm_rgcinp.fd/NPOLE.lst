@@ -1,0 +1,544 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/NPOLE.f 09/30/06 19:45:34
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE NPOLE
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    NPOLE       EXTRAPOLATES FIELDS TO NORTH POLE STRIP
+          5 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          6 |C
+          7 |C ABSTRACT: EXTRAPOLATES THE FIELDS (IN LATITUDINAL
+          8 |C   STRIPS CONTAINING DATA ON A LATITUDE-LONGITUDE GRID
+          9 |C   ON SIGMA SURFACES) TO THE NORTH POLE LATITUDINAL
+         10 |C   STRIP.  THE MEAN VALUES (IN THE LONGITUDINAL DIRECTION) FOR
+         11 |C   THE PENULTIMATE AND ANTEPENULTIMATE LATITUDINAL
+         12 |C   STRIPS ARE EXTRAPOLATED TO THE NORTH POLE AS A LINEAR
+         13 |C   FUNCTION OF DISTANCE ON A POLAR STEREOGRAPHIC
+         14 |C   PROJECTION.
+         15 |C
+         16 |C PROGRAM HISTORY LOG:
+         17 |C   85-03-27  JIM HOKE
+         18 |C   88-08-02  BRIAN SCHMIDT ADDED THE DOCBLOCK
+         19 |C
+         20 |C USAGE:    CALL NPOLE
+         21 |C   INPUT ARGUMENT LIST:
+         22 |C     NONE
+         23 |C
+         24 |C   OUTPUT ARGUMENT LIST:
+         25 |C     NONE
+         26 |C
+         27 |C   OUTPUT FILES:
+         28 |C     FT06F001 - FOR PRINTOUT
+         29 |C
+         30 |C   SUBPROGRAMS CALLED:
+         31 |C     UNIQUE:    - ERRSTOP
+         32 |C     LIBRARY:
+         33 |C       COMMON   - CONSTS
+         34 |C
+         35 |C REMARKS: NOTE THAT THE DATA AT THIS POINT IN THE PROGRAM,
+         36 |C   HOWEVER, IS STILL ON THE LATITUDE-LONGITUDE GRID.
+         37 |C   NOTE ALSO THAT THE WIND COMPONENTS HAVE ALREADY BEEN
+         38 |C   ROTATED TO THE FRAMEWORK OF THE NGM POLAR STEREOGRAPHIC
+         39 |C   GRID.
+         40 |C
+         41 |C ATTRIBUTES:
+         42 |C   LANGUAGE: CYBER FORTRAN 200
+         43 |C   MACHINE:  CYBER 205
+         44 |C
+         45 |C$$$
+         46 |C
+         47 |      IMPLICIT REAL (A-H, O-Z)
+         48 |C
+         49 |C
+         50 |      INCLUDE 'parmodel'
+  1       1 |C     PARAMETER FILE
+  1       2 |C
+  1       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  1       4 |C     ON OUTPUT
+  1       5 |C                      THIS VERSION 1 May 1991 (DiMego)
+  1       6 |C
+  1       7 |      PARAMETER (
+  1       8 |     *      IBPW      =      4,
+  1       9 |     *      IBPOR     = 120000,
+  1      10 |     *      INUMREC   = IBPOR / IBPW,
+  1      11 |     *      INSPECS   =    700,
+  1      12 |     *      ILATG2    =    120,
+  1      13 |     *      ILEVH     =     12,
+  1      14 |     *      ILEVS     =     16,
+  1      15 |     *      ILONF     =    360,
+  1      16 |     *      INLATSH   =      5,
+  1      17 |     *      IIJMAX    =  23668,
+  1      18 |     *      IIJMAXB   =  25536,
+  1      19 |     *      IIJRAD    =    892,
+  1      20 |     *      IJCAP     =     80,
+  1      21 |     *      IWPCPL    =     80,
+  1      22 |     *      IKM       =     16 )
+  1      23 |      PARAMETER (
+  1      24 |     *      ILBCH     =   7*(147+111-7),
+  1      25 |     *      ILBHI     =    (147+111-26),
+  1      26 |     *      ILBUI     =    (2*147+111-39),
+  1      27 |     *      ILBUO     =   (8*147+7*111-56),
+  1      28 |     *      ILBVI     =    (147+2*111-39),
+  1      29 |     *      ILBVO     =   (7*147+8*111-56),
+  1      30 |     *      ILMOUT    =     20 )
+  1      31 |      PARAMETER (
+  1      32 |     *      IMAXOUTF  =     17,
+  1      33 |     *      IMAXOUTT  =      5,
+  1      34 |     *      IMAXOUTV  =    100,
+  1      35 |     *      IMAXPROF  =      6,
+  1      36 |     *      INFILLER  =2500000,
+  1      37 |     *      INH       =     65,
+  1      38 |     *      INGRDUSE  =      2,
+  1      39 |     *      INGRDUS1  =      1,
+  1      40 |     *      INIADDRS  =     44,
+  1      41 |     *      INSCR     =     23,
+  1      42 |     *      INSCRGEO  =     12,
+  1      43 |     *      INSCR3    =     10,
+  1      44 |     *      INSOIL    =      2,
+  1      45 |     *      INSUMG    =  42164,
+  1      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  1      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  1      48 |     *      INSHEM    = 13 * INH + 23,
+  1      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  1      50 |      PARAMETER (
+  1      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  1      52 |     *  IKMP1     = IKM + 1,
+  1      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  1      54 |     *  ILONFP1   = ILONF + 1,
+  1      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  1      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  1      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  1      58 |     *  IBLK1D    =  2 * IKM + 14,
+  1      59 |     *  IBLK2D    = 16 * IKM + 36,
+  1      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  1      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  1      62 |C
+         51 |C
+         52 |C
+         53 |      COMMON /CONSTS/ IH, IQ, IT, IU, IV, IZ,
+         54 |     1                NLAT, LEVH, LEVS, LONF, NSIGSTP,
+         55 |     2                SLAT( INLAT ), STRIPARA( INSIGSTP ,  INLAT )
+         56 |C
+         57 |C       *****   END OF INCLUDED COMMON BLK CONSTS   *****
+         58 |C
+         59 |C
+         60 |      CHARACTER*35 ERRMSG(4)
+         61 |C
+         62 |C
+         63 |C     SPECIFY THE UNIT NUMBER OF THE PRINTER.
+         64 |      IOUTUPRT = 6
+         65 |C
+         66 |      DEGRAD = 3.141592654E+0 /180.E+0
+         67 |C
+         68 |C
+         69 |C     THE NUMBER OF 1-LEVEL SEGMENTS (EACH OF LENGTH LONF)
+         70 |C     CONSTITUTING A LATITUDINAL STRIP IS CALCULATED.
+         71 |      NSEG = NSIGSTP / LONF
+         72 |      IF (NSEG * LONF .EQ. NSIGSTP) GO TO 30
+         73 |      WRITE (IOUTUPRT, 20) LONF, NSIGSTP
+         74 |   20 FORMAT ('0', '***** NSIGSTP IS NOT A MULTIPLE OF LONF IN ',
+         75 |     1             'NPOLE. *****'/
+         76 |     2        ' ', 'LONF=', I8, ',  NSIGSTP=', I8,
+         77 |     3             '.  EXECUTION TERMINATED.')
+         78 |C
+         79 |C     TERMINATE THE CONTROLLEE WITH A RETURN CODE OF 8.
+         80 |      ERRMSG(1) = 'IN SUBROUTINE NPOLE    NEAR STATEME'
+         81 |      ERRMSG(2) = 'NT NUMBER 20:                      '
+         82 |      ERRMSG(3) = 'NSIGSTP IS NOT A MULTIPLE OF LONF. '
+         83 |      ERRMSG(4) = '                                   '
+         84 |C
+         85 |      CALL ERRSTOP (IOUTUPRT, ERRMSG)
+         86 |C
+         87 |C
+         88 |   30 CONTINUE
+         89 |C     FOR EACH SEGMENT, THE LONGITUDINAL MEANS FOR THE
+         90 |C     PENULTIMATE AND ANTEPENULTIMATE LATITUDES ARE CALCULATED
+         91 |C     AND THE VALUES EXTRAPOLATED TO THE POLE.
+         92 |C     NOTE THAT TO REDUCE THE POSSIBILITY OF TRUNCATION ERROR,
+         93 |C     A REPRESENTATIVE VALUE IS TEMPORARILY SUBTRACTED FROM
+         94 |C     THE FIELD OF EACH SEGMENT IN THE CALCULATION OF THE MEAN.
+         95 |C
+         96 |C     FIRST, THE CONSTANTS OF THE EXTRAPOLATION ARE SPECIFIED.
+         97 |      SINE1 = SIN (DEGRAD * SLAT(NLAT - 1) )
+         98 |      SINE2 = SIN (DEGRAD * SLAT(NLAT - 2) )
+         99 |      RHO1  = SQRT((1.0E+0 - SINE1) / (1.0E+0 + SINE1))
+        100 |      RHO2  = SQRT((1.0E+0 - SINE2) / (1.0E+0 + SINE2))
+        101 |      FACT1 =  RHO2 / (RHO2 - RHO1)
+        102 |      FACT2 = -RHO1 / (RHO2 - RHO1)
+        103 |C
+        104 |      WRITE (IOUTUPRT, 50) FACT2, FACT1
+        105 |   50 FORMAT ('0', 'EXTRAPOLATION TO GET POLE VALUES IN ',
+        106 |     1             'SUBROUTINE NPOLE.'/
+        107 |     2        ' ', 'WEIGHTS FOR ANTEPENULTIMATE AND PENULTIMATE ',
+        108 |     3             'ROWS ARE', 2(1PE15.6))
+        109 |C
+        110 |C
+        111 |      DO 300 M=1,NSEG
+        112 |C
+        113 |      ISTART = (M-1) * LONF + 1
+        114 |      ISTOP  = M * LONF
+        115 |      SUM1   = 0.0E+0
+        116 |      SUM2   = 0.0E+0
+        117 |      REF1   = STRIPARA(ISTART, NLAT-1)
+        118 |      REF2   = STRIPARA(ISTART, NLAT-2)
+        119 |C
+        120 |      DO 100 I=ISTART,ISTOP
+        121 |      SUM1 = SUM1 + (STRIPARA(I, NLAT-1) - REF1)
+        122 |      SUM2 = SUM2 + (STRIPARA(I, NLAT-2) - REF2)
+        123 |  100 CONTINUE
+        124 |C
+        125 |C     THE LONGITUDINAL MEANS ARE CALCULATED.
+        126 |      AMEAN1 = (SUM1 / REAL(LONF)) + REF1
+        127 |      AMEAN2 = (SUM2 / REAL(LONF)) + REF2
+        128 |C
+        129 |C     THE VALUE AT THE POLE CAN NOW BE CALCULATED BY LINEAR
+        130 |C     EXTRAPOLATION.
+        131 |C
+        132 |      PVALUE = FACT1 * AMEAN1 + FACT2 * AMEAN2
+        133 |C
+        134 |C     WRITE (IOUTUPRT, 150) M, AMEAN2, AMEAN1, PVALUE
+        135 |C 150 FORMAT (' ', 'FOR SEGMENT=', I3, ' ANTEPENULTIMATE MEAN=',
+        136 |C    1             1PE15.6, ',  PENULTIMATE MEAN=', 1PE15.6,
+        137 |C    2             ', SO THAT POLE VALUE=', 1PE15.6)
+        138 |C
+        139 |C     THE POLE VALUE IS ASSIGNED TO EVERY LONGITUDE OF THE
+        140 |C     POLE LATITUDINAL STRIP.
+        141 |      DO 200 I=ISTART,ISTOP
+        142 |      STRIPARA(I, NLAT) = PVALUE
+        143 |  200 CONTINUE
+        144 |C
+        145 |  300 CONTINUE
+        146 |C
+        147 |      RETURN
+        148 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+amean1                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-126.7@  0-132.24
+ 
+amean2                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-127.7@  0-132.41
+ 
+consts                           Common Block, Alignment: double word
+                                 0-53.15$
+ 
+degrad                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-97.20  0-98.20
+ 
+errmsg                           Static, Character(35) (1:4), Offset: 0, Alignment: full word
+                                 0-60.20$  0-80.7@  0-81.7@  0-82.7@  0-83.7@  0-85.31
+ 
+errstop                          External Subroutine
+                                 0-85.12
+ 
+fact1                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-101.7@  0-104.35  0-132.16
+ 
+fact2                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-102.7@  0-104.28  0-132.33
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-120.14@  0-121.31  0-122.31  0-141.14@  0-142.16
+ 
+iblk1d                           Parameter, Integer(4)
+                                 1-58.9$  1-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 1-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 1-59.9$  1-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 1-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 1-9.13$  1-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 1-8.13$  1-10.33
+ 
+ih                               Common member, Integer(4), Offset: 0, Alignment: quadruple word
+                                 0-53.23$
+ 
+iijkmax                          Parameter, Integer(4)
+                                 1-49.13$  1-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 1-17.13$  1-49.31  1-56.21  1-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 1-18.13$  1-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 1-19.13$  1-57.30  1-61.21
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 1-51.9$
+ 
+ijcap                            Parameter, Integer(4)
+                                 1-20.13$
+ 
+ikm                              Parameter, Integer(4)
+                                 1-22.13$  1-49.25  1-52.21  1-53.25  1-57.39  1-58.26  1-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 1-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 1-12.13$  1-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 1-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 1-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 1-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 1-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 1-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 1-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 1-13.13$  1-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 1-14.13$  1-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 1-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 1-15.13$  1-46.25  1-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 1-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 1-53.9$  1-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 1-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 1-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 1-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 1-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 1-56.9$
+ 
+infiller                         Parameter, Integer(4)
+                                 1-36.13$  1-56.62
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 1-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 1-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 1-37.13$  1-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 1-40.13$
+ 
+inlat                            Parameter, Integer(4)
+                                 1-47.13$  0-55.29  0-55.60
+ 
+inlatsh                          Parameter, Integer(4)
+                                 1-16.13$  1-47.34
+ 
+inscr                            Parameter, Integer(4)
+                                 1-41.13$  1-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 1-43.13$  1-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 1-42.13$  1-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 1-48.13$
+ 
+insigstp                         Parameter, Integer(4)
+                                 1-46.13$  0-55.48
+ 
+insoil                           Parameter, Integer(4)
+                                 1-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 1-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 1-45.13$  1-55.31
+ 
+inumrec                          Parameter, Integer(4)
+                                 1-10.13$
+ 
+invbl                            Parameter, Integer(4)
+                                 1-55.9$
+ 
+ioutuprt                         Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-64.7@  0-73.14  0-85.21  0-104.14
+ 
+iq                               Common member, Integer(4), Offset: 4, Alignment: full word
+                                 0-53.27$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 1-57.9$
+ 
+istart                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-113.7@  0-117.25  0-118.25  0-120.16  0-141.16
+ 
+istop                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-114.7@  0-120.23  0-141.23
+ 
+it                               Common member, Integer(4), Offset: 8, Alignment: double word
+                                 0-53.31$
+ 
+iu                               Common member, Integer(4), Offset: 12, Alignment: full word
+                                 0-53.35$
+ 
+iv                               Common member, Integer(4), Offset: 16, Alignment: quadruple word
+                                 0-53.39$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 1-21.13$  1-57.21
+ 
+iz                               Common member, Integer(4), Offset: 20, Alignment: full word
+                                 0-53.43$
+ 
+levh                             Common member, Integer(4), Offset: 28, Alignment: full word
+                                 0-54.29$
+ 
+levs                             Common member, Integer(4), Offset: 32, Alignment: quadruple word
+                                 0-54.35$
+ 
+lonf                             Common member, Integer(4), Offset: 36, Alignment: full word
+                                 0-54.41$  0-71.24  0-72.18  0-73.28  0-113.24  0-114.20  0-126.29  0-127.29
+ 
+m                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-111.14@  0-113.17  0-114.16
+ 
+nlat                             Common member, Integer(4), Offset: 24, Alignment: double word
+                                 0-54.23$  0-97.34  0-98.34  0-117.33  0-118.33  0-121.34  0-122.34  0-142.19
+ 
+npole                            Subroutine
+                                 0-1.18$
+ 
+nseg                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-72.11  0-111.18
+ 
+nsigstp                          Common member, Integer(4), Offset: 40, Alignment: double word
+                                 0-54.47$  0-71.14  0-72.28  0-73.34
+ 
+pvalue                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-132.7@  0-142.27
+ 
+real                             Pure Intrinsic
+                                 0-126.24  0-127.24
+ 
+ref1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-117.7@  0-121.44  0-126.38
+ 
+ref2                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-118.7@  0-122.44  0-127.38
+ 
+rho1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-99.7@  0-101.31  0-102.16  0-102.31
+ 
+rho2                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-100.7@  0-101.16  0-101.24  0-102.24
+ 
+sin                              Pure Intrinsic
+                                 0-97.15  0-98.15
+ 
+sine1                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-97.7@  0-99.30  0-99.49
+ 
+sine2                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-98.7@  0-100.30  0-100.49
+ 
+slat                             Common member, Real(4) (1:126), Offset: 44, Alignment: full word
+                                 0-55.23$  0-97.29  0-98.29
+ 
+sqrt                             Pure Intrinsic
+                                 0-99.15  0-100.15
+ 
+stripara                         Common member, Real(4) (1:22320, 1:126), Offset: 548, Alignment: full word
+                                 0-55.38$  0-117.16  0-118.16  0-121.22  0-122.22  0-142.7@
+ 
+sum1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-115.7@  0-121.7@  0-121.14  0-126.17
+ 
+sum2                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-116.7@  0-122.7@  0-122.14  0-127.17
+ 
+** npole   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    NPOLE.f                     10/10/02   16:14:55
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/parmodel
+                                      10/10/02   16:14:55      0      50
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     210
+1501-510  Compilation successful for file NPOLE.f.
+1501-543  Object file created.

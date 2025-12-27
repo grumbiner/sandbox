@@ -1,0 +1,90 @@
+#!/bin/sh
+
+###################################################################
+echo "------------------------------------------------"
+echo " Run Postprocessing for bufr sounding "
+echo "------------------------------------------------"
+echo "History: NOV 2004 - Converted to CCS Phase II"
+echo " "
+#####################################################################
+
+cd $DATA
+
+########################################
+set -x
+msg="Begin job for $job"
+postmsg "$jlogfile" "$msg"
+
+########################################
+
+comrun=$COMIN/${RUN}.${cycle}
+
+set +x
+echo " "
+echo "############################################################"
+echo " ngm2bufr - run the bufrize/breakout code"
+echo "############################################################"
+echo " "
+set -x
+
+if [[ -s ${comrun}.wvsnd ]]
+then
+
+  combufr=$COMIN
+  mkdir -p ${combufr}/bufrsnd.${cycle}
+
+# The DIRD environment variable is used in an ISHELL internal
+# OUTPUT (fort.89) assignment to produce the individual
+# breakout files
+
+  cp $PARMbufr/bufr_wfgbuf     wvbuf
+
+  export pgm=ngm_ngm2bufr
+  . prep_step
+
+  export XLFUNIT_40="wvbuf"
+  export XLFUNIT_47="${comrun}.wvsnd"
+
+  DIRD=${combufr}/bufrsnd.${cycle}/bufrhr.; export DIRD
+
+  startmsg
+
+  $EXECbufr/ngm_ngm2bufr >> $pgmout 2> errfile
+  err=$?;export err ;err_chk
+
+fi
+
+# set up date file, send dbNET commands
+
+if test "$SENDDBN" = 'YES'
+then
+
+ cp ncepdate ${combufr}/bufrsnd.${cycle}/ncepdate
+ cd ${combufr}/bufrsnd.${cycle}
+ set +x
+ cat bufrhr.* > ${comrun}.snd.bufr 2>errfile 
+ cd $DATA
+
+ $DBNROOT/bin/dbn_alert BUFRDATE ngm $job ${combufr}/bufrsnd.${cycle}/ncepdate
+ $DBNROOT/bin/dbn_alert BUFRDUMP ngm $job ${comrun}.snd.bufr
+fi
+
+#####################################################################
+# Make GEMPAK BUFR sounding files
+$USHngm/ngm_bfr2gpk.sh
+#####################################################################
+
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+echo "************** $job COMPLETED NORMALLY ON THE IBM SP"
+set -x
+#####################################################################
+
+msg="HAS COMPLETED NORMALLY!"
+postmsg "$jlogfile" "$msg"
+
+############## END OF SCRIPT #######################

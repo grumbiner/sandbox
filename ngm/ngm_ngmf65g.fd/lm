@@ -1,0 +1,160 @@
+(ld): setopt 64
+(ld): halt 4
+(ld): setfflag 4
+(ld): savename ngm_ngmfcst
+(ld): filelist 121 1
+(ld): i /lib/crt0_64.o
+(ld): i ALLGRIDS.o
+(ld): i OUTAREA.o
+(ld): i OUTSCALE.o
+(ld): i SHEMPRE.o
+(ld): i LAB2PDS.o
+(ld): i BIGCHG.o
+(ld): i HMDY.o
+(ld): i OUTCLOSE.o
+(ld): i OUTSIG2P.o
+(ld): i SKSKINT0.o
+(ld): i BITHOLE.o
+(ld): i HQCOEF.o
+(ld): i OUTDAT2P.o
+(ld): i OUTSIGMA.o
+(ld): i SKSTEP1.o
+(ld): i BITOUT.o
+(ld): i JULDAY.o
+(ld): i OUTFDTUV.o
+(ld): i OUTSMOO.o
+(ld): i SKSTEPAL.o
+(ld): i BLEND.o
+(ld): i LATBND.o
+(ld): i OUTFIXED.o
+(ld): i OUTSVALU.o
+(ld): i SKTGRND0.o
+(ld): i CHARNOCK.o
+(ld): i LL2GR.o
+(ld): i OUTGRWD.o
+(ld): i P2KAP.o
+(ld): i SMOOTH.o
+(ld): i SMOOTHA.o
+(ld): i COSZEN.o
+(ld): i LWCLDSLW.o
+(ld): i OUTHORIZ.o
+(ld): i PARITY.o
+(ld): i RDHSCATR.o
+(ld): i DEWPOINT.o
+(ld): i OUTHYDRO.o
+(ld): i PHYPREP.o
+(ld): i RDHGATHR.o
+(ld): i SOUNDING.o
+(ld): i DIAGFCST.o
+(ld): i LWFLUX.o
+(ld): i OUTLIFT.o
+(ld): i PHYSICS.o
+(ld): i STATS.o
+(ld): i FEQUEUE.o
+(ld): i DIAGPRT.o
+(ld): i LWRADIAT.o
+(ld): i OUTLOLA.o
+(ld): i PRECIP.o
+(ld): i SWCLEAR.o
+(ld): i DRYADB.o
+(ld): i MAIN.o
+(ld): i OUTMCONV.o
+(ld): i PRINTBIT.o
+(ld): i SWCLOUDY.o
+(ld): i DUMPBIT.o
+(ld): i MIXDIAG.o
+(ld): i OUTNULAB.o
+(ld): i PRINTTIM.o
+(ld): i RDSTEP1.o
+(ld): i SWRADIAT.o
+(ld): i MSTADB.o
+(ld): i OUTOMEGA.o
+(ld): i PRT.o
+(ld): i RDSTEPAL.o
+(ld): i SWSET.o
+(ld): i SKSBSOIL.o
+(ld): i O3CLIMO.o
+(ld): i OUTOPEN.o
+(ld): i PRT25.o
+(ld): i RESTARTR.o
+(ld): i TEMPADJ.o
+(ld): i DUMPINT.o
+(ld): i O3INT.o
+(ld): i OUTPACK.o
+(ld): i PRTSQARE.o
+(ld): i RESTARTW.o
+(ld): i TOPRT25.o
+(ld): i DUMPREAL.o
+(ld): i OUTPHYS.o
+(ld): i SEALDIAG.o
+(ld): i VAPTAB.o
+(ld): i OUTOPENGB.o
+(ld): i GRIBIT.o
+(ld): i ERRPRINT.o
+(ld): i ONEWAY.o
+(ld): i OUTPREP.o
+(ld): i RDCLDGEN.o
+(ld): i SFCEXCH.o
+(ld): i ZONEDIAG.o
+(ld): i OUT2FILE.o
+(ld): i OUTPUT_new.o
+(ld): i SFCMIX.o
+(ld): i CONVRT.o
+(ld): i GRIBITN.o
+(ld): i GTBITS.o
+(ld): i FILLHOLE.o
+(ld): i OUTABVOR.o
+(ld): i OUTRPAUS.o
+(ld): i SHEM.o
+(ld): i I84TGB.o
+(ld): i IDSDEF.o
+(ld): i ISHELL.o
+(ld): i ASNUNIT.o
+(ld): i LWCRUNCH.o
+(ld): i ONEGRID.o
+(ld): lib /nwprod/lib/libw3_4.a
+(ld): lib /nwprod/lib/libbacio_4.a
+(ld): lib /usr/lib/libessl_r.a
+(ld): lib /usr/lib/libmass.a
+(ld): lib /usr/lib/libmassv.a
+(ld): lib /usr/lpp/xlf/lib/libxlf90.a
+(ld): lib /usr/lpp/xlf/lib/libxlopt.a
+(ld): lib /usr/lib/libxlf.a
+(ld): lib /usr/lib/libxlsmp.a
+(ld): lib /usr/lib/libpthreads.a
+(ld): lib /usr/lib/libm.a
+(ld): lib /usr/lib/libc.a
+LIBRARY: Shared object libessl_r.a[essl_64.o]: 1632 symbols imported.
+LIBRARY: Shared object libxlf90.a[io_64.o]: 83 symbols imported.
+LIBRARY: Shared object libxlf90.a[math_64.o]: 328 symbols imported.
+LIBRARY: Shared object libxlf90.a[xlfsys_64.o]: 33 symbols imported.
+LIBRARY: Symbols imported from import file /usr/lpp/xlf/lib/libxlf90.a[_xlf_aio.imp]: 10
+LIBRARY: Shared object libxlf90.a[_xlf_posix_64.o]: 88 symbols imported.
+LIBRARY: Shared object libxlsmp.a[smprt_64.o]: 118 symbols imported.
+LIBRARY: Shared object libpthreads.a[shr_xpg5_64.o]: 320 symbols imported.
+LIBRARY: Shared object libc.a[shr_64.o]: 2594 symbols imported.
+LIBRARY: Shared object libc.a[posix_aio_64.o]: 20 symbols imported.
+LIBRARY: Shared object libc.a[aio_64.o]: 14 symbols imported.
+LIBRARY: Shared object libc.a[pse_64.o]: 5 symbols imported.
+LIBRARY: Shared object libc.a[dl_64.o]: 4 symbols imported.
+LIBRARY: Shared object libc.a[pty_64.o]: 1 symbols imported.
+FILELIST: Number of previously inserted files processed: 121
+(ld): resolve
+RESOLVE: 1311 of 14255 symbols were kept.
+(ld): addgl /usr/lib/glink64.o
+ADDGL: Glink code added for 48 symbols.
+(ld): er full
+ER: There are no unresolved symbols.
+(ld): mismatch
+MISMATCH: No type mismatches exist.
+(ld): comprld
+COMPRLD: Kept 7535 of 7535 relocation entries.
+(ld): origin page 0x100000000 0x110000000
+(ld): libpath /nwprod/lib:/usr/lpp/xlf/lib:/usr/lib:/lib
+LIBPATH: Library path set to /nwprod/lib:/usr/lpp/xlf/lib:/usr/lib:/lib
+(ld): save 1L .
+SAVE: Section sizes = 1104188+89068+64761892 (0x10D93C+0x15BEC+0x3DC3024 hex)
+SAVE: Size of TOC: 3928 (0xF58 hex)
+(ld): gen map map
+(ld): rc
+RC: Highest return code was 0.

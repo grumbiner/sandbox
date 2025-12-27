@@ -1,0 +1,85 @@
+#!/bin/sh
+######################################################################
+#  UTILITY SCRIPT NAME :  exngm_grib_awips.sh.sm
+#         DATE WRITTEN :  10/07/2004
+#
+#  Abstract:  This utility script produces the NAM AWIPS GRIB
+#
+#     Input:  1 arguments are passed to this script.
+#             1st argument - Forecast Hour - format of 2I
+#
+#####################################################################
+
+#####################################################################
+echo "------------------------------------------------"
+echo "EXNGM_GRIB_AWIPS - NAM post processing"
+echo "------------------------------------------------"
+echo "History: Oct 2004 - First implementation of this new script."
+echo "         "
+#####################################################################
+
+set -x
+msg="Begin job for $job"
+postmsg "$jlogfile" "$msg"
+
+#####################################################################
+set +x
+fcsthrs="$1"
+num=$#
+
+if test "$num" -ge 1
+then
+   echo " Appropriate number of arguments were passed"
+   set -x
+   export comrun=$COMIN/${model}.${cycle}
+else
+   echo ""
+   echo "Usage: exngm_grib_awips.sh.sm  \$fcsthrs "
+   echo ""
+   exit 16
+fi
+
+cd $DATA
+
+set +x
+echo " "
+echo "###############################################################"
+echo " Process NGM GRIB AWIP PRODUCTS"
+echo "###############################################################"
+echo " "
+set -x
+
+sh $USHutil/mkawpgrb.sh  ${fcsthrs}
+
+if test ${fcsthrs} -eq 48
+then
+    set +x
+    echo " "
+    echo " #####################################################"
+    echo "       Execute tracker to generate objective track"
+    echo "       of tropical cyclones within NGM GRIB output"
+    echo " #####################################################"
+    echo " "
+    set -x
+
+    export cmodel=ngm
+    export trkrscript=/nwprod/util/ush
+    sh $trkrscript/extrkr.sh
+fi
+
+#####################################################################
+# GOOD RUN
+set +x
+echo "**************JOB EXNGM_GRIB_AWIPS COMPLETED NORMALLY"
+echo "**************JOB EXNGM_GRIB_AWIPS COMPLETED NORMALLY"
+echo "**************JOB EXNGM_GRIB_AWIPS COMPLETED NORMALLY"
+set -x
+#####################################################################
+
+cat $pgmout
+
+msg="HAS COMPLETED NORMALLY!"
+echo $msg
+postmsg "$jlogfile" "$msg"
+
+############## END OF SCRIPT #######################

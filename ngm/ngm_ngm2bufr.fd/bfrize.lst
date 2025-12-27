@@ -1,0 +1,390 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrize.f 05/28/08 12:37:18
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              INLGLUE         NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |	SUBROUTINE BFRIZE ( luntbl, lunbfr, sbset, iyr, imn, idy, ihr,
+          2 |     +                      seqnam, seqflg, nseq, lvlwise, data, nlvl,
+          3 |     +			    clist, npp, wrkd, iret)
+          4 |C************************************************************************
+          5 |C* BFRIZE								*
+          6 |C*									*
+          7 |C* This subroutine calls Jack Woollen's BUFR encoding routines to	*
+          8 |C* write a BUFR message to an output file.  SBSET is the Mnemonic	*
+          9 |C* for the TABLE A entry associated with this message.  It appears	*
+         10 |C* in the table referenced by LUNTBL.  If LUNTBL = 0, the output	*
+         11 |C* BUFR file is closed.							*
+         12 |C*									*
+         13 |C* The data in the array DATA are ordered according to the individual	*
+         14 |C* elements of the Sequences given in SEQNAM.  The contents of SEQNAM	*
+         15 |C* and SEQFLG and, consequently of DATA, are determined by the BUFR	*
+         16 |C* table file referenced by LUNTBL.  Each entry in SEQNAM has a list of	*
+         17 |C* parameters associated with it in the table.  This list is read from	*
+         18 |C* the table and the number of parameters is determined.  This		*
+         19 |C* information is stored in CLIST and NPP for future calls to BFRIZE.	*
+         20 |C* If the parameters associated with the entry in SEQNAM exist on NLVL	*
+         21 |C* levels, the corresponding array element of SEQFLG must be .true.;	*
+         22 |C* otherwise, it is .false.  NLVL is an integer array with an entry	*
+         23 |C* corresponding to each .true. entry in SEQFLG.			*
+         24 |C*									*
+         25 |C* Profile data in array DATA may be stored such that contiguous	*
+         26 |C* elements are values of different parameters on the same level	*
+         27 |C* (parameter-wise storage) or the same parameter on different levels	*
+         28 |C* (level-wise storage).  If LVLWISE=.false. parameter-wise storage	*
+         29 |C* is assumed; otherwise, LVLWISE=.true. and level-wise storage is	*
+         30 |C* assumed.  If there is more than one multi-level (replicated)		*
+         31 |C* sequence, LVLWISE applies to each one of them.			*
+         32 |C*									*
+         33 |C* The example below shows the contents of SEQNAM, SEQFLG, and DATA	*
+         34 |C* for a case when NLVL=3, LVLWISE=.true., and the table file has the	*
+         35 |C* following entries for the Mnemonic Sequences:			*
+         36 |C* 									*
+         37 |C* MNEMONIC | SEQUENCE							*
+         38 |C* 									*
+         39 |C* MODELOUT | HDR {PROF} SFC						*
+         40 |C* HDR	    | RLAT RLON							*
+         41 |C* PROF	    | PRES TMPK							*
+         42 |C* SFC 	    | PMSL PRCP							*
+         43 |C*									*
+         44 |C* SEQNAM and SEQFLG have the following assigned entries:		*
+         45 |C*									*
+         46 |C* 	INDEX	SEQNAM	SEQFLG						*
+         47 |C*	  1 	 HDR	.false.						*
+         48 |C*	  2	 PROF	.true.						*
+         49 |C*	  3	 SFC	.false.						*
+         50 |C*									*
+         51 |C* DATA must contain the following values in this order:		*
+         52 |C*									*
+         53 |C* 	DATA (1) = rlat		DATA (6)  = tmpk (1)			*
+         54 |C*	DATA (2) = rlon		DATA (7)  = tmpk (2)			*
+         55 |C*	DATA (3) = pres (1)	DATA (8)  = tmpk (3)			*
+         56 |C*	DATA (4) = pres (2)	DATA (9)  = pmsl			*
+         57 |C*	DATA (5) = pres (3)	DATA (10) = prcp			*
+         58 |C*									*
+         59 |C* The lower-case names above signify numerical values of the 		*
+         60 |C* parameters.  The values of multiple level parameters are stored	*
+         61 |C* contiguously.							*
+         62 |C*									*
+         63 |C* To add a new output parameter, update the table file by adding the	*
+         64 |C* Mnemonic for the parameter to an existing Sequence or by adding	*
+         65 |C* a new Sequence.  If a new Sequence has been added, SEQNAM and 	*
+         66 |C* SEQFLG must be updated accordingly.  In any case, the new output	*
+         67 |C* parameter value must be placed in the correct position within the	*
+         68 |C* array DATA.								*
+         69 |C*									*
+         70 |C* CLIST contains the lists of parameter names for each element of	*
+         71 |C* SEQNAM.  If CLIST (1) is blank, BFRHDR is called with SEQNAM and	*
+         72 |C* SEQFLG as inputs to load the names of the parameters into CLIST;	*
+         73 |C* otherwise, the names in CLIST are used.  For every element of	*
+         74 |C* SEQNAM there is a corresponding element of CLIST.  For each element	*
+         75 |C* of CLIST, there is a corresponding element of NPP giving the number	*
+         76 |C* of parameter	names in the list.					*
+         77 |C*									*
+         78 |C* DATA (i) = 10.E+10 is the missing value.				*
+         79 |C*									*
+         80 |C* WRKD is a scratch array and should be dimensioned the same size as 	*
+         81 |C* data.  WRKD is not used if LVLWISE=.false.				*
+         82 |C*									*
+         83 |C* BFRIZE ( LUNTBL, LUNBFR, SBSET, IYR, IMN, IDY, IHR,			*
+         84 |C*	    SEQNAM, SEQFLG, NSEQ, LVLWISE, DATA, NLVL, CLIST, NPP,	*
+         85 |C*	    WRKD, IRET )						*
+         86 |C*									*
+         87 |C* Input parameters:							*
+         88 |C*	LUNTBL		INTEGER		Unit number of BUFR Table file	*
+         89 |C*	LUNBFR		INTEGER		Unit number of BUFR data file	*
+         90 |C*	SBSET		CHAR*		BUFR subset name		*
+         91 |C*	IYR		INTEGER		2-digit year			*
+         92 |C*	IMN		INTEGER		2-digit month			*
+         93 |C*	IDY		INTEGER		2-digit day			*
+         94 |C*	IHR		INTEGER		2-digit cycle hour		*
+         95 |C*	SEQNAM (NSEQ)	CHAR*		Mnemonic Sequence names		*
+         96 |C*	SEQFLG (NSEQ)	LOGICAL		Multi-level flag		*
+         97 |C*	NSEQ		INTEGER		Number of Sequence names & flags*
+         98 |C*	LVLWISE		LOGICAL		Level-wise profile data flag	*
+         99 |C*	DATA   (*)	REAL*8		Data array			*
+        100 |C*	NLVL (*)	INTEGER		Number of levels/replications	*
+        101 |C*									*
+        102 |C* Input and Output parameters:						*
+        103 |C*	CLIST  (NSEQ)	CHAR*		Parameter name lists		*
+        104 |C*	NPP    (NSEQ)	INTEGER		Number of parameter names	*
+        105 |C*									*
+        106 |C* Output parameters:							*
+        107 |C*	WRKD   (*)	REAL*8		Array of reordered profile data *
+        108 |C*	IRET		INTEGER		Return code			*
+        109 |C*					  0 = normal return		*
+        110 |C**									*
+        111 |C* Log:									*
+        112 |C* K. Brill/NMC		05/94						*
+        113 |C* K. Brill/NMC		06/94	Added LVLWISE, CLIST, NPP, WRKD		*
+        114 |C* K. Brill/EMC		 5/97	Make NLVL an array for other replication*
+        115 |C************************************************************************
+        116 |	REAL*8		data (*)
+        117 |	INTEGER 	npp (*), nlvl (*)
+        118 |	CHARACTER*(*)	seqnam (*), sbset
+        119 |	LOGICAL		seqflg (*), lvlwise
+        120 |	CHARACTER*(*)	clist (*)
+        121 |	REAL*8		wrkd (*)
+        122 |        CHARACTER*80    RMFORT,ASSCLS
+        123 |C-----------------------------------------------------------------------
+        124 |	iret = 0
+        125 |        RMFORT = '("rm -f fort.89")'
+        126 |        print *,'enter bfrize luntbl = ',luntbl
+        127 |C
+        128 |C*	Close BUFR file if LUNTBL = 0.
+        129 |C
+        130 |	IF ( luntbl .eq. 0 ) THEN
+        131 |            print *,'closing lunbfr ',lunbfr,luntbl
+        132 |	    CALL CLOSBF ( lunbfr )
+        133 |            WRITE(ASSCLS,RMFORT)
+        134 |            CALL SYSTEM(ASSCLS)
+        135 |	    RETURN
+        136 |	END IF
+        137 |C
+        138 |C*	Check the status of the output BUFR file.
+        139 |C
+        140 |	CALL STATUS ( lunbfr, lun, iopn, imm )
+        141 |	IF ( iopn .eq. 0 ) THEN
+        142 |	    CALL OPENBF ( lunbfr, 'OUT', luntbl )
+        143 |            CALL DATELEN ( 10 )
+        144 |	END IF
+        145 |C
+        146 |C*	Open a new message.
+        147 |C
+        148 |	idate = iyr * 1000000 + imn * 10000 + idy * 100 + ihr
+        149 |	CALL OPENMB ( lunbfr, sbset, idate )
+        150 |C
+        151 |C*	Create the parameter name lists if CLIST (1) is blank.
+        152 |C
+        153 |	IF ( clist (1) .eq. ' ' ) THEN
+        154 |	    DO is = 1, nseq
+        155 |                CALL BFRHDR ( luntbl, seqnam (is), seqflg (is),
+        156 |     +                        clist (is), npp (is), iret )
+        157 |		IF ( iret .ne. 0 ) RETURN
+        158 |	    END DO
+        159 |	END IF
+        160 |C
+        161 |C*	Load the sequences.
+        162 |C
+        163 |	idpntr = 1
+        164 |	indxlv = 0
+        165 |	DO is = 1, nseq
+        166 |            np = npp (is)
+        167 |	    IF ( seqflg (is) ) THEN
+        168 |		indxlv = indxlv + 1
+        169 |		IF ( lvlwise ) THEN
+        170 |C
+        171 |C*	            This is level-wise multi-level data.
+        172 |C
+        173 |		    istrt = idpntr
+        174 |		    indx = 0
+        175 |		    DO k = 1, nlvl (indxlv)
+        176 |	       		DO ip = 1, np
+        177 |			    indx = indx + 1
+        178 |			    wrkd ( indx ) =
+        179 |     +			      data ( istrt + (ip-1) * nlvl (indxlv) )
+        180 |		        END DO
+        181 |		        istrt = istrt + 1
+        182 |		    END DO
+        183 |		    CALL UFBINT ( lunbfr, wrkd, np, nlvl (indxlv),
+        184 |     +				  irtrn, clist (is) )
+        185 |
+        186 |		ELSE
+        187 |C
+        188 |C*		    This is parameter-wise multi-level data.
+        189 |C
+        190 |		    CALL UFBINT ( lunbfr, data (idpntr), np,
+        191 |     +				  nlvl (indxlv), irtrn, clist (is) )
+        192 |		END IF
+        193 |	    	idpntr = idpntr + np * nlvl (indxlv)
+        194 |	    ELSE
+        195 |C
+        196 |C*		This is single-level data.
+        197 |C
+        198 |		CALL UFBINT ( lunbfr, data (idpntr),
+        199 |     +			      np, 1, irtrn, clist (is) )
+        200 |		idpntr = idpntr + np
+        201 |	    END IF
+        202 |	END DO
+        203 |	CALL WRITSB ( lunbfr )
+        204 |C*
+        205 |	RETURN
+        206 |	END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+asscls                           Static, Character(80), Offset: 0, Alignment: full word
+                                 0-122.32$  0-133.19  0-134.25
+ 
+bfrhdr                           External Subroutine
+                                 0-155.22
+ 
+bfrize                           Subroutine
+                                 0-1.13$
+ 
+clist                            Reference argument, Character*(*) (1:*), Offset: 0, Alignment: byte
+                                 0-120.16$  0-3.14  0-153.7  0-156.31  0-184.20  0-191.35  0-199.30
+ 
+closbf                           External Subroutine
+                                 0-132.11
+ 
+data                             Reference argument, Real(8) (1:*), Offset: 0, Alignment: double word
+                                 0-116.10$  0-2.60  0-179.16  0-190.29  0-198.25
+ 
+datelen                          External Subroutine
+                                 0-143.18
+ 
+idate                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-148.2@  0-149.31
+ 
+idpntr                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-163.2@  0-173.15  0-190.35  0-193.7@  0-193.16  0-198.31  0-200.3@  0-200.12
+ 
+idy                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.55  0-148.40
+ 
+ihr                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.60  0-148.52
+ 
+imm                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-140.35
+ 
+imn                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.50  0-148.26
+ 
+indx                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-174.7@  0-177.8@  0-177.15  0-178.15
+ 
+indxlv                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-164.2@  0-168.3@  0-168.12  0-175.23  0-179.46  0-183.45  0-191.19  0-193.36
+ 
+iopn                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-140.29  0-141.7
+ 
+ip                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-176.14@  0-179.32
+ 
+iret                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.32  0-124.2@  0-156.53  0-157.8
+ 
+irtrn                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-184.13  0-191.28  0-199.23
+ 
+is                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-154.9@  0-155.47  0-155.60  0-156.38  0-156.48  0-165.5@  0-166.23  0-167.19  0-184.27  0-191.42
+                                 0-199.37
+ 
+istrt                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-173.7@  0-179.23  0-181.11@  0-181.19
+ 
+iyr                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.45  0-148.10
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-175.10@
+ 
+lun                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-140.24
+ 
+lunbfr                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-131.39  0-132.20  0-140.16  0-142.20  0-149.16  0-183.21  0-190.21  0-198.17  0-203.16
+ 
+luntbl                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.22  0-126.42  0-130.7  0-131.46  0-142.35  0-155.31
+ 
+lvlwise                          Reference argument, Logical(4), Offset: 0, Alignment: full word
+                                 0-119.23$  0-2.51  0-169.8
+ 
+nlvl                             Reference argument, Integer(4) (1:*), Offset: 0, Alignment: full word
+                                 0-117.20$  0-2.66  0-175.17  0-179.40  0-183.39  0-191.13  0-193.30
+ 
+np                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-166.13@  0-176.22  0-183.35  0-190.44  0-193.25  0-199.16  0-200.21
+ 
+npp                              Reference argument, Integer(4) (1:*), Offset: 0, Alignment: full word
+                                 0-117.11$  0-3.21  0-156.43  0-166.18
+ 
+nseq                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.45  0-154.17  0-165.13
+ 
+openbf                           External Subroutine
+                                 0-142.11
+ 
+openmb                           External Subroutine
+                                 0-149.7
+ 
+rmfort                           Static, Character(80), Offset: 0, Alignment: full word
+                                 0-122.25$  0-125.9@  0-133.26
+ 
+sbset                            Reference argument, Character*(*), Offset: 0, Alignment: byte
+                                 0-118.28$  0-1.38  0-149.24
+ 
+seqflg                           Reference argument, Logical(4) (1:*), Offset: 0, Alignment: full word
+                                 0-119.11$  0-2.37  0-155.52  0-167.11
+ 
+seqnam                           Reference argument, Character*(*) (1:*), Offset: 0, Alignment: byte
+                                 0-118.16$  0-2.29  0-155.39
+ 
+status                           External Subroutine
+                                 0-140.7
+ 
+system                           Intrinsic
+                                 0-134.18
+ 
+ufbint                           External Subroutine
+                                 0-183.12  0-190.12  0-198.8
+ 
+writsb                           External Subroutine
+                                 0-203.7
+ 
+wrkd                             Reference argument, Real(8) (1:*), Offset: 0, Alignment: double word
+                                 0-121.10$  0-3.26  0-178.8@  0-183.29
+ 
+** bfrize   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    bfrize.f                    10/09/02   12:47:47
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     206
+1501-510  Compilation successful for file bfrize.f.
+1501-543  Object file created.

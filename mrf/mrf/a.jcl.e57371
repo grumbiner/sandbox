@@ -1,0 +1,25 @@
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'GFT192' was encountered.
+     Entry in module 'GFT192' from file 'f6228.o' has been used.
+     Entry in module 'GFT192' from file 'f6228.o' has been ignored.
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'FTI192' was encountered.
+     Entry in module 'FTI192' from file 'f6228.o' has been used.
+     Entry in module 'FTI192' from file 'f6228.o' has been ignored.
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'IDSDEF' was encountered.
+     Entry in module 'IDSDEF' from file 'f6228.o' has been used.
+     Entry in module 'IDSDEF' from file '/nwprod/w3lib' has been ignored.
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'WRYTE' was encountered.
+     Entry in module 'WRYTE' from file 'f6228.o' has been used.
+     Entry in module 'WRYTE' from file '/nwprod/w3lib' has been ignored.
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'GTBITS' was encountered.
+     Entry in module 'GTBITS' from file 'f6228.o' has been used.
+     Entry in module 'GTBITS' from file '/nwprod/w3lib' has been ignored.
+ ldr-290 segldr: CAUTION 
+     Duplicate entry point 'PDSENS' was encountered.
+     Entry in module 'PDSENS' from file 'f6228.o' has been used.
+     Entry in module 'PDSENS' from file '/nwprod/w3lib' has been ignored.
+***UPDATE /usr/lib/acct/holidays WITH NEW HOLIDAYS***

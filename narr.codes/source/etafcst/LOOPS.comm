@@ -1,0 +1,5 @@
+C-----------------------------------------------------------------------
+                             C O M M O N /LOOPS/
+     & IHLA(JAM),IHHA(JAM),IVLA(JAM),IVHA(JAM),JRA(JAM)
+     &,LMH(IDIM1:IDIM2,JDIM1:JDIM2),LMV(IDIM1:IDIM2,JDIM1:JDIM2)
+C-----------------------------------------------------------------------

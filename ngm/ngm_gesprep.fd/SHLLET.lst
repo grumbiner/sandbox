@@ -1,0 +1,237 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/SHLLET.f 09/30/06 19:43:48
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE SHLLET (IDATE, SI, LATG2, LONF, LEVS, LEVH,
+          2 |     1                   ITUNIT, XLAT)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION  BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    SHLLET      ID-RECORD FOR LOLA SIGMA FILE
+          6 |C   PRGMMR: HOKE             ORG: W/NMC22    DATE: 88-03-31
+          7 |C
+          8 |C ABSTRACT: CREATES THE 700 WORD SPECIFICATION
+          9 |C   FILE USED FOR CONTROL AND HISTORICAL
+         10 |C   PURPOSES BY THE NGM INPUT CODE.
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   84-06-07  JIM HOKE
+         14 |C   88-03-31  DIMEGO      HALF PRECISION FOR ALL BUT
+         15 |C   90-05-21  DIMEGO      CRAY CONVERSION
+         16 |C
+         17 |C USAGE:    CALL SHLLET(IDATE,SI,LATG2,LONF,LEVS,LEVH,
+         18 |C                       ITUNIT,XLAT)
+         19 |C
+         20 |C   INPUT ARGUMENT LIST:
+         21 |C     IDATE    - THE DATE/TIME GROUP.  (SELA CONVENTION.)
+         22 |C              -  1)  HOUR OF THE DAY. (1200 GMT IS 12.)
+         23 |C              -  2)  MONTH OF THE YEAR.
+         24 |C              -  3)  DAY OF THE MONTH.
+         25 |C              -  4)  YEAR OF THE CENTURY.
+         26 |C     SI       -  THE SIGMA VALUES FOR THE INTERFACES STARTING
+         27 |C              -  FROM THE GROUND, WITH SIGMA DECREASING UPWARD.
+         28 |C              -  SI IS     F U L L   P R E C I S I O N  * * * *
+         29 |C     LATG2    -  THE NUMBER OF NORTHERN HEMISPHERIC LATITUDINAL
+         30 |C              -  STRIPS FROM THE TROPICS TOWARD THE NORTH POLE.
+         31 |C     LONF     -  THE NUMBER OF NONDUPLICATE LONGITUDES.
+         32 |C     LEVS     -  THE NUMBER OF LEVELS FOR U, V, AND TV.
+         33 |C     LEVH     -  THE NUMBER OF LEVELS FOR Q.
+         34 |C     ITUNIT   -  THE OUTPUT UNIT NUMBER FOR THE IDENTIFICATION
+         35 |C              -  (SPECIFICATIONS) RECORD.
+         36 |C     XLAT     -  THE LATITUDES IN DEGREES OF THE LATITUDINAL
+         37 |C              -  STRIPS, STARTING NEAR THE EQUATOR.
+         38 |C
+         39 |C   OUTPUT FILES:
+         40 |C     ITUNIT   - THE SPECIFICATIONS FILE AS IS READ BY
+         41 |C              - THE NGM INPUT CODE
+         42 |C     UNIT6    - LISTING OF THE SPECIFICATIONS FILE
+         43 |C
+         44 |C ATTRIBUTES:
+         45 |C   LANGUAGE: STANDARD FORTRAN
+         46 |C   MACHINE:
+         47 |C
+         48 |C$$$
+         49 |C
+         50 |      IMPLICIT REAL (A-H,O-Z)
+         51 |      REAL SI
+         52 |C
+         53 |C     THE ACTUAL DIMENSIONS ARE XLAT(LATG2) AND SI(LEVS+1).
+         54 |      DIMENSION XLAT(*), SI(*)
+         55 |      DIMENSION SPECS(700)
+         56 |      DIMENSION IDATE(4)
+         57 |C
+         58 |C     FIRST THE RECORD IS INITIALIZED TO ZERO.
+         59 |      DO 88890 IQ2W6E=1,700
+         60 |         SPECS(IQ2W6E)=0.0 E+0
+         61 |88890 CONTINUE
+         62 |C
+         63 |C     HOUR OF THE DAY, IN GMT.
+         64 |      SPECS(2) = (IDATE(1))
+         65 |C
+         66 |C     DAY OF THE MONTH.
+         67 |      SPECS(3) = (IDATE(3))
+         68 |C
+         69 |C     MONTH OF THE YEAR.
+         70 |      SPECS(4) = (IDATE(2))
+         71 |C
+         72 |C     YEAR OF THE CENTURY.
+         73 |      SPECS(5) = (IDATE(4))
+         74 |C
+         75 |C     RESET FORECAST HOUR.
+         76 |      SPECS(233) = 0. E+0
+         77 |C
+         78 |C     NUMBER OF NORTHERN HEMISPHERIC LATITUDINAL STRIPS.
+         79 |      SPECS(10) = (LATG2)
+         80 |C
+         81 |C     TOTAL NUMBER OF LATITUDINAL STRIPS.
+         82 |      SPECS(11) = (LATG2)
+         83 |C
+         84 |C     NUMBER OF NONDUPLICATE GRID POINTS ALONG A LATITUDINAL STRIP.
+         85 |      SPECS(12) = (LONF)
+         86 |C
+         87 |C     NUMBER OF VERTICAL LEVELS FOR WIND AND VIRTUAL TEMPERATURE.
+         88 |      SPECS(13) = (LEVS)
+         89 |C
+         90 |C     NUMBER OF VERTICAL LEVELS FOR THE HUMIDITY FIELD.
+         91 |      SPECS(14) = (LEVH)
+         92 |C
+         93 |C
+         94 |C     THE SIGMA VALUES FOR THE LAYERS ARE INSERTED.
+         95 |      DO 275 L=1,LEVS
+         96 |         SPECS(21 + L) = (SI(L) - SI(L+1))
+         97 |  275 CONTINUE
+         98 |C
+         99 |C     LATITUDES OF THE LATITUDINAL STRIPS.
+        100 |C     ORDER IS FROM LOW LATITUDE POLEWARD.
+        101 |C     THE LATITUDES ARE IN UNITS OF DEGREES IN ARRAY SPECS.
+        102 |      DO 400 J=1, LATG2
+        103 |         SPECS(500 + J) = XLAT(J)
+        104 |  400 CONTINUE
+        105 |C
+        106 |C     WRITE THE SPECS ARRAY TO DISK.
+        107 |      WRITE (ITUNIT) SPECS
+        108 |      ENDFILE ITUNIT
+        109 |C
+        110 |C     PRINT THE CONTENTS OF THE SPECS ARRAY.
+        111 |      WRITE (6, 1200)
+        112 | 1200 FORMAT ('0', 'THE VALUES IN THE SPECS ARRAY ARE:' /)
+        113 |C
+        114 |      I1 = -6
+        115 |      I2 =  0
+        116 |      DO 1400 LINE=1,100
+        117 |         I1 = I1 + 7
+        118 |         I2 = I2 + 7
+        119 |         WRITE (6, 1300) I1, (SPECS(I), I=I1, I2), I2
+        120 | 1300    FORMAT (' ', 'I=', I3, ',',E15.6, 6(E16.6),
+        121 |     1                ', I=', I3)
+        122 | 1400 CONTINUE
+        123 |C
+        124 |C     TASK IS DONE.  RETURN TO CALLING PROGRAM.
+        125 |C
+        126 |      RETURN
+        127 |C
+        128 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+i                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-119.37  0-119.41@
+ 
+i1                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-114.7@  0-117.10@  0-117.15  0-119.26  0-119.43
+ 
+i2                               Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-115.7@  0-118.10@  0-118.15  0-119.47  0-119.52
+ 
+idate                            Reference argument, Integer(4) (1:4), Offset: 0, Alignment: full word
+                                 0-56.17$  0-1.26  0-64.19  0-67.19  0-70.19  0-73.19
+ 
+iq2w6e                           Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-59.16@  0-60.16
+ 
+itunit                           Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-2.26  0-107.14  0-108.15
+ 
+j                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-102.14@  0-103.22  0-103.32
+ 
+l                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-95.14@  0-96.21  0-96.30  0-96.38
+ 
+latg2                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.37  0-79.20  0-82.20  0-102.19
+ 
+levh                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.56  0-91.20
+ 
+levs                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.50  0-88.20  0-95.18
+ 
+line                             Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-116.15@
+ 
+lonf                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.44  0-85.20
+ 
+shllet                           Subroutine
+                                 0-1.18$
+ 
+si                               Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-51.12$  0-1.33  0-54.26$  0-96.27  0-96.35
+ 
+specs                            Automatic, Real(4) (1:700), Offset: 0, Alignment: full word
+                                 0-55.17$  0-60.10@  0-64.7@  0-67.7@  0-70.7@  0-73.7@  0-76.7@  0-79.7@  0-82.7@  0-85.7@  0-88.7@
+                                 0-91.7@  0-96.10@  0-103.10@  0-107.22  0-119.31
+ 
+xlat                             Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-54.17$  0-2.34  0-103.27
+ 
+** shllet   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    SHLLET.f                    12/17/02   09:24:02
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     128
+1501-510  Compilation successful for file SHLLET.f.
+1501-543  Object file created.

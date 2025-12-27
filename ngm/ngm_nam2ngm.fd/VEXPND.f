@@ -1,0 +1,105 @@
+      SUBROUTINE vexpnd(ZIN,XIP,LINP,OUT,XOP,LOUT,LN)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    VEXPND      VERTICAL INTERPOLATOR
+C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 88-03-31
+C
+C ABSTRACT: PERFORM VERTICAL INTERPOLATION OF A SINGLE PROFILE
+C
+C PROGRAM HISTORY LOG:
+C   83-03-31  DIMEGO
+C   85-07-05  DIMEGO      RESURRECTED FROM LISTING
+C   88-06-30  DIMEGO      HALF PRECISION / PL1 / FTN200
+C   90-09-20  DIMEGO      for the CRAY  inlining 
+C                         removed dependence on LN
+C                         always linear in lnP
+C
+C USAGE:    CALL vexpnd(ZIN,XIP,LINP,OUT,XOP,LOUT,LN)
+C   INPUT ARGUMENT LIST:
+C     ZIN      - INPUT PROFILE OF VALUES
+C     XIP      - PRESSURE (MB) OF INPUT PROFILE POINTS
+C     LINP     - NUMBER OF POINTS IN INPUT PROFILE
+C     XOP      - PRESSURE OF DESIRED OUTPUT POINTS
+C     LOUT     - NUMBER OF DESIRED OUTPUT POINTS
+C     LN       - DETERMINES TYPE OF INTERPOLATION:
+C              -  LN = 0   LINEAR IN P (PRESSURE)
+C              -  LN = 1   LINEAR IN LNP (LOG OF PRESSURE)
+C              -  LN = 2   LINEAR IN P**RCP (P TO KAPPA)
+C              -  LN = 3   LINEAR IN (P/1000.)**RCP (EXNER)
+C
+C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+C     OUT      - PROFILE OF DESIRED INTERPOLATED VALUES
+C
+C ATTRIBUTES:
+C   LANGUAGE: standard FORTRAN
+C   MACHINE:  
+C
+C$$$
+      IMPLICIT REAL (A-H,O-Z)
+      DIMENSION ZIN(1),XIP(1),OUT(1),XOP(1)
+      DIMENSION PL( 99 ),PP( 99 )
+      DIMENSION LEV( 99 ),IP( 99 )
+C
+C
+      RCP = 287.05 / 1005.
+      KL = LINP
+      KM1 = KL - 1
+      K1 = KM1
+C  THIS LOOP CHECKS FOR THE LAST LEVEL WHERE GOOD DATA EXISTS
+      DO 1 K=1,K1
+      IF(XIP(K).GT.XIP(K+1) .AND. XIP(K+1).GT.0.0) GO TO 1
+      KL = K
+      KM1 = KL - 1
+      GO TO 2
+    1 CONTINUE
+C  SET VALUES OF PL AND PP, THE INPUT AND OUTPUT LEVELS RESPECTIVELY
+    2 DO 3 K=1,LOUT
+      LEV(K) = XOP(K)
+c     PL(K) = XOP(K)
+c     IF( LN.EQ.1 ) PL(K) = LOG(PL(K))
+      PL(K) = LOG(XOP(K))
+c     IF( LN.EQ.2 ) PL(K) = PL(K)**RCP
+c     IF( LN.EQ.3 ) PL(K) = (.001*PL(K))**RCP
+    3 CONTINUE
+      DO 4 K=1, KL
+      IP(K) = XIP(K)
+c     PP(K) = XIP(K)
+c     IF( LN.EQ.1 ) PP(K) = LOG(PP(K))
+      PP(K) = LOG(XIP(K))
+c     IF( LN.EQ.2 ) PP(K) = PP(K)**RCP
+c     IF( LN.EQ.3 ) PP(K) = (.001*PP(K))**RCP
+    4 CONTINUE
+      KK = 0
+   10 KK = KK + 1
+C  CHECK THAT WE ARE NOT BELOW THE FIRST DATA LEVEL
+      IF(XOP(KK).LE.XIP(1)) GO TO 20
+C  ALL LEVELS AT AND BELOW THE FIRST DATA LEVEL ARE
+C  ASSIGNED THE VALUE AT THE FIRST DATA LEVEL
+      OUT(KK) = ZIN(1)
+      GO TO 10
+   20 DO 50 K = 1,KM1
+      DELP = 1.0 / (PP(K) - PP(K+1))
+   25 IDP = LEV(KK) - IP(K+1)
+      IF(LEV(KK) .NE. IP(K)) GO TO 35
+      OUT(KK) = ZIN(K)
+      KK = KK + 1
+      IF( KK.GT.LOUT ) RETURN
+      GO TO 25
+   35 IF( IDP .LE. 0 .AND. K.LT.KM1 ) GO TO 45
+      DP = PL(KK) - PP(K+1)
+      OUT(KK) = ZIN(K+1) + DP*(ZIN(K)-ZIN(K+1))*DELP
+      KK = KK + 1
+      IF( KK.GT.LOUT ) RETURN
+      GO TO 25
+   45 IF( K.NE.KM1 .OR. IDP.LT.0 )  GO TO 50
+      OUT(KK) = ZIN(K+1)
+      KK = KK + 1
+      IF( KK.GT.LOUT ) RETURN
+   50 CONTINUE
+      IF( KK.GT.LOUT ) RETURN
+C  FILL IN TOP VALUE AT AND ABOVE TOP
+      DO 75 K = KK,LOUT
+      OUT(K) = ZIN(KL)
+   75 CONTINUE
+      RETURN
+      END

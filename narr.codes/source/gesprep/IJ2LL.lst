@@ -1,0 +1,202 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/IJ2LL.f 08/24/05 14:24:52
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE IJ2LL (XI,YJ,YLAT,WLON)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    IJ2LL       CONVERT GRID XI,YJ TO LAT-LONG
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 88-03-31
+          6 |C
+          7 |C ABSTRACT: CONVERT GRID INDEX XI,YJ TO LATITUDE-LONGITUDE
+          8 |C   USING GRID-DEFINITION INFO. FROM COMMON BLOCK /GRID/
+          9 |C
+         10 |C PROGRAM HISTORY LOG:
+         11 |C   83-03-31  DIMEGO
+         12 |C   88-06-30  DIMEGO      DOCBLOCK HALF / PL1 / FTN200
+         13 |C
+         14 |C USAGE:    CALL IJ2LL(XI,YJ,YLAT,WLON)
+         15 |C   INPUT ARGUMENT LIST:
+         16 |C     XI       - FIRST INDEX VALUE OF GRID POINT
+         17 |C     YJ       - SECOND INDEX VALUE OF GRID POINT
+         18 |C
+         19 |C   OUTPUT ARGUMENT LIST:
+         20 |C     YLAT     - LATITUDE OF GRID POINT (XI,YJ) N POS
+         21 |C     WLON     - LONGITUDE OF GRID POINT (XI,YJ)W POS
+         22 |C
+         23 |C   INPUT FILES:
+         24 |C     /GRID/   - COMMON BLOCK CONTAINING GRID DEFINITION
+         25 |C
+         26 |C ATTRIBUTES:
+         27 |C   LANGUAGE: standard FORTRAN
+         28 |C   MACHINE:
+         29 |C
+         30 |C$$$
+         31 |      IMPLICIT REAL (A-H,O-Z)
+         32 |C  CONVERT POINT (XI,YJ) IN GRID SPACE TO LATITUDE/LONGITUDE
+         33 |      LOGICAL POLA,NORTH,SIGERR
+         34 |      COMMON /GRID/ POLA,NORTH,ALONVT,POLEI,POLEJ,XMESHL,SIGERR
+         35 |      EQUIVALENCE (YLATS,ALONVT) , (DLAT,POLEI)
+         36 |      EQUIVALENCE (XLONW,POLEJ) , (DDLON,XMESHL)
+         37 |      DATA EARTHR / 6371.2 /, CONV2D / 57.2957795 /
+         38 |      IF( POLA )  GO TO 10
+         39 |C  GRID IS LAT/LONG
+         40 |      YLAT = YLATS + (YJ-1.) * DLAT
+         41 |      WLON = XLONW - (XI-1.) * DDLON
+         42 |      IF( WLON .GT. 360. )WLON = WLON - 360.
+         43 |      IF( WLON .LT. 0.0) WLON = WLON + 360.
+         44 |      RETURN
+         45 |   10 CONTINUE
+         46 |C  GRID IS POLAR STEREOGRAPHIC
+         47 |      RE = (EARTHR * 1.86603) / XMESHL
+         48 |      GI2 = RE * RE
+         49 |      DELX = XI - POLEI
+         50 |      DELY = YJ - POLEJ
+         51 |      R2 = DELX*DELX + DELY*DELY
+         52 |      IF( R2 .EQ. 0.0 )  GO TO 40
+         53 |      TLON = CONV2D * ATAN2(DELY,DELX)
+         54 |      IF(  NORTH  )  WLON = ALONVT - 90. - TLON
+         55 |      IF(.NOT.NORTH) WLON = ALONVT + 90. + TLON
+         56 |      IF( WLON .GT. 360. )WLON = WLON - 360.
+         57 |      IF( WLON .LT. 0.0) WLON = WLON + 360.
+         58 |      YLAT = ASIN ((GI2 - R2) / (GI2 + R2)) * CONV2D
+         59 |      IF(.NOT.NORTH) YLAT = -YLAT
+         60 |      RETURN
+         61 |   40 YLAT = 90.
+         62 |      IF(.NOT.NORTH) YLAT = -YLAT
+         63 |      WLON = ALONVT
+         64 |      RETURN
+         65 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+alonvt                           Common member, Real(4), Offset: 8, Alignment: double word
+                                 0-34.32$  0-35.26  0-54.29  0-55.29  0-63.14
+ 
+asin                             Pure Intrinsic
+                                 0-58.14
+ 
+atan2                            Pure Intrinsic
+                                 0-53.23
+ 
+conv2d                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.31*  0-53.14  0-58.47
+ 
+ddlon                            Common member, Real(4), Offset: 20, Alignment: full word
+                                 0-36.36  0-41.32
+ 
+delx                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-49.7@  0-51.12  0-51.17  0-53.34
+ 
+dely                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-50.7@  0-51.24  0-51.29  0-53.29
+ 
+dlat                             Common member, Real(4), Offset: 12, Alignment: full word
+                                 0-35.37  0-40.32
+ 
+earthr                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.12*  0-47.13
+ 
+gi2                              Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-48.7@  0-58.21  0-58.34
+ 
+grid                             Common Block, Alignment: double word
+                                 0-34.15$
+ 
+ij2ll                            Subroutine
+                                 0-1.18$
+ 
+north                            Common member, Logical(4), Offset: 4, Alignment: full word
+                                 0-33.20$  0-34.26$  0-54.12  0-55.15  0-59.15  0-62.15
+ 
+pola                             Common member, Logical(4), Offset: 0, Alignment: quadruple word
+                                 0-33.15$  0-34.21$  0-38.11
+ 
+polei                            Common member, Real(4), Offset: 12, Alignment: full word
+                                 0-34.39$  0-35.42  0-49.19
+ 
+polej                            Common member, Real(4), Offset: 16, Alignment: quadruple word
+                                 0-34.45$  0-36.26  0-50.19
+ 
+r2                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-51.7@  0-52.11  0-58.27  0-58.40
+ 
+re                               Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-47.7@  0-48.13  0-48.18
+ 
+sigerr                           Common member, Logical(4), Offset: 24, Alignment: double word
+                                 0-33.26$  0-34.58$
+ 
+tlon                             Automatic, Real(4), Offset: 0, Alignment: full word
+                                 0-53.7@  0-54.44  0-55.44
+ 
+wlon                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.36  0-41.7@  0-42.11  0-42.27@  0-42.34  0-43.11  0-43.26@  0-43.33  0-54.22@  0-55.22@
+                                 0-56.11  0-56.27@  0-56.34  0-57.11  0-57.26@  0-57.33  0-63.7@
+ 
+xi                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.25  0-41.23  0-49.14
+ 
+xlonw                            Common member, Real(4), Offset: 16, Alignment: quadruple word
+                                 0-36.20  0-41.14
+ 
+xmeshl                           Common member, Real(4), Offset: 20, Alignment: full word
+                                 0-34.51$  0-36.42  0-47.33
+ 
+yj                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.28  0-40.23  0-50.14
+ 
+ylat                             Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.31  0-40.7@  0-58.7@  0-59.22@  0-59.30  0-61.7@  0-62.22@  0-62.30
+ 
+ylats                            Common member, Real(4), Offset: 8, Alignment: double word
+                                 0-35.20  0-40.14
+ 
+** ij2ll   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    IJ2LL.f                     03/26/03   17:35:09
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      65
+1501-510  Compilation successful for file IJ2LL.f.
+1501-543  Object file created.

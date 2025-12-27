@@ -1,0 +1,354 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/TSTATS.f 09/30/06 19:43:48
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             ESCAPE          FULLPATH
+         I4              NOLIBESSL       NOLIBPOSIX      OBJECT
+         SOURCE          STDFRAMEWORK    STRICT          SWAPOMP
+         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              TUNE(PWR3)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE TSTATS(DA,OBUF,J,KLEV)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    TSTATS      COMPUTE AND PRINT STATS ON T,U,V,Q
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 86-03-31
+          6 |C
+          7 |C ABSTRACT: COMPUTES STATISTICS ON THE COMPARISON OF ORIGINAL T,U,V,Q
+          8 |C   PROFILES FROM FIRST-GUESS WITH NEW PROFILES OF T,U,V,Q. ENTRY POINT
+          9 |C   LSTATS PRINTS OUT A TABLE OF STATISTICS FOR THE COMPARISON AT
+         10 |C   A FIXED SET OF 16 PRESSURES. BOTH INPUT PROFILES ARE IN SIGMA
+         11 |C   (GUESS & RAFS) AND MUST BE INTERPOLATED TO THE 16 PRESSURES.
+         12 |C   LINEAR IN LN P USED FOR T,U,V,Q.
+         13 |C
+         14 |C PROGRAM HISTORY LOG:
+         15 |C   86-03-31  DIMEGO
+         16 |C   88-06-30  DIMEGO      HALF PRECISION / PL1 / FTN200
+         17 |C
+         18 |C USAGE:    CALL TSTATS(DA,OBUF,J,KLEV)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     DA       - MULTI-VARIABLE ARRAY OF GUESS STRIPS AT KLEV LEVELS
+         21 |C              - FIRST     VARIABLE IS GEOPOTENTIAL AT INTERFACES
+         22 |C              - SECOND    VARIABLE IS TEMPERATURE AT INTERFACES
+         23 |C              - THIRD     VARIABLE IS U COMPONENT OF WIND
+         24 |C              - FOURTH    VARIABLE IS V COMPONENT OF WIND
+         25 |C              - FIFTH     VARIABLE IS SPECIFIC HUMIDITY
+         26 |C     OBUF     - MULTI-VARIABLE ARRAY OF GUESS STRIPS AFTER THEY HAVE
+         27 |C              - BEEN INTERPOLATED TO RAFS SIGMA STRUCTURE
+         28 |C     J        - INDEX OF THE STRIP BEING PROCESSED
+         29 |C     KLEV     - NUMBER OF LAYERS IN THE GUESS VERTICAL STRUCTURE
+         30 |C
+         31 |C   OUTPUT FILES:
+         32 |C     UNIT6    - DIAGNOSTIC PRINTOUT OF STATISTICS THROUGH
+         33 |C              - CALL TO LSTATS    NO ARGUMENTS
+         34 |C
+         35 |C REMARKS:   NO CAVEATS, OTHER HELPFUL HINTS NOR INFORMATION
+         36 |C
+         37 |C ATTRIBUTES:
+         38 |C   LANGUAGE: STANDARD FORTRAN
+         39 |C   MACHINE:
+         40 |C
+         41 |C$$$
+         42 |      IMPLICIT REAL (A-H,O-Z)
+         43 |        save
+         44 |      INCLUDE "parmanl"
+  1       1 |C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       2 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       3 |C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       4 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       5 |C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       6 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       7 |C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       8 |C  DCL /*                                                           */
+  1       9 |C  DCL /* LMAX       LMAX IS THE NUMBER OF SIGMA LAYERS IN THE      */
+  1      10 |C  DCL /*            ANALYSIS GRID                                  */
+  1      11 |C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF SIGMA-LAYER            */
+  1      12 |C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+  1      13 |C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF SIGMA-LAYER            */
+  1      14 |C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+  1      15 |C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+  1      16 |C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+  1      17 |C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+  1      18 |       PARAMETER (IMGLO = 360 )
+  1      19 |       PARAMETER (JMGLO = 481 )
+  1      20 |       PARAMETER (IMAX = 360 )
+  1      21 |       PARAMETER (JMAX = 120  )
+  1      22 |       PARAMETER (LMAX = 16    )
+  1      23 |       PARAMETER (LMAXP1 = 17 )
+  1      24 |       PARAMETER (LMXDBL = 70 )
+  1      25 |       PARAMETER (LDMAX = 12 )
+  1      26 |       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+  1      27 |       LOGICAL    GLOBAL
+  1      28 |       PARAMETER (GLOBAL = .false. )
+  1      29 |       PARAMETER (YSOUTH = 0.375 )
+  1      30 |       PARAMETER (DLON = 1.0)
+         45 |      DIMENSION DA( IMAX , 70 ,6),OBUF( IMAX , LMAX ,6)
+         46 |      DIMENSION ZIN(4),ZOUT(4)
+         47 |      INTEGER   MAXI(16,4),MAXJ(16,4)
+         48 |      DIMENSION STATS(8,16,4)
+         49 |      DIMENSION IPMAND(16)
+         50 |      DATA STATS/512*0.0/
+         51 |      DATA MAXI/64*0/,MAXJ/64*0/
+         52 |      DATA IPMAND/1000,925,850,700,600,500,400,300,
+         53 |     +             250,200,150,100, 70, 50, 30, 20/
+         54 |      DO 15 I=1, IMAX
+         55 |      DO 14 K=1,16
+         56 |      P = IPMAND(K)
+         57 |      PLNP = LOG(P)
+         58 |      DO 1 KK=1,KLEV
+         59 |      KL = KK
+         60 |      IF(DA(I,KK,6).LE.P) GO TO 2
+         61 |    1 CONTINUE
+         62 |      GO TO 14
+         63 |    2 CONTINUE
+         64 |      IF( KL.LE.1 )  GO TO 14
+         65 |      KM = KL - 1
+         66 |      ALNPKL = LOG(DA(I,KL,6))
+         67 |      ALNPKM = LOG(DA(I,KM,6))
+         68 |      DO 3 L=2,5
+         69 |      DTDLNP=(DA(I,KL,L)-DA(I,KM,L))/(ALNPKL-ALNPKM)
+         70 |      ZIN(L-1)=DA(I,KM,L) + DTDLNP * (PLNP-ALNPKM)
+         71 |    3 CONTINUE
+         72 |      DO 4 KK=1,LMAX
+         73 |      KL = KK
+         74 |      IF(OBUF(I,KK,6).LE.P) GO TO 5
+         75 |    4 CONTINUE
+         76 |      GO TO 14
+         77 |    5 CONTINUE
+         78 |      IF( KL.LE.1 )  GO TO 14
+         79 |      KM = KL - 1
+         80 |      ALNPKL = LOG(OBUF(I,KL,6))
+         81 |      ALNPKM = LOG(OBUF(I,KM,6))
+         82 |      DO 6 L=2,5
+         83 |      DTDLNP=(OBUF(I,KL,L)-OBUF(I,KM,L))/(ALNPKL-ALNPKM)
+         84 |      ZOUT(L-1) = OBUF(I,KM,L) + DTDLNP * (PLNP-ALNPKM)
+         85 |    6 CONTINUE
+         86 |      DO 10 L=1,4
+         87 |      ZDIF = ZOUT(L) - ZIN(L)
+         88 |      STATS(8,K,L) = STATS(8,K,L) + 1.0
+         89 |      STATS(1,K,L) = STATS(1,K,L) + ZIN(L)
+         90 |      STATS(2,K,L) = STATS(2,K,L) + ZOUT(L)
+         91 |      STATS(3,K,L) = STATS(3,K,L) + ZDIF
+         92 |      STATS(4,K,L) = STATS(4,K,L) + ZIN(L)*ZIN(L)
+         93 |      STATS(5,K,L) = STATS(5,K,L) + ZOUT(L)*ZOUT(L)
+         94 |      STATS(6,K,L) = STATS(6,K,L) + ZDIF*ZDIF
+         95 |      IF(ABS(ZDIF).LE.STATS(7,K,L)) GO TO 10
+         96 |      STATS(7,K,L) = ABS(ZDIF)
+         97 |      MAXI(K,L) = I
+         98 |      MAXJ(K,L) = J
+         99 |   10 CONTINUE
+        100 |   14 CONTINUE
+        101 |   15 CONTINUE
+        102 |      RETURN
+        103 |         ENTRY LSTATS
+        104 |      WRITE(6,20)
+        105 |   20 FORMAT('1       STATISTICAL ANALYSIS BY PRESSURE ',//,
+        106 |     + '  N        KP',10X,'BIAS',27X,'RMS',15X,'MAXDIF',//)
+        107 |      DO 25 L=1,4
+        108 |      DO 25 K=1,16
+        109 |      COUNT = MAX(1.0 E+0,STATS(8,K,L))
+        110 |      COUNT = 1.0 / COUNT
+        111 |      DO 25 I=1,3
+        112 |      STATS(I,K,L) = STATS(I,K,L) * COUNT
+        113 |      STATS(I+3,K,L) = SQRT(STATS(I+3,K,L)*COUNT)
+        114 |   25 CONTINUE
+        115 |      DO 35 L=1,4
+        116 |      DO 35 KK=1,16
+        117 |      K=16-KK+1
+        118 |      KNT = MAX0(1,INT(STATS(8,K,L)))
+        119 |      WRITE(6,30)KNT,IPMAND(K),(STATS(I,K,L),I=1,7),MAXI(K,L),MAXJ(K,L)
+        120 |   30 FORMAT(I7,I6,6F10.3,F10.3,2I7)
+        121 |   35 CONTINUE
+        122 |      RETURN
+        123 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-95.10  0-96.22
+ 
+alnpkl                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-66.7@  0-69.39  0-80.7@  0-83.43
+ 
+alnpkm                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-67.7@  0-69.46  0-70.44  0-81.7@  0-83.50  0-84.49
+ 
+count                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-109.7@  0-110.7@  0-110.21  0-112.37  0-113.44
+ 
+da                               Reference argument, Real(4) (1:360, 1:70, 1:6), Offset: 0, Alignment: full word
+                                 0-45.17$  0-1.25  0-60.10  0-66.20  0-67.20  0-69.15  0-69.26  0-70.16
+ 
+dlon                             Parameter, Real(4)
+                                 1-30.19$
+ 
+dtdlnp                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-69.7@  0-70.29  0-83.7@  0-84.34
+ 
+global                           Parameter, Logical(4)
+                                 1-27.19$  1-28.19$
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-54.13@  0-60.13  0-66.23  0-67.23  0-69.18  0-69.29  0-70.19  0-74.15  0-80.25  0-81.25  0-83.20
+                                 0-83.33  0-84.24  0-97.19  0-111.13@  0-112.13  0-112.28  0-113.13  0-113.35  0-119.39  0-119.46@
+ 
+imax                             Parameter, Integer(4)
+                                 1-20.19$  0-45.21  0-45.41  0-54.18
+ 
+imglo                            Parameter, Integer(4)
+                                 1-18.19$
+ 
+int                              Pure Intrinsic
+                                 0-118.20
+ 
+ipmand                           Static, Integer(4) (1:16), Offset: 0, Alignment: full word
+                                 0-49.17$  0-52.12*  0-56.11  0-119.22
+ 
+j                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.33  0-98.19
+ 
+jmax                             Parameter, Integer(4)
+                                 1-21.19$
+ 
+jmglo                            Parameter, Integer(4)
+                                 1-19.19$
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-55.13@  0-56.18  0-88.15  0-88.30  0-89.15  0-89.30  0-90.15  0-90.30  0-91.15  0-91.30  0-92.15
+                                 0-92.30  0-93.15  0-93.30  0-94.15  0-94.30  0-95.31  0-96.15  0-97.12  0-98.12  0-108.13@
+                                 0-109.35  0-112.15  0-112.30  0-113.17  0-113.39  0-117.7@  0-118.32  0-119.29  0-119.41  0-119.58
+                                 0-119.68
+ 
+kk                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-58.12@  0-59.12  0-60.15  0-72.12@  0-73.12  0-74.17  0-116.13@  0-117.12
+ 
+kl                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-59.7@  0-64.11  0-65.12  0-66.25  0-69.20  0-73.7@  0-78.11  0-79.12  0-80.27  0-83.22
+ 
+klev                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.35  0-58.17
+ 
+km                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-65.7@  0-67.25  0-69.31  0-70.21  0-79.7@  0-81.27  0-83.35  0-84.26
+ 
+knt                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-118.7@  0-119.18
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.12@  0-69.23  0-69.34  0-70.11  0-70.24  0-82.12@  0-83.25  0-83.38  0-84.12  0-84.29
+                                 0-86.13@  0-87.19  0-87.28  0-88.17  0-88.32  0-89.17  0-89.32  0-89.41  0-90.17  0-90.32  0-90.42
+                                 0-91.17  0-91.32  0-92.17  0-92.32  0-92.41  0-92.48  0-93.17  0-93.32  0-93.42  0-93.50  0-94.17
+                                 0-94.32  0-95.33  0-96.17  0-97.14  0-98.14  0-107.13@  0-109.37  0-112.17  0-112.32  0-113.19
+                                 0-113.41  0-115.13@  0-118.34  0-119.43  0-119.60  0-119.70
+ 
+ldmax                            Parameter, Integer(4)
+                                 1-25.19$  1-26.37
+ 
+levx                             Parameter, Integer(4)
+                                 1-26.19$
+ 
+lmax                             Parameter, Integer(4)
+                                 1-22.19$  0-45.48  0-72.17  1-26.30
+ 
+lmaxp1                           Parameter, Integer(4)
+                                 1-23.19$
+ 
+lmxdbl                           Parameter, Integer(4)
+                                 1-24.19$
+ 
+log                              Pure Intrinsic
+                                 0-57.14  0-66.16  0-67.16  0-80.16  0-81.16
+ 
+lstats                           Entry
+                                 0-103.16$
+ 
+max                              Pure Intrinsic
+                                 0-109.15
+ 
+max0                             Pure Intrinsic
+                                 0-118.13
+ 
+maxi                             Static, Integer(4) (1:16, 1:4), Offset: 0, Alignment: full word
+                                 0-47.17$  0-51.12*  0-97.7@  0-119.53
+ 
+maxj                             Static, Integer(4) (1:16, 1:4), Offset: 0, Alignment: full word
+                                 0-47.28$  0-51.23*  0-98.7@  0-119.63
+ 
+obuf                             Reference argument, Real(4) (1:360, 1:16, 1:6), Offset: 0, Alignment: full word
+                                 0-45.35$  0-1.28  0-74.10  0-80.20  0-81.20  0-83.15  0-83.28  0-84.19
+ 
+p                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-56.7@  0-57.18  0-60.24  0-74.26
+ 
+plnp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-70.39  0-84.44
+ 
+sqrt                             Pure Intrinsic
+                                 0-113.24
+ 
+stats                            Static, Real(4) (1:8, 1:16, 1:4), Offset: 0, Alignment: full word
+                                 0-48.17$  0-50.12*  0-88.7@  0-88.22  0-89.7@  0-89.22  0-90.7@  0-90.22  0-91.7@  0-91.22  0-92.7@
+                                 0-92.22  0-93.7@  0-93.22  0-94.7@  0-94.22  0-95.23  0-96.7@  0-109.27  0-112.7@  0-112.22
+                                 0-113.7@  0-113.29  0-118.24  0-119.33
+ 
+tstats                           Subroutine
+                                 0-1.18$
+ 
+ysouth                           Parameter, Real(4)
+                                 1-29.19$
+ 
+zdif                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-87.7@  0-91.37  0-94.37  0-94.42  0-95.14  0-96.26
+ 
+zin                              Static, Real(4) (1:4), Offset: 0, Alignment: full word
+                                 0-46.17$  0-70.7@  0-87.24  0-89.37  0-92.37  0-92.44
+ 
+zout                             Static, Real(4) (1:4), Offset: 0, Alignment: full word
+                                 0-46.24$  0-84.7@  0-87.14  0-90.37  0-93.37  0-93.45
+ 
+** tstats   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    TSTATS.f                    12/17/02   09:24:02
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_gesprep.fd/parmanl
+                                      12/17/02   09:24:04      0      44
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     153
+1501-510  Compilation successful for file TSTATS.f.
+1501-543  Object file created.

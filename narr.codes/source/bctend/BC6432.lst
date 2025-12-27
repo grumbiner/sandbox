@@ -1,0 +1,180 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/bctend/BC6432.f 08/24/05 14:19:05
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |                             SUBROUTINE BC6432(INFIL)
+          2 |C     ******************************************************************
+          3 |C     *                                                                *
+          4 |C     *  CONVERTS THE 64-BIT BOUNDARY VALUES FROM PTETABC TO 32-BIT    *
+          5 |C     *  WORDS AND DOES THE REFORMATING OF DATA                        *
+          6 |C     *                                                                *
+          7 |C     ******************************************************************
+          8 |         include "parmeta.res"
+  1       1 |      PARAMETER (IM=237,JM=387,LM=45,LSM=39)
+          9 |                             P A R A M E T E R
+         10 |     & (IMT=IM*2-1,JMT=JM/2+1)
+         11 |                             P A R A M E T E R
+         12 |     & (LB=2*JMT+IMT-3
+         13 |     &, LP1=LM+1,LM1=LM-1
+         14 |     &, IMJM=IM*JM-JM/2)
+         15 |C-----------------------------------------------------------------------
+         16 |                             R E A L
+         17 |     & PDB2  (LB,2)
+         18 |     &,TB2   (LB,LM,2),QB2   (LB,LM,2),UB2   (LB,LM,2),VB2   (LB,LM,2)
+         19 |C-----------------------------------------------------------------------
+         20 |                             D I M E N S I O N
+         21 |     & PDBA  (LB)
+         22 |     &,TBA   (LB,LM),QBA   (LB,LM),UBA   (LB,LM),VBA   (LB,LM)
+         23 |C-----------------------------------------------------------------------
+         24 |                             C O M M O N /BCHFLDS/
+         25 |     & PDBA  ,TBA   ,QBA   ,UBA   ,VBA
+         26 |C-----------------------------------------------------------------------
+         27 |      READ (INFIL,end=99131) PDB2,TB2,QB2,UB2,VB2
+         28 |C-----------------------------------------------------------------------
+         29 |      DO N=1,LB
+         30 |         PDBA(N)=PDB2(N,1)
+         31 |      ENDDO
+         32 |C-----------------------------------------------------------------------
+         33 |      DO L=1,LM
+         34 |        DO N=1,LB
+         35 |         TBA(N,L)=TB2(N,L,1)
+         36 |         QBA(N,L)=QB2(N,L,1)
+         37 |         UBA(N,L)=UB2(N,L,1)
+         38 |         VBA(N,L)=VB2(N,L,1)
+         39 |        ENDDO
+         40 |      ENDDO
+         41 |C-----------------------------------------------------------------------
+         42 |99131 continue
+         43 |      RETURN
+         44 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bc6432                           Subroutine
+                                 0-1.41$
+ 
+bchflds                          Common Block, Alignment: double word
+                                 0-24.43$
+ 
+im                               Parameter, Integer(4)
+                                 1-1.18$  0-10.13  0-14.14
+ 
+imjm                             Parameter, Integer(4)
+                                 0-14.9$
+ 
+imt                              Parameter, Integer(4)
+                                 0-10.9$  0-12.18
+ 
+infil                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.48  0-27.13
+ 
+jm                               Parameter, Integer(4)
+                                 1-1.25$  0-10.24  0-14.17  0-14.20
+ 
+jmt                              Parameter, Integer(4)
+                                 0-10.20$  0-12.14
+ 
+l                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-33.10@  0-35.16  0-35.25  0-36.16  0-36.25  0-37.16  0-37.25  0-38.16  0-38.25
+ 
+lb                               Parameter, Integer(4)
+                                 0-12.9$  0-17.15  0-18.15  0-18.31  0-18.47  0-18.63  0-21.15  0-22.15  0-22.29  0-22.43  0-22.57
+                                 0-29.14  0-34.16
+ 
+lm                               Parameter, Integer(4)
+                                 1-1.32$  0-13.13  0-13.22  0-18.18  0-18.34  0-18.50  0-18.66  0-22.18  0-22.32  0-22.46  0-22.60
+                                 0-33.14
+ 
+lm1                              Parameter, Integer(4)
+                                 0-13.18$
+ 
+lp1                              Parameter, Integer(4)
+                                 0-13.9$
+ 
+lsm                              Parameter, Integer(4)
+                                 1-1.38$
+ 
+n                                Automatic, Integer(4), Offset: 0, Alignment: full word
+                                 0-29.10@  0-30.15  0-30.23  0-34.12@  0-35.14  0-35.23  0-36.14  0-36.23  0-37.14  0-37.23  0-38.14
+                                 0-38.23
+ 
+pdb2                             Automatic, Real(4) (1:858, 1:2), Offset: 0, Alignment: full word
+                                 0-17.8$  0-27.30@  0-30.18
+ 
+pdba                             Common member, Real(4) (1:858), Offset: 0, Alignment: quadruple word
+                                 0-21.8$  0-25.8$  0-30.10@
+ 
+qb2                              Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-18.24$  0-27.39@  0-36.19
+ 
+qba                              Common member, Real(4) (1:858, 1:45), Offset: 157872, Alignment: quadruple word
+                                 0-22.22$  0-25.22$  0-36.10@
+ 
+tb2                              Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-18.8$  0-27.35@  0-35.19
+ 
+tba                              Common member, Real(4) (1:858, 1:45), Offset: 3432, Alignment: double word
+                                 0-22.8$  0-25.15$  0-35.10@
+ 
+ub2                              Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-18.40$  0-27.43@  0-37.19
+ 
+uba                              Common member, Real(4) (1:858, 1:45), Offset: 312312, Alignment: double word
+                                 0-22.36$  0-25.29$  0-37.10@
+ 
+vb2                              Automatic, Real(4) (1:858, 1:45, 1:2), Offset: 0, Alignment: full word
+                                 0-18.56$  0-27.47@  0-38.19
+ 
+vba                              Common member, Real(4) (1:858, 1:45), Offset: 466752, Alignment: quadruple word
+                                 0-22.50$  0-25.36$  0-38.10@
+ 
+** bc6432   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    BC6432.f                    03/26/03   17:31:56
+     1    /mp/emc2/wx20du/narr_source/sorc/bctend/parmeta.res
+                                      03/26/03   17:31:56      0       8
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      45
+1501-510  Compilation successful for file BC6432.f.
+1501-543  Object file created.

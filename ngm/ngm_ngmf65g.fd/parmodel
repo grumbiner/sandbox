@@ -1,0 +1,63 @@
+C     PARAMETER FILE
+C
+C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+C     ON OUTPUT
+C                      THIS VERSION 1 May 1991 (DiMego)
+C
+C    *      IIJRAD    =    892,
+      PARAMETER (
+     *      IBPW      =      4,
+     *      IBPOR     = 120000,
+     *      INUMREC   = IBPOR / IBPW,
+     *      INSPECS   =    700,
+     *      ILATG2    =    120,
+     *      ILEVH     =     12,
+     *      ILEVS     =     16,
+     *      ILONF     =    360,
+     *      INLATSH   =      5,
+     *      IIJMAX    =  23668,
+     *      IIJMAXB   =  25536,
+     *      IIJRAD    =    892,
+     *      IJCAP     =     80,
+     *      IWPCPL    =     80,
+     *      IKM       =     16 )
+      PARAMETER (
+     *      ILBCH     =   7*(147+111-7),
+     *      ILBHI     =    (147+111-26),
+     *      ILBUI     =    (2*147+111-39),
+     *      ILBUO     =   (8*147+7*111-56),
+     *      ILBVI     =    (147+2*111-39),
+     *      ILBVO     =   (7*147+8*111-56),
+     *      ILMOUT    =     20 )
+      PARAMETER (
+     *      IMAXOUTF  =     17,
+     *      IMAXOUTT  =      5,
+     *      IMAXOUTV  =    100,
+     *      IMAXPROF  =      6,
+     *      INFILLER  =2500000,
+     *      INH       =     65,
+     *      INGRDUSE  =      2,
+     *      INGRDUS1  =      1,
+     *      INIADDRS  =     44,
+     *      INSCR     =     23,
+     *      INSCRGEO  =     12,
+     *      INSCR3    =     10,
+     *      INSOIL    =      2,
+     *      INSUMG    =  42164,
+     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+     *      INLAT     = ILATG2 + INLATSH + 1,
+     *      INSHEM    = 13 * INH + 23,
+     *      IIJKMAX   = IKM * IIJMAX )
+      PARAMETER (
+     *  IIWORDSB  = IIJMAXB / 64,
+     *  IKMP1     = IKM + 1,
+     *  ILVLTOT   = 7 * IKM + 37,
+     *  ILONFP1   = ILONF + 1,
+     *  INVBL     = ILVLTOT * INSUMG,
+     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+     *  IBLK1D    =  2 * IKM + 14,
+     *  IBLK2D    = 16 * IKM + 36,
+     *  IBLK1WRK  = IIJMAX * IBLK1D,
+     *  IBLK2WRK  = IIJRAD * IBLK2D )
+C

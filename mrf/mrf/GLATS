@@ -1,0 +1,65 @@
+      SUBROUTINE GLATS(LGGHAF,COLRAD,WGT,WGTCS,RCS2)
+      %INCLUDE DBGLATS ;
+CCCC  HALF PRECISION COLRAD,WGT,WGTCS,RCS2
+      #WSIZE COLRAD,WGT,WGTCS,RCS2
+      DIMENSION COLRAD( #LATG2 ),WGT( #LATG2 ),WGTCS( #LATG2 )
+      DIMENSION RCS2( #LATG2 )
+      EPS=1.E-12
+C     PRINT 101
+C101  FORMAT ('0 I   COLAT   COLRAD     WGT', 12X, 'WGTCS',
+CCCC 1 10X, 'ITER  RES')
+      SI = 1.0
+      L2=2*LGGHAF
+      RL2=L2
+      SCALE = 2.0/(RL2*RL2)
+      K1=L2-1
+      PI = ATAN(SI)*4.E+00
+      DRADZ = PI / 360.
+      RAD = 0.0
+      DO 1000 K=1,LGGHAF
+      ITER=0
+      DRAD=DRADZ
+1     CALL POLY(L2,RAD,P2)
+2     P1 =P2
+      ITER=ITER+1
+      RAD=RAD+DRAD
+      CALL POLY(L2,RAD,P2)
+      IF(SIGN(SI,P1).EQ.SIGN(SI,P2)) GO TO 2
+      IF(DRAD.LT.EPS)GO TO 3
+      RAD=RAD-DRAD
+      DRAD = DRAD * 0.25
+      GO TO 1
+3     CONTINUE
+      COLRAD(K)=RAD
+      PHI = RAD * 180 / PI
+      CALL POLY(K1,RAD,P1)
+      X = COS(RAD)
+      W = SCALE * (1.0 - X*X)/ (P1*P1)
+      WGT(K) = W
+      SN = SIN(RAD)
+      W=W/(SN*SN)
+      WGTCS(K) = W
+      RC=1./(SN*SN)
+      RCS2(K) = RC
+      CALL POLY(L2,RAD,P1)
+C     PRINT 102,K,PHI,COLRAD(K),WGT(K),WGTCS(K),ITER,P1
+C102  FORMAT(1H ,I2,2X,F6.2,2X,F10.7,2X,E13.7,2X,E13.7,2X,I4,2X,D13.7)
+1000  CONTINUE
+      PRINT 100,LGGHAF
+100   FORMAT(1H ,'SHALOM FROM 0.0#E0 GLATS FOR ',I3)
+      RETURN
+      END
+      SUBROUTINE POLY(N,RAD,P)
+      %INCLUDE DBPOLY ;
+      X = COS(RAD)
+      Y1 = 1.0
+      Y2=X
+      DO 1 I=2,N
+      G=X*Y2
+      Y3=G-Y1+G-(G-Y1)/FLOAT(I)
+      Y1=Y2
+      Y2=Y3
+1     CONTINUE
+      P=Y3
+      RETURN
+      END

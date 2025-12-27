@@ -1,0 +1,24 @@
+      SUBROUTINE TRANSI(A,KMAX)
+C
+      PARAMETER(MWAVE= 62 ,IROMB= 0 )
+C
+      PARAMETER(MWAVEP=MWAVE+1,
+     1          MDIM=(MWAVE+1)*(MWAVE+1)*2*IROMB+
+     2               (MWAVE+1)*(MWAVE+2)*(1-IROMB))
+C
+      COMMON/COMIND/ INDXNN(MDIM),INDXMM(MDIM)
+C
+      DIMENSION A(MDIM,KMAX)
+      DIMENSION B(MDIM)
+C
+      DO 1 K=1,KMAX
+      DO 2 M=1,MDIM
+      B(INDXNN(M))=A(M,K)
+    2 CONTINUE
+      DO 3 M=1,MDIM
+      A(M,K)=B(M)
+    3 CONTINUE
+    1 CONTINUE
+C
+      RETURN
+      END

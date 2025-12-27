@@ -1,0 +1,551 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/CONVERTA.f 09/30/06 19:44:04
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |       SUBROUTINE CONVERTA(U,V,TH,H,IJ,IMG,JMG,PR,GASCON,TBAR,BITH,
+          2 |     *    WORKS,PIS,PSINVS,HU,HV)
+          3 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          4 |C                .      .    .                                       .
+          5 |C SUBPROGRAM:    CONVERTA    CONVERT VARIABLES TO HOSKINS-SIMMONS FORM
+          6 |C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-08-08
+          7 |C
+          8 |C ABSTRACT: CONVERT VARIABLES FROM PHILLIPS FORM TO HOSKINS-SIMMONS
+          9 |C   FORM.  (INPUT SFCP IS IN BARS).  CONVERT POTTEMP USING ARAKAWA SIG.
+         10 |C   (PR = .5*SIG**KAPPA).
+         11 |C
+         12 |C PROGRAM HISTORY LOG:
+         13 |C   88-08-08  PARRISH
+         14 |C
+         15 |C USAGE:    CALL CONVERTA(U,V,TH,H,IJ,IMG,JMG,PR,GASCON,TBAR,BITH,
+         16 |C                   WORKS,PIS,PSINVS,HU,HV)
+         17 |C   INPUT ARGUMENT LIST:
+         18 |C     U        - H*U, PHILLIPS FORM OF U-WIND
+         19 |C     V        - H*V, PHILLIPS FORM OF V-WIND
+         20 |C     TH       - H*THETA, PHILLIPS FORM OF TEMP
+         21 |C     H        - PHILLIPS SURFACE PRESSURE (IN BARS)
+         22 |C     IJ       - NUMBER OF GRID POINTS ON GRID (IMG*JMG)
+         23 |C     IMG      - X-DIMENSION OF GRID
+         24 |C     JMG      - Y-DIMENSION OF GRID
+         25 |C     PR       - RELATED TO EXNER FUNCTION (PR=.5*SIG**KAPPA)
+         26 |C     GASCON   - GAS CONSTANT
+         27 |C     BITH     - BIT ARRAY TELLING WHICH GRID POINTS OF H ARE FORECAST
+         28 |C     NONLOOPB - TOTAL NUMBER OF ITERATIONS
+         29 |C
+         30 |C   OUTPUT ARGUMENT LIST:      (INCLUDING WORK ARRAYS)
+         31 |C     U        - U, HOSKINS-SIMMONS FORM
+         32 |C     V        - V, HOSKINS-SIMMONS FORM
+         33 |C     TH       - T, HOSKINS-SIMMONS FORM
+         34 |C     H        - HOSKINS-SIMMONS FORM
+         35 |C     WORKS    - WORK ARRAY
+         36 |C     PIS      - WORK ARRAY
+         37 |C     PSINVS   - WORK ARRAY
+         38 |C     HU       - WORK ARRAY
+         39 |C     HV       - WORK ARRAY
+         40 |C
+         41 |C   SUBPROGRAMS CALLED:  P2KAP
+         42 |C
+         43 |C ATTRIBUTES:
+         44 |C   LANGUAGE: FORTRAN200
+         45 |C   MACHINE:  CYBER
+         46 |C
+         47 |C$$$
+         48 |         include "myparam"
+  1       1 |        INCLUDE 'parmodel'
+  2       1 |C     PARAMETER FILE
+  2       2 |C
+  2       3 |C     SETUP FOR IBM SINGLE PRECISION REPRESENTATION
+  2       4 |C     ON OUTPUT
+  2       5 |C                      THIS VERSION 21 February 1991 (DiMego)
+  2       6 |C
+  2       7 |      PARAMETER (
+  2       8 |     *      IBPW      =      4,
+  2       9 |     *      IBPOR     = 120000,
+  2      10 |     *      INUMREC   = IBPOR / IBPW,
+  2      11 |     *      INSPECS   =    700,
+  2      12 |     *      ILATG2    =    120,
+  2      13 |     *      ILEVH     =     12,
+  2      14 |     *      ILEVS     =     16,
+  2      15 |     *      ILONF     =    360,
+  2      16 |     *      INLATSH   =      5,
+  2      17 |     *      IIJMAX    =  23668,
+  2      18 |     *      IIJMAXB   =  25536,
+  2      19 |     *      IIJRAD    =    892,
+  2      20 |     *      IJCAP     =     80,
+  2      21 |     *      IWPCPL    =     80,
+  2      22 |     *      IKM       =     16 )
+  2      23 |      PARAMETER (
+  2      24 |     *      ILBCH     =   7*(147+111-7),
+  2      25 |     *      ILBHI     =    (147+111-26),
+  2      26 |     *      ILBUI     =    (2*147+111-39),
+  2      27 |     *      ILBUO     =   (8*147+7*111-56),
+  2      28 |     *      ILBVI     =    (147+2*111-39),
+  2      29 |     *      ILBVO     =   (7*147+8*111-56),
+  2      30 |     *      ILMOUT    =     20 )
+  2      31 |      PARAMETER (
+  2      32 |     *      IMAXOUTF  =     17,
+  2      33 |     *      IMAXOUTT  =      3,
+  2      34 |     *      IMAXOUTV  =    100,
+  2      35 |     *      IMAXPROF  =      6,
+  2      36 |     *      INFILLER  =  10000,
+  2      37 |     *      INH       =     65,
+  2      38 |     *      INGRDUSE  =      2,
+  2      39 |     *      INGRDUS1  =      1,
+  2      40 |     *      INIADDRS  =     44,
+  2      41 |     *      INSCR     =     23,
+  2      42 |     *      INSCRGEO  =     12,
+  2      43 |     *      INSCR3    =     10,
+  2      44 |     *      INSOIL    =      2,
+  2      45 |     *      INSUMG    =  42164,
+  2      46 |     *      INSIGSTP  = ILONF * (3 * ILEVS + ILEVH + 2),
+  2      47 |     *      INLAT     = ILATG2 + INLATSH + 1,
+  2      48 |     *      INSHEM    = 13 * INH + 23,
+  2      49 |     *      IIJKMAX   = IKM * IIJMAX )
+  2      50 |      PARAMETER (
+  2      51 |     *  IIWORDSB  = IIJMAXB / 64,
+  2      52 |     *  IKMP1     = IKM + 1,
+  2      53 |     *  ILVLTOT   = 7 * IKM + 37,
+  2      54 |     *  ILONFP1   = ILONF + 1,
+  2      55 |     *  INVBL     = ILVLTOT * INSUMG,
+  2      56 |     *  IMAXSCR   = IIJMAX*(INSCR+INSCRGEO) + IIJKMAX*INSCR3+INFILLER,
+  2      57 |     *  IRADWRK   = IWPCPL * IIJRAD * IKM,
+  2      58 |     *  IBLK1D    =  2 * IKM + 14,
+  2      59 |     *  IBLK2D    = 16 * IKM + 36,
+  2      60 |     *  IBLK1WRK  = IIJMAX * IBLK1D,
+  2      61 |     *  IBLK2WRK  = IIJRAD * IBLK2D )
+  2      62 |C
+  1       2 |C-------
+  1       3 |C------- FOLLOWING IS EXTRA STUFF FOR INITIALIZATION
+  1       4 |C-------
+  1       5 |         PARAMETER (INLATH=101,INUMCOEF=3*INLATH+35,
+  1       6 |     *        INUMGRID=4,IJCAPDP=80,INLON=300,INKLON=2,INKLAT=2,
+  1       7 |     *        IIORBPL=3,IIORDPL=3,IIORBLP=3,IIORDLP=3,IMCUBIC=1,
+  1       8 |     *        INUMVERT=2,INSIG=IKM,INMODES=18,INGMAX=3000,
+  1       9 |     *        INKSIG=2,INSIGP1=INSIG+1,INLONEX=INLON+INKLON,
+  1      10 |     *        INLATDP=2*INLATH,INLOLA=INLATDP*INLONEX,
+  1      11 |     *        IJCAP1DP=IJCAPDP+1,IJCAP12=2*IJCAP1DP,
+  1      12 |     *        INCOEFS=IJCAP1DP*(IJCAPDP+2),
+  1      13 |     *     IDPFILLR=(4*IKM+1)*INSUMG+       3*(IIJKMAX*4+IIJMAX) )
+  1      14 |C    *     IDPFILLR=(4*IKM+1)*INSUMG+INGRDUSE*(IIJKMAX*4+IIJMAX) )
+         49 |C--------
+         50 |         REAL TBAR(1)
+         51 |         REAL PR(1)
+         52 |         REAL WORKS(IIJMAX),PIS(IIJMAX),PSINVS(IIJMAX)
+         53 |         REAL U(IJ,1),V(IJ,1),TH(IJ,1),H(1)
+         54 |         REAL HU(IIJMAX),HV(IIJMAX)
+         55 |         LOGICAL BITH(1)
+         56 |C--------
+         57 |c        WRITE(6,110)
+         58 |c110     FORMAT(' ENTERING SUBROUTINE CONVERTA')
+         59 |C--------
+         60 |C-------- OBTAIN HU AND HV (SFCP INTERPOLATED TO U AND V GRIDS)
+         61 |C--------
+         62 |         NVECT=IMG*JMG
+         63 |         DO 11402 I=1,NVECT
+         64 |           HU(I)=H(I)
+         65 |11402    CONTINUE
+         66 |         DO 114 J=1,JMG-1
+         67 |           DO 112 I=1,IMG
+         68 |             HU(I+(J-1)*IMG)=.5*(H(I+(J-1)*IMG)+H(I+J*IMG))
+         69 |112        CONTINUE
+         70 |114      CONTINUE
+         71 |         DO 11404 I=1,NVECT
+         72 |           HV(I)=H(I)
+         73 |11404    CONTINUE
+         74 |         DO 118 J=1,JMG
+         75 |           DO 116 I=1,IMG-1
+         76 |             HV(I+(J-1)*IMG)=.5*(H(I+(J-1)*IMG)+H(I+1+(J-1)*IMG))
+         77 |116        CONTINUE
+         78 |118      CONTINUE
+         79 |         DO 1182 I=1,NVECT
+         80 |           HU(I)=1./HU(I)
+         81 |           HV(I)=1./HV(I)
+         82 |           PSINVS(I)=1./H(I)
+         83 |1182     CONTINUE
+         84 |         CALL P2KAP(H,PIS,NVECT)
+         85 |         TNORM=0.
+         86 |         DO 1184 I=1,NVECT
+         87 |           IF(BITH(I)) TNORM=TNORM+1.
+         88 |           H(I)=LOG(H(I))
+         89 |1184     CONTINUE
+         90 |         TNORM=1./TNORM
+         91 |         DO 230 KR=1,IKM
+         92 |           K=IKM+1-KR
+         93 |           CONST=PR(KR)*GASCON*2.
+         94 |           TBAR(K)=0.
+         95 |           DO 2301 I=1,NVECT
+         96 |             TH(I,KR)=CONST*TH(I,KR)*PIS(I)*PSINVS(I)
+         97 |             IF(BITH(I)) TBAR(K)=TBAR(K)+TNORM*TH(I,KR)
+         98 |             U(I,KR)=U(I,KR)*HU(I)
+         99 |             V(I,KR)=V(I,KR)*HV(I)
+        100 |2301       CONTINUE
+        101 |230      CONTINUE
+        102 |       RETURN
+        103 |       END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bith                             Reference argument, Logical(4) (1:1), Offset: 0, Alignment: full word
+                                 0-55.18$  0-1.63  0-87.15  0-97.17
+ 
+const                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-93.12@  0-96.23
+ 
+converta                         Subroutine
+                                 0-1.19$
+ 
+gascon                           Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.51  0-93.25
+ 
+h                                Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-53.40$  0-1.35  0-64.18  0-68.34  0-68.49  0-72.18  0-76.34  0-76.49  0-82.25  0-84.21  0-88.12@
+                                 0-88.21
+ 
+hu                               Reference argument, Real(4) (1:23668), Offset: 0, Alignment: full word
+                                 0-54.15$  0-2.28  0-64.12@  0-68.14@  0-80.12@  0-80.21  0-98.30
+ 
+hv                               Reference argument, Real(4) (1:23668), Offset: 0, Alignment: full word
+                                 0-54.26$  0-2.31  0-72.12@  0-76.14@  0-81.12@  0-81.21  0-99.30
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-63.19@  0-64.15  0-64.20  0-67.19@  0-68.17  0-68.36  0-68.51  0-71.19@  0-72.15  0-72.20
+                                 0-75.19@  0-76.17  0-76.36  0-76.51  0-79.18@  0-80.15  0-80.24  0-81.15  0-81.24  0-82.19  0-82.27
+                                 0-86.18@  0-87.20  0-88.14  0-88.23  0-95.20@  0-96.17  0-96.32  0-96.42  0-96.52  0-97.22  0-97.51
+                                 0-98.16  0-98.24  0-98.33  0-99.16  0-99.24  0-99.33
+ 
+iblk1d                           Parameter, Integer(4)
+                                 2-58.9$  2-60.30
+ 
+iblk1wrk                         Parameter, Integer(4)
+                                 2-60.9$
+ 
+iblk2d                           Parameter, Integer(4)
+                                 2-59.9$  2-61.30
+ 
+iblk2wrk                         Parameter, Integer(4)
+                                 2-61.9$
+ 
+ibpor                            Parameter, Integer(4)
+                                 2-9.13$  2-10.25
+ 
+ibpw                             Parameter, Integer(4)
+                                 2-8.13$  2-10.33
+ 
+idpfillr                         Parameter, Integer(4)
+                                 1-13.12$
+ 
+iijkmax                          Parameter, Integer(4)
+                                 2-49.13$  1-13.48  2-56.47
+ 
+iijmax                           Parameter, Integer(4)
+                                 2-17.13$  0-52.21  0-52.33  0-52.48  0-54.18  0-54.29  1-13.58  2-49.31  2-56.21  2-60.21
+ 
+iijmaxb                          Parameter, Integer(4)
+                                 2-18.13$  2-51.21
+ 
+iijrad                           Parameter, Integer(4)
+                                 2-19.13$  2-57.30  2-61.21
+ 
+iiorblp                          Parameter, Integer(4)
+                                 1-7.35$
+ 
+iiorbpl                          Parameter, Integer(4)
+                                 1-7.15$
+ 
+iiordlp                          Parameter, Integer(4)
+                                 1-7.45$
+ 
+iiordpl                          Parameter, Integer(4)
+                                 1-7.25$
+ 
+iiwordsb                         Parameter, Integer(4)
+                                 2-51.9$
+ 
+ij                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.37  0-53.17  0-53.17  0-53.25  0-53.25  0-53.34  0-53.34
+ 
+ijcap                            Parameter, Integer(4)
+                                 2-20.13$
+ 
+ijcap12                          Parameter, Integer(4)
+                                 1-11.34$
+ 
+ijcap1dp                         Parameter, Integer(4)
+                                 1-11.15$  1-11.44  1-12.23
+ 
+ijcapdp                          Parameter, Integer(4)
+                                 1-6.26$  1-11.24  1-12.33
+ 
+ikm                              Parameter, Integer(4)
+                                 2-22.13$  0-91.22  0-92.14  1-8.32  1-13.24  2-49.25  2-52.21  2-53.25  2-57.39  2-58.26  2-59.26
+ 
+ikmp1                            Parameter, Integer(4)
+                                 2-52.9$
+ 
+ilatg2                           Parameter, Integer(4)
+                                 2-12.13$  2-47.25
+ 
+ilbch                            Parameter, Integer(4)
+                                 2-24.13$
+ 
+ilbhi                            Parameter, Integer(4)
+                                 2-25.13$
+ 
+ilbui                            Parameter, Integer(4)
+                                 2-26.13$
+ 
+ilbuo                            Parameter, Integer(4)
+                                 2-27.13$
+ 
+ilbvi                            Parameter, Integer(4)
+                                 2-28.13$
+ 
+ilbvo                            Parameter, Integer(4)
+                                 2-29.13$
+ 
+ilevh                            Parameter, Integer(4)
+                                 2-13.13$  2-46.46
+ 
+ilevs                            Parameter, Integer(4)
+                                 2-14.13$  2-46.38
+ 
+ilmout                           Parameter, Integer(4)
+                                 2-30.13$
+ 
+ilonf                            Parameter, Integer(4)
+                                 2-15.13$  2-46.25  2-54.21
+ 
+ilonfp1                          Parameter, Integer(4)
+                                 2-54.9$
+ 
+ilvltot                          Parameter, Integer(4)
+                                 2-53.9$  2-55.21
+ 
+imaxoutf                         Parameter, Integer(4)
+                                 2-32.13$
+ 
+imaxoutt                         Parameter, Integer(4)
+                                 2-33.13$
+ 
+imaxoutv                         Parameter, Integer(4)
+                                 2-34.13$
+ 
+imaxprof                         Parameter, Integer(4)
+                                 2-35.13$
+ 
+imaxscr                          Parameter, Integer(4)
+                                 2-56.9$
+ 
+imcubic                          Parameter, Integer(4)
+                                 1-7.55$
+ 
+img                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-62.16  0-67.23  0-68.25  0-68.44  0-68.55  0-75.23  0-76.25  0-76.44  0-76.61
+ 
+incoefs                          Parameter, Integer(4)
+                                 1-12.15$
+ 
+infiller                         Parameter, Integer(4)
+                                 2-36.13$  2-56.62
+ 
+ingmax                           Parameter, Integer(4)
+                                 1-8.47$
+ 
+ingrdus1                         Parameter, Integer(4)
+                                 2-39.13$
+ 
+ingrduse                         Parameter, Integer(4)
+                                 2-38.13$
+ 
+inh                              Parameter, Integer(4)
+                                 2-37.13$  2-48.30
+ 
+iniaddrs                         Parameter, Integer(4)
+                                 2-40.13$
+ 
+inklat                           Parameter, Integer(4)
+                                 1-6.56$
+ 
+inklon                           Parameter, Integer(4)
+                                 1-6.47$  1-9.54
+ 
+inksig                           Parameter, Integer(4)
+                                 1-9.15$
+ 
+inlat                            Parameter, Integer(4)
+                                 2-47.13$
+ 
+inlatdp                          Parameter, Integer(4)
+                                 1-10.15$  1-10.39
+ 
+inlath                           Parameter, Integer(4)
+                                 1-5.21$  1-5.43  1-10.25
+ 
+inlatsh                          Parameter, Integer(4)
+                                 2-16.13$  2-47.34
+ 
+inlola                           Parameter, Integer(4)
+                                 1-10.32$
+ 
+inlon                            Parameter, Integer(4)
+                                 1-6.37$  1-9.48
+ 
+inlonex                          Parameter, Integer(4)
+                                 1-9.40$  1-10.47
+ 
+inmodes                          Parameter, Integer(4)
+                                 1-8.36$
+ 
+inscr                            Parameter, Integer(4)
+                                 2-41.13$  2-56.29
+ 
+inscr3                           Parameter, Integer(4)
+                                 2-43.13$  2-56.55
+ 
+inscrgeo                         Parameter, Integer(4)
+                                 2-42.13$  2-56.35
+ 
+inshem                           Parameter, Integer(4)
+                                 2-48.13$
+ 
+insig                            Parameter, Integer(4)
+                                 1-8.26$  1-9.32
+ 
+insigp1                          Parameter, Integer(4)
+                                 1-9.24$
+ 
+insigstp                         Parameter, Integer(4)
+                                 2-46.13$
+ 
+insoil                           Parameter, Integer(4)
+                                 2-44.13$
+ 
+inspecs                          Parameter, Integer(4)
+                                 2-11.13$
+ 
+insumg                           Parameter, Integer(4)
+                                 2-45.13$  1-13.31  2-55.31
+ 
+inumcoef                         Parameter, Integer(4)
+                                 1-5.32$
+ 
+inumgrid                         Parameter, Integer(4)
+                                 1-6.15$
+ 
+inumrec                          Parameter, Integer(4)
+                                 2-10.13$
+ 
+inumvert                         Parameter, Integer(4)
+                                 1-8.15$
+ 
+invbl                            Parameter, Integer(4)
+                                 2-55.9$
+ 
+iradwrk                          Parameter, Integer(4)
+                                 2-57.9$
+ 
+iwpcpl                           Parameter, Integer(4)
+                                 2-21.13$  2-57.21
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-66.17@  0-68.20  0-68.39  0-68.53  0-74.17@  0-76.20  0-76.39  0-76.56
+ 
+jmg                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.44  0-62.20  0-66.21  0-74.21
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-92.12@  0-94.17  0-97.31  0-97.39
+ 
+kr                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-91.17@  0-92.20  0-93.21  0-96.19  0-96.34  0-97.53  0-98.18  0-98.26  0-99.18  0-99.26
+ 
+log                              Pure Intrinsic
+                                 0-88.17
+ 
+nvect                            Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-62.10@  0-63.23  0-71.23  0-79.22  0-84.27  0-86.22  0-95.24
+ 
+p2kap                            External Subroutine
+                                 0-84.15
+ 
+pis                              Reference argument, Real(4) (1:23668), Offset: 0, Alignment: full word
+                                 0-52.29$  0-2.17  0-84.23  0-96.38
+ 
+pr                               Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-51.15$  0-1.48  0-93.18
+ 
+psinvs                           Reference argument, Real(4) (1:23668), Offset: 0, Alignment: full word
+                                 0-52.41$  0-2.21  0-82.12@  0-96.45
+ 
+tbar                             Reference argument, Real(4) (1:1), Offset: 0, Alignment: full word
+                                 0-50.15$  0-1.58  0-94.12@  0-97.26@  0-97.34
+ 
+th                               Reference argument, Real(4) (1:?, 1:1), Offset: 0, Alignment: full word
+                                 0-53.31$  0-1.32  0-96.14@  0-96.29  0-97.48
+ 
+tnorm                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-85.10@  0-87.24@  0-87.30  0-90.10@  0-90.19  0-97.42
+ 
+u                                Reference argument, Real(4) (1:?, 1:1), Offset: 0, Alignment: full word
+                                 0-53.15$  0-1.28  0-98.14@  0-98.22
+ 
+v                                Reference argument, Real(4) (1:?, 1:1), Offset: 0, Alignment: full word
+                                 0-53.23$  0-1.30  0-99.14@  0-99.22
+ 
+works                            Reference argument, Real(4) (1:23668), Offset: 0, Alignment: full word
+                                 0-52.15$  0-2.11
+ 
+** converta   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    CONVERTA.f                  10/09/02   12:45:07
+     1    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/myparam
+                                      02/09/00   18:27:58      0      48
+     2    /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/parmodel
+                                      02/09/00   18:27:59      1       1
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     179
+1501-510  Compilation successful for file CONVERTA.f.
+1501-543  Object file created.

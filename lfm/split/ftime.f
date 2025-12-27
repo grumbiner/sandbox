@@ -1,0 +1,304 @@
+      SUBROUTINE FTIME
+C$$$  SUBPROGRAM  DOCUMENTATION  BLOCK
+C
+C SUBPROGRAM: FTIME          FORECAST LFM OUT TO IOUT HOURS
+C   AUTHOR: DEAVEN           ORG: W/NMC23    DATE: 20 JUN 83
+C
+C ABSTRACT: FORECAST LFM FROM IHOUR OUT TO IOUT HOURS.
+C   PRINT RUNNING ENERGY AND SIGMADOT STATISTICS ON THE HOUR.
+C
+C
+C USAGE:  CALL FTIME
+C
+C - - - - - - - - - I N P U T   V A R I A B L E S  - - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     HOUR1(7)    SAT. REL HUMIDITY (PERCENT)               /SVHOUR/
+C     IHOUR       STARTING HOUR OF FORECAST                 /TTME/
+C     SSLHR,CSLHR SIN/COS SOLAR HOUR ANGLE
+C     SHR,CHR     SIN/COS OF ONE HOUR
+C     IODD        ODD/EVEN TIME STEP FLAG                   /FDATE/
+C     IOUT        HOUR TO TERMINATE FORECAST
+C     LOLD        TIME LEVEL COUNTERS                       /INDEX/
+C     LMID        (SET IN RDTAPE AND
+C     LNEW        USED IN FCST AND ARYTOT)
+C     RMSSFC      SUM  OF SURFACE PRESSURE TEND             /DIAG/
+C     RMSTRP      SUM OF TROP PRESSURE TEND
+C
+C - - - - - - - - - O U T P U T   V A R I A B L E S - - - - - - - - - -
+C
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     SATRH       SAT REL HUM (PERCENT)                     UNIT 6
+C     ITSW        TIME STEP TYPE SWITCH                     /TTME/
+C     MNSTEP      COUNTER OF TIME STEPS IN A HOUR
+C     SIGB1,SIGT1 SIGMADOT SUMMATIONS                       /DIAG/
+C     SIGT2,SIGS1 ZEROED THEN PRINTED LATER
+C     SIGS2       AFTER OTHER CODES DO SUMS
+C     SUMZ,P,TS   ENERGY SUMMATIONS                         /DIAG/
+C     P1,P2,S,F   LIKEWISE ZEROED, THEN
+C     VOR, DIV    PRINTED LATER
+C
+C - - - - - - - - - S U B P R O G R A M S   C A L L E D - - - - - - - -
+C
+C     NAME(S)                                               LIBRARY
+C     -------                                               -------
+C     FCST, SOLDEC, STARTF                                  MINE
+C     SQRT,MOD,ENCODE                                       FORTLIB
+C
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C
+C ATTRIBUTES:
+C   LANGUAGE: SiliconGraphics 3.5 FORTRAN 77
+C   MACHINE:  SiliconGraphics IRIS-4D/25, 35, INDIGO
+C
+C$$$
+C
+      IMPLICIT    REAL (A-H,O-Z)
+      REAL        HOUR1
+      LOGICAL     ISOP
+      CHARACTER*4 LABSIN,LABBND,LABS00,LABS06,LABS12,LABV06,LABV12
+      COMMON /CNST/ BTHICK,BTHIK1,BTHK3,DT,RDELX,
+     1              DTDS0,DTDS1,DTDS2,DTDX,DS1DX,DS2DX,
+     2              CP,R,ROCP,TSTRAT,CPTS,SATRH,RSAT60,
+     3              RDT,BTHICH,BTHK3H,BTK398,RBT,A1BRN,
+     4              A2BRN,TDTDX4,RPK,VVCNST
+      COMMON /DIAG/ SUMK(8),SUMP1(8),SUMP2(8),SUMS(8),SUMF(8),SUMFD(8),
+     1     SUMVOR(8),SUMDIV(8),DP(8),SUMP(8),SUMTS(8),SUMZ(8),
+     2     SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+      COMMON /FASTER/ PIE(1100),AX(120)
+      COMMON /INDEX/ LI,LJ,LK,LI1,LJ1,LK1,LI2,NIJ,LOLD,LMID,LNEW,
+     1     K7OLD,K7MID,K7NEW,K3OLD,K3MID,K3NEW,K2OLD,K2MID,K2NEW,
+     2     K,K1,K2,K3,KL,KH
+      COMMON /FDATE/  IYEAR, IMO, IDAYMO, IZTIME, IHR1, IOUT
+      COMMON /SVHOUR/ NWDS, IHOUR1( 1205 ), HOUR1(8)
+      COMMON /TTME/   MNSTEP,IODD,IHOUR,IMONTH,ITSW,IVEL,NPHOUR,
+     1                SSLDC,CSLDC,SSLHR,CSLHR,SHR,CHR,
+     2                ALP,XDAYMO
+      COMMON /FORTAP/ LUNBND,LUNSIN,LUNS00,LUNS06,LUNS12,LUNV06,LUNV12,
+     A                LABSIN(8),LABBND(8),LABS00(8),LABS06(8),LABS12(8),
+     B                LABV06(8),LABV12(8),PARM(25)
+      COMMON /PBNDPE/ ALARGE( 53 ,12, 23 ), BLARGE( 12, 33, 23 )
+      COMMON /PBNDRY/ AA( 53, 12, 23 ), BB( 12, 33, 23 )
+      SAVE
+C
+C     CHARACTER*4 MSG(11)
+C     DATA MSG/'NWSO','P,@1','0LFM',' FOR','ECAS','T RE','ACHE','D HO',
+C    1'UR  ',0,'   :'/
+C     CHARACTER*8 MESAGE(6)
+C     DATA MESAGE/'        ',' RMS SFC',' PRESSUR',
+C    & 'E CHANGE',' AT XX H','OURS::::'/
+C
+C        START HERE (STARTF CALLED HERE AND IN MAIN)
+C
+      ISOP  = .FALSE.
+      SATRH = .01E0 * HOUR1(7)
+      SATRH = .96
+         CALL STARTF
+      PRINT 50, SATRH
+   50 FORMAT('0  SATRH = ',F5.2)
+C
+C
+C        GET NUMBER OF GRID PTS USED FOR RMS SDOT AND SFC PRES CHANGE
+C
+      NSDOT  =  2288
+      NSFCP  = (  53 -2) * (  45 -2)
+C   START FORWARD
+      ITSW   = 1
+      IF (IHOUR.LE.0) GO TO 2
+C     NOT DOING  INITIAL (TAU = 0) TIME STEP  GET DATA FOR CENTERED STEP
+      MNSTEP = 1
+      ITSW   = 4
+ 2    CONTINUE
+C
+C        CALC SOLAR DECLINATION ANGLE FOR MIDDAY
+C
+      IGTIME = IZTIME
+      XDAYMO = IDAYMO
+      XDAYMO = XDAYMO + (IHOUR+IGTIME)/24+.5E0/24.E0
+      IMONTH = IMO
+      LL     = IGTIME + IHOUR
+      HOUR   = MOD(LL,24)
+      CALL SOLDEC(XDAYMO,IMONTH,HOUR,IYEAR)
+C
+C     PRINT DATE
+C
+      PRINT 802, IGTIME,IMONTH,IDAYMO,IYEAR
+  802 FORMAT('0INITIAL HOUR MONTH DAY YEAR OF FORECAST  ', I2, 'Z  ',
+     1I2, '/', I2, '/', I2///)
+      PRINT 84,IHOUR
+ 84   FORMAT(//,' I HAVE STARTED FORECAST HOUR',I3)
+C
+C//////////////////////////////////////////////////////////////////
+C        TOP    OF MAIN LOOP IN WHICH TO FORECAST FROM IHOUR TO IOUT
+C//////////////////////////////////////////////////////////////////
+C
+   19    CONTINUE
+C
+C     INITIALIZE RMS SIGMA-DOT LOCATIONS
+C
+      SIGB1 = 0.0E0
+      SIGT1 = 0.0E0
+      SIGT2 = 0.0E0
+      SIGS1 = 0.0E0
+      SIGS2 = 0.0E0
+C
+C   INITIALIZE ENERGY COMPUTATION LOCATIONS
+C
+      IF (MNSTEP.NE.NPHOUR) GO TO 303
+           DO 9 K=1,  8
+             SUMZ(K)   = 0.0E0
+             SUMP(K)   = 0.0E0
+             SUMTS(K)  = 0.0E0
+             SUMK(K)   = 0.0E0
+             SUMP1(K)  = 0.0E0
+             SUMP2(K)  = 0.0E0
+             SUMS(K)   = 0.0E0
+             SUMF(K)   = 0.0E0
+             SUMFD(K)  = 0.0E0
+             SUMVOR(K) = 0.0E0
+             SUMDIV(K) = 0.0E0
+    9      CONTINUE
+ 303   CONTINUE
+C
+C     DO ONE TIME STEP
+C
+      CALL FCST
+C
+       LTMP = LOLD
+       LOLD = LMID
+       LMID = LNEW
+       LNEW = LTMP
+       ITSW = 4
+       MNS  = MNSTEP
+       IF (MNSTEP.EQ.0) GO TO 78001
+C
+C     IF MNSTEP = 0 DISASTER
+C
+      IF (MNSTEP.LT.0) MNSTEP = 1
+C
+C     IODD = 1 FOR ODD TIME STEP
+C            2 FOR EVEN TIME STEP
+C
+C            MEANING OF ITSW
+C            1  -  FORWARD TIME STEP
+C            4  -  CENTERED PLUS TIME AND SPACE SMOOTHING OF TAU FIELDS
+C
+      IODD   = MOD(IODD,2) + 1
+      MNSTEP = MOD(MNSTEP,NPHOUR) + 1
+      IF (MNSTEP.GT.1) GO TO 304
+      IHOUR  = IHOUR + 1
+      IHR1   = IHOUR
+      HOUR1(1) = IHOUR
+      IF (MOD(IHOUR,24) .NE.0.0E0) GO TO 301
+C     ADVANCE SUN IN ORBIT DAILY
+      LL     = IGTIME + IHOUR
+      HOUR = MOD(LL,24)
+      CALL SOLDEC(XDAYMO,IMONTH,HOUR,IYEAR)
+      GO TO 304
+ 301  CONTINUE
+C  ADVANCE SUN ONE HOUR
+      B1    = SSLHR
+      B2    = CSLHR
+      SSLHR = B1 * CHR + B2 * SHR
+      CSLHR = B2 * CHR - B1 * SHR
+ 304  CONTINUE
+C
+C
+      SIGB1  = SQRT(SIGB1  / NSDOT)
+      SIGT1  = SQRT(SIGT1  / NSDOT)
+      SIGT2  = SQRT(SIGT2  / NSDOT)
+      SIGS1  = SQRT(SIGS1  / NSDOT)
+      SIGS2  = SQRT(SIGS2  / NSDOT)
+      RMSSFC = SQRT(RMSSFC / NSFCP)
+      RMSTRP = SQRT(RMSTRP / NSFCP)
+      IF (IABS(MNS).EQ.1) PRINT 801
+      PRINT 900,IHOUR,MNS,SIGB1,SIGT1,SIGT2,SIGS1,SIGS2,RMSSFC,RMSTRP
+  801 FORMAT(/,1X,'HOUR MNSTEP ',5X,'SIGB1',10X,'SIGT1',10X,'SIGT2',10X
+     1  ,'SIGS1',10X,'SIGS2',10X,'RMSSFC',10X,'RMSTRP',/)
+  900 FORMAT(I4,I6,7E15.5)
+C
+C     PUT FORECAST HOUR ON DAYFILE EVERY 6 HOURS
+C
+      IF (MOD(IHOUR,6).NE.0 .OR. MNSTEP.NE.1) GO TO 53
+      PRINT 54, IHOUR
+ 54   FORMAT(//,' I HAVE REACHED FORECAST HOUR',I3)
+ 53   IF (MNSTEP.NE.1 .OR. SUMF(1).EQ.0.E0) GO TO 52
+      IF (MOD(IHOUR,3).NE.0) GO TO 55
+C     ENCODE(4,108,MSG(10)) IHOUR
+C108  FORMAT(I4)
+ 55   CONTINUE
+      IF (MOD(IHOUR,12).NE.0) GO TO 704
+C     ENCODE (8,705,MESAGE)    RMSSFC
+C     ENCODE (6,706,MESAGE(5)) IHOUR
+C705  FORMAT(F8.4)
+C706  FORMAT(' AT ',I2)
+C     CALL W3LOG('$L',MESAGE)
+704   CONTINUE
+C
+C   COMPUTE ENERGY STATISTICS EVERY HOUR
+C
+      DO 11 K = 1, 7
+        SUMZ(K)   = SUMZ(K)/(SUMF(K)*9.8E0)
+        SUMK(K)   = SUMK(K)/(SUMF(K)*19.6E0)
+        SUMK( 8)  = SUMK( 8) + SUMK(K)
+        SUMP1(K)  = SUMP1(K)/(9.8E0*SUMF(K))
+        SUMP(K)   = SUMP(K)/SUMF(K)
+        SUMTS(K)  = SUMTS(K)/SUMF(K)
+        SUMP2(K)  = (SUMP2(K)/SUMF(K))*(1004.E0/9.8E0)
+        SUMDIV(K) = SUMDIV(K)/SUMFD(K)
+        SUMVOR(K) = SUMVOR(K)/SUMFD(K)
+   11 CONTINUE
+      DO 12 K = 1, 7
+        SUMP2(K)   = SUMP1(K)-SUMP1(K+1) + SUMP2(K)
+        SUMP2( 8)  = SUMP2( 8) + SUMP2(K)
+        SUMVOR( 8) = SUMVOR( 8) + SUMVOR(K)
+        SUMDIV( 8) = SUMDIV( 8) + SUMDIV(K)
+   12 CONTINUE
+      SCNST = 1004./(9.8E0*(1.E0+2.E0/7.E0))
+      DO 13 K = 2, 7
+        SUMS(K)  = (SUMS(K) / SUMF(K)) * SCNST
+        SUMS( 8) = SUMS( 8) + SUMS(K)
+ 13   CONTINUE
+      PRINT 102 , IHOUR
+      PRINT 100 , SUMK
+      PRINT 101 , (SUMP2(I),I = 1,8)
+      PRINT 105 , (SUMS(K), K = 2,8)
+      PRINT 103 , SUMVOR
+      PRINT 104 , SUMDIV
+      PRINT 106 , (SUMP(K), K = 1,7)
+      PRINT 107 , (SUMTS(K),K = 1,7)
+      PRINT 109 , (SUMZ(K), K = 1,7)
+C
+C     END OF ENERGY AND SIGMA DOT PRINTOUTS
+C
+ 52   CONTINUE
+C
+      IF (IHOUR.LT.IOUT) GOTO 19
+C
+C / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+C               BOTTOM OF BIG LOOP  TO FORECAST TO IOUT HOUR
+C / / / / / / / / / / / / / / / / / / / / / / / / / / / /
+C
+         RETURN
+C
+ 102  FORMAT ('0  HOUR = ',I3,' ENERGY STATISTICS'/31X,'1',13X,'2',
+     113X,'3',13X,'4',13X,'5',13X,'6',13X,'7',9X,'TOTAL')
+  100 FORMAT(' KINETIC ENERGY   ', 8E14.4)
+  101 FORMAT(' POTENTIAL ENERGY ', 8E14.6)
+  105 FORMAT(' STATIC STABILITY ', 14X, 2E14.4,4E14.5,E14.7)
+  103 FORMAT(' VOR SQUARED      ', 8E14.4)
+  104 FORMAT(' DIV SQUARED      ', 8E14.4)
+  106 FORMAT('  AVG PRESSURE    ', 7E14.4)
+  107 FORMAT('  AVG TEMPERATURE ', 7E14.4)
+  109 FORMAT('  AVG HEIGHT      ', 4E14.4, 3E14.5)
+C
+C        DISASTER AREA - COME HERE IF MNSTEP = 0
+C
+78001 CONTINUE
+         PRINT 78002
+78002    FORMAT(///'  DISASTER IN FTIME - MNSTEP = 0 UPON RETURN ',
+     1            'FROM FCST ... GIVE UP...'///)
+      RETURN
+      END

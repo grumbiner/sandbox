@@ -1,0 +1,68 @@
+The directory cray3:/wd2/wd20/wd20mi/f95/source2 contains the source code
+of the global forecast model to be implemented operationally in August 1995.
+As of 95/07/10, the T126L28 model on the C90 uses approximately 24 megawords and
+36 CP minutes (about 10 minutes wall time using 4 CPUS) per forecast day.
+A summary of the significant changes to the model follows:
+
+*  The transform from Fourier to spectral space in the dynamics and physics
+   is done for wind components rather than divergence and vorticity; the
+   divergence and vorticity are then computed in spectral space.  This change
+   speeds up the model by about 10%.  (Sela)
+
+*  The nonlinear advection of momentum has been formulated in terms
+   of wind components instead of divergence and vorticity in anticipation
+   of a future semi-Lagrangian version of the model.  (Sela)
+
+*  The physics and radiation parameterizations have been generalized so that
+   they can also be invoked from the regional spectral model.  (Juang)
+
+*  Some cloud radiative properties have been corrected.  (Hou)
+
+*  Climatological ozone in the radiation has been corrected to be a function
+   of pressure rather than model level.  (Campana)
+
+*  Full three-dimensional total and convective cloud diagnostics have been
+   added to the diagnostic version.  Also total cloudiness as seen from the
+   ground has been added to the flux file.  (Campana)
+
+*  The zero hour flux file and the intermediate hour flux and zonal files
+   have been added.  The sigma file header record has been augmented.  (Iredell)
+
+*  The main physics loop has been separated into two modules GLOOPB and GBPHYS
+   in order to make the code more comprehensible.  (Rozwodoski)
+
+*  Some code has been rewritten to make it more efficient.  The changes include
+   re-ordering the spectral data in common to reduce the number of transforms,
+   reducing the bank conflicts in the radiation, computing zonal diagnostics
+   after the physics, and limiting the grid point diagnostics to hourly values.
+   These changes reduce memory by about 25% and speed up the model by about 9%.
+   (Iredell)
+
+*  Any number of tracers are now allowed in the model.  At this time all the
+   tracers (except specific humidity) would just be advected around, since
+   the model does not yet have any parameterizations using them in the physics
+   or radiation.  The tracers are spectral but can be easily converted to grid
+   for semi-Lagrangian advection.  (Moorthi, Iredell)
+
+*  The shortwave radiation code has been fully vectorized.  (Katz)
+
+*  The planetary boundary layer scheme has been replaced.  The new scheme
+   explicitly diagnoses the planetary boundary layer height and then determines
+   bulk diffusivity coefficients for the entire boundary layer computed from
+   a cubic function profile.  (Hong)
+
+*  The deep convection scheme has been changed to allow convection in a
+   disturbed atmospheric profile to eliminate convective available potential
+   energy (CAPE), to search for cloud top from below rather than above,
+   and to allow shallow clouds to detrain early with no downdraft.  (Pan)
+
+*  The default frequency for calling the solar radiation is now one hour.  (Pan)
+
+*  New flux file fields are a second level of soil moisture, two levels of
+   soil temperature, and planetary boundary layer height.  (Hong, Pan, Iredell)
+
+*  The main radiation loop has been separated into three modules.  (Katz)
+
+*  The number of parallel processors used is now detected at runtime.  (Iredell)
+
+*  The albedo over sea ice has been corrected.  (Grumbine)

@@ -1,0 +1,123 @@
+      SUBROUTINE WRITER(LBUO,LBVO,LBCH,NOU,ITIME,DLAM0,
+     1   JCAP)
+
+      IMPLICIT REAL (A-H,O-Z)
+      INCLUDE "parmlbc"
+C
+      PARAMETER(IDIM=IMAX,JDIM=JMAX,
+     1          NVAR=4,NPOINT=3)
+C
+      COMMON /SIGLTB/ B(LBDIM,KMAX,NVAR,NPOINT),GLON(LBDIM,NPOINT)
+     1 ,SLVL(KMAX+1),SLYR(KMAX),PSFC(LBDIM,NPOINT),ZSFC(LBDIM,NPOINT)
+     2 ,DTMN(KMAX)
+C
+       MWAVE = JCAP
+       KDIM=KMAX
+       KDIMQ=KMAX-3 
+       KDIMP=KMAX+1
+C
+       XKAPA = 287.05e0 / 1005.0e0
+       A0 = 6371220.0
+       DEGREE = 90. / ASIN(1.0)
+       NK = KDIM
+        DO 500 NPT=1,NPOINT
+        IF( NPT .EQ. 1 ) LBXX = LBUO
+        IF( NPT .EQ. 2 ) LBXX = LBVO
+        IF( NPT .EQ. 3 ) LBXX = LBCH
+        DO 490 NN=1,LBXX
+        DO 490 K=1,NK
+C       write(6,'(" NPT,NN,K,LBXX:",4i8)')NPT,NN,K,LBXX
+        IF( NPT .NE. 3 ) THEN
+C     --- ROTATE U V TO NGM GRID
+         US = B(NN,K,1,NPT)
+         VS = B(NN,K,2,NPT)
+         SLON = (GLON(NN,NPT) - DLAM0)/DEGREE
+         CSLON = COS( SLON )
+         SSLON = SIN( SLON )
+C        write(6,'(" US,VS,SLON,CS,SS:",5g12.5)') US,VS,SLON,CSLON,SSLON
+         B(NN,K,1,NPT) = - US * SSLON - VS * CSLON
+         B(NN,K,2,NPT) = + US * CSLON - VS * SSLON
+        ENDIF
+C     --- MAKE TEMPERATURE CORRECTION
+C        write(6,'(" DTMN,TORIG:",2g12.5)') DTMN(K),B(NN,K,3,NPT)
+         B(NN,K,3,NPT) = B(NN,K,3,NPT) + DTMN(K)
+C     --- CHANGE T TO SETA
+         PIA = ( SLYR(K)*PSFC(NN,NPT)*.001 ) ** XKAPA
+C        write(6,'(" TNEW,SL,PSFC,PIA,XKAPA:",5g12.5)') B(NN,K,3,NPT),
+C    1            SLYR(K),PSFC(NN,NPT),PIA,XKAPA
+         B(NN,K,3,NPT) = B(NN,K,3,NPT)/PIA
+ 490    CONTINUE
+ 500    CONTINUE
+C
+C
+      PRINT 123, ITIME
+ 123  FORMAT(' ==== START TO WRITE THE LTBL AT TIME =',I10)
+C
+      WRITE(NOU) ITIME
+      WRITE(NOU) (SLYR(K),K=1,NK)
+      IS = 10
+      PRINT *,' TEST OUTPUT POINT IS ',IS
+C
+C     ---- 'U' POINT
+C
+      IJM = LBUO
+C U
+      WRITE(NOU) ( ( B(IJ,K,1,1),IJ=1,IJM ), K=1,NK )
+      PRINT 770,  ( B(IS,K,1,1),K=1,NK)
+ 770  FORMAT(2X,'U AT U',/(2X,9G13.6))
+C SETA
+      WRITE(NOU) ( ( B(IJ,K,3,1),IJ=1,IJM ), K=1,NK )
+      PRINT 771,  ( B(IS,K,3,1),K=1,NK)
+ 771  FORMAT(2X,'SETA AT U',/(2X,9G13.6))
+C H
+      WRITE(NOU) ( PSFC(IJ,1),IJ=1,IJM )
+      PRINT 772,  PSFC(IS,1)
+ 772  FORMAT(2X,'H AT U',/(2X,9G13.6))
+C ZS
+      WRITE(NOU) ( ZSFC(IJ,1),IJ=1,IJM )
+      PRINT 773,  ZSFC(IS,1)
+ 773  FORMAT(2X,'ZS AT U',/(2X,9G13.6))
+C
+C     ---- 'V' POINT
+      IJM = LBVO
+C V
+      WRITE(NOU) ( ( B(IJ,K,2,2),IJ=1,IJM ), K=1,NK )
+      PRINT 880,  ( B(IS,K,2,2),K=1,NK)
+ 880  FORMAT(2X,'V AT V',/(2X,9G13.6))
+C SETA
+      WRITE(NOU) ( ( B(IJ,K,3,2),IJ=1,IJM ), K=1,NK )
+      PRINT 881,  ( B(IS,K,3,2),K=1,NK)
+ 881  FORMAT(2X,'SETA AT V',/(2X,9G13.6))
+C H
+      WRITE(NOU) ( PSFC(IJ,2),IJ=1,IJM )
+      PRINT 882,  PSFC(IS,2)
+ 882  FORMAT(2X,'H AT V',/(2X,9G13.6))
+C ZS
+      WRITE(NOU) ( ZSFC(IJ,2),IJ=1,IJM )
+      PRINT 883,  ZSFC(IS,2)
+ 883  FORMAT(2X,'ZS AT V',/(2X,9G13.6))
+C
+C     ---- 'H' POINT
+      IJM = LBCH
+C SETA
+      WRITE(NOU) ( ( B(IJ,K,3,3),IJ=1,IJM ), K=1,NK )
+      PRINT 991,  ( B(IS,K,3,3),K=1,NK)
+ 991  FORMAT(2X,'SETA AT H',/(2X,9G13.6))
+C Q
+      WRITE(NOU) ( ( B(IJ,K,4,3),IJ=1,IJM ), K=1,NK )
+      PRINT 992,  ( B(IS,K,4,3),K=1,NK)
+ 992  FORMAT(2X,'Q AT H',/(2X,9G13.6))
+C H
+      WRITE(NOU) ( PSFC(IJ,3),IJ=1,IJM )
+      PRINT 993,  PSFC(IS,3)
+ 993  FORMAT(2X,'H AT H',/(2X,9G13.6))
+C ZS
+      WRITE(NOU) ( ZSFC(IJ,3),IJ=1,IJM )
+      PRINT 994,  ZSFC(IS,3)
+ 994  FORMAT(2X,'ZS AT H',/(2X,9G13.6))
+C
+      PRINT 333,  ITIME
+ 333  FORMAT(' WROTE LTBL AT ',I15)
+C
+      RETURN
+      END

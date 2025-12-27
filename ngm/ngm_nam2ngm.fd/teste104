@@ -1,0 +1,12 @@
+# QSUB -r runedy2 -lT 150 -lM 5Mw 
+# QSUB -eo -o etay.test
+# QSUB -s /bin/sh
+# QSUB
+
+set -x
+
+cd /tmp/wd20er
+
+assign -a /com/eta/prod/erl.981106/eta.T12Z.GRBGRD00.tm00 -s unblocked fort.11
+assign -a /com/eta/prod/erl.981106/eta.T12Z.GRBGRDi00 -s unblocked fort.12
+/emcsrc3/wd20er/ngm/sorc/eta2ngm.fd/eta2ngm.x > temp.out

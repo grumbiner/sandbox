@@ -1,0 +1,623 @@
+      SUBROUTINE ZNLDIA(NZNL,RHOUR,IDATE,KDT,LATB2,LEVS,
+     &                  WGB,COLRAB,DEL)
+C
+      DIMENSION IDATE(4)
+      DIMENSION WGB(LATB2),COLRAB(LATB2),DEL(LEVS)
+C
+      %INCLUDE COMZNL;
+C
+      DIMENSION ZNLM(NLB,LEVS+1,NRM)
+      DIMENSION ZNLS(NLB,NST,NRS)
+      DIMENSION WEIM(NLB),WEIS(NLB,NST)
+C.......................................................................
+      WEIM=0.
+      WEIS=0.
+      ZNLM=0.
+      ZNLS=0.
+C
+      DO LAT=1,LATB2
+        NLBH=NLB/2
+        WLB=#PI/(2*NLBH)
+        JB=COLRAB(LAT)/WLB+1
+        JN=JB+1
+        JS=NLB-JB+1
+C
+        WEIM(JN)=WEIM(JN)+ZWM(1,LAT)*WGB(LAT)
+        WEIM(JS)=WEIM(JS)+ZWM(2,LAT)*WGB(LAT)
+        DO N=1,NRM
+          IF(ZHM(N).GT.0.) THEN
+            W=WGB(LAT)*ZHM(N)
+            DO K=1,LEVS
+              ZNLM(JN,K,N)=ZNLM(JN,K,N)+ZDM(1,K,N,LAT)*W
+              ZNLM(JS,K,N)=ZNLM(JS,K,N)+ZDM(2,K,N,LAT)*W
+            ENDDO
+          ENDIF
+        ENDDO
+C
+        DO K=1,NST
+          WEIS(JN,K)=WEIS(JN,K)+ZWS(1,K,LAT)*WGB(LAT)
+          WEIS(JS,K)=WEIS(JS,K)+ZWS(2,K,LAT)*WGB(LAT)
+        ENDDO
+        DO N=1,NRS
+          DO K=1,NST
+            ZNLS(JN,K,N)=ZNLS(JN,K,N)+ZDS(1,K,N,LAT)*WGB(LAT)
+            ZNLS(JS,K,N)=ZNLS(JS,K,N)+ZDS(2,K,N,LAT)*WGB(LAT)
+          ENDDO
+        ENDDO
+      ENDDO
+C
+      DO J=2,NLB
+        WEIM(1)=WEIM(1)+WEIM(J)
+      ENDDO
+      DO K=1,LEVS
+        DO J=2,NLB
+          DO N=1,NRM
+            ZNLM(1,K,N)=ZNLM(1,K,N)+ZNLM(J,K,N)
+          ENDDO
+        ENDDO
+      ENDDO
+      DO J=1,NLB
+        DO K=1,LEVS
+          DO N=1,NRM
+            ZNLM(J,LEVS+1,N)=ZNLM(J,LEVS+1,N)+ZNLM(J,K,N)*DEL(K)
+          ENDDO
+        ENDDO
+      ENDDO
+      DO K=1,LEVS+1
+        DO J=1,NLB
+          DO N=1,NRM
+            IF(WEIM(J).NE.0.) ZNLM(J,K,N)=ZNLM(J,K,N)/WEIM(J)
+          ENDDO
+        ENDDO
+      ENDDO
+C
+      DO J=2,NLB
+        DO K=1,NST
+          WEIS(1,K)=WEIS(1,K)+WEIS(J,K)
+        ENDDO
+      ENDDO
+      DO K=1,NST
+        DO J=2,NLB
+          DO N=1,NRS
+            ZNLS(1,K,N)=ZNLS(1,K,N)+ZNLS(J,K,N)
+          ENDDO
+        ENDDO
+      ENDDO
+      DO K=1,NST
+        DO J=1,NLB
+          DO N=1,NRS
+            IF(WEIS(J,K).NE.0.) ZNLS(J,K,N)=ZNLS(J,K,N)/WEIS(J,K)
+          ENDDO
+        ENDDO
+      ENDDO
+C
+      DO J=1,NLB
+        IF(WEIS(1,1).NE.0.) ZNLS(J,1,NSSLMSK)=100.*WEIS(J,1)/WEIS(1,1)
+      ENDDO
+      DO K=2,NST
+        DO J=1,NLB
+          IF(WEIS(J,1).NE.0.) ZNLS(J,K,NSSLMSK)=100.*WEIS(J,K)/WEIS(J,1)
+        ENDDO
+      ENDDO
+C
+      CALL ZNLPRT(NZNL,RHOUR,IDATE,KDT,LEVS+1,ZNLM,ZNLS)
+C
+      RETURN
+      END
+      SUBROUTINE ZNLPRT(NZNL,RHOUR,IDATE,KDT,NLV,ZNLM,ZNLS)
+      %INCLUDE DBZNLPRT;
+      %INCLUDE COMZNL;
+      INTEGER IDATE(4)
+      CHARACTER*8 CNM,CNS
+      DIMENSION CNM(NRM),CNS(NRS)
+      DIMENSION ZNLM(NLB,NLV,NRM)
+      DIMENSION ZNLS(NLB,NST,NRS)
+      DIMENSION WRKM(NLB,NLV),WRKS(NLB,NST)
+      CHARACTER*32 LABZ
+      CHARACTER*8 CLB(6)
+      CHARACTER*4 CST(6)
+      CHARACTER*80 CFMT
+      DATA CNM/'U       ','V       ','TV      ','Q       ','VOT**2  ',
+     &         'DIV**2  ','OMEGA   ','T       ','RH      ','KE      ',
+     &         'DTCONV  ','DTLARG  ','DTSHAL  ','DTVRDF  ','DQCONV  ',
+     &         'DQSHAL  ','DQVRDF  ','DUVRDF  ','DVVRDF  ','DTHSW   ',
+     &         'DTHLW   ','CLOUD   ','CVCLD   '/
+      DATA CNS/'RAIN    ','RAINC   ','DTSFC   ','DQSFC   ','DUSFC   ',
+     &         'DVSFC   ','RCOV    ','RCOVC   ','PS      ','TSKIN   ',
+     &         'WETNESS ','SNOW    ','TG1     ','TG2     ','TG3     ',
+     &         'SFCSW   ','SFCLW   ','RHS     ','TVS     ','TS      ',
+     &         'QS      ','ZORL    ','SLMSK   ','DUGWD   ','DVGWD   ',
+     &         'DUASFC  ','DUAGWD  ','DUAMTN  ','UA      ','UAP     ',
+     &         'EP      ','CLDWORK '/
+      DATA CLB/'90N-90S ','90N-60N ','60N-30N ','30N-30S ',
+     &                    '30S-60S ','60S-90S '/
+      DATA CST/'MEAN',' LND','SLND',' ICE','SICE',' SEA'/
+      DATA NCOL/12/
+C
+      PRINT 900,KDT
+C
+      DO 40 N=1,NRM
+      IPWR=IPWRCN(CNM(N))
+      PRINT 910,CNM(N),IPWR,RHOUR,IDATE,KDT
+      NROW=(NLV-1)/NCOL+1
+      DO 30 KROW=1,NROW
+      K1=(KROW-1)*NCOL+1
+      IF(KROW.LT.NROW) THEN
+        K2=K1-1+NCOL
+        WRITE(CFMT,921) NCOL
+        PRINT CFMT,(K,K=K1,K2)
+      ELSEIF(K1.LT.NLV) THEN
+        K2=NLV
+        WRITE(CFMT,922) K2-K1
+        PRINT CFMT,(K,K=K1,K2-1)
+      ELSE
+        K2=NLV
+        WRITE(CFMT,923)
+        PRINT CFMT
+      ENDIF
+      WRITE(CFMT,930) -IPWR,K2-K1+1
+      PRINT CFMT,(CLB(J),(ZNLM(J,K,N),K=K1,K2),J=1,NLB)
+30    CONTINUE
+40    CONTINUE
+C
+      DO 50 N=1,NRS
+      IPWR=IPWRCN(CNS(N))
+      PRINT 910,CNS(N),IPWR,RHOUR,IDATE,KDT
+      WRITE(CFMT,920) NST
+      PRINT CFMT,(CST(K),K=1,NST)
+      WRITE(CFMT,930) -IPWR,NST
+      PRINT CFMT,(CLB(J),(ZNLS(J,K,N),K=1,NST),J=1,NLB)
+50    CONTINUE
+C
+      IF(NZNL.GT.0) THEN
+        LABZ='ZNL 92/6'
+        FSTEP=KDT
+        WRKM=0.
+        WRKS=0.
+        WRITE(NZNL)LABZ
+        WRITE(NZNL)RHOUR,FSTEP,IDATE,
+     &             (((ZNLM(J,K,N),J=1,NLB),K=1,NLV),N= 1,10),
+     &             (((ZNLM(J,K,N),J=1,NLB),K=1,NLV),N=20,21),
+     &             (  WRKM                         ,N=13,30),
+     &             (((ZNLS(J,K,N),J=1,NLB),K=1,NST),N= 9,15),
+     &             (  WRKS                         ,N= 8,11),
+     &             (((ZNLS(J,K,N),J=1,NLB),K=1,NST),N=16,22),
+     &             (  WRKS                         ,N=19,29),
+     &             (((ZNLS(J,K,N),J=1,NLB),K=1,NST),N=23,23),
+     &             (((ZNLM(J,K,N),J=1,NLB),K=1,NLV),N=11,19),
+     &             (  WRKM                         ,N=10,30),
+     &             (((ZNLS(J,K,N),J=1,NLB),K=1,NST),N= 1, 8),
+     &             (((ZNLS(J,K,N),J=1,NLB),K=1,NST),N=24,30),
+     &             (  WRKS                         ,N=16,30)
+        CLOSE(NZNL)
+      ENDIF
+      RETURN
+900   FORMAT('0','ZONALLY AVERAGED DIAGNOSTICS',2X,'KDT=',I4)
+910   FORMAT(1X,A8,' (10**',I3,')',
+     &       ' FHOUR=',F6.1,' IDATE= (',4I4,')',' KDT=',I4)
+920   FORMAT("(5X,'--LAT-- ',",I2,"(5X,A4))")
+921   FORMAT("(5X,'--LAT-- ',",I2,"(5X,'K=',I2))")
+922   FORMAT("(5X,'--LAT-- ',",I2,"(5X,'K=',I2),5X,' SUM')")
+923   FORMAT("(5X,'--LAT-- ',                   5X,' SUM')")
+930   FORMAT("(5X,A8,",I3,"P",I2,"F9.2))")
+      END
+      SUBROUTINE ZNLAVB(LAT,LONB2,LONB22,LEVS,SECPHY,SECRAD,
+     &                  RBS2,SI,SL,DEL,PSEXP,GESHEM,BENGSH,
+     &                  DUSFC,DVSFC,DTSFC,DQSFC,DUGWD,DVGWD,
+     &                  SLMSK,SHELEG,TSEA,SOILM,TG1,TG2,TG3,
+     &                  ZORL,EP,CLDWRK,DLWSFC,ULWSFC,
+     &                  DG,TG,RQG,DLAM,DPHI,UG,VG)
+CFPP$ NOCONCUR R
+CFPP$ EXPAND(FPVS,ZNLAIM,ZNLAIS)
+C
+      DIMENSION SI(LEVS+1),SL(LEVS),DEL(LEVS)
+      DIMENSION PSEXP(LONB2)
+      DIMENSION GESHEM(LONB2),BENGSH(LONB2)
+      DIMENSION DUSFC(LONB2),DVSFC(LONB2)
+      DIMENSION DTSFC(LONB2),DQSFC(LONB2)
+      DIMENSION DUGWD(LONB2),DVGWD(LONB2)
+      DIMENSION SLMSK(LONB2),SHELEG(LONB2)
+      DIMENSION TSEA(LONB2),SOILM(LONB2)
+      DIMENSION TG1(LONB2),TG2(LONB2),TG3(LONB2)
+      DIMENSION ZORL(LONB2),EP(LONB2),CLDWRK(LONB2)
+      DIMENSION DLWSFC(LONB2),ULWSFC(LONB2)
+      DIMENSION DG(LONB22,LEVS)
+      DIMENSION TG(LONB22,LEVS),RQG(LONB22,LEVS)
+      DIMENSION DLAM(LONB2),DPHI(LONB2)
+      DIMENSION UG(LONB22,LEVS),VG(LONB22,LEVS)
+C
+      %INCLUDE COMZNL;
+C
+      PARAMETER(CP=#CP,RD=#RD,RV=#RV)
+      PARAMETER(FKAPPA=RD/CP,FVIRT=RV/RD-1.,FEPS=RD/RV,FEPSM1=RD/RV-1.)
+      DIMENSION IST(LONB2)
+      DIMENSION WORK(LONB2,LEVS),WORK1(LONB2)
+C
+      LONB=LONB2/2
+C
+      ZWM(1,LAT)=0.
+      ZWM(2,LAT)=0.
+      DO I=1,LONB
+        ZWM(1,LAT)=ZWM(1,LAT)+PSEXP(I)
+        ZWM(2,LAT)=ZWM(2,LAT)+PSEXP(I+LONB)
+      ENDDO
+C
+      DO I=1,LONB2
+        WORK1(I)=0.
+      ENDDO
+      DO K=LEVS,1,-1
+        DO I=1,LONB2
+          CG1=RBS2*(UG(I,K)*DLAM(I)+VG(I,K)*DPHI(I))
+          CG2=CG1+DG(I,K)
+          WORK1(I)=WORK1(I)+CG2*(SL(K)-SI(K+1))
+          WORK(I,K)=FKAPPA*TG(I,K)*(CG1-WORK1(I)/SL(K))
+          WORK1(I)=WORK1(I)+CG2*(SI(K)-SL(K))
+        ENDDO
+      ENDDO
+      CALL ZNLAIM(LONB2,WORK,PSEXP,NMOMEGA,LAT)
+C
+      DO K=1,LEVS
+        DO I=1,LONB2
+          WORK(I,K)=TG(I,K)*(1.+FVIRT*RQG(I,K))
+        ENDDO
+      ENDDO
+      CALL ZNLAIM(LONB2,WORK,PSEXP,NMTV,LAT)
+C
+      DO K=1,LEVS
+        DO I=1,LONB2
+          ES=FPVS(TG(I,K))
+          QS=FEPS*ES/(SL(K)*PSEXP(I)+FEPSM1*ES)
+          WORK(I,K)=100.*RQG(I,K)/QS
+        ENDDO
+      ENDDO
+      CALL ZNLAIM(LONB2,WORK,PSEXP,NMRH,LAT)
+C
+      DO K=1,LEVS
+        DO I=1,LONB2
+          WORK(I,K)=RBS2*0.5*(UG(I,K)**2+VG(I,K)**2)
+        ENDDO
+      ENDDO
+      CALL ZNLAIM(LONB2,WORK,PSEXP,NMKE,LAT)
+C
+      DO K=1,LEVS
+        DO I=1,LONB2
+          WORK(I,K)=DG(I,K)**2
+        ENDDO
+      ENDDO
+      CALL ZNLAIM(LONB2,WORK,PSEXP,NMDIV2,LAT)
+C
+      CALL ZNLAIM(LONB22,UG,PSEXP,NMU,LAT)
+      CALL ZNLAIM(LONB22,VG,PSEXP,NMV,LAT)
+      CALL ZNLAIM(LONB22,TG,PSEXP,NMT,LAT)
+      CALL ZNLAIM(LONB22,RQG,PSEXP,NMQ,LAT)
+C
+      WGINST=1.
+      WGTIME=0.
+      IF(SECPHY.GT.0.) WGTIME=1./SECPHY
+      WRTIME=0.
+      IF(SECRAD.GT.0.) WRTIME=1./SECRAD
+      ZHM(NMU)=WGINST
+      ZHM(NMV)=WGINST
+      ZHM(NMTV)=WGINST
+      ZHM(NMQ)=WGINST
+      ZHM(NMVOT2)=0.
+      ZHM(NMDIV2)=WGINST
+      ZHM(NMOMEGA)=WGINST
+      ZHM(NMT)=WGINST
+      ZHM(NMRH)=WGINST
+      ZHM(NMKE)=WGINST
+      ZHM(NMTCONV)=WGTIME
+      ZHM(NMTLARG)=WGTIME
+      ZHM(NMTSHAL)=WGTIME
+      ZHM(NMTVRDF)=WGTIME
+      ZHM(NMQCONV)=WGTIME
+      ZHM(NMQSHAL)=WGTIME
+      ZHM(NMQVRDF)=WGTIME
+      ZHM(NMUVRDF)=WGTIME
+      ZHM(NMVVRDF)=WGTIME
+      ZHM(NMTHSW)=WGTIME
+      ZHM(NMTHLW)=WGTIME
+      ZHM(NMTCLD)=WRTIME
+      ZHM(NMTCCV)=WRTIME
+C
+      DO I=1,LONB2
+        IF(SLMSK(I).EQ.0.) THEN
+          IST(I)=6
+        ELSEIF(SLMSK(I).EQ.1.) THEN
+          IST(I)=2
+          IF(SHELEG(I).GT.1.E-3) IST(I)=3
+        ELSE
+          IST(I)=4
+          IF(SHELEG(I).GT.1.E-3) IST(I)=5
+        ENDIF
+      ENDDO
+      ZWS(1,1,LAT)=LONB
+      ZWS(2,1,LAT)=LONB
+      DO K=2,NST
+        ZWS(1,K,LAT)=0.
+        ZWS(2,K,LAT)=0.
+      ENDDO
+      DO I=1,LONB
+        ZWS(1,IST(I),LAT)=ZWS(1,IST(I),LAT)+1.
+        ZWS(2,IST(I+LONB),LAT)=ZWS(2,IST(I+LONB),LAT)+1.
+      ENDDO
+C
+      ACL=#RERTH/SQRT(RBS2)
+      DO I=1,LONB2
+        WORK1(I)=0.
+      ENDDO
+      DO K=1,LEVS
+        DO I=1,LONB2
+          WORK1(I)=WORK1(I)+DEL(K)*UG(I,K)
+        ENDDO
+      ENDDO
+      UAFAC=#RERTH*1.E3/#G
+      DO I=1,LONB2
+        WORK1(I)=UAFAC*PSEXP(I)*WORK1(I)
+      ENDDO
+      CALL ZNLAIS(WORK1,IST,1.,NSUA,LAT)
+C
+      UAFAC=#OMEGA*ACL*ACL*1.E3/#G
+      UAREF=#OMEGA*ACL*ACL*1.E4
+      DO I=1,LONB2
+        WORK1(I)=UAFAC*PSEXP(I)-UAREF
+      ENDDO
+      CALL ZNLAIS(WORK1,IST,1.,NSUAP,LAT)
+C
+      DO I=1,LONB2
+        WORK1(I)=TG(I,1)*(1.+FVIRT*RQG(I,1))
+      ENDDO
+      CALL ZNLAIS(WORK1,IST,1.,NSTVS,LAT)
+C
+      DO I=1,LONB2
+        ES=FPVS(TG(I,1))
+        QS=FEPS*ES/(SL(1)*PSEXP(I)+FEPSM1*ES)
+        WORK1(I)=100.*RQG(I,1)/QS
+      ENDDO
+      CALL ZNLAIS(WORK1,IST,1.,NSRHS,LAT)
+C
+      CALL ZNLAIS(SHELEG,IST,1.,NSSNOW,LAT)
+      CALL ZNLAIS(PSEXP,IST,1.,NSPS,LAT)
+      CALL ZNLAIS(TG(1,1),IST,1.,NSTS,LAT)
+      CALL ZNLAIS(RQG(1,1),IST,1.,NSQS,LAT)
+      CALL ZNLAIS(TSEA,IST,1.,NSTSKIN,LAT)
+      CALL ZNLAIS(SOILM,IST,1.,NSWET,LAT)
+      CALL ZNLAIS(TG1,IST,1.,NSTG1,LAT)
+      CALL ZNLAIS(TG2,IST,1.,NSTG2,LAT)
+      CALL ZNLAIS(TG3,IST,1.,NSTG3,LAT)
+      CALL ZNLAIS(ZORL,IST,1.,NSZORL,LAT)
+C
+      IF(SECPHY.GT.0.) THEN
+        DO I=1,LONB2
+          WORK1(I)=0.
+          IF(GESHEM(I).GT.0.) WORK1(I)=100.
+        ENDDO
+        CALL ZNLAIS(WORK1,IST,1.,NSRCOV,LAT)
+C
+        DO I=1,LONB2
+          WORK1(I)=0.
+          IF(BENGSH(I).GT.0.) WORK1(I)=100.
+        ENDDO
+        CALL ZNLAIS(WORK1,IST,1.,NSRCOVC,LAT)
+C
+        DO I=1,LONB2
+          WORK1(I)=ULWSFC(I)-DLWSFC(I)
+        ENDDO
+        CALL ZNLAIS(WORK1,IST,1./SECPHY,NSSFCLW,LAT)
+C
+        CALL ZNLAIS(GESHEM,IST,86400./SECPHY,NSRAIN,LAT)
+        CALL ZNLAIS(BENGSH,IST,86400./SECPHY,NSRAINC,LAT)
+        CALL ZNLAIS(DUSFC,IST,1./SECPHY,NSUSFC,LAT)
+        CALL ZNLAIS(DVSFC,IST,1./SECPHY,NSVSFC,LAT)
+        CALL ZNLAIS(DUGWD,IST,1./SECPHY,NSUGWD,LAT)
+        CALL ZNLAIS(DVGWD,IST,1./SECPHY,NSVGWD,LAT)
+        CALL ZNLAIS(DUSFC,IST,ACL/SECPHY,NSUASFC,LAT)
+        CALL ZNLAIS(DUGWD,IST,ACL/SECPHY,NSUAGWD,LAT)
+        CALL ZNLAIS(DTSFC,IST,1./SECPHY,NSTSFC,LAT)
+        CALL ZNLAIS(DQSFC,IST,1./SECPHY,NSQSFC,LAT)
+        CALL ZNLAIS(EP,IST,1./SECPHY,NSEP,LAT)
+        CALL ZNLAIS(CLDWRK,IST,1./SECPHY,NSCLDWRK,LAT)
+      ENDIF
+C
+      RETURN
+      END
+      SUBROUTINE ZNLAVZ(LATB2,LONB2,SECPHY,SECRAD,
+     &                  DUMTN,SLMSK,SHELEG,DSWSFC,USWSFC)
+CFPP$ EXPAND(ZNLAIS)
+C
+      DIMENSION DUMTN(LONB2,LATB2)
+      DIMENSION SLMSK(LONB2,LATB2),SHELEG(LONB2,LATB2)
+      DIMENSION DSWSFC(LONB2,LATB2),USWSFC(LONB2,LATB2)
+C
+      %INCLUDE COMZNL;
+C
+      DIMENSION IST(LONB2)
+      DIMENSION WORK1(LONB2)
+C
+CFPP$ PRIVATEARRAY
+      DO LAT=1,LATB2
+C
+        DO I=1,LONB2
+          IF(SLMSK(I,LAT).EQ.0.) THEN
+            IST(I)=6
+          ELSEIF(SLMSK(I,LAT).EQ.1.) THEN
+            IST(I)=2
+            IF(SHELEG(I,LAT).GT.1.E-3) IST(I)=3
+          ELSE
+            IST(I)=4
+            IF(SHELEG(I,LAT).GT.1.E-3) IST(I)=5
+          ENDIF
+        ENDDO
+C
+        IF(SECRAD.GT.0.) THEN
+          DO I=1,LONB2
+            WORK1(I)=USWSFC(I,LAT)-DSWSFC(I,LAT)
+          ENDDO
+          CALL ZNLAIS(WORK1,IST,1./SECRAD,NSSFCSW,LAT)
+        ENDIF
+C
+        IF(SECPHY.GT.0.) THEN
+          CALL ZNLAIS(DUMTN(1,LAT),IST,1./SECPHY,NSUAMTN,LAT)
+        ENDIF
+C
+      ENDDO
+C
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE ZNLACM(NLONX,A,PS,DT,KD,LAT)
+      %INCLUDE COMZNL;
+      DIMENSION A(NLONX,#LEVS),PS(#LONB2)
+C
+      NLON=#LONB2/2
+      DO 20 K=1,#LEVS
+      DO 10 I=1,NLON
+      I1=I
+      I2=I+NLON
+      ZDM(1,K,KD,LAT)=ZDM(1,K,KD,LAT)+A(I1,K)*PS(I1)*DT
+      ZDM(2,K,KD,LAT)=ZDM(2,K,KD,LAT)+A(I2,K)*PS(I2)*DT
+10    CONTINUE
+20    CONTINUE
+C
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE ZNLAIM(NLONX,A,PS,KD,LAT)
+      %INCLUDE COMZNL;
+      DIMENSION A(NLONX,#LEVS),PS(#LONB2)
+C
+      NLON=#LONB2/2
+      DO 20 K=1,#LEVS
+      ZDM(1,K,KD,LAT)=0.
+      ZDM(2,K,KD,LAT)=0.
+      DO 10 I=1,NLON
+      I1=I
+      I2=I+NLON
+      ZDM(1,K,KD,LAT)=ZDM(1,K,KD,LAT)+A(I1,K)*PS(I1)
+      ZDM(2,K,KD,LAT)=ZDM(2,K,KD,LAT)+A(I2,K)*PS(I2)
+10    CONTINUE
+20    CONTINUE
+C
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE ZNLAIS(A,IST,FAC,KD,LAT)
+      %INCLUDE COMZNL;
+      DIMENSION A(#LONB2)
+      DIMENSION IST(#LONB2)
+C
+      NLON=#LONB2/2
+      DO K=1,NST
+        ZDS(1,K,KD,LAT)=0.
+        ZDS(2,K,KD,LAT)=0.
+      ENDDO
+      DO I=1,NLON
+        I1=I
+        I2=I+NLON
+        ZDS(1,1,KD,LAT)=ZDS(1,1,KD,LAT)+A(I1)*FAC
+        ZDS(2,1,KD,LAT)=ZDS(2,1,KD,LAT)+A(I2)*FAC
+      ENDDO
+      DO I=1,NLON
+        I1=I
+        I2=I+NLON
+        ZDS(1,IST(I1),KD,LAT)=ZDS(1,IST(I1),KD,LAT)+A(I1)*FAC
+        ZDS(2,IST(I2),KD,LAT)=ZDS(2,IST(I2),KD,LAT)+A(I2)*FAC
+      ENDDO
+C
+      RETURN
+      END
+      FUNCTION IPWRCN(CN)
+    %INCLUDE DBIPWRCN;
+      PARAMETER(NL=56)
+      CHARACTER*8 CN
+      CHARACTER*8 CNL(NL)
+      INTEGER IPL(0:NL)
+      SAVE CNL,IPL
+      DATA IPL(0)/0/
+      DATA CNL( 1)/'U       '/, IPL( 1)/0/
+      DATA CNL( 2)/'V       '/, IPL( 2)/0/
+      DATA CNL( 3)/'TV      '/, IPL( 3)/0/
+      DATA CNL( 4)/'Q       '/, IPL( 4)/-3/
+      DATA CNL( 5)/'VOT**2  '/, IPL( 5)/-12/
+      DATA CNL( 6)/'DIV**2  '/, IPL( 6)/-12/
+      DATA CNL( 7)/'OMEGA   '/, IPL( 7)/-5/
+      DATA CNL( 8)/'T       '/, IPL( 8)/0/
+      DATA CNL( 9)/'RH      '/, IPL( 9)/0/
+      DATA CNL(10)/'KE      '/, IPL(10)/0/
+      DATA CNL(11)/'PD      '/, IPL(11)/-1/
+      DATA CNL(12)/'DTCONV  '/, IPL(12)/-5/
+      DATA CNL(13)/'DTLARG  '/, IPL(13)/-5/
+      DATA CNL(14)/'DTSHAL  '/, IPL(14)/-5/
+      DATA CNL(15)/'DTVRDF  '/, IPL(15)/-5/
+      DATA CNL(16)/'DQCONV  '/, IPL(16)/-8/
+      DATA CNL(17)/'DQSHAL  '/, IPL(17)/-8/
+      DATA CNL(18)/'DQVRDF  '/, IPL(18)/-8/
+      DATA CNL(19)/'DUVRDF  '/, IPL(19)/-5/
+      DATA CNL(20)/'DVVRDF  '/, IPL(20)/-5/
+      DATA CNL(21)/'DTHSW   '/, IPL(21)/-5/
+      DATA CNL(22)/'DTHLW   '/, IPL(22)/-5/
+CDG3..   INSERTED MULTI-LAYERED CLOUD HERE, RATHER THAN AT THE END,
+CDG3..     SINCE IT SEEMS TO BE JUST BEFORE THE SINGLE LYR DATA...KAC
+      DATA CNL(23)/'CLOUD   '/, IPL(23)/0/
+      DATA CNL(24)/'CVCLD   '/, IPL(24)/0/
+      DATA CNL(25)/'RAIN    '/, IPL(25)/-3/
+      DATA CNL(26)/'RAINC   '/, IPL(26)/-3/
+      DATA CNL(27)/'DTSFC   '/, IPL(27)/0/
+      DATA CNL(28)/'DQSFC   '/, IPL(28)/0/
+      DATA CNL(29)/'DUSFC   '/, IPL(29)/-3/
+      DATA CNL(30)/'DVSFC   '/, IPL(30)/-3/
+      DATA CNL(31)/'RCOV    '/, IPL(31)/0/
+      DATA CNL(32)/'RCOVC   '/, IPL(32)/0/
+      DATA CNL(33)/'TSKIN   '/, IPL(33)/0/
+      DATA CNL(34)/'WETNESS '/, IPL(34)/0/
+      DATA CNL(35)/'SNOW    '/, IPL(35)/1/
+      DATA CNL(36)/'TG1     '/, IPL(36)/0/
+      DATA CNL(37)/'TG2     '/, IPL(37)/0/
+      DATA CNL(38)/'TG3     '/, IPL(38)/0/
+      DATA CNL(39)/'SFCSW   '/, IPL(39)/0/
+      DATA CNL(40)/'SFCLW   '/, IPL(40)/0/
+      DATA CNL(41)/'ZORL    '/, IPL(41)/0/
+      DATA CNL(42)/'SLMSK   '/, IPL(42)/0/
+      DATA CNL(43)/'PS      '/, IPL(43)/-1/
+      DATA CNL(44)/'TVS     '/, IPL(44)/0/
+      DATA CNL(45)/'QS      '/, IPL(45)/-3/
+      DATA CNL(46)/'TS      '/, IPL(46)/0/
+      DATA CNL(47)/'RHS     '/, IPL(47)/0/
+      DATA CNL(48)/'DUGWD   '/, IPL(48)/-3/
+      DATA CNL(49)/'DVGWD   '/, IPL(49)/-3/
+      DATA CNL(50)/'UA      '/, IPL(50)/10/
+      DATA CNL(51)/'UAP     '/, IPL(51)/10/
+      DATA CNL(52)/'DUASFC  '/, IPL(52)/3/
+      DATA CNL(53)/'DUAGWD  '/, IPL(53)/3/
+      DATA CNL(54)/'DUAMTN  '/, IPL(54)/3/
+      DATA CNL(55)/'EP      '/, IPL(55)/0/
+      DATA CNL(56)/'CLDWORK '/, IPL(56)/0/
+C
+      N=ISC8(NL,CNL,CN)
+      IPWRCN=IPL(N)
+      RETURN
+      END
+      FUNCTION ISC8(N,CA,CI)
+    %INCLUDE DBISC8;
+      CHARACTER*8 CA(N),CI
+      DO 10 I=1,N
+      IF(CA(I).EQ.CI) THEN
+        ISC8=I
+        RETURN
+      ENDIF
+10    CONTINUE
+      ISC8=0
+      RETURN
+      END
+      SUBROUTINE ZNLZER
+      %INCLUDE COMZNL;
+      ZDM=0.
+      ZDS=0.
+      RETURN
+      END
+      SUBROUTINE ZNLMLT(FAC)
+      %INCLUDE COMZNL;
+      ZDM=FAC*ZDM
+      ZDS=FAC*ZDS
+      RETURN
+      END

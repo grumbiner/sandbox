@@ -1,0 +1,155 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/P2KAP.f 09/30/06 19:43:59
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE P2KAP( P, PI, N )
+          2 |C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:46:44
+          3 |C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+          4 |C
+          5 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          6 |C
+          7 |C SUBPROGRAM:    P2KAP       SFC PRESSURE TO KAPPA POWER
+          8 |
+          9 |C   PRGMMR: TUCCILLO         ORG: W/NMC40    DATE: 90-05-17
+         10 |C
+         11 |C ABSTRACT: COMPUTE SFC PRESSURE TO KAPPA POWER USING RATIO OF TWO
+         12 |C   POLYNOMIALS IN PRESSURE.
+         13 |C
+         14 |C PROGRAM HISTORY LOG:
+         15 |C   90-05-19  J TUCCILLO
+         16 |C
+         17 |C USAGE:  CALL P2KAP(P,PI,N)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         20 |C     -----       ----------------------------------        ---------
+         21 |C     P           PRESSURE IN UNITS OF 100 CB               ARGUMENT
+         22 |C                 SHOULD BE IN THE RANGE 0.5-1.1
+         23 |C
+         24 |C     N           LENGTH OF INPUT VECTOR P,WORK VECTOR X,   ARGUMENT
+         25 |C                 AND OUTPUT VECTOR PI.
+         26 |C
+         27 |C   OUTPUT ARGUMENT LIST:
+         28 |C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+         29 |C     -----       ----------------------------------        ---------
+         30 |C
+         31 |C     PI          P RAISED TO THE KAPPA POWER               ARGUMENT
+         32 |C
+         33 |C REMARKS:
+         34 |C
+         35 |C ATTRIBUTES:
+         36 |C   LANGUAGE: FORTRAN
+         37 |C   MACHINE:  CRAY Y-MP
+         38 |C
+         39 |C$$$
+         40 |C
+         41 |      DIMENSION P(*), PI(*)
+         42 |C
+         43 |C     VALID FOR P RANGING FROM 0.5 TO 1.1 AND KAPPA EQUAL TO 0.2856219
+         44 |C
+         45 |      PARAMETER ( COFD1 = 1.,
+         46 |     *            COFD2 = 5.44053037,
+         47 |     *            COFD3 = 2.27693825,
+         48 |     *            COFD4 = -0.0869930591,
+         49 |     *            COFN1 = 0.34757549,
+         50 |     *            COFN2 = 4.36732956,
+         51 |     *            COFN3 = 3.91557032 )
+         52 |C
+         53 |CMIC$ DO ALL VECTOR SHARED(N, P, PI) PRIVATE(I)
+         54 |      DO 1 I = 1, N
+         55 |         PI(I)=(COFN1+P(I)*(COFN2+P(I)*COFN3))/
+         56 |     *         (COFD1+P(I)*(COFD2+P(I)*(COFD3+P(I)*COFD4)))
+         57 |1      CONTINUE
+         58 |C
+         59 |C
+         60 |      RETURN
+         61 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+cofd1                            Parameter, Real(4)
+                                 0-45.19$  0-56.17
+ 
+cofd2                            Parameter, Real(4)
+                                 0-46.19$  0-56.29
+ 
+cofd3                            Parameter, Real(4)
+                                 0-47.19$  0-56.41
+ 
+cofd4                            Parameter, Real(4)
+                                 0-48.19$  0-56.52
+ 
+cofn1                            Parameter, Real(4)
+                                 0-49.19$  0-55.17
+ 
+cofn2                            Parameter, Real(4)
+                                 0-50.19$  0-55.29
+ 
+cofn3                            Parameter, Real(4)
+                                 0-51.19$  0-55.40
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-54.12@  0-55.13  0-55.25  0-55.37  0-56.25  0-56.37  0-56.49
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.32  0-54.19
+ 
+p                                Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-41.17$  0-1.25  0-55.23  0-55.35  0-56.23  0-56.35  0-56.47
+ 
+p2kap                            Subroutine
+                                 0-1.18$
+ 
+pi                               Reference argument, Real(4) (1:*), Offset: 0, Alignment: full word
+                                 0-41.23$  0-1.28  0-55.10@
+ 
+** p2kap   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    P2KAP.f                     10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      61
+1501-510  Compilation successful for file P2KAP.f.
+1501-543  Object file created.

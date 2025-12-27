@@ -1,0 +1,6 @@
+       common/para/num_procs,me,jsta(0:1023),jend(0:1023),
+     &   my_is_glb_a(0:1023), my_ie_glb_a(0:1023),
+     &   my_js_glb_a(0:1023), my_je_glb_a(0:1023),
+     &   my_isd, my_ied, my_jsd, my_jed,
+     &   jsta_i, jend_i, jsta_im, jend_im,
+     &   jsta_im2, jend_im2, iup, idn

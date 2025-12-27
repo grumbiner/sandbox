@@ -1,0 +1,56 @@
+      SUBROUTINE ALBSNO(IDIM2,LAT,JSNO,
+     1           ALBDOA,RLAT,ALBEDR,SLMSKR,SSNOW,TGR,TAR)
+CFPP$ NOCONCUR R
+      DIMENSION ALBDOA(IDIM2),ALBEDR(IDIM2),SLMSKR(IDIM2)
+      DIMENSION SSNOW(IDIM2),RLAT(IDIM2)
+C     ADDED BY BOB GRUMBINE FOR SEA ICE ALBEDO ALGORITHM
+      REAL TGR(IDIM2), TAR(IDIM2)
+C MODIFIED BY HMH JUANG FOR SIMPLICITY  AND FOR REGIONAL MODEL USE
+      PARAMETER(SNODEG=70.*  3.141593E+0  /180.)
+C....
+C   THE FOLLOWING DETERMINES SURFACE ALBEDO (ALBDOA),WHERE SNOW EXISTS.
+C....
+        SNOCHK= 3.141593E+0
+        IF(JSNO.EQ.0) SNOCHK=SNODEG  ! JSNO=0 FOR RSM
+C
+        DO 350 I=1, IDIM2
+C....    LIMIT BACKGROUND ALBEDO (IN CASE SNOW LEAVES GREENLAND)
+          ALBDOA(I)=MIN(ALBEDR(I),0.6 E 0)
+CKAC.....            IF(TSEAR(I).LE.0. E 0) GO TO 34
+          IF(SLMSKR(I).EQ.1.0 E 0) THEN
+C... CHECK LAT<JSNO FOR GLOBAL AND ABS(RLAT)>SNODEG FOR REGIONAL
+            IF(LAT.LT.JSNO .OR. ABS(RLAT(I)).GT.SNOCHK) THEN
+              IF(SSNOW(I).GT.0. E 0) ALBDOA(I)=0.75 E 0
+            ELSE
+              IF(SSNOW(I).GE.1. E 0) THEN
+                ALBDOA(I)=0.6 E 0
+              ELSE IF(SSNOW(I).GT.0.0 E 0) THEN
+                ALBDOA(I)=ALBDOA(I)+SQRT(SSNOW(I))*(0.6 E 0-ALBDOA(I))
+              ENDIF
+            ENDIF
+CKAC.......34   IF (TSEAR(I).LE.-271.21 E 0) GO TO 35
+          ELSE IF(SLMSKR(I).EQ.2.0 E 0) THEN
+CKAC            ALBDOA(I)=0.5 E 0
+CKAC            IF(SSNOW(I).GT.0. E 0) ALBDOA(I)=0.75 E 0
+            IF (SSNOW(I) .GT. 0.0) THEN
+              IF (TGR(I) .LT. 273.16 - 5.) THEN
+                ALBDOA(I) = 0.8
+              ELSE IF (TGR(I) .LE. 273.16) THEN
+                ALBDOA(I) = 0.65 + 0.03*(273.16 - TGR(I))
+              ELSE
+                ALBDOA(I) = 0.65
+              ENDIF
+             ELSE
+              IF (TGR(I) .LT. 271.2 .OR. TAR(I) .LT. 273.16) THEN
+                ALBDOA(I) = 0.65
+              ELSE IF (TAR(I) .LT. 273.16+5.) THEN
+                ALBDOA(I) = 0.65 - 0.04*(TAR(I) -273.16)
+              ELSE
+                ALBDOA(I) = 0.45
+              ENDIF
+            ENDIF
+          ENDIF
+          ALBDOA(I) = MAX(ALBDOA(I),.06 E 0)
+350     CONTINUE
+      RETURN
+      END

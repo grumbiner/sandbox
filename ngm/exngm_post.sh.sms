@@ -1,0 +1,173 @@
+#!/bin/sh
+#
+################################################################################
+####  UNIX Script Documentation Block
+#                      .                                             .
+# Script name:         exngmgbind.sh
+# Script description:  Make GRIB index files for NGM output
+#
+# Author:        Eric Rogers       Org: NP22         Date: 1999-09-14
+#
+# Abstract:  Makes NGM GRIB index files for 00-48 h and releases post
+#            processing jobs on the IBM.
+#
+# Script history log:
+# 1999-09-14  Eric Rogers
+# 2000-02-09  Implemented into production on IBM
+#
+
+set -x
+cd $DATA
+
+export COMSP=$COMIN/ngm.${cycle}.
+export CNVGRIB=/nwprod/util/exec/cnvgrib
+export WGRIB2=/nwprod/util/exec/wgrib2
+
+ic=1
+
+while [ $ic -lt 1000 ] ; do
+  ls -l $DATA/fcstdone15
+  err1=$?
+  if [ $err1 -eq 0 ] ; then
+    $utilexec/grbindex ${COMSP}pgrb.f00 ${COMSP}pgrbif00
+    $utilexec/grbindex ${COMSP}pgrb.f03 ${COMSP}pgrbif03
+    $utilexec/grbindex ${COMSP}pgrb.f06 ${COMSP}pgrbif06
+    $utilexec/grbindex ${COMSP}pgrb.f09 ${COMSP}pgrbif09
+    $utilexec/grbindex ${COMSP}pgrb.f12 ${COMSP}pgrbif12
+    $SMSBIN/setev release_00hr
+    $SMSBIN/setev release_06hr
+    $SMSBIN/setev release_12hr
+    if test "$SENDDBN" = 'YES'
+    then
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f00
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f03
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f06
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f09
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f12
+    fi
+    break
+  else
+    let "ic=ic+1"
+    sleep 60
+  fi
+
+  if [ $ic -ge 1000 ]
+  then
+    err_exit "FAILED WHILE WAITING FOR NGM 00-12 HOUR FORECAST TO END"
+  fi
+done
+
+ic=1
+
+while [ $ic -lt 1000 ] ; do
+  ls -l $DATA/fcstdone27
+  err1=$?
+
+  if [ $err1 -eq 0 ] ; then
+    $utilexec/grbindex ${COMSP}pgrb.f15 ${COMSP}pgrbif15
+    $utilexec/grbindex ${COMSP}pgrb.f18 ${COMSP}pgrbif18
+    $utilexec/grbindex ${COMSP}pgrb.f21 ${COMSP}pgrbif21
+    $utilexec/grbindex ${COMSP}pgrb.f24 ${COMSP}pgrbif24
+    $SMSBIN/setev release_18hr
+    $SMSBIN/setev release_24hr
+    if test "$SENDDBN" = 'YES'
+    then
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f15
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f18
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f21
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f24
+    fi
+    break
+  else
+    let "ic=ic+1"
+    sleep 60
+  fi
+
+  if [ $ic -ge 1000 ] ; then
+    err_exit "FAILED WHILE WAITING FOR NGM 15-24 HOUR FORECAST TO END"
+  fi
+done
+
+ic=1
+
+while [ $ic -lt 1000 ] ; do
+  ls -l $DATA/fcstdone39
+  err1=$?
+
+  if [ $err1 -eq 0 ] ; then
+    $utilexec/grbindex ${COMSP}pgrb.f27 ${COMSP}pgrbif27
+    $utilexec/grbindex ${COMSP}pgrb.f30 ${COMSP}pgrbif30
+    $utilexec/grbindex ${COMSP}pgrb.f33 ${COMSP}pgrbif33
+    $utilexec/grbindex ${COMSP}pgrb.f36 ${COMSP}pgrbif36
+    $SMSBIN/setev release_30hr
+    $SMSBIN/setev release_36hr
+    if test "$SENDDBN" = 'YES'
+    then
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f27
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f30
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f33
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f36
+    fi
+    break
+  else
+    let "ic=ic+1"
+    sleep 60
+  fi
+
+  if [ $ic -ge 1000 ] ; then
+    err_exit "FAILED WHILE WAITING FOR NGM 27-36 HOUR FORECAST TO END"
+  fi
+done
+
+ic=1
+
+while [ $ic -lt 1000 ] ; do
+  ls -l $DATA/fcstdone48
+  err1=$?
+ 
+  if [ $err1 -eq 0 ] ; then
+    $utilexec/grbindex ${COMSP}pgrb.f39 ${COMSP}pgrbif39
+    $utilexec/grbindex ${COMSP}pgrb.f42 ${COMSP}pgrbif42
+    $utilexec/grbindex ${COMSP}pgrb.f45 ${COMSP}pgrbif45
+    $utilexec/grbindex ${COMSP}pgrb.f48 ${COMSP}pgrbif48
+    $SMSBIN/setev release_42hr
+    $SMSBIN/setev release_48hr
+    if test "$SENDDBN" = 'YES'
+    then
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f39
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f42
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f45
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB $job ${COMSP}pgrb.f48
+    fi
+    break
+  else
+    let "ic=ic+1"
+    sleep 60
+  fi
+
+  if [ $ic -ge 1000 ] ; then
+    err_exit "FAILED WHILE WAITING FOR NGM 39-48 HOUR FORECAST TO END"
+  fi
+done
+
+##############################
+# Convert to grib2 format
+##############################
+fhr=00
+typeset -Z2 fhr
+while [ $fhr -le 48 ]
+do
+  $CNVGRIB -g12 -p40 ${COMSP}pgrb.f${fhr} ${COMSP}pgrb.f${fhr}.grib2
+  $WGRIB2 ${COMSP}pgrb.f${fhr}.grib2 -s >${COMSP}pgrb.f${fhr}.grib2.idx
+
+  if [ $SENDDBN_GB2 = YES ]
+  then
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB_GB2 $job ${COMSP}pgrb.f${fhr}.grib2
+      $DBNROOT/bin/dbn_alert MODEL NGM_PGB_GB2_WIDX $job ${COMSP}pgrb.f${fhr}.grib2.idx
+  fi
+  
+  let "fhr=fhr+3"
+done
+
+exit
+

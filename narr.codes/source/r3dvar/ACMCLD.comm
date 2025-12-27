@@ -1,0 +1,4 @@
+!
+      real(4),pointer::acfrcv(:,:),acfrst(:,:)
+      integer(4),pointer::ncfrcv(:,:),ncfrst(:,:)
+      COMMON /ACMCLD/TCLOD,NCLOD,ACFRCV,NCFRCV,ACFRST,NCFRST

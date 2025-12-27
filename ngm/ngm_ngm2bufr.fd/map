@@ -1,0 +1,1054 @@
+ADDRESS MAP FOR ngm_ngm2bufr
+*IE ADDRESS          LENGTH   AL CL TY Sym#  NAME                      SOURCE-FILE(OBJECT) or IMPORT-FILE{SHARED-OBJECT}
+--- ---------------- -------- -- -- -- ----- ------------------------- -------------------------------------------------
+ I  000000000000F400             XO ER S1    ___memmove64              {/usr/lib/libc.a[shr_64.o]}
+ I  000000000000F400             XO ER S2    .___memmove64             {/usr/lib/libc.a[shr_64.o]}
+ I  000000000000FA00             XO ER S3    ___fill64                 {/usr/lib/libc.a[shr_64.o]}
+ I  000000000000FA00             XO ER S4    .___fill64                {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S5    errno                     {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S6    times                     {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S7    _system_configuration     {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S8    __mod_init                {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S9    exit                      {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S10   strlen                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S11   fprintf                   {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S12   fclose                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S13   __free                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S14   __malloc                  {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S15   sprintf                   {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S16   printf                    {/usr/lib/libc.a[shr_64.o]}
+ I                               DS ER S17   getrusage                 {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S18   __malloc_user_defined_name {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S19   __crt0v                   {/usr/lib/libc.a[shr_64.o]}
+ I                               RW ER S20   __n_pthreads              {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               RW ER S21   __pthread_trace           {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               DS ER S22   __pth_init                {/usr/lib/libpthreads.a[shr_xpg5_64.o]}
+ I                               DS ER S23   _xlf_system               {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S24   _xlf_memcpy               {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S25   _xlf_localtime_r          {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S26   _xlf_gmtime_r             {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S27   _xlf_gettimeofday         {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S28   _xlf_time_base_to_time    {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S29   _xlf_read_real_time       {/usr/lpp/xlf/lib/libxlf90.a[xlfsys_64.o]}
+ I                               DS ER S30   _xlfReadUfmt              {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S31   _xlfBeginIO               {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S32   _xlfWriteLDInt            {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S33   _xlfWriteLDChar           {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S34   _xlfWriteLDReal           {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S35   _xlfEndIO                 {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S36   _xlfExit                  {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S37   _xlfWriteFmt              {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S38   _xlfReadFmt               {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S39   _xlfWriteFmtArray         {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S40   _xlfIOCmd                 {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S41   _xlfWriteUfmtArray        {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+ I                               DS ER S42   _xlfReadUfmtArray         {/usr/lpp/xlf/lib/libxlf90.a[io_64.o]}
+    00000001000002D0 000000D5  2 PR SD S43   <.__start>                crt0_64.s(/lib/crt0_64.o)
+    00000001000002D0             PR LD S44   .__start
+    00000001000003A8 00000118  2 PR SD S45   <>                        ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    00000001000003A8             PR LD S46   .__threads_init
+    00000001000004C0 00000058  2 PR SD S47   <>                        ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    00000001000004C0             PR LD S48   .call_pth_init
+    0000000100000518 00000028  2 GL SD S49   <.__pth_init>             glink64.s(/usr/lib/glink64.o)
+    0000000100000518             GL LD S50   .__pth_init
+    0000000100000540 00000B40  5 PR SD S51   <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f(ngm2bufr.o)
+    0000000100000540             PR LD S52   .ngm2bufr
+    0000000100000540             PR LD S53   .main
+    0000000100001080 000005A0  5 PR SD S54   <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    0000000100001080             PR LD S55   .w3tagb
+    00000001000013A0             PR LD S56   .w3tage
+    0000000100001620 00000940  5 PR SD S57   <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000100001620             PR LD S58   .bucket
+    00000001000016E0             PR LD S59   .elapse
+    0000000100001740             PR LD S60   .cputim
+    00000001000017E0             PR LD S61   .start_timer
+    0000000100001860             PR LD S62   .end_timer
+    0000000100001900             PR LD S63   .resource
+    0000000100001B60             PR LD S64   .print_timing
+    0000000100001EA0             PR LD S65   .summary
+    0000000100001F20             PR LD S66   .start
+    0000000100001F60 00000048  3 PR SD S67   <>                        rtc.f(/usr/lpp/xlf/lib/libxlf90.a[rtc_64.o])
+    0000000100001F60             PR LD S68   .rtc
+    0000000100001F70             PR LD S69   .rtc_
+    0000000100001FA8 00000080  3 PR SD S70   <>                        second_.c(/usr/lpp/xlf/lib/libxlf90.a[second__64.o])
+    0000000100001FA8             PR LD S71   .second_
+    0000000100002028 00000028  2 GL SD S72   <._xlf_read_real_time>    glink64.s(/usr/lib/glink64.o)
+    0000000100002028             GL LD S73   ._xlf_read_real_time
+    0000000100002050 00000028  2 GL SD S74   <._xlf_time_base_to_time> glink64.s(/usr/lib/glink64.o)
+    0000000100002050             GL LD S75   ._xlf_time_base_to_time
+    0000000100002078 00000028  2 GL SD S76   <.times>                  glink64.s(/usr/lib/glink64.o)
+    0000000100002078             GL LD S77   .times
+    00000001000020A0 00000028  2 GL SD S78   <.getrusage>              glink64.s(/usr/lib/glink64.o)
+    00000001000020A0             GL LD S79   .getrusage
+    00000001000020C8 00000028  2 GL SD S80   <.printf>                 glink64.s(/usr/lib/glink64.o)
+    00000001000020C8             GL LD S81   .printf
+    00000001000020F0 00000028  2 GL SD S82   <.fprintf>                glink64.s(/usr/lib/glink64.o)
+    00000001000020F0             GL LD S83   .fprintf
+    0000000100002118 00000028  2 GL SD S84   <.fclose>                 glink64.s(/usr/lib/glink64.o)
+    0000000100002118             GL LD S85   .fclose
+    0000000100002140 00000028  2 GL SD S86   <._xlfBeginIO>            glink64.s(/usr/lib/glink64.o)
+    0000000100002140             GL LD S87   ._xlfBeginIO
+    0000000100002168 00000028  2 GL SD S88   <._xlfEndIO>              glink64.s(/usr/lib/glink64.o)
+    0000000100002168             GL LD S89   ._xlfEndIO
+    0000000100002190 00000028  2 GL SD S90   <._xlfWriteFmt>           glink64.s(/usr/lib/glink64.o)
+    0000000100002190             GL LD S91   ._xlfWriteFmt
+    00000001000021C0 00000160  5 PR SD S92   <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    00000001000021C0             PR LD S93   .w3locdat
+    0000000100002320 00000568  3 PR SD S94   <>                        _xldtime.f(/usr/lpp/xlf/lib/libxlf90.a[_xldtime_64.o])
+    0000000100002320             PR LD S95   ._xldtimeg
+    00000001000026F8             PR LD S96   <.toascii>
+    0000000100002888 00000138  3 PR SD S97   <>                        _xldtaux.c(/usr/lpp/xlf/lib/libxlf90.a[_xldtaux_64.o])
+    0000000100002888             PR LD S98   ._xldtaux
+    00000001000029C0 00000028  2 GL SD S99   <._xlf_gettimeofday>      glink64.s(/usr/lib/glink64.o)
+    00000001000029C0             GL LD S100  ._xlf_gettimeofday
+    00000001000029E8 00000028  2 GL SD S101  <._xlf_localtime_r>       glink64.s(/usr/lib/glink64.o)
+    00000001000029E8             GL LD S102  ._xlf_localtime_r
+    0000000100002A10 00000028  2 GL SD S103  <._xlf_gmtime_r>          glink64.s(/usr/lib/glink64.o)
+    0000000100002A10             GL LD S104  ._xlf_gmtime_r
+    0000000100002A38 00000028  2 GL SD S105  <._xlfReadFmt>            glink64.s(/usr/lib/glink64.o)
+    0000000100002A38             GL LD S106  ._xlfReadFmt
+    0000000100002A60 000000A0  5 PR SD S107  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3doxdat.f(/nwprod/lib/libw3_4.a[w3doxdat.o])
+    0000000100002A60             PR LD S108  .w3doxdat
+    0000000100002B00 000000C0  5 PR SD S109  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/iw3jdn.f(/nwprod/lib/libw3_4.a[iw3jdn.o])
+    0000000100002B00             PR LD S110  .iw3jdn
+    0000000100002BC0 00000200  5 PR SD S111  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3fs26.f(/nwprod/lib/libw3_4.a[w3fs26.o])
+    0000000100002BC0             PR LD S112  .w3fs26
+    0000000100002DC0 00000B40  5 PR SD S113  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f(guvtqp.o)
+    0000000100002DC0             PR LD S114  .guvtqp
+    0000000100003900 00000062  2 PR SD S115  .fsav                     noname(/usr/lib/libc.a[fsavres_64.o])
+    0000000100003900             PR LD S116  .$SAVEF14
+    0000000100003900             PR LD S117  .Ssavef14
+    0000000100003900             PR LD S118  ._savef14
+    0000000100003904             PR LD S119  .$SAVEF15
+    0000000100003904             PR LD S120  .Ssavef15
+    0000000100003904             PR LD S121  ._savef15
+    0000000100003908             PR LD S122  .$SAVEF16
+    0000000100003908             PR LD S123  .Ssavef16
+    0000000100003908             PR LD S124  ._savef16
+    000000010000390C             PR LD S125  .$SAVEF17
+    000000010000390C             PR LD S126  .Ssavef17
+    000000010000390C             PR LD S127  ._savef17
+    0000000100003910             PR LD S128  .$SAVEF18
+    0000000100003910             PR LD S129  .Ssavef18
+    0000000100003910             PR LD S130  ._savef18
+    0000000100003914             PR LD S131  .$SAVEF19
+    0000000100003914             PR LD S132  .Ssavef19
+    0000000100003914             PR LD S133  ._savef19
+    0000000100003918             PR LD S134  .$SAVEF20
+    0000000100003918             PR LD S135  .Ssavef20
+    0000000100003918             PR LD S136  ._savef20
+    000000010000391C             PR LD S137  .$SAVEF21
+    000000010000391C             PR LD S138  .Ssavef21
+    000000010000391C             PR LD S139  ._savef21
+    0000000100003920             PR LD S140  .$SAVEF22
+    0000000100003920             PR LD S141  .Ssavef22
+    0000000100003920             PR LD S142  ._savef22
+    0000000100003924             PR LD S143  .$SAVEF23
+    0000000100003924             PR LD S144  .Ssavef23
+    0000000100003924             PR LD S145  ._savef23
+    0000000100003928             PR LD S146  .$SAVEF24
+    0000000100003928             PR LD S147  .Ssavef24
+    0000000100003928             PR LD S148  ._savef24
+    000000010000392C             PR LD S149  .$SAVEF25
+    000000010000392C             PR LD S150  .Ssavef25
+    000000010000392C             PR LD S151  ._savef25
+    0000000100003930             PR LD S152  .$SAVEF26
+    0000000100003930             PR LD S153  .Ssavef26
+    0000000100003930             PR LD S154  ._savef26
+    0000000100003934             PR LD S155  .$SAVEF27
+    0000000100003934             PR LD S156  .Ssavef27
+    0000000100003934             PR LD S157  ._savef27
+    0000000100003938             PR LD S158  .$SAVEF28
+    0000000100003938             PR LD S159  .Ssavef28
+    0000000100003938             PR LD S160  ._savef28
+    000000010000393C             PR LD S161  .$SAVEF29
+    000000010000393C             PR LD S162  .Ssavef29
+    000000010000393C             PR LD S163  ._savef29
+    0000000100003940             PR LD S164  .$SAVEF30
+    0000000100003940             PR LD S165  .Ssavef30
+    0000000100003940             PR LD S166  ._savef30
+    0000000100003944             PR LD S167  .$SAVEF31
+    0000000100003944             PR LD S168  .Ssavef31
+    0000000100003944             PR LD S169  ._savef31
+    0000000100003944             PR LD S170  ._savef3
+    0000000100003964 00000028  2 GL SD S171  <._xlfReadUfmt>           glink64.s(/usr/lib/glink64.o)
+    0000000100003964             GL LD S172  ._xlfReadUfmt
+    000000010000398C 00000028  2 GL SD S173  <._xlfReadUfmtArray>      glink64.s(/usr/lib/glink64.o)
+    000000010000398C             GL LD S174  ._xlfReadUfmtArray
+    00000001000039B4 00000028  2 GL SD S175  <._xlfWriteLDChar>        glink64.s(/usr/lib/glink64.o)
+    00000001000039B4             GL LD S176  ._xlfWriteLDChar
+    00000001000039DC 00000028  2 GL SD S177  <._xlfWriteLDInt>         glink64.s(/usr/lib/glink64.o)
+    00000001000039DC             GL LD S178  ._xlfWriteLDInt
+    0000000100003A20 000002A0  5 PR SD S179  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3ymdh4.f(/nwprod/lib/libw3_4.a[w3ymdh4.o])
+    0000000100003A20             PR LD S180  .w3ymdh4
+    0000000100003CC0 00000040  5 PR SD S181  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/mova2i.c(/nwprod/lib/libw3_4.a[mova2i.o])
+    0000000100003CC0             PR LD S182  .mova2i
+    0000000100003D00 00000197  5 PR SD S183  <sincos>                  sincos_p4.s64s(/usr/lib/libmass.a[sincos_p4.s645.o])
+    0000000100003D00             PR LD S184  ._sin
+    0000000100003D00             PR LD S185  .sin
+    0000000100003DC0             PR LD S186  ._cos
+    0000000100003DC0             PR LD S187  .cos
+    0000000100003EA0 0000035D  5 PR SD S188  <pow>                     pow_p4.s64s(/usr/lib/libmass.a[pow_p4.s645.o])
+    0000000100003EA0             PR LD S189  .pow
+    0000000100003EA0             PR LD S190  ._pow
+    0000000100004200 00000149  5 PR SD S191  <_log>                    log.s64s(/usr/lib/libmass.a[log.s645.o])
+    0000000100004200             PR LD S192  .log
+    0000000100004200             PR LD S193  ._log
+    0000000100004360 000000F9  5 PR SD S194  <_exp>                    exp_p4.s64s(/usr/lib/libmass.a[exp_p4.s645.o])
+    0000000100004360             PR LD S195  .exp
+    0000000100004360             PR LD S196  ._exp
+    000000010000445C 00000062  2 PR SD S197  .fres                     noname(/usr/lib/libc.a[fsavres_64.o])
+    000000010000445C             PR LD S198  .$RESTF14
+    000000010000445C             PR LD S199  .Srestf14
+    000000010000445C             PR LD S200  ._restf14
+    0000000100004460             PR LD S201  .$RESTF15
+    0000000100004460             PR LD S202  .Srestf15
+    0000000100004460             PR LD S203  ._restf15
+    0000000100004464             PR LD S204  .$RESTF16
+    0000000100004464             PR LD S205  .Srestf16
+    0000000100004464             PR LD S206  ._restf16
+    0000000100004468             PR LD S207  .$RESTF17
+    0000000100004468             PR LD S208  .Srestf17
+    0000000100004468             PR LD S209  ._restf17
+    000000010000446C             PR LD S210  .$RESTF18
+    000000010000446C             PR LD S211  .Srestf18
+    000000010000446C             PR LD S212  ._restf18
+    0000000100004470             PR LD S213  .$RESTF19
+    0000000100004470             PR LD S214  .Srestf19
+    0000000100004470             PR LD S215  ._restf19
+    0000000100004474             PR LD S216  .$RESTF20
+    0000000100004474             PR LD S217  .Srestf20
+    0000000100004474             PR LD S218  ._restf20
+    0000000100004478             PR LD S219  .$RESTF21
+    0000000100004478             PR LD S220  .Srestf21
+    0000000100004478             PR LD S221  ._restf21
+    000000010000447C             PR LD S222  .$RESTF22
+    000000010000447C             PR LD S223  .Srestf22
+    000000010000447C             PR LD S224  ._restf22
+    0000000100004480             PR LD S225  .$RESTF23
+    0000000100004480             PR LD S226  .Srestf23
+    0000000100004480             PR LD S227  ._restf23
+    0000000100004484             PR LD S228  .$RESTF24
+    0000000100004484             PR LD S229  .Srestf24
+    0000000100004484             PR LD S230  ._restf24
+    0000000100004488             PR LD S231  .$RESTF25
+    0000000100004488             PR LD S232  .Srestf25
+    0000000100004488             PR LD S233  ._restf25
+    000000010000448C             PR LD S234  .$RESTF26
+    000000010000448C             PR LD S235  .Srestf26
+    000000010000448C             PR LD S236  ._restf26
+    0000000100004490             PR LD S237  .$RESTF27
+    0000000100004490             PR LD S238  .Srestf27
+    0000000100004490             PR LD S239  ._restf27
+    0000000100004494             PR LD S240  .$RESTF28
+    0000000100004494             PR LD S241  .Srestf28
+    0000000100004494             PR LD S242  ._restf28
+    0000000100004498             PR LD S243  .$RESTF29
+    0000000100004498             PR LD S244  .Srestf29
+    0000000100004498             PR LD S245  ._restf29
+    000000010000449C             PR LD S246  .$RESTF30
+    000000010000449C             PR LD S247  .Srestf30
+    000000010000449C             PR LD S248  ._restf30
+    00000001000044A0             PR LD S249  .$RESTF31
+    00000001000044A0             PR LD S250  .Srestf31
+    00000001000044A0             PR LD S251  ._restf31
+    00000001000044A0             PR LD S252  ._restf3
+    00000001000044C0 00000028  2 GL SD S253  <._xlfWriteLDReal>        glink64.s(/usr/lib/glink64.o)
+    00000001000044C0             GL LD S254  ._xlfWriteLDReal
+    00000001000044E8 00000118  3 PR SD S255  <>                        xsystem.c(/usr/lpp/xlf/lib/libxlf90.a[xsystem_64.o])
+    00000001000044E8             PR LD S256  .system_
+    0000000100004508             PR LD S257  .#SYSTEM
+    0000000100004528             PR LD S258  ._xlisys
+    0000000100004600 00000028  2 GL SD S259  <.__malloc>               glink64.s(/usr/lib/glink64.o)
+    0000000100004600             GL LD S260  .__malloc
+    0000000100004628 00000028  2 GL SD S261  <._xlf_memcpy>            glink64.s(/usr/lib/glink64.o)
+    0000000100004628             GL LD S262  ._xlf_memcpy
+    0000000100004650 00000028  2 GL SD S263  <._xlf_system>            glink64.s(/usr/lib/glink64.o)
+    0000000100004650             GL LD S264  ._xlf_system
+    0000000100004678 00000028  2 GL SD S265  <.__free>                 glink64.s(/usr/lib/glink64.o)
+    0000000100004678             GL LD S266  .__free
+    00000001000046A0 000006A0  5 PR SD S267  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrize.f(bfrize.o)
+    00000001000046A0             PR LD S268  .bfrize
+    0000000100004D40 000000E0  5 PR SD S269  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closbf.f(/nwprod/lib/libbufr_4_64.a[closbf.o])
+    0000000100004D40             PR LD S270  .closbf
+    0000000100004E20 00000880  5 PR SD S271  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/status.f(/nwprod/lib/libbufr_4_64.a[status.o])
+    0000000100004E20             PR LD S272  .status
+    00000001000056A0 000001A0  5 PR SD S273  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort.f(/nwprod/lib/libbufr_4_64.a[bort.o])
+    00000001000056A0             PR LD S274  .bort
+    0000000100005840 00000060  5 PR SD S275  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort_exit.c(/nwprod/lib/libbufr_4_64.a[bort_exit.o])
+    0000000100005840             PR LD S276  .bort_exit
+    00000001000058A0 00000028  2 GL SD S277  <.exit>                   glink64.s(/usr/lib/glink64.o)
+    00000001000058A0             GL LD S278  .exit
+    00000001000058E0 000002C0  5 PR SD S279  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closmg.f(/nwprod/lib/libbufr_4_64.a[closmg.o])
+    00000001000058E0             PR LD S280  .closmg
+    0000000100005BA0 00000A40  5 PR SD S281  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgwrt.f(/nwprod/lib/libbufr_4_64.a[msgwrt.o])
+    0000000100005BA0             PR LD S282  .msgwrt
+    00000001000065E0 00000260  5 PR SD S283  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkb.f(/nwprod/lib/libbufr_4_64.a[pkb.o])
+    00000001000065E0             PR LD S284  .pkb
+    0000000100006840 00000040  5 PR SD S285  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/irev.f(/nwprod/lib/libbufr_4_64.a[irev.o])
+    0000000100006840             PR LD S286  .irev
+    0000000100006880 000007A0  5 PR SD S287  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cnved4.f(/nwprod/lib/libbufr_4_64.a[cnved4.o])
+    0000000100006880             PR LD S288  .cnved4
+    0000000100007020 00000320  5 PR SD S289  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupbs01.f(/nwprod/lib/libbufr_4_64.a[iupbs01.o])
+    0000000100007020             PR LD S290  .iupbs01
+    0000000100007340 000010C0  5 PR SD S291  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdlen.f(/nwprod/lib/libbufr_4_64.a[wrdlen.o])
+    0000000100007340             PR LD S292  .wrdlen
+    0000000100008400 00000160  5 PR SD S293  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupm.f(/nwprod/lib/libbufr_4_64.a[iupm.o])
+    0000000100008400             PR LD S294  .iupm
+    0000000100008560 00000028  2 GL SD S295  <._xlfWriteFmtArray>      glink64.s(/usr/lib/glink64.o)
+    0000000100008560             GL LD S296  ._xlfWriteFmtArray
+    0000000100008588 000000F2  2 PR SD S297  ._clc                     clc.s(/usr/lib/libc.a[clc_64.o])
+    0000000100008680 00000080  5 PR SD S298  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupb.f(/nwprod/lib/libbufr_4_64.a[iupb.o])
+    0000000100008680             PR LD S299  .iupb
+    0000000100008700 00000180  5 PR SD S300  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/upb.f(/nwprod/lib/libbufr_4_64.a[upb.o])
+    0000000100008700             PR LD S301  .upb
+    0000000100008880 00000640  5 PR SD S302  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/gets1loc.f(/nwprod/lib/libbufr_4_64.a[gets1loc.o])
+    0000000100008880             PR LD S303  .gets1loc
+    0000000100008EC0 00000080  5 PR SD S304  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/i4dy.f(/nwprod/lib/libbufr_4_64.a[i4dy.o])
+    0000000100008EC0             PR LD S305  .i4dy
+    0000000100008F40 00000280  5 PR SD S306  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/getlens.f(/nwprod/lib/libbufr_4_64.a[getlens.o])
+    0000000100008F40             PR LD S307  .getlens
+    00000001000091C0 00000280  5 PR SD S308  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/mvb.f(/nwprod/lib/libbufr_4_64.a[mvb.o])
+    00000001000091C0             PR LD S309  .mvb
+    0000000100009440 000000A0  5 PR SD S310  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nmwrd.f(/nwprod/lib/libbufr_4_64.a[nmwrd.o])
+    0000000100009440             PR LD S311  .nmwrd
+    00000001000094E0 00000041  5 PR SD S312  .bcopy                    moveeq.s(/usr/lib/libc.a[moveeq_64.o])
+    00000001000094E0             PR LD S313  .ovbcopy
+    00000001000094EC             PR LD S314  ._moveeq
+    00000001000094EC             PR LD S315  .memcpy
+    00000001000094EC             PR LD S316  .memmove
+    0000000100009540 00000320  5 PR SD S317  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkc.f(/nwprod/lib/libbufr_4_64.a[pkc.o])
+    0000000100009540             PR LD S318  .pkc
+    0000000100009860 00000280  5 PR SD S319  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ipkm.f(/nwprod/lib/libbufr_4_64.a[ipkm.o])
+    0000000100009860             PR LD S320  .ipkm
+    0000000100009AE0 00000C20  5 PR SD S321  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/stndrd.f(/nwprod/lib/libbufr_4_64.a[stndrd.o])
+    0000000100009AE0             PR LD S322  .stndrd
+    000000010000A700 00000200  5 PR SD S323  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/upc.f(/nwprod/lib/libbufr_4_64.a[upc.o])
+    000000010000A700             PR LD S324  .upc
+    000000010000A900 00000800  5 PR SD S325  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numtab.f(/nwprod/lib/libbufr_4_64.a[numtab.o])
+    000000010000A900             PR LD S326  .numtab
+    000000010000B100 000005C0  5 PR SD S327  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/adn30.f(/nwprod/lib/libbufr_4_64.a[adn30.o])
+    000000010000B100             PR LD S328  .adn30
+    000000010000B6C0 00000180  5 PR SD S329  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/istdesc.f(/nwprod/lib/libbufr_4_64.a[istdesc.o])
+    000000010000B6C0             PR LD S330  .istdesc
+    000000010000B840 000003E0  5 PR SD S331  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/restd.c(/nwprod/lib/libbufr_4_64.a[restd.o])
+    000000010000B840             PR LD S332  .restd
+    000000010000BC20 00000580  5 PR SD S333  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numtbd.f(/nwprod/lib/libbufr_4_64.a[numtbd.o])
+    000000010000BC20             PR LD S334  .numtbd
+    000000010000C1A0 00000240  5 PR SD S335  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/uptdd.f(/nwprod/lib/libbufr_4_64.a[uptdd.o])
+    000000010000C1A0             PR LD S336  .uptdd
+    000000010000C3E0 00000120  5 PR SD S337  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ifxy.f(/nwprod/lib/libbufr_4_64.a[ifxy.o])
+    000000010000C3E0             PR LD S338  .ifxy
+    000000010000C500 000000C0  5 PR SD S339  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cadn30.f(/nwprod/lib/libbufr_4_64.a[cadn30.o])
+    000000010000C500             PR LD S340  .cadn30
+    000000010000C5C0 00000028  2 GL SD S341  <.sprintf>                glink64.s(/usr/lib/glink64.o)
+    000000010000C5C0             GL LD S342  .sprintf
+    000000010000C600 000000E0  5 PR SD S343  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdesc.c(/nwprod/lib/libbufr_4_64.a[wrdesc.o])
+    000000010000C600             PR LD S344  .wrdesc
+    000000010000C660             PR LD S345  <.wrdesc@AF2_1>
+    000000010000C6E0 00000028  2 GL SD S346  <.strlen>                 glink64.s(/usr/lib/glink64.o)
+    000000010000C6E0             GL LD S347  .strlen
+    000000010000C720 000007E0  5 PR SD S348  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbb.f(/nwprod/lib/libbufr_4_64.a[nemtbb.o])
+    000000010000C720             PR LD S349  .nemtbb
+    000000010000CF00 00000500  5 PR SD S350  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/valx.f(/nwprod/lib/libbufr_4_64.a[valx.o])
+    000000010000CF00             PR LD S351  .valx
+    000000010000D400 000001E0  5 PR SD S352  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rjust.f(/nwprod/lib/libbufr_4_64.a[rjust.o])
+    000000010000D400             PR LD S353  .rjust
+    000000010000D5E0 00000200  5 PR SD S354  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort2.f(/nwprod/lib/libbufr_4_64.a[bort2.o])
+    000000010000D5E0             PR LD S355  .bort2
+    000000010000D7E0 000002E0  5 PR SD S356  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ovrbs1.f(/nwprod/lib/libbufr_4_64.a[ovrbs1.o])
+    000000010000D7E0             PR LD S357  .ovrbs1
+    000000010000DAC0 000001E0  5 PR SD S358  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/padmsg.f(/nwprod/lib/libbufr_4_64.a[padmsg.o])
+    000000010000DAC0             PR LD S359  .padmsg
+    000000010000DCA0 00000028  2 GL SD S360  <._xlfWriteUfmtArray>     glink64.s(/usr/lib/glink64.o)
+    000000010000DCA0             GL LD S361  ._xlfWriteUfmtArray
+    000000010000DCE0 000003C0  5 PR SD S362  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkbs1.f(/nwprod/lib/libbufr_4_64.a[pkbs1.o])
+    000000010000DCE0             PR LD S363  .pkbs1
+    000000010000E0A0 00000480  5 PR SD S364  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wtstat.f(/nwprod/lib/libbufr_4_64.a[wtstat.o])
+    000000010000E0A0             PR LD S365  .wtstat
+    000000010000E520 000014A0  5 PR SD S366  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrcmps.f(/nwprod/lib/libbufr_4_64.a[wrcmps.o])
+    000000010000E520             PR LD S367  .wrcmps
+    000000010000F9C0 000007E0  5 PR SD S368  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cmsgini.f(/nwprod/lib/libbufr_4_64.a[cmsgini.o])
+    000000010000F9C0             PR LD S369  .cmsgini
+    00000001000101A0 000003A0  5 PR SD S370  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtba.f(/nwprod/lib/libbufr_4_64.a[nemtba.o])
+    00000001000101A0             PR LD S371  .nemtba
+    0000000100010540 00000580  5 PR SD S372  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtab.f(/nwprod/lib/libbufr_4_64.a[nemtab.o])
+    0000000100010540             PR LD S373  .nemtab
+    0000000100010AC0 000000C8  3 PR SD S374  <>                        _xljjpow.f(/usr/lpp/xlf/lib/libxlf90.a[_xljjpow_64.o])
+    0000000100010AC0             PR LD S375  ._xljjpow
+    0000000100010BA0 00002460  5 PR SD S376  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/usrtpl.f(/nwprod/lib/libbufr_4_64.a[usrtpl.o])
+    0000000100010BA0             PR LD S377  .usrtpl
+    0000000100013000 00000028  2 GL SD S378  <._xlfIOCmd>              glink64.s(/usr/lib/glink64.o)
+    0000000100013000             GL LD S379  ._xlfIOCmd
+    0000000100013040 00000EC0  5 PR SD S380  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openbf.f(/nwprod/lib/libbufr_4_64.a[openbf.o])
+    0000000100013040             PR LD S381  .openbf
+    0000000100013F00 00000640  5 PR SD S382  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000100013F00             PR LD S383  .bfrini
+    0000000100014540 00000580  5 PR SD S384  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs1.f(/nwprod/lib/libbufr_4_64.a[pkvs1.o])
+    0000000100014540             PR LD S385  .pkvs1
+    0000000100014AC0 000002C0  5 PR SD S386  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs01.f(/nwprod/lib/libbufr_4_64.a[pkvs01.o])
+    0000000100014AC0             PR LD S387  .pkvs01
+    0000000100014D80 000000A0  5 PR SD S388  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ichkstr.f(/nwprod/lib/libbufr_4_64.a[ichkstr.o])
+    0000000100014D80             PR LD S389  .ichkstr
+    0000000100014E20 000001C0  5 PR SD S390  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chrtrna.f(/nwprod/lib/libbufr_4_64.a[chrtrna.o])
+    0000000100014E20             PR LD S391  .chrtrna
+    0000000100014FE0 00000440  5 PR SD S392  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/readdx.f(/nwprod/lib/libbufr_4_64.a[readdx.o])
+    0000000100014FE0             PR LD S393  .readdx
+    0000000100015420 00001640  5 PR SD S394  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdbfdx.f(/nwprod/lib/libbufr_4_64.a[rdbfdx.o])
+    0000000100015420             PR LD S395  .rdbfdx
+    0000000100016A60 00000B80  5 PR SD S396  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxinit.f(/nwprod/lib/libbufr_4_64.a[dxinit.o])
+    0000000100016A60             PR LD S397  .dxinit
+    00000001000175E0 0000019C  5 PR SD S398  <.__xl_fill_p5_64>        xlmem64.s(/usr/lpp/xlf/lib/libxlopt.a[xlmem64.645.o])
+    00000001000175E0             PR LD S399  .__xl_fill_p5_64
+    0000000100017780 00000420  5 PR SD S400  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pktdd.f(/nwprod/lib/libbufr_4_64.a[pktdd.o])
+    0000000100017780             PR LD S401  .pktdd
+    0000000100017BA0 000001C0  5 PR SD S402  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdmsgw.f(/nwprod/lib/libbufr_4_64.a[rdmsgw.o])
+    0000000100017BA0             PR LD S403  .rdmsgw
+    0000000100017D60 00000060  5 PR SD S404  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lmsg.f(/nwprod/lib/libbufr_4_64.a[lmsg.o])
+    0000000100017D60             PR LD S405  .lmsg
+    0000000100017DC0 00000120  5 PR SD S406  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chrtrn.f(/nwprod/lib/libbufr_4_64.a[chrtrn.o])
+    0000000100017DC0             PR LD S407  .chrtrn
+    0000000100017EE0 00000340  5 PR SD S408  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenuaa.f(/nwprod/lib/libbufr_4_64.a[nenuaa.o])
+    0000000100017EE0             PR LD S409  .nenuaa
+    0000000100017F20             PR LD S410  <.nenuaa@AF2_1>
+    0000000100018220 00000060  5 PR SD S411  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/digit.f(/nwprod/lib/libbufr_4_64.a[digit.o])
+    0000000100018220             PR LD S412  .digit
+    0000000100018280 00000460  5 PR SD S413  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/capit.f(/nwprod/lib/libbufr_4_64.a[capit.o])
+    0000000100018280             PR LD S414  .capit
+    00000001000186E0 00000520  5 PR SD S415  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenubd.f(/nwprod/lib/libbufr_4_64.a[nenubd.o])
+    00000001000186E0             PR LD S416  .nenubd
+    0000000100018C00 00000400  5 PR SD S417  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/idn30.f(/nwprod/lib/libbufr_4_64.a[idn30.o])
+    0000000100018C00             PR LD S418  .idn30
+    0000000100019000 00000F20  5 PR SD S419  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/makestab.f(/nwprod/lib/libbufr_4_64.a[makestab.o])
+    0000000100019000             PR LD S420  .makestab
+    0000000100019F20 00000040  5 PR SD S421  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strcln.f(/nwprod/lib/libbufr_4_64.a[strcln.o])
+    0000000100019F20             PR LD S422  .strcln
+    0000000100019F60 00000520  5 PR SD S423  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chekstab.f(/nwprod/lib/libbufr_4_64.a[chekstab.o])
+    0000000100019F60             PR LD S424  .chekstab
+    000000010001A480 00000F40  5 PR SD S425  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbd.f(/nwprod/lib/libbufr_4_64.a[nemtbd.o])
+    000000010001A480             PR LD S426  .nemtbd
+    000000010001B3C0 00000140  5 PR SD S427  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rsvfvm.f(/nwprod/lib/libbufr_4_64.a[rsvfvm.o])
+    000000010001B3C0             PR LD S428  .rsvfvm
+    000000010001B500 00000D60  5 PR SD S429  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabsub.f(/nwprod/lib/libbufr_4_64.a[tabsub.o])
+    000000010001B500             PR LD S430  .tabsub
+    000000010001C260 00000280  5 PR SD S431  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/inctab.f(/nwprod/lib/libbufr_4_64.a[inctab.o])
+    000000010001C260             PR LD S432  .inctab
+    000000010001C3E0             PR LD S433  <.inctab@AF2_1>
+    000000010001C4E0 00000560  5 PR SD S434  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabent.f(/nwprod/lib/libbufr_4_64.a[tabent.o])
+    000000010001C4E0             PR LD S435  .tabent
+    000000010001CA40 00000400  5 PR SD S436  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cpbfdx.f(/nwprod/lib/libbufr_4_64.a[cpbfdx.o])
+    000000010001CA40             PR LD S437  .cpbfdx
+    000000010001CE40 000013E0  5 PR SD S438  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdusdx.f(/nwprod/lib/libbufr_4_64.a[rdusdx.o])
+    000000010001CE40             PR LD S439  .rdusdx
+    000000010001E220 000001C0  5 PR SD S440  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemock.f(/nwprod/lib/libbufr_4_64.a[nemock.o])
+    000000010001E220             PR LD S441  .nemock
+    000000010001E3E0 00000180  5 PR SD S442  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numbck.f(/nwprod/lib/libbufr_4_64.a[numbck.o])
+    000000010001E3E0             PR LD S443  .numbck
+    000000010001E560 00001D00  5 PR SD S444  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/seqsdx.f(/nwprod/lib/libbufr_4_64.a[seqsdx.o])
+    000000010001E560             PR LD S445  .seqsdx
+    0000000100020260 000006C0  5 PR SD S446  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parstr.f(/nwprod/lib/libbufr_4_64.a[parstr.o])
+    0000000100020260             PR LD S447  .parstr
+    0000000100020920 000003A0  5 PR SD S448  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strnum.f(/nwprod/lib/libbufr_4_64.a[strnum.o])
+    0000000100020920             PR LD S449  .strnum
+    0000000100020CC0 000004E0  5 PR SD S450  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strsuc.f(/nwprod/lib/libbufr_4_64.a[strsuc.o])
+    0000000100020CC0             PR LD S451  .strsuc
+    00000001000211A0 000008E0  5 PR SD S452  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/elemdx.f(/nwprod/lib/libbufr_4_64.a[elemdx.o])
+    00000001000211A0             PR LD S453  .elemdx
+    0000000100021A80 00000160  5 PR SD S454  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/jstchr.f(/nwprod/lib/libbufr_4_64.a[jstchr.o])
+    0000000100021A80             PR LD S455  .jstchr
+    0000000100021BE0 00000460  5 PR SD S456  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/jstnum.f(/nwprod/lib/libbufr_4_64.a[jstnum.o])
+    0000000100021BE0             PR LD S457  .jstnum
+    0000000100022040 00000840  5 PR SD S458  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/writdx.f(/nwprod/lib/libbufr_4_64.a[writdx.o])
+    0000000100022040             PR LD S459  .writdx
+    0000000100022880 00000820  5 PR SD S460  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxmini.f(/nwprod/lib/libbufr_4_64.a[dxmini.o])
+    0000000100022880             PR LD S461  .dxmini
+    00000001000230A0 000002C0  5 PR SD S462  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapn.f(/nwprod/lib/libbufr_4_64.a[posapn.o])
+    00000001000230A0             PR LD S463  .posapn
+    0000000100023360 000002C0  5 PR SD S464  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapx.f(/nwprod/lib/libbufr_4_64.a[posapx.o])
+    0000000100023360             PR LD S465  .posapx
+    0000000100023620 00000140  5 PR SD S466  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/datelen.f(/nwprod/lib/libbufr_4_64.a[datelen.o])
+    0000000100023620             PR LD S467  .datelen
+    0000000100023760 000003C0  5 PR SD S468  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openmb.f(/nwprod/lib/libbufr_4_64.a[openmb.o])
+    0000000100023760             PR LD S469  .openmb
+    0000000100023B20 00000C40  5 PR SD S470  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgini.f(/nwprod/lib/libbufr_4_64.a[msgini.o])
+    0000000100023B20             PR LD S471  .msgini
+    0000000100024760 00000B00  5 PR SD S472  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrhdr.f(bfrhdr.o)
+    0000000100024760             PR LD S473  .bfrhdr
+    0000000100025260 00000F80  5 PR SD S474  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbint.f(/nwprod/lib/libbufr_4_64.a[ufbint.o])
+    0000000100025260             PR LD S475  .ufbint
+    00000001000261E0 00000700  5 PR SD S476  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/string.f(/nwprod/lib/libbufr_4_64.a[string.o])
+    00000001000261E0             PR LD S477  .string
+    00000001000268E0 00001240  5 PR SD S478  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parusr.f(/nwprod/lib/libbufr_4_64.a[parusr.o])
+    00000001000268E0             PR LD S479  .parusr
+    0000000100027B20 00000B00  5 PR SD S480  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parutg.f(/nwprod/lib/libbufr_4_64.a[parutg.o])
+    0000000100027B20             PR LD S481  .parutg
+    0000000100028620 00000380  5 PR SD S482  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrpc.f(/nwprod/lib/libbufr_4_64.a[lstrpc.o])
+    0000000100028620             PR LD S483  .lstrpc
+    00000001000289A0 00000980  5 PR SD S484  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbrw.f(/nwprod/lib/libbufr_4_64.a[ufbrw.o])
+    00000001000289A0             PR LD S485  .ufbrw
+    0000000100029320 00000260  5 PR SD S486  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/conwin.f(/nwprod/lib/libbufr_4_64.a[conwin.o])
+    0000000100029320             PR LD S487  .conwin
+    0000000100029580 00000260  5 PR SD S488  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nxtwin.f(/nwprod/lib/libbufr_4_64.a[nxtwin.o])
+    0000000100029580             PR LD S489  .nxtwin
+    00000001000297E0 00000400  5 PR SD S490  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invwin.f(/nwprod/lib/libbufr_4_64.a[invwin.o])
+    00000001000297E0             PR LD S491  .invwin
+    0000000100029BE0 00000240  5 PR SD S492  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/newwin.f(/nwprod/lib/libbufr_4_64.a[newwin.o])
+    0000000100029BE0             PR LD S493  .newwin
+    0000000100029E20 000002E0  5 PR SD S494  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/getwin.f(/nwprod/lib/libbufr_4_64.a[getwin.o])
+    0000000100029E20             PR LD S495  .getwin
+    000000010002A100 00000CE0  5 PR SD S496  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invcon.f(/nwprod/lib/libbufr_4_64.a[invcon.o])
+    000000010002A100             PR LD S497  .invcon
+    000000010002ADE0 00000060  5 PR SD S498  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ibfms.f(/nwprod/lib/libbufr_4_64.a[ibfms.o])
+    000000010002ADE0             PR LD S499  .ibfms
+    000000010002AE40 000001A0  5 PR SD S500  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/drstpl.f(/nwprod/lib/libbufr_4_64.a[drstpl.o])
+    000000010002AE40             PR LD S501  .drstpl
+    000000010002AFE0 00000380  5 PR SD S502  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrps.f(/nwprod/lib/libbufr_4_64.a[lstrps.o])
+    000000010002AFE0             PR LD S503  .lstrps
+    000000010002B360 00000620  5 PR SD S504  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/trybump.f(/nwprod/lib/libbufr_4_64.a[trybump.o])
+    000000010002B360             PR LD S505  .trybump
+    000000010002B980 000003A0  5 PR SD S506  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstjpb.f(/nwprod/lib/libbufr_4_64.a[lstjpb.o])
+    000000010002B980             PR LD S507  .lstjpb
+    000000010002BD20 000003C0  5 PR SD S508  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/writsb.f(/nwprod/lib/libbufr_4_64.a[writsb.o])
+    000000010002BD20             PR LD S509  .writsb
+    000000010002C0E0 000003E0  5 PR SD S510  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrtree.f(/nwprod/lib/libbufr_4_64.a[wrtree.o])
+    000000010002C0E0             PR LD S511  .wrtree
+    000000010002C4C0 00000198  3 PR SD S512  <>                        _xldipow.f(/usr/lpp/xlf/lib/libxlf90.a[_xldipow_64.o])
+    000000010002C4C0             PR LD S513  ._xldipow
+    000000010002C660 00000500  5 PR SD S514  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgupd.f(/nwprod/lib/libbufr_4_64.a[msgupd.o])
+    000000010002C660             PR LD S515  .msgupd
+    000000010002CB60 00000260  5 PR SD S516  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pad.f(/nwprod/lib/libbufr_4_64.a[pad.o])
+    000000010002CB60             PR LD S517  .pad
+    000000010002CDC0 00000028  2 GL SD S518  <._xlfExit>               glink64.s(/usr/lib/glink64.o)
+    000000010002CDC0             GL LD S519  ._xlfExit
+    000000010002CDE8 00000198  3 RO SD S520  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f(ngm2bufr.o)
+    000000010002CF80 00000004  3 RO SD S521  <>                        second_.c(/usr/lpp/xlf/lib/libxlf90.a[second__64.o])
+    000000010002CF88 00000698  3 RO SD S522  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    000000010002D620 00000718  3 RO SD S523  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    000000010002DD38 000000A5  3 RO SD S524  <>                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    000000010002DDE0 0000009C  3 RO SD S525  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f(guvtqp.o)
+    000000010002DE80 00000100  7 RO SD S526  %ttrig#                   tabtrig.s64s(/usr/lib/libmass.a[tabtrig.s645.o])
+    000000010002DF80 00000358  7 RO SD S527  <tpow>                    pow_p4.s64s(/usr/lib/libmass.a[pow_p4.s645.o])
+    000000010002E300 00000138  7 RO SD S528  <tlog>                    log.s64s(/usr/lib/libmass.a[log.s645.o])
+    000000010002E480 00000118  7 RO SD S529  %texp#                    tabexp.s64s(/usr/lib/libmass.a[tabexp.s645.o])
+    000000010002E598 00000090  3 RO SD S530  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrize.f(bfrize.o)
+    000000010002E628 0000011D  3 RO SD S531  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/status.f(/nwprod/lib/libbufr_4_64.a[status.o])
+    000000010002E748 00000065  3 RO SD S532  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort.f(/nwprod/lib/libbufr_4_64.a[bort.o])
+    000000010002E7B0 00000148  3 RO SD S533  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgwrt.f(/nwprod/lib/libbufr_4_64.a[msgwrt.o])
+    000000010002E8F8 00000854  3 RO SD S534  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdlen.f(/nwprod/lib/libbufr_4_64.a[wrdlen.o])
+    000000010002F150 0000016F  3 RO SD S535  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupm.f(/nwprod/lib/libbufr_4_64.a[iupm.o])
+    000000010002F2C0 00000014  3 RO SD S536  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupbs01.f(/nwprod/lib/libbufr_4_64.a[iupbs01.o])
+    000000010002F2D8 00000050  3 RO SD S537  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/gets1loc.f(/nwprod/lib/libbufr_4_64.a[gets1loc.o])
+    000000010002F328 00000156  3 RO SD S538  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/mvb.f(/nwprod/lib/libbufr_4_64.a[mvb.o])
+    000000010002F480 00000095  3 RO SD S539  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cnved4.f(/nwprod/lib/libbufr_4_64.a[cnved4.o])
+    000000010002F518 0000016F  3 RO SD S540  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ipkm.f(/nwprod/lib/libbufr_4_64.a[ipkm.o])
+    000000010002F688 000000C0  3 RO SD S541  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numtab.f(/nwprod/lib/libbufr_4_64.a[numtab.o])
+    000000010002F748 0000023D  3 RO SD S542  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/adn30.f(/nwprod/lib/libbufr_4_64.a[adn30.o])
+    000000010002F988 000000C6  3 RO SD S543  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/istdesc.f(/nwprod/lib/libbufr_4_64.a[istdesc.o])
+    000000010002FA50 00000008  3 RO SD S544  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numtbd.f(/nwprod/lib/libbufr_4_64.a[numtbd.o])
+    000000010002FA58 00000128  3 RO SD S545  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/uptdd.f(/nwprod/lib/libbufr_4_64.a[uptdd.o])
+    000000010002FB80 00000043  3 RO SD S546  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/restd.c(/nwprod/lib/libbufr_4_64.a[restd.o])
+    000000010002FBC8 000000BF  3 RO SD S547  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ifxy.f(/nwprod/lib/libbufr_4_64.a[ifxy.o])
+    000000010002FC88 0000005F  3 RO SD S548  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdesc.c(/nwprod/lib/libbufr_4_64.a[wrdesc.o])
+    000000010002FCE8 0000026E  3 RO SD S549  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/valx.f(/nwprod/lib/libbufr_4_64.a[valx.o])
+    000000010002FF58 00000008  3 RO SD S550  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rjust.f(/nwprod/lib/libbufr_4_64.a[rjust.o])
+    000000010002FF60 00000065  3 RO SD S551  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort2.f(/nwprod/lib/libbufr_4_64.a[bort2.o])
+    000000010002FFC8 0000061D  3 RO SD S552  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbb.f(/nwprod/lib/libbufr_4_64.a[nemtbb.o])
+    00000001000305E8 00000364  3 RO SD S553  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/stndrd.f(/nwprod/lib/libbufr_4_64.a[stndrd.o])
+    0000000100030950 00000209  3 RO SD S554  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ovrbs1.f(/nwprod/lib/libbufr_4_64.a[ovrbs1.o])
+    0000000100030B60 0000005C  3 RO SD S555  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/padmsg.f(/nwprod/lib/libbufr_4_64.a[padmsg.o])
+    0000000100030BC0 000001A0  3 RO SD S556  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkbs1.f(/nwprod/lib/libbufr_4_64.a[pkbs1.o])
+    0000000100030D60 0000049E  3 RO SD S557  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wtstat.f(/nwprod/lib/libbufr_4_64.a[wtstat.o])
+    0000000100031200 0000055C  3 RO SD S558  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrcmps.f(/nwprod/lib/libbufr_4_64.a[wrcmps.o])
+    0000000100031760 00000266  3 RO SD S559  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtba.f(/nwprod/lib/libbufr_4_64.a[nemtba.o])
+    00000001000319C8 000000B5  3 RO SD S560  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtab.f(/nwprod/lib/libbufr_4_64.a[nemtab.o])
+    0000000100031A80 0000016A  3 RO SD S561  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cmsgini.f(/nwprod/lib/libbufr_4_64.a[cmsgini.o])
+    0000000100031BF0 00000008  3 RO SD S562  <>                        _xljjpow.f(/usr/lpp/xlf/lib/libxlf90.a[_xljjpow_64.o])
+    0000000100031BF8 00000AF5  3 RO SD S563  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/usrtpl.f(/nwprod/lib/libbufr_4_64.a[usrtpl.o])
+    00000001000326F0 00000098  3 RO SD S564  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closmg.f(/nwprod/lib/libbufr_4_64.a[closmg.o])
+    0000000100032788 0000002D  3 RO SD S565  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closbf.f(/nwprod/lib/libbufr_4_64.a[closbf.o])
+    00000001000327B8 000006BE  3 RO SD S566  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openbf.f(/nwprod/lib/libbufr_4_64.a[openbf.o])
+    0000000100032E78 00000030  3 RO SD S567  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000100032EA8 00000230  3 RO SD S568  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs1.f(/nwprod/lib/libbufr_4_64.a[pkvs1.o])
+    00000001000330D8 00000144  3 RO SD S569  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs01.f(/nwprod/lib/libbufr_4_64.a[pkvs01.o])
+    0000000100033220 00000B4B  3 RO SD S570  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/readdx.f(/nwprod/lib/libbufr_4_64.a[readdx.o])
+    0000000100033D70 00000008  3 RO SD S571  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxinit.f(/nwprod/lib/libbufr_4_64.a[dxinit.o])
+    0000000100033D78 00000128  3 RO SD S572  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pktdd.f(/nwprod/lib/libbufr_4_64.a[pktdd.o])
+    0000000100033EA0 00000673  3 RO SD S573  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdbfdx.f(/nwprod/lib/libbufr_4_64.a[rdbfdx.o])
+    0000000100034518 00000038  3 RO SD S574  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdmsgw.f(/nwprod/lib/libbufr_4_64.a[rdmsgw.o])
+    0000000100034550 000001DE  3 RO SD S575  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenuaa.f(/nwprod/lib/libbufr_4_64.a[nenuaa.o])
+    0000000100034730 0000035E  3 RO SD S576  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenubd.f(/nwprod/lib/libbufr_4_64.a[nenubd.o])
+    0000000100034A90 00000370  3 RO SD S577  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/idn30.f(/nwprod/lib/libbufr_4_64.a[idn30.o])
+    0000000100034E00 0000064A  3 RO SD S578  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbd.f(/nwprod/lib/libbufr_4_64.a[nemtbd.o])
+    0000000100035450 000001C9  3 RO SD S579  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chekstab.f(/nwprod/lib/libbufr_4_64.a[chekstab.o])
+    0000000100035620 00000135  3 RO SD S580  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/inctab.f(/nwprod/lib/libbufr_4_64.a[inctab.o])
+    0000000100035758 000007AE  3 RO SD S581  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabsub.f(/nwprod/lib/libbufr_4_64.a[tabsub.o])
+    0000000100035F08 000001DD  3 RO SD S582  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabent.f(/nwprod/lib/libbufr_4_64.a[tabent.o])
+    00000001000360E8 00000431  3 RO SD S583  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/makestab.f(/nwprod/lib/libbufr_4_64.a[makestab.o])
+    0000000100036520 00000DA0  3 RO SD S584  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdusdx.f(/nwprod/lib/libbufr_4_64.a[rdusdx.o])
+    00000001000372C0 000000C5  3 RO SD S585  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numbck.f(/nwprod/lib/libbufr_4_64.a[numbck.o])
+    0000000100037388 000012A8  3 RO SD S586  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/seqsdx.f(/nwprod/lib/libbufr_4_64.a[seqsdx.o])
+    0000000100038630 0000048E  3 RO SD S587  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parstr.f(/nwprod/lib/libbufr_4_64.a[parstr.o])
+    0000000100038AC0 000000CA  3 RO SD S588  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strsuc.f(/nwprod/lib/libbufr_4_64.a[strsuc.o])
+    0000000100038B90 00000118  3 RO SD S589  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strnum.f(/nwprod/lib/libbufr_4_64.a[strnum.o])
+    0000000100038CA8 00000001  3 RO SD S590  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/jstchr.f(/nwprod/lib/libbufr_4_64.a[jstchr.o])
+    0000000100038CB0 00000116  3 RO SD S591  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/jstnum.f(/nwprod/lib/libbufr_4_64.a[jstnum.o])
+    0000000100038DC8 000005BE  3 RO SD S592  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/elemdx.f(/nwprod/lib/libbufr_4_64.a[elemdx.o])
+    0000000100039388 00000190  3 RO SD S593  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxmini.f(/nwprod/lib/libbufr_4_64.a[dxmini.o])
+    0000000100039518 0000015D  3 RO SD S594  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/writdx.f(/nwprod/lib/libbufr_4_64.a[writdx.o])
+    0000000100039678 00000096  3 RO SD S595  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapn.f(/nwprod/lib/libbufr_4_64.a[posapn.o])
+    0000000100039710 0000005E  3 RO SD S596  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapx.f(/nwprod/lib/libbufr_4_64.a[posapx.o])
+    0000000100039770 0000011E  3 RO SD S597  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/datelen.f(/nwprod/lib/libbufr_4_64.a[datelen.o])
+    0000000100039890 000003D9  3 RO SD S598  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgini.f(/nwprod/lib/libbufr_4_64.a[msgini.o])
+    0000000100039C70 00000098  3 RO SD S599  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openmb.f(/nwprod/lib/libbufr_4_64.a[openmb.o])
+    0000000100039D08 000000C2  3 RO SD S600  <>                        /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrhdr.f(bfrhdr.o)
+    0000000100039DD0 000006B9  3 RO SD S601  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbint.f(/nwprod/lib/libbufr_4_64.a[ufbint.o])
+    000000010003A490 00000A80  3 RO SD S602  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parusr.f(/nwprod/lib/libbufr_4_64.a[parusr.o])
+    000000010003AF10 00000473  3 RO SD S603  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parutg.f(/nwprod/lib/libbufr_4_64.a[parutg.o])
+    000000010003B388 0000026E  3 RO SD S604  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrpc.f(/nwprod/lib/libbufr_4_64.a[lstrpc.o])
+    000000010003B5F8 00000316  3 RO SD S605  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/string.f(/nwprod/lib/libbufr_4_64.a[string.o])
+    000000010003B910 00000128  3 RO SD S606  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbrw.f(/nwprod/lib/libbufr_4_64.a[ufbrw.o])
+    000000010003BA38 0000019C  3 RO SD S607  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nxtwin.f(/nwprod/lib/libbufr_4_64.a[nxtwin.o])
+    000000010003BBD8 0000009E  3 RO SD S608  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invwin.f(/nwprod/lib/libbufr_4_64.a[invwin.o])
+    000000010003BC78 00000195  3 RO SD S609  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/newwin.f(/nwprod/lib/libbufr_4_64.a[newwin.o])
+    000000010003BE10 0000014C  3 RO SD S610  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/getwin.f(/nwprod/lib/libbufr_4_64.a[getwin.o])
+    000000010003BF60 0000009E  3 RO SD S611  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invcon.f(/nwprod/lib/libbufr_4_64.a[invcon.o])
+    000000010003C000 00000008  3 RO SD S612  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ibfms.f(/nwprod/lib/libbufr_4_64.a[ibfms.o])
+    000000010003C008 0000026E  3 RO SD S613  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrps.f(/nwprod/lib/libbufr_4_64.a[lstrps.o])
+    000000010003C278 0000026E  3 RO SD S614  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstjpb.f(/nwprod/lib/libbufr_4_64.a[lstjpb.o])
+    000000010003C4E8 0000000C  3 RO SD S615  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/trybump.f(/nwprod/lib/libbufr_4_64.a[trybump.o])
+    000000010003C4F8 00000008  3 RO SD S616  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrtree.f(/nwprod/lib/libbufr_4_64.a[wrtree.o])
+    000000010003C500 00000010  3 RO SD S617  <>                        _xldipow.f(/usr/lpp/xlf/lib/libxlf90.a[_xldipow_64.o])
+    000000010003C510 000001F6  3 RO SD S618  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pad.f(/nwprod/lib/libbufr_4_64.a[pad.o])
+    000000010003C708 000000FB  3 RO SD S619  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgupd.f(/nwprod/lib/libbufr_4_64.a[msgupd.o])
+    000000010003C808 000000DE  3 RO SD S620  <>                        /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/writsb.f(/nwprod/lib/libbufr_4_64.a[writsb.o])
+    00000001100008E8 00000060  3 RW SD S621  <_$STATIC>                ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000110000948 00000065  3 RW SD S622  <_$STATIC>                ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    00000001100009B0 00000280  3 RW SD S623  <_$STATIC>                /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    0000000110000C30 0000000A  3 RW SD S624  <_$STATIC>                _xldtime.f(/usr/lpp/xlf/lib/libxlf90.a[_xldtime_64.o])
+    0000000110000C40 00000038  3 RW SD S625  <_$STATIC>                /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3locdat.f(/nwprod/lib/libw3_4.a[w3locdat.o])
+    0000000110000C78 00000278  3 RW SD S626  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f(ngm2bufr.o)
+    0000000110000EF0 000000B8  3 RW SD S627  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f(guvtqp.o)
+    0000000110000FA8 000000A8  3 RW SD S628  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrize.f(bfrize.o)
+    0000000110001050 00000038  3 RW SD S629  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/status.f(/nwprod/lib/libbufr_4_64.a[status.o])
+    0000000110001088 00000118  3 RW SD S630  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort.f(/nwprod/lib/libbufr_4_64.a[bort.o])
+    00000001100011A0 00000080  3 RW SD S631  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closmg.f(/nwprod/lib/libbufr_4_64.a[closmg.o])
+    0000000110001220 00000140  3 RW SD S632  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdlen.f(/nwprod/lib/libbufr_4_64.a[wrdlen.o])
+    0000000110001360 00000038  3 RW SD S633  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/iupm.f(/nwprod/lib/libbufr_4_64.a[iupm.o])
+    0000000110001398 00000038  3 RW SD S634  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/mvb.f(/nwprod/lib/libbufr_4_64.a[mvb.o])
+    00000001100013D0 00000158  3 RW SD S635  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgwrt.f(/nwprod/lib/libbufr_4_64.a[msgwrt.o])
+    0000000110001528 00000038  3 RW SD S636  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ipkm.f(/nwprod/lib/libbufr_4_64.a[ipkm.o])
+    0000000110001560 000000A8  3 RW SD S637  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/adn30.f(/nwprod/lib/libbufr_4_64.a[adn30.o])
+    0000000110001608 00000038  3 RW SD S638  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numtab.f(/nwprod/lib/libbufr_4_64.a[numtab.o])
+    0000000110001640 00000038  3 RW SD S639  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/istdesc.f(/nwprod/lib/libbufr_4_64.a[istdesc.o])
+    0000000110001678 00000038  3 RW SD S640  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/uptdd.f(/nwprod/lib/libbufr_4_64.a[uptdd.o])
+    00000001100016B0 00000038  3 RW SD S641  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ifxy.f(/nwprod/lib/libbufr_4_64.a[ifxy.o])
+    00000001100016E8 00000230  3 RW SD S642  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/valx.f(/nwprod/lib/libbufr_4_64.a[valx.o])
+    0000000110001918 00000150  3 RW SD S643  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bort2.f(/nwprod/lib/libbufr_4_64.a[bort2.o])
+    0000000110001A68 00000150  3 RW SD S644  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbb.f(/nwprod/lib/libbufr_4_64.a[nemtbb.o])
+    0000000110001BB8 00000070  3 RW SD S645  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/stndrd.f(/nwprod/lib/libbufr_4_64.a[stndrd.o])
+    0000000110001C28 00000178  3 RW SD S646  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ovrbs1.f(/nwprod/lib/libbufr_4_64.a[ovrbs1.o])
+    0000000110001DA0 00000038  3 RW SD S647  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkbs1.f(/nwprod/lib/libbufr_4_64.a[pkbs1.o])
+    0000000110001DD8 00000118  3 RW SD S648  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wtstat.f(/nwprod/lib/libbufr_4_64.a[wtstat.o])
+    0000000110001EF0 000000E8  3 RW SD S649  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrcmps.f(/nwprod/lib/libbufr_4_64.a[wrcmps.o])
+    0000000110001FD8 000000A8  3 RW SD S650  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtba.f(/nwprod/lib/libbufr_4_64.a[nemtba.o])
+    0000000110002080 00000038  3 RW SD S651  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtab.f(/nwprod/lib/libbufr_4_64.a[nemtab.o])
+    00000001100020B8 00000040  3 RW SD S652  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cmsgini.f(/nwprod/lib/libbufr_4_64.a[cmsgini.o])
+    00000001100020F8 000005B0  3 RW SD S653  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/usrtpl.f(/nwprod/lib/libbufr_4_64.a[usrtpl.o])
+    00000001100026A8 00000038  3 RW SD S654  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closbf.f(/nwprod/lib/libbufr_4_64.a[closbf.o])
+    00000001100026E0 000004F0  3 RW SD S655  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openbf.f(/nwprod/lib/libbufr_4_64.a[openbf.o])
+    0000000110002BD0 0000072C  3 RW SD S656  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000110003300 00000178  3 RW SD S657  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs1.f(/nwprod/lib/libbufr_4_64.a[pkvs1.o])
+    0000000110003478 00000038  3 RW SD S658  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs01.f(/nwprod/lib/libbufr_4_64.a[pkvs01.o])
+    00000001100034B0 000001F0  3 RW SD S659  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/readdx.f(/nwprod/lib/libbufr_4_64.a[readdx.o])
+    00000001100036A0 00000120  3 RW SD S660  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxinit.f(/nwprod/lib/libbufr_4_64.a[dxinit.o])
+    00000001100037C0 00000150  3 RW SD S661  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pktdd.f(/nwprod/lib/libbufr_4_64.a[pktdd.o])
+    0000000110003910 00000210  3 RW SD S662  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdbfdx.f(/nwprod/lib/libbufr_4_64.a[rdbfdx.o])
+    0000000110003B20 00000038  3 RW SD S663  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdmsgw.f(/nwprod/lib/libbufr_4_64.a[rdmsgw.o])
+    0000000110003B58 00000070  3 RW SD S664  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenuaa.f(/nwprod/lib/libbufr_4_64.a[nenuaa.o])
+    0000000110003BC8 0000003A  3 RW SD S665  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/capit.f(/nwprod/lib/libbufr_4_64.a[capit.o])
+    0000000110003C08 000000E0  3 RW SD S666  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nenubd.f(/nwprod/lib/libbufr_4_64.a[nenubd.o])
+    0000000110003CE8 000000E0  3 RW SD S667  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/idn30.f(/nwprod/lib/libbufr_4_64.a[idn30.o])
+    0000000110003DC8 00000188  3 RW SD S668  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemtbd.f(/nwprod/lib/libbufr_4_64.a[nemtbd.o])
+    0000000110003F50 00000038  3 RW SD S669  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chekstab.f(/nwprod/lib/libbufr_4_64.a[chekstab.o])
+    0000000110003F88 00000038  3 RW SD S670  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/inctab.f(/nwprod/lib/libbufr_4_64.a[inctab.o])
+    0000000110003FC0 00000238  3 RW SD S671  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabsub.f(/nwprod/lib/libbufr_4_64.a[tabsub.o])
+    00000001100041F8 00000070  3 RW SD S672  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabent.f(/nwprod/lib/libbufr_4_64.a[tabent.o])
+    0000000110004268 00000290  3 RW SD S673  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/makestab.f(/nwprod/lib/libbufr_4_64.a[makestab.o])
+    00000001100044F8 000005B0  3 RW SD S674  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/rdusdx.f(/nwprod/lib/libbufr_4_64.a[rdusdx.o])
+    0000000110004AA8 0000002E  3 RW SD S675  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nemock.f(/nwprod/lib/libbufr_4_64.a[nemock.o])
+    0000000110004AD8 00000038  3 RW SD S676  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/numbck.f(/nwprod/lib/libbufr_4_64.a[numbck.o])
+    0000000110004B10 00000698  3 RW SD S677  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/seqsdx.f(/nwprod/lib/libbufr_4_64.a[seqsdx.o])
+    00000001100051A8 00000150  3 RW SD S678  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parstr.f(/nwprod/lib/libbufr_4_64.a[parstr.o])
+    00000001100052F8 00000118  3 RW SD S679  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strsuc.f(/nwprod/lib/libbufr_4_64.a[strsuc.o])
+    0000000110005410 00000150  3 RW SD S680  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strnum.f(/nwprod/lib/libbufr_4_64.a[strnum.o])
+    0000000110005560 00000118  3 RW SD S681  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/jstnum.f(/nwprod/lib/libbufr_4_64.a[jstnum.o])
+    0000000110005678 00000230  3 RW SD S682  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/elemdx.f(/nwprod/lib/libbufr_4_64.a[elemdx.o])
+    00000001100058A8 00000038  3 RW SD S683  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/dxmini.f(/nwprod/lib/libbufr_4_64.a[dxmini.o])
+    00000001100058E0 00000038  3 RW SD S684  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/writdx.f(/nwprod/lib/libbufr_4_64.a[writdx.o])
+    0000000110005918 00000070  3 RW SD S685  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapn.f(/nwprod/lib/libbufr_4_64.a[posapn.o])
+    0000000110005988 000000A8  3 RW SD S686  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/posapx.f(/nwprod/lib/libbufr_4_64.a[posapx.o])
+    0000000110005A30 00000038  3 RW SD S687  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/datelen.f(/nwprod/lib/libbufr_4_64.a[datelen.o])
+    0000000110005A68 000000B0  3 RW SD S688  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgini.f(/nwprod/lib/libbufr_4_64.a[msgini.o])
+    0000000110005B18 00000178  3 RW SD S689  <_$STATIC>                /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrhdr.f(bfrhdr.o)
+    0000000110005C90 00000648  3 RW SD S690  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbint.f(/nwprod/lib/libbufr_4_64.a[ufbint.o])
+    00000001100062D8 00000390  3 RW SD S691  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parusr.f(/nwprod/lib/libbufr_4_64.a[parusr.o])
+    0000000110006668 00000158  3 RW SD S692  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parutg.f(/nwprod/lib/libbufr_4_64.a[parutg.o])
+    00000001100067C0 00000070  3 RW SD S693  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrpc.f(/nwprod/lib/libbufr_4_64.a[lstrpc.o])
+    0000000110006830 000000E0  3 RW SD S694  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/string.f(/nwprod/lib/libbufr_4_64.a[string.o])
+    0000000110006910 00000150  3 RW SD S695  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbrw.f(/nwprod/lib/libbufr_4_64.a[ufbrw.o])
+    0000000110006A60 00000038  3 RW SD S696  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/nxtwin.f(/nwprod/lib/libbufr_4_64.a[nxtwin.o])
+    0000000110006A98 00000118  3 RW SD S697  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invwin.f(/nwprod/lib/libbufr_4_64.a[invwin.o])
+    0000000110006BB0 00000038  3 RW SD S698  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/newwin.f(/nwprod/lib/libbufr_4_64.a[newwin.o])
+    0000000110006BE8 00000038  3 RW SD S699  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/getwin.f(/nwprod/lib/libbufr_4_64.a[getwin.o])
+    0000000110006C20 00000118  3 RW SD S700  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/invcon.f(/nwprod/lib/libbufr_4_64.a[invcon.o])
+    0000000110006D38 00000070  3 RW SD S701  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstrps.f(/nwprod/lib/libbufr_4_64.a[lstrps.o])
+    0000000110006DA8 00000070  3 RW SD S702  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/lstjpb.f(/nwprod/lib/libbufr_4_64.a[lstjpb.o])
+    0000000110006E18 00000008  3 RW SD S703  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrtree.f(/nwprod/lib/libbufr_4_64.a[wrtree.o])
+    0000000110006E20 00000010  3 RW SD S704  <_$STATIC>                _xldipow.f(/usr/lpp/xlf/lib/libxlf90.a[_xldipow_64.o])
+    0000000110006E30 00000070  3 RW SD S705  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pad.f(/nwprod/lib/libbufr_4_64.a[pad.o])
+    0000000110006EA0 00000150  3 RW SD S706  <_$STATIC>                /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgupd.f(/nwprod/lib/libbufr_4_64.a[msgupd.o])
+*   0000000110006FF0 00000010  3 DS SD S707  __start                   crt0_64.s(/lib/crt0_64.o)
+    0000000110007000 00000018  3 DS SD S708  call_pth_init             ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000110007018 00000000  3 T0 SD S709  <TOC>
+    0000000110007018 00000004  2 TD CM S710  p_xargc                   crt0_64.s(/lib/crt0_64.o)
+    0000000110007020 00000008  3 TD CM S711  p_xargv                   crt0_64.s(/lib/crt0_64.o)
+    0000000110007028 00000008  3 TD CM S712  _malloc_user_defined_name ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110007030 00000008  3 TD SD S713  __pth_init_routine        ../../../../../../../../src/bos/usr/ccs/lib/libpthreads/init.c(/usr/lib/libpthreads.a[init_64.o])
+    0000000110007038 00000008  3 TD CM S714  _bsd_init_routine         ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110007040 00000008  3 TD CM S715  _xti_tli_init_routine     ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110007048 00000008  3 TD CM S716  _nsl_init_routine         ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110007050 00000008  3 TD CM S717  __dce_compat_init_routine ../../../../../../../src/bos/usr/ccs/lib/libc/__threads_init.c(/lib/crt0_64.o)
+    0000000110007058 00000004  2 TD CM S718  p_xrcfg                   crt0_64.s(/lib/crt0_64.o)
+    000000011000705C 00000004  2 TD CM S719  p_xrc                     crt0_64.s(/lib/crt0_64.o)
+    0000000110007060 00000008  3 TC SD S720  <__C_runtime_pstartup>
+    0000000110007068 00000008  3 TC SD S721  <__crt0v>
+    0000000110007070 00000008  3 TC SD S722  <__malloc_user_defined_name>
+    0000000110007078 00000008  3 TC SD S723  <__pthread_trace>
+    0000000110007080 00000008  3 TC SD S724  <__pth_init>
+    0000000110007088 00000008  3 TC SD S725  <_$STATIC>
+    0000000110007090 00000008  3 TC SD S726  <_$STATIC>
+    0000000110007098 00000008  3 TC SD S727  <__n_pthreads>
+    00000001100070A0 00000008  3 TC SD S728  <__mod_init>
+    00000001100070A8 00000008  3 TC SD S729  <errno>
+    00000001100070B0 00000008  3 TC SD S730  <>
+    00000001100070B8 00000008  3 TC SD S731  <_$STATIC_BSS>
+    00000001100070C0 00000008  3 TC SD S732  <_xlf_read_real_time>
+    00000001100070C8 00000008  3 TC SD S733  <_xlf_time_base_to_time>
+    00000001100070D0 00000008  3 TC SD S734  <>
+    00000001100070D8 00000008  3 TC SD S735  <times>
+    00000001100070E0 00000008  3 TC SD S736  <>
+    00000001100070E8 00000008  3 TC SD S737  <getrusage>
+    00000001100070F0 00000008  3 TC SD S738  <printf>
+    00000001100070F8 00000008  3 TC SD S739  <tot_wall>
+    0000000110007100 00000008  3 TC SD S740  <fp>
+    0000000110007108 00000008  3 TC SD S741  <fprintf>
+    0000000110007110 00000008  3 TC SD S742  <twall>
+    0000000110007118 00000008  3 TC SD S743  <tbytes>
+    0000000110007120 00000008  3 TC SD S744  <tcpu>
+    0000000110007128 00000008  3 TC SD S745  <final_wall>
+    0000000110007130 00000008  3 TC SD S746  <start_wall>
+    0000000110007138 00000008  3 TC SD S747  <fclose>
+    0000000110007140 00000008  3 TC SD S748  <trace_flag>
+    0000000110007148 00000008  3 TC SD S749  <profile>
+    0000000110007150 00000008  3 TC SD S750  <>
+    0000000110007158 00000008  3 TC SD S751  <_$STATIC>
+    0000000110007160 00000008  3 TC SD S752  <_xlfBeginIO>
+    0000000110007168 00000008  3 TC SD S753  <_xlfEndIO>
+    0000000110007170 00000008  3 TC SD S754  <_xlfWriteFmt>
+    0000000110007178 00000008  3 TC SD S755  <_xlf_gettimeofday>
+    0000000110007180 00000008  3 TC SD S756  <_xlf_localtime_r>
+    0000000110007188 00000008  3 TC SD S757  <_xlf_gmtime_r>
+    0000000110007190 00000008  3 TC SD S758  <_$STATIC>
+    0000000110007198 00000008  3 TC SD S759  <>
+    00000001100071A0 00000008  3 TC SD S760  <_$STATIC>
+    00000001100071A8 00000008  3 TC SD S761  <_xlfReadFmt>
+    00000001100071B0 00000008  3 TC SD S762  <_$STATIC_BSS>
+    00000001100071B8 00000008  3 TC SD S763  <#BLNK_COM>
+    00000001100071C0 00000008  3 TC SD S764  <dat>
+    00000001100071C8 00000008  3 TC SD S765  <_$STATIC>
+    00000001100071D0 00000008  3 TC SD S766  <_$STATIC_BSS>
+    00000001100071D8 00000008  3 TC SD S767  <_$STATIC>
+    00000001100071E0 00000008  3 TC SD S768  <_xlfReadUfmt>
+    00000001100071E8 00000008  3 TC SD S769  <>
+    00000001100071F0 00000008  3 TC SD S770  <_xlfReadUfmtArray>
+    00000001100071F8 00000008  3 TC SD S771  <_xlfWriteLDChar>
+    0000000110007200 00000008  3 TC SD S772  <_xlfWriteLDInt>
+    0000000110007208 00000008  3 TC SD S773  <>
+    0000000110007210 00000008  3 TC SD S774  <t>
+    0000000110007218 00000008  3 TC SD S775  <>
+    0000000110007220 00000008  3 TC SD S776  <>
+    0000000110007228 00000008  3 TC SD S777  <_xlfWriteLDReal>
+    0000000110007230 00000008  3 TC SD S778  <__malloc>
+    0000000110007238 00000008  3 TC SD S779  <_xlf_memcpy>
+    0000000110007240 00000008  3 TC SD S780  <_xlf_system>
+    0000000110007248 00000008  3 TC SD S781  <__free>
+    0000000110007250 00000008  3 TC SD S782  <>
+    0000000110007258 00000008  3 TC SD S783  <_$STATIC>
+    0000000110007260 00000008  3 TC SD S784  <_$STATIC_BSS>
+    0000000110007268 00000008  3 TC SD S785  <stbfr>
+    0000000110007270 00000008  3 TC SD S786  <>
+    0000000110007278 00000008  3 TC SD S787  <_$STATIC>
+    0000000110007280 00000008  3 TC SD S788  <_$STATIC>
+    0000000110007288 00000008  3 TC SD S789  <>
+    0000000110007290 00000008  3 TC SD S790  <exit>
+    0000000110007298 00000008  3 TC SD S791  <_$STATIC>
+    00000001100072A0 00000008  3 TC SD S792  <msgcwd>
+    00000001100072A8 00000008  3 TC SD S793  <bitbuf>
+    00000001100072B0 00000008  3 TC SD S794  <s01cm>
+    00000001100072B8 00000008  3 TC SD S795  <>
+    00000001100072C0 00000008  3 TC SD S796  <hrdwrd>
+    00000001100072C8 00000008  3 TC SD S797  <_$STATIC_BSS>
+    00000001100072D0 00000008  3 TC SD S798  <quiet>
+    00000001100072D8 00000008  3 TC SD S799  <_$STATIC>
+    00000001100072E0 00000008  3 TC SD S800  <>
+    00000001100072E8 00000008  3 TC SD S801  <>
+    00000001100072F0 00000008  3 TC SD S802  <_$STATIC>
+    00000001100072F8 00000008  3 TC SD S803  <charac>
+    0000000110007300 00000008  3 TC SD S804  <_system_configuration>
+    0000000110007308 00000008  3 TC SD S805  <_xlfWriteFmtArray>
+    0000000110007310 00000008  3 TC SD S806  <>
+    0000000110007318 00000008  3 TC SD S807  <>
+    0000000110007320 00000008  3 TC SD S808  <>
+    0000000110007328 00000008  3 TC SD S809  <_$STATIC>
+    0000000110007330 00000008  3 TC SD S810  <>
+    0000000110007338 00000008  3 TC SD S811  <msgstd>
+    0000000110007340 00000008  3 TC SD S812  <_$STATIC>
+    0000000110007348 00000008  3 TC SD S813  <>
+    0000000110007350 00000008  3 TC SD S814  <_$STATIC>
+    0000000110007358 00000008  3 TC SD S815  <reptab>
+    0000000110007360 00000008  3 TC SD S816  <tababd>
+    0000000110007368 00000008  3 TC SD S817  <>
+    0000000110007370 00000008  3 TC SD S818  <>
+    0000000110007378 00000008  3 TC SD S819  <_$STATIC>
+    0000000110007380 00000008  3 TC SD S820  <_$STATIC>
+    0000000110007388 00000008  3 TC SD S821  <>
+    0000000110007390 00000008  3 TC SD S822  <_$STATIC>
+    0000000110007398 00000008  3 TC SD S823  <>
+    00000001100073A0 00000008  3 TC SD S824  <dxtab>
+    00000001100073A8 00000008  3 TC SD S825  <>
+    00000001100073B0 00000008  3 TC SD S826  <_$STATIC>
+    00000001100073B8 00000008  3 TC SD S827  <>
+    00000001100073C0 00000008  3 TC SD S828  <>
+    00000001100073C8 00000008  3 TC SD S829  <_$STATIC>
+    00000001100073D0 00000008  3 TC SD S830  <sprintf>
+    00000001100073D8 00000008  3 TC SD S831  <>
+    00000001100073E0 00000008  3 TC SD S832  <strlen>
+    00000001100073E8 00000008  3 TC SD S833  <>
+    00000001100073F0 00000008  3 TC SD S834  <_$STATIC>
+    00000001100073F8 00000008  3 TC SD S835  <>
+    0000000110007400 00000008  3 TC SD S836  <_$STATIC>
+    0000000110007408 00000008  3 TC SD S837  <>
+    0000000110007410 00000008  3 TC SD S838  <>
+    0000000110007418 00000008  3 TC SD S839  <_$STATIC>
+    0000000110007420 00000008  3 TC SD S840  <>
+    0000000110007428 00000008  3 TC SD S841  <_$STATIC>
+    0000000110007430 00000008  3 TC SD S842  <sect01>
+    0000000110007438 00000008  3 TC SD S843  <_$STATIC_BSS>
+    0000000110007440 00000008  3 TC SD S844  <_$STATIC>
+    0000000110007448 00000008  3 TC SD S845  <>
+    0000000110007450 00000008  3 TC SD S846  <>
+    0000000110007458 00000008  3 TC SD S847  <nulbfr>
+    0000000110007460 00000008  3 TC SD S848  <_xlfWriteUfmtArray>
+    0000000110007468 00000008  3 TC SD S849  <bufrmg>
+    0000000110007470 00000008  3 TC SD S850  <>
+    0000000110007478 00000008  3 TC SD S851  <_$STATIC>
+    0000000110007480 00000008  3 TC SD S852  <>
+    0000000110007488 00000008  3 TC SD S853  <_$STATIC>
+    0000000110007490 00000008  3 TC SD S854  <>
+    0000000110007498 00000008  3 TC SD S855  <_$STATIC>
+    00000001100074A0 00000008  3 TC SD S856  <comprs>
+    00000001100074A8 00000008  3 TC SD S857  <tables>
+    00000001100074B0 00000008  3 TC SD S858  <usrint>
+    00000001100074B8 00000008  3 TC SD S859  <>
+    00000001100074C0 00000008  3 TC SD S860  <_$STATIC>
+    00000001100074C8 00000008  3 TC SD S861  <>
+    00000001100074D0 00000008  3 TC SD S862  <_$STATIC>
+    00000001100074D8 00000008  3 TC SD S863  <_$STATIC>
+    00000001100074E0 00000008  3 TC SD S864  <>
+    00000001100074E8 00000008  3 TC SD S865  <maxcmp>
+    00000001100074F0 00000008  3 TC SD S866  <>
+    00000001100074F8 00000008  3 TC SD S867  <_$STATIC>
+    0000000110007500 00000008  3 TC SD S868  <>
+    0000000110007508 00000008  3 TC SD S869  <>
+    0000000110007510 00000008  3 TC SD S870  <_$STATIC>
+    0000000110007518 00000008  3 TC SD S871  <_xlfIOCmd>
+    0000000110007520 00000008  3 TC SD S872  <_$STATIC_BSS>
+    0000000110007528 00000008  3 TC SD S873  <>
+    0000000110007530 00000008  3 TC SD S874  <_$STATIC>
+    0000000110007538 00000008  3 TC SD S875  <>
+    0000000110007540 00000008  3 TC SD S876  <padesc>
+    0000000110007548 00000008  3 TC SD S877  <_$STATIC>
+    0000000110007550 00000008  3 TC SD S878  <mrgcom>
+    0000000110007558 00000008  3 TC SD S879  <dateln>
+    0000000110007560 00000008  3 TC SD S880  <acmode>
+    0000000110007568 00000008  3 TC SD S881  <msgcmp>
+    0000000110007570 00000008  3 TC SD S882  <bufrsr>
+    0000000110007578 00000008  3 TC SD S883  <_$STATIC_BSS>
+    0000000110007580 00000008  3 TC SD S884  <_$STATIC>
+    0000000110007588 00000008  3 TC SD S885  <>
+    0000000110007590 00000008  3 TC SD S886  <_$STATIC_BSS>
+    0000000110007598 00000008  3 TC SD S887  <>
+    00000001100075A0 00000008  3 TC SD S888  <_$STATIC>
+    00000001100075A8 00000008  3 TC SD S889  <msgfmt>
+    00000001100075B0 00000008  3 TC SD S890  <_$STATIC>
+    00000001100075B8 00000008  3 TC SD S891  <_$STATIC>
+    00000001100075C0 00000008  3 TC SD S892  <>
+    00000001100075C8 00000008  3 TC SD S893  <_$STATIC>
+    00000001100075D0 00000008  3 TC SD S894  <>
+    00000001100075D8 00000008  3 TC SD S895  <_$STATIC>
+    00000001100075E0 00000008  3 TC SD S896  <>
+    00000001100075E8 00000008  3 TC SD S897  <>
+    00000001100075F0 00000008  3 TC SD S898  <_$STATIC>
+    00000001100075F8 00000008  3 TC SD S899  <_$STATIC>
+    0000000110007600 00000008  3 TC SD S900  <>
+    0000000110007608 00000008  3 TC SD S901  <_$STATIC>
+    0000000110007610 00000008  3 TC SD S902  <_$STATIC>
+    0000000110007618 00000008  3 TC SD S903  <>
+    0000000110007620 00000008  3 TC SD S904  <_$STATIC>
+    0000000110007628 00000008  3 TC SD S905  <>
+    0000000110007630 00000008  3 TC SD S906  <stcach>
+    0000000110007638 00000008  3 TC SD S907  <>
+    0000000110007640 00000008  3 TC SD S908  <_$STATIC>
+    0000000110007648 00000008  3 TC SD S909  <>
+    0000000110007650 00000008  3 TC SD S910  <_$STATIC>
+    0000000110007658 00000008  3 TC SD S911  <>
+    0000000110007660 00000008  3 TC SD S912  <_$STATIC>
+    0000000110007668 00000008  3 TC SD S913  <tabccc>
+    0000000110007670 00000008  3 TC SD S914  <>
+    0000000110007678 00000008  3 TC SD S915  <_$STATIC>
+    0000000110007680 00000008  3 TC SD S916  <>
+    0000000110007688 00000008  3 TC SD S917  <_$STATIC>
+    0000000110007690 00000008  3 TC SD S918  <>
+    0000000110007698 00000008  3 TC SD S919  <_$STATIC>
+    00000001100076A0 00000008  3 TC SD S920  <_$STATIC>
+    00000001100076A8 00000008  3 TC SD S921  <>
+    00000001100076B0 00000008  3 TC SD S922  <_$STATIC>
+    00000001100076B8 00000008  3 TC SD S923  <>
+    00000001100076C0 00000008  3 TC SD S924  <_$STATIC>
+    00000001100076C8 00000008  3 TC SD S925  <>
+    00000001100076D0 00000008  3 TC SD S926  <_$STATIC>
+    00000001100076D8 00000008  3 TC SD S927  <_$STATIC>
+    00000001100076E0 00000008  3 TC SD S928  <>
+    00000001100076E8 00000008  3 TC SD S929  <_$STATIC>
+    00000001100076F0 00000008  3 TC SD S930  <>
+    00000001100076F8 00000008  3 TC SD S931  <>
+    0000000110007700 00000008  3 TC SD S932  <_$STATIC>
+    0000000110007708 00000008  3 TC SD S933  <>
+    0000000110007710 00000008  3 TC SD S934  <>
+    0000000110007718 00000008  3 TC SD S935  <_$STATIC>
+    0000000110007720 00000008  3 TC SD S936  <>
+    0000000110007728 00000008  3 TC SD S937  <_$STATIC>
+    0000000110007730 00000008  3 TC SD S938  <>
+    0000000110007738 00000008  3 TC SD S939  <>
+    0000000110007740 00000008  3 TC SD S940  <_$STATIC>
+    0000000110007748 00000008  3 TC SD S941  <>
+    0000000110007750 00000008  3 TC SD S942  <_$STATIC>
+    0000000110007758 00000008  3 TC SD S943  <_$STATIC>
+    0000000110007760 00000008  3 TC SD S944  <>
+    0000000110007768 00000008  3 TC SD S945  <_$STATIC>
+    0000000110007770 00000008  3 TC SD S946  <>
+    0000000110007778 00000008  3 TC SD S947  <>
+    0000000110007780 00000008  3 TC SD S948  <_$STATIC>
+    0000000110007788 00000008  3 TC SD S949  <_$STATIC>
+    0000000110007790 00000008  3 TC SD S950  <msgptr>
+    0000000110007798 00000008  3 TC SD S951  <>
+    00000001100077A0 00000008  3 TC SD S952  <>
+    00000001100077A8 00000008  3 TC SD S953  <_$STATIC_BSS>
+    00000001100077B0 00000008  3 TC SD S954  <_$STATIC>
+    00000001100077B8 00000008  3 TC SD S955  <>
+    00000001100077C0 00000008  3 TC SD S956  <_$STATIC>
+    00000001100077C8 00000008  3 TC SD S957  <>
+    00000001100077D0 00000008  3 TC SD S958  <_$STATIC_BSS>
+    00000001100077D8 00000008  3 TC SD S959  <stords>
+    00000001100077E0 00000008  3 TC SD S960  <_$STATIC>
+    00000001100077E8 00000008  3 TC SD S961  <usrstr>
+    00000001100077F0 00000008  3 TC SD S962  <>
+    00000001100077F8 00000008  3 TC SD S963  <>
+    0000000110007800 00000008  3 TC SD S964  <utgprm>
+    0000000110007808 00000008  3 TC SD S965  <_$STATIC>
+    0000000110007810 00000008  3 TC SD S966  <_$STATIC>
+    0000000110007818 00000008  3 TC SD S967  <>
+    0000000110007820 00000008  3 TC SD S968  <>
+    0000000110007828 00000008  3 TC SD S969  <_$STATIC>
+    0000000110007830 00000008  3 TC SD S970  <>
+    0000000110007838 00000008  3 TC SD S971  <_$STATIC>
+    0000000110007840 00000008  3 TC SD S972  <>
+    0000000110007848 00000008  3 TC SD S973  <_$STATIC>
+    0000000110007850 00000008  3 TC SD S974  <_$STATIC>
+    0000000110007858 00000008  3 TC SD S975  <>
+    0000000110007860 00000008  3 TC SD S976  <>
+    0000000110007868 00000008  3 TC SD S977  <_$STATIC>
+    0000000110007870 00000008  3 TC SD S978  <>
+    0000000110007878 00000008  3 TC SD S979  <_$STATIC>
+    0000000110007880 00000008  3 TC SD S980  <_$STATIC>
+    0000000110007888 00000008  3 TC SD S981  <>
+    0000000110007890 00000008  3 TC SD S982  <>
+    0000000110007898 00000008  3 TC SD S983  <_$STATIC>
+    00000001100078A0 00000008  3 TC SD S984  <>
+    00000001100078A8 00000008  3 TC SD S985  <_$STATIC>
+    00000001100078B0 00000008  3 TC SD S986  <>
+    00000001100078B8 00000008  3 TC SD S987  <>
+    00000001100078C0 00000008  3 TC SD S988  <>
+    00000001100078C8 00000008  3 TC SD S989  <_$STATIC>
+    00000001100078D0 00000008  3 TC SD S990  <>
+    00000001100078D8 00000008  3 TC SD S991  <_$STATIC>
+    00000001100078E0 00000008  3 TC SD S992  <_$STATIC>
+    00000001100078E8 00000008  3 TC SD S993  <>
+    00000001100078F0 00000008  3 TC SD S994  <_$STATIC>
+    00000001100078F8 00000008  3 TC SD S995  <>
+    0000000110007900 00000008  3 TC SD S996  <>
+    0000000110007908 00000008  3 TC SD S997  <_xlfExit>
+    0000000110007910 00000008  2 RW CM S998  __C_runtime_pstartup      crt0_64.s(/lib/crt0_64.o)
+    0000000110007918 00000078  3 RW CM S999  <_$STATIC_BSS>            /gpfs/m/nco/ops/nwtest/lib/sorc/w3/w3tagb.f(/nwprod/lib/libw3_4.a[w3tagb.o])
+    0000000110007990 00000008  3 RW CM S1000 tot_wall                  /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    0000000110007998 00000008  3 RW CM S1001 fp                        /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079A0 00000008  3 RW CM S1002 twall                     /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079A8 00000008  3 RW CM S1003 tbytes                    /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079B0 00000008  3 RW CM S1004 tcpu                      /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079B8 00000008  3 RW CM S1005 final_wall                /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079C0 00000008  3 RW CM S1006 start_wall                /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079C8 00000004  2 RW CM S1007 trace_flag                /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079CC 00000004  2 RW CM S1008 profile                   /gpfs/m/nco/ops/nwtest/lib/sorc/w3/summary.c(/nwprod/lib/libw3_4.a[summary.o])
+    00000001100079D0 000012A8  3 RW CM S1009 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f(ngm2bufr.o)
+    0000000110008C78 00001774  3 RW CM S1010 #BLNK_COM                 /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f(guvtqp.o)
+    000000011000A3F0 0190C1C0  3 RW CM S1011 dat                       /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/ngm2bufr.f(ngm2bufr.o)
+    00000001119165B0 00000880  3 RW CM S1012 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/guvtqp.f(guvtqp.o)
+    0000000111916E30 00000108  3 RW CM S1013 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrize.f(bfrize.o)
+    0000000111916F38 00000100  3 RW CM S1014 stbfr                     /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000111917038 00000280  3 RW CM S1015 msgcwd                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cktaba.f(/nwprod/lib/libbufr_4_64.a[cktaba.o])
+    00000001119172B8 00192DD8  3 RW CM S1016 bitbuf                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000111AAA090 0000007C  3 RW CM S1017 s01cm                     /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgwrt.f(/nwprod/lib/libbufr_4_64.a[msgwrt.o])
+    0000000111AAA110 0000002C  3 RW CM S1018 hrdwrd                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/adn30.f(/nwprod/lib/libbufr_4_64.a[adn30.o])
+    0000000111AAA13C 00000004  2 RW CM S1019 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrdlen.f(/nwprod/lib/libbufr_4_64.a[wrdlen.o])
+    0000000111AAA140 00000004  2 RW CM S1020 quiet                     /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cktaba.f(/nwprod/lib/libbufr_4_64.a[cktaba.o])
+    0000000111AAA148 00000804  3 RW CM S1021 charac                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/chrtrna.f(/nwprod/lib/libbufr_4_64.a[chrtrna.o])
+    0000000111AAA94C 00000001  2 RW CM S1022 msgstd                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000111AAA950 00000064  3 RW CM S1023 reptab                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000111AAA9B8 00BBE58C  3 RW CM S1024 tababd                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000112668F48 00000300  3 RW CM S1025 dxtab                     /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    0000000112669248 0000007C  3 RW CM S1026 sect01                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/msgwrt.f(/nwprod/lib/libbufr_4_64.a[msgwrt.o])
+    00000001126692C4 00000004  2 RW CM S1027 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ovrbs1.f(/nwprod/lib/libbufr_4_64.a[ovrbs1.o])
+    00000001126692C8 00000080  3 RW CM S1028 nulbfr                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/closbf.f(/nwprod/lib/libbufr_4_64.a[closbf.o])
+    0000000112669348 0000C354  3 RW CM S1029 bufrmg                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    00000001126756A0 0896BB18  3 RW CM S1030 comprs                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/wrcmps.f(/nwprod/lib/libbufr_4_64.a[wrcmps.o])
+    000000011AFE11B8 0013D628  3 RW CM S1031 tables                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B11E7E0 00753080  3 RW CM S1032 usrint                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/conwin.f(/nwprod/lib/libbufr_4_64.a[conwin.o])
+    000000011B871860 00000018  3 RW CM S1033 maxcmp                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B871878 00000004  2 RW CM S1034 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openbf.f(/nwprod/lib/libbufr_4_64.a[openbf.o])
+    000000011B871880 00000014  3 RW CM S1035 padesc                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B871898 00000010  3 RW CM S1036 mrgcom                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B8718A8 00000004  2 RW CM S1037 dateln                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B8718AC 00000004  2 RW CM S1038 acmode                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B8718B0 00000001  2 RW CM S1039 msgcmp                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B8718B8 0000C3F8  3 RW CM S1040 bufrsr                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/bfrini.f(/nwprod/lib/libbufr_4_64.a[bfrini.o])
+    000000011B87DCB0 00000004  2 RW CM S1041 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs1.f(/nwprod/lib/libbufr_4_64.a[pkvs1.o])
+    000000011B87DCB4 00000004  2 RW CM S1042 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/pkvs01.f(/nwprod/lib/libbufr_4_64.a[pkvs01.o])
+    000000011B87DCB8 00000080  3 RW CM S1043 msgfmt                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/openbf.f(/nwprod/lib/libbufr_4_64.a[openbf.o])
+    000000011B87DD38 0004844C  3 RW CM S1044 stcach                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/strcln.f(/nwprod/lib/libbufr_4_64.a[strcln.o])
+    000000011B8C6188 00000010  3 RW CM S1045 tabccc                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/tabent.f(/nwprod/lib/libbufr_4_64.a[tabent.o])
+    000000011B8C6198 00000018  3 RW CM S1046 msgptr                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/cpyupd.f(/nwprod/lib/libbufr_4_64.a[cpyupd.o])
+    000000011B8C61B0 00000140  3 RW CM S1047 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/sorc/ngm_ngm2bufr.fd/bfrhdr.f(bfrhdr.o)
+    000000011B8C62F0 00000008  3 RW CM S1048 <_$STATIC_BSS>            /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/ufbint.f(/nwprod/lib/libbufr_4_64.a[ufbint.o])
+    000000011B8C62F8 00001F40  3 RW CM S1049 stords                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/string.f(/nwprod/lib/libbufr_4_64.a[string.o])
+    000000011B8C8238 000000D0  3 RW CM S1050 usrstr                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/conwin.f(/nwprod/lib/libbufr_4_64.a[conwin.o])
+    000000011B8C8308 00000004  2 RW CM S1051 utgprm                    /gpfs/m/nco/ops/nwprod/lib/sorc/bufr/parutg.f(/nwprod/lib/libbufr_4_64.a[parutg.o])

@@ -1,0 +1,56 @@
+SRCS=	AOPMULT.f   DTOVBL.f    GETSIG.f    M1FTRG.f    S2G1.f      SWAPVBL.f \
+	ATEIG.f     EGVLVE.f    GETTOPS.f   M1GLAT.f    SANDF.f     TEMPERTN.f \
+	BALDIAG.f   FINALDIA.f  GETVIRTT.f  M1IPQR.f    SCALCOFS.f  TIMESMOO.f \
+	BALPRNT.f   FMXMIN.f    GINTERP0.f  M1POLY.f    SETDSIG.f   TOVBL.f \
+	BALTEND.f   FOPMULT.f   HLLO2POL.f  M1RCONS.f   SETSHIFT.f  TWOPLATE.f \
+	BLOCSP00.f  FREECOEF.f  HLPO2LOL.f  M1VPAS.f    SETSP02.f   UNAVERTA.f \
+	BLOCSP02.f  FREEGRID.f  HSBG.f      MAIN.f      SETSP03.f   USCLCOFS.f \
+	BLOCSP03.f  FROMVBL.f   INTERCON.f  MINV.f      SETUPR00.f  VMATHS.f \
+	CFROMVBL.f  G2S1.f      INTERP1.f   MMULT.f     SFROMVBL.f  VTRANSFR.f \
+	CHECKINV.f  GETACTT.f   LOLARXY.f   MODT2SIG.f  SIGT2MOD.f  W3FA03.f \
+	RESTARTR.f  RESTARTW.f  WRTDAT.f    BITOUT.f    LATBND.f    P2KAP.f \
+	SHEM.f      SHEMPRE.f   ONEGRID.f   ERRPRINT.f \
+	ONEWAY.f    BLEND.f \
+	CONMC.f     GETCOEF.f   M1FAX.f     MODU2SIG.f  SIGU2MOD.f \
+	CONVERTA.f  GETDEPTH.f  M1FFTA.f    MYVATAN2.f  SOLVTRID.f \
+	CTOVBL.f    GETGRID.f   M1FFTB.f    POLARXY.f   SPLUSF.f \
+	CZEROVBL.f  GETLALO.f   M1FFTM.f    POLORXY.f   STOVBL.f isrchfge.f
+
+OBJS=	AOPMULT.o   DTOVBL.o    GETSIG.o    M1FTRG.o    S2G1.o      SWAPVBL.o \
+	ATEIG.o     EGVLVE.o    GETTOPS.o   M1GLAT.o    SANDF.o     TEMPERTN.o \
+	BALDIAG.o   FINALDIA.o  GETVIRTT.o  M1IPQR.o    SCALCOFS.o  TIMESMOO.o \
+	BALPRNT.o   FMXMIN.o    GINTERP0.o  M1POLY.o    SETDSIG.o   TOVBL.o \
+	BALTEND.o   FOPMULT.o   HLLO2POL.o  M1RCONS.o   SETSHIFT.o  TWOPLATE.o \
+	BLOCSP00.o  FREECOEF.o  HLPO2LOL.o  M1VPAS.o    SETSP02.o   UNAVERTA.o \
+	BLOCSP02.o  FREEGRID.o  HSBG.o      MAIN.o      SETSP03.o   USCLCOFS.o \
+	BLOCSP03.o  FROMVBL.o   INTERCON.o  MINV.o      SETUPR00.o  VMATHS.o \
+	CFROMVBL.o  G2S1.o      INTERP1.o   MMULT.o     SFROMVBL.o  VTRANSFR.o \
+	CHECKINV.o  GETACTT.o   LOLARXY.o   MODT2SIG.o  SIGT2MOD.o  W3FA03.o \
+	RESTARTR.o  RESTARTW.o  WRTDAT.o    BITOUT.o    LATBND.o    P2KAP.o \
+	SHEM.o      SHEMPRE.o   ONEGRID.o   ERRPRINT.o \
+	ONEWAY.o    BLEND.o \
+	CONMC.o     GETCOEF.o   M1FAX.o     MODU2SIG.o  SIGU2MOD.o \
+	CONVERTA.o  GETDEPTH.o  M1FFTA.o    MYVATAN2.o  SOLVTRID.o \
+	CTOVBL.o    GETGRID.o   M1FFTB.o    POLARXY.o   SPLUSF.o \
+	CZEROVBL.o  GETLALO.o   M1FFTM.o    POLORXY.o   STOVBL.o isrchfge.o
+
+#
+#LDFLAGS=-i MAXHEAP -M load.MAPP,s
+LDFLAGS =     -bD:2040000000 -bmap:map     -bnoquiet
+
+FC = ncepxlf
+FFLAGS =        -O   -qintsize=4 -qrealsize=4 -qstrict -qddim -qmaxmem=-1 -qsource \
+                -qxref=full -qattr -qsave -qspillsize=548 -bloadmap:lm
+LIBA=-L/nwprod/lib -lw3_4
+COMMAND=ngm_ngmini
+
+$(COMMAND):	$(OBJS)
+	$(FC)  $(LDFLAGS) -o $(COMMAND) $(LIBA) $(OBJS)
+
+
+.f.o:
+	ncepxlf  $(FFLAGS) -c $*.f
+
+clean:
+	rm -f core fort.14 *.o *.lst
+

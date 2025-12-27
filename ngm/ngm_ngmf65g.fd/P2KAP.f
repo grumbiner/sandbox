@@ -1,0 +1,61 @@
+      SUBROUTINE P2KAP( P, PI, N )
+C...TRANSLATED BY FPP 3.00Z36 11/09/90  14:46:44  
+C...SWITCHES: OPTON=I47,OPTOFF=VAE0
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    P2KAP       SFC PRESSURE TO KAPPA POWER
+ 
+C   PRGMMR: TUCCILLO         ORG: W/NMC40    DATE: 90-05-17
+C
+C ABSTRACT: COMPUTE SFC PRESSURE TO KAPPA POWER USING RATIO OF TWO
+C   POLYNOMIALS IN PRESSURE.
+C
+C PROGRAM HISTORY LOG:
+C   90-05-19  J TUCCILLO
+C
+C USAGE:  CALL P2KAP(P,PI,N)
+C   INPUT ARGUMENT LIST:
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C     P           PRESSURE IN UNITS OF 100 CB               ARGUMENT
+C                 SHOULD BE IN THE RANGE 0.5-1.1
+C
+C     N           LENGTH OF INPUT VECTOR P,WORK VECTOR X,   ARGUMENT
+C                 AND OUTPUT VECTOR PI.
+C
+C   OUTPUT ARGUMENT LIST:
+C     NAMES       MEANING/CONTENT/PURPOSE/UNITS/TYPE        INTERFACE
+C     -----       ----------------------------------        ---------
+C
+C     PI          P RAISED TO THE KAPPA POWER               ARGUMENT
+C
+C REMARKS:
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+      DIMENSION P(*), PI(*)
+C
+C     VALID FOR P RANGING FROM 0.5 TO 1.1 AND KAPPA EQUAL TO 0.2856219
+C
+      PARAMETER ( COFD1 = 1.,
+     *            COFD2 = 5.44053037,
+     *            COFD3 = 2.27693825,
+     *            COFD4 = -0.0869930591,
+     *            COFN1 = 0.34757549,
+     *            COFN2 = 4.36732956,
+     *            COFN3 = 3.91557032 )                       	
+C
+CMIC$ DO ALL VECTOR SHARED(N, P, PI) PRIVATE(I)
+      DO 1 I = 1, N
+         PI(I)=(COFN1+P(I)*(COFN2+P(I)*COFN3))/
+     *         (COFD1+P(I)*(COFD2+P(I)*(COFD3+P(I)*COFD4)))
+1      CONTINUE
+C
+C
+      RETURN
+      END

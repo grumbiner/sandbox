@@ -1,0 +1,103 @@
+       SUBROUTINE SPLUSF(ZS,DF,HF,Z,D,H,DEPTH,TRANS,JCAPIN)
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C                .      .    .                                       .
+C SUBPROGRAM:    SPLUSF      SLOW-AND-FAST TO SLOW+FAST TRANSFORM
+C   PRGMMR: PARRISH          ORG: W/NMC22    DATE: 88-06-13
+C
+C ABSTRACT: GO FROM TEMPERTON SLOW-AND-FAST DECOMPOSITION TO FULL
+C   VARIABLES (OR APPLY TRANSPOSE OF THIS OPERATION IF TRANS=-1).
+C
+C PROGRAM HISTORY LOG:
+C   88-06-13  PARRISH
+C
+C USAGE:    CALL SPLUSF(ZS,DF,HF,Z,D,H,DEPTH,TRANS,JCAPIN)
+C   INPUT ARGUMENT LIST:
+C     ZS       - SLOW COMPONENT OF VORTICITY.
+C     DF       - FAST COMPONENT OF DIVERGENCE.
+C     HF       - FAST HEIGHT COMPONENT
+C     DEPTH    - SCALE HEIGHT.
+C     TRANS    - =1: SLOW-AND-FAST TRANSFORMED TO SLOW + FAST
+C              - =-1: TRANSPOSE OPERATOR.
+C     JCAPIN   - TRIANGULAR TRUNCATION
+C
+C   OUTPUT ARGUMENT LIST:
+C     Z        - SLOW + FAST VORTICITY
+C     D        - FAST DIVERGENCE (NOT CHANGED FROM INPUT--SLOW DIV=0)
+C     H        - SLOW + FAST HEIGHT
+C
+C REMARKS: MUST INCLUDE BLOCK DATA BLOCKSP02 AND DEFINITION OF
+C           PL1 VARIABLES BEFORE COMPILING.
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN200
+C   MACHINE:  CYBER
+C
+C$$$
+         include "myparam"
+C--------
+         real ZS(1),DF(1),HF(1),Z(1),D(1),H(1)
+C--------
+         LOGICAL BWORK(INCOEFS)
+C--------
+         COMMON/DAVEBUFF/ COF(INCOEFS,INUMCOEF),GRD(INLOLA,INUMGRID)
+         real COF,GRD
+C--------
+         COMMON/FIXSP02/JCAP,NCOEFS,NFOP,JFOP,
+     *      ISCALZD,IUNSCLZD,
+     *      IBSHAT,IBVHAT,IBVIHAT,
+     *      IBOP,ICOP,IFOP,ICINVOP,
+     *      IRFOP,IRCINVOP,
+     *      BFOP(INCOEFS),BONES(INCOEFS)
+         LOGICAL BFOP,BONES
+C--------
+C-------- CHECK TO SEE IF INITIALIZATION OF INTERNAL VARIABLES NEEDED
+         IF(JCAP.NE.JCAPIN) CALL SETSP02(JCAPIN)
+C--------
+C-------- MAKE SURE ZONAL PART OF COEFS HAS PROPER FORM
+C--------
+         do 10002 i=1,ncoefs
+         ZS(i)=COF(i,IBVHAT)*ZS(i)
+         DF(i)=COF(i,IBVIHAT)*DF(i)
+         HF(i)=COF(i,IBSHAT)*HF(i)
+10002    continue
+         C0INV=6.3712E6*7.2921E-5/SQRT(9.8062*DEPTH)
+C--------
+C-------- VORTICITY FIRST
+C--------
+         do 10004 i=1,ncoefs
+         D(i)=COF(i,ICINVOP)*HF(i)
+         D(i)=C0INV*D(i)
+10004    continue
+         CALL GETCOEF(IWORK,1)
+         CALL FOPMULT(D,Z,COF(1,IFOP),NCOEFS,NFOP,JFOP,COF(1,IWORK),
+     *                BFOP,BONES,BWORK)
+         do 10006 i=1,ncoefs
+         Z(i)=ZS(i)+TRANS*Z(i)
+10006    continue
+C--------
+C-------- HEIGHT NEXT
+C--------
+         CALL FOPMULT(ZS,D,COF(1,IFOP),NCOEFS,NFOP,JFOP,COF(1,IWORK),
+     *                BFOP,BONES,BWORK)
+         do 10008 i=1,ncoefs
+         H(i)=COF(i,ICINVOP)*D(i)
+         H(i)=C0INV*H(i)
+         H(i)=HF(i)-TRANS*H(i)
+10008    continue
+C--------
+C-------- FINALLY DIVERGENCE
+C--------
+         do 10010 i=1,ncoefs
+         D(i)=DF(i)
+10010    continue
+         CALL FREECOEF(IWORK,1)
+C--------
+C-------- MAKE SURE ZONAL PART OF COEFS HAS PROPER FORM
+C--------
+         do 10012 i=1,ncoefs
+         Z(i)=COF(i,IBVHAT)*Z(i)
+         D(i)=COF(i,IBVIHAT)*D(i)
+         H(i)=COF(i,IBSHAT)*H(i)
+10012    continue
+       RETURN
+       END

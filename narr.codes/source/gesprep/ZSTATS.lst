@@ -1,0 +1,454 @@
+XL Fortran for AIX Version 08.01.0001.0006 --- /mp/emc2/wx20du/narr_source/sorc/gesprep/ZSTATS.f 08/24/05 14:24:53
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         DBG             ESCAPE          FULLPATH        I4
+         NOLM            OBJECT          SOURCE          STRICT
+         SWAPOMP         UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR4)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*)       FLAG(I,I)             FLOAT(RNDSNGL,MAF,FOLD)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         NOSAVE()              UNROLL(AUTO)          XREF(FULL)
+         XFLAG()               XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE ZSTATS(DA,SI,OBUF,SI2,J,KLEV)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    ZSTATS      COMPUTE AND PRINT STATS ON HEIGHTS
+          5 |C   PRGMMR: DIMEGO           ORG: W/NMC22    DATE: 86-03-31
+          6 |C
+          7 |C ABSTRACT: COMPUTES STATISTICS ON THE COMPARISON OF ORIGINAL Z
+          8 |C   PROFILES FROM FIRST-GUESS WITH NEW PROFILES OF Z. ENTRY POINT
+          9 |C   DSTATS PRINTS OUT A TABLE OF STATISTICS FOR THE COMPARISON AT
+         10 |C   A FIXED SET OF 16 PRESSURES. BOTH INPUT PROFILES ARE IN SIGMA
+         11 |C   (GUESS & RAFS) AND MUST BE INTERPOLATED TO THE 16 PRESSURES.
+         12 |C   QUADRATIC IN LN P USED ALA THE LFM PROCEDURE.
+         13 |C
+         14 |C PROGRAM HISTORY LOG:
+         15 |C   86-03-31  DIMEGO
+         16 |C   88-06-30  DIMEGO      HALF PRECISION / PL1 / FTN200
+         17 |C
+         18 |C USAGE:    CALL ZSTATS(DA,SI,OBUF,SI2,J,KLEV)
+         19 |C   INPUT ARGUMENT LIST:
+         20 |C     DA       - MULTI-VARIABLE ARRAY OF GUESS STRIPS AT KLEV LEVELS
+         21 |C              - FIRST     VARIABLE IS GEOPOTENTIAL AT INTERFACES
+         22 |C              - SECOND    VARIABLE IS TEMPERATURE AT INTERFACES
+         23 |C              - THIRD     VARIABLE IS U COMPONENT OF WIND
+         24 |C              - FOURTH    VARIABLE IS V COMPONENT OF WIND
+         25 |C              - FIFTH     VARIABLE IS SPECIFIC HUMIDITY
+         26 |C     SI       - INTERFACE SIGMAS FOR THE GUESS VERTICAL STRUCTURE
+         27 |C     OBUF     - MULTI-VARIABLE ARRAY OF GUESS STRIPS AFTER THEY HAVE
+         28 |C              - BEEN INTERPOLATED TO RAFS SIGMA STRUCTURE
+         29 |C     SI2      - INTERFACE SIGMAS FOR THE RAFS VERTICAL STRUCTURE
+         30 |C     J        - INDEX OF THE STRIP BEING PROCESSED
+         31 |C     KLEV     - NUMBER OF LAYERS IN THE GUESS VERTICAL STRUCTURE
+         32 |C
+         33 |C   OUTPUT FILES:
+         34 |C     UNIT6    - DIAGNOSTIC PRINTOUT OF STATISTICS THROUGH
+         35 |C              - CALL TO DSTATS    NO ARGUMENTS
+         36 |C
+         37 |C REMARKS:   NO CAVEATS, OTHER HELPFUL HINTS NOR INFORMATION
+         38 |C
+         39 |C ATTRIBUTES:
+         40 |C   LANGUAGE: STANDARD FORTRAN
+         41 |C   MACHINE:
+         42 |C
+         43 |C$$$
+         44 |      IMPLICIT REAL (A-H,O-Z)
+         45 |        save
+         46 |      INCLUDE "parmanl"
+  1       1 |C  DCL /* IMGLO      IMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       2 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       3 |C  DCL /* JMGLO      JMGLO IS THE NUMBER OF GLOBAL GRID POINTS      */
+  1       4 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       5 |C  DCL /* IMAX       IMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       6 |C  DCL /*            IN THE EAST-WEST DIRECTION                     */
+  1       7 |C  DCL /* JMAX       JMAX IS THE NUMBER OF ANALYSIS GRID POINTS     */
+  1       8 |C  DCL /*            IN THE NORTH-SOUTH DIRECTION                   */
+  1       9 |C  DCL /* LMAX       LMAX IS THE NUMBER OF ETA LAYERS IN THE        */
+  1      10 |C  DCL /*            ANALYSIS GRID                                  */
+  1      11 |C  DCL /* LMAXP1     LMAXP1 IS THE NUMBER OF ETA-LAYER              */
+  1      12 |C  DCL /*            INTERFACES IN THE ANALYSIS                     */
+  1      13 |C  DCL /* LMXDBL     LMXDBL IS THE NUMBER OF ETA-LAYER              */
+  1      14 |C  DCL /*            INTERFACES + THE NUMBER OF LAYERS IN ANALYSIS  */
+  1      15 |C  DCL /* LDMAX      LDMAX IS THE NUMBER OF LAYERS OF MOISTURE      */
+  1      16 |C  DCL /*            PROCESSED IN THE ANALYSIS                      */
+  1      17 |C  DCL /* GRID       GRID IS NORTH-SOUTH EXTENT OF A DATA STRIP     */
+  1      18 |C  DCL /* GLOBAL     GLOBAL IS LOGICAL SWITCH GLOBAL=T,REGIONAL=F   */
+  1      19 |C  DCL /* YSOUTH     YSOUTH IS SOUTHERNMOST LATITUDE OF ANAL GRID   */
+  1      20 |       PARAMETER (IMGLO = 720 )
+  1      21 |       PARAMETER (JMGLO = 361  )
+  1      22 |       PARAMETER (IMAX = 440 )
+  1      23 |       PARAMETER (JMAX = 190  )
+  1      24 |c      parameter (imax=237)
+  1      25 |c      parameter (jmax=387)
+  1      26 |       PARAMETER (LMAX = 45    )
+  1      27 |       PARAMETER (LMAXP1 = 46 )
+  1      28 |       PARAMETER (LMXDBL = LMAX + LMAXP1 )
+  1      29 |       PARAMETER (LDMAX = 41 )
+  1      30 |       PARAMETER (LEVX = 3 * LMAX + LDMAX + 2 )
+  1      31 |       PARAMETER (GRID_111 = 0.5 )
+  1      32 |       LOGICAL    GLOBAL
+  1      33 |       PARAMETER (GLOBAL = .false. )
+  1      34 |       PARAMETER (YSOUTH =  -4.5 )
+  1      35 |       PARAMETER (DLON =  0.5 )
+         47 |      DIMENSION DA( IMAX , 50 ,6),OBUF( IMAX , LMAX ,6)
+         48 |      DIMENSION PIN( 50 ),TIN( 50 ),SI( 51 ),SI2( LMAXP1 )
+         49 |      DIMENSION POUT( LMAXP1 ),OUTZ( LMAXP1 ),TOUT( LMAXP1 )
+         50 |      DIMENSION MAXI(16),MAXJ(16)
+         51 |      DIMENSION STATZ(8,16)
+         52 |      DIMENSION IPMAND(16)
+         53 |      DATA STATZ/128*0.0/
+         54 |      DATA MAXI/16*0/,MAXJ/16*0/
+         55 |      DATA IPMAND/1000,925,850,700,600,500,400,300,
+         56 |     +             250,200,150,100, 70, 50, 30, 20/
+         57 |      R = 287.05
+         58 |      G = 9.8
+         59 |      ROG = R / G
+         60 |      DO 15 I=1, IMAX
+         61 |      PST1 = DA(I,KLEV-1,5)
+         62 |      DO 7 KK=1,KLEV
+         63 |C-------
+         64 |C     KM = MAX0(1,KK-1)
+         65 |C     KL = KM + 1
+         66 |C------- KM & KL WERE USED BELOW WHEN IT WAS NECESSARY
+         67 |C------- TO INTERPOLATE THE MID-POINT TEMPERATURES TO
+         68 |C------- THE INTERFACES WHERE WE HAVE THE GEOPOTENTIAL
+         69 |C------- WITH BOTH T & Z AT THE SAME LEVEL, THE QUADRATIC
+         70 |C------- INTERPOLATION REQUIRES ONLY THE TWO BRACKETTING
+         71 |C------- LEVELS. INTERFACE TEMPERATURES ARE NOW PASSEDTHRU DA.
+         72 |C-------
+         73 |      PIN(KK) = PST1 * SI(KK)
+         74 |      TIN(KK) = DA(I,KK,2)
+         75 |C------- THE AFOREMENTIONED  INTERPOLATION OF TEMPERATURE
+         76 |C     TIN(KK) = DA(I,KM,2) + (DA(I,KL,2) - DA(I,KM,2)) *
+         77 |C    + LOG(PIN(KK)/DA(I,KM,6))/LOG(DA(I,KL,6)/DA(I,KM,6))
+         78 |C-------
+         79 |    7 CONTINUE
+         80 |      POUT(1) = OBUF(I,LMAX-1,5)
+         81 |      OUTZ(1) = OBUF(I,LMAX  ,5)
+         82 |      TOUT(1) = OBUF(I,LMAX-2,5)
+         83 |      DO 8 KK=2,LMAXP1
+         84 |      POUT(KK) = OBUF(I,KK-1,6)
+         85 |      OUTZ(KK) = OBUF(I,KK-1,1)
+         86 |      TOUT(KK) = OBUF(I,KK-1,2)
+         87 |    8 CONTINUE
+         88 |      DO 14 K=1,16
+         89 |      P = IPMAND(K)
+         90 |      PLNP = LOG(P)
+         91 |      DO 1 KK=1,KLEV
+         92 |      KL = KK
+         93 |      IF(PIN(KK).LE.P) GO TO 2
+         94 |    1 CONTINUE
+         95 |      GO TO 14
+         96 |    2 CONTINUE
+         97 |      IF( KL.LE.1 )  GO TO 14
+         98 |      KM = KL - 1
+         99 |      ALNPKL = LOG(PIN(KL))
+        100 |      ALNPKM = LOG(PIN(KM))
+        101 |      DZ1= DA(I,KM,1)
+        102 |      DZ = DA(I,KL,1)
+        103 |      ALNP3 = 0.5 * (ALNPKM + ALNPKL)
+        104 |      DLNP = ALNPKL - ALNPKM
+        105 |      RLNP = 1.0 / DLNP
+        106 |      AZ = (DZ - DZ1) * RLNP
+        107 |      BT = ROG * (TIN(KL) - TIN(KM)) * RLNP
+        108 |      Z3 = 0.5*(DZ+DZ1) + 0.125*BT*DLNP*DLNP
+        109 |      ALNP = (PLNP - ALNP3)
+        110 |      ZIN = Z3 + (AZ - 0.5*BT*ALNP)*ALNP
+        111 |      DO 4 KK=1,LMAXP1
+        112 |      KL = KK
+        113 |      IF(POUT(KK).LE.P) GO TO 5
+        114 |    4 CONTINUE
+        115 |      GO TO 14
+        116 |    5 CONTINUE
+        117 |      IF( KL.LE.1 )  GO TO 14
+        118 |      KM = KL - 1
+        119 |      ALNPKL = LOG(POUT(KL))
+        120 |      ALNPKM = LOG(POUT(KM))
+        121 |      DZ1= OUTZ(KM)
+        122 |      DZ = OUTZ(KL)
+        123 |      ALNP3 = 0.5 * (ALNPKM + ALNPKL)
+        124 |      DLNP = ALNPKL - ALNPKM
+        125 |      RLNP = 1.0 / DLNP
+        126 |      AZ = (DZ - DZ1) * RLNP
+        127 |      BT = ROG * (TOUT(KL) - TOUT(KM)) * RLNP
+        128 |      Z3 = 0.5*(DZ+DZ1) + 0.125*BT*DLNP*DLNP
+        129 |      ALNP = (PLNP - ALNP3)
+        130 |      ZOUT= Z3 + (AZ - 0.5*BT*ALNP)*ALNP
+        131 |      ZDIF = ZOUT - ZIN
+        132 |      STATZ(8,K) = STATZ(8,K) + 1.0
+        133 |      STATZ(1,K) = STATZ(1,K) + ZIN
+        134 |      STATZ(2,K) = STATZ(2,K) + ZOUT
+        135 |      STATZ(3,K) = STATZ(3,K) + ZDIF
+        136 |      STATZ(4,K) = STATZ(4,K) + ZIN*ZIN
+        137 |      STATZ(5,K) = STATZ(5,K) + ZOUT*ZOUT
+        138 |      STATZ(6,K) = STATZ(6,K) + ZDIF*ZDIF
+        139 |      IF(ABS(ZDIF).LE.STATZ(7,K)) GO TO 10
+        140 |      STATZ(7,K) = ABS(ZDIF)
+        141 |      MAXI(K) = I
+        142 |      MAXJ(K) = J
+        143 |   10 CONTINUE
+        144 |   14 CONTINUE
+        145 |   15 CONTINUE
+        146 |      RETURN
+        147 |         ENTRY DSTATS
+        148 |      WRITE(6,20)
+        149 |   20 FORMAT('1       STATISTICAL ANALYSIS BY PRESSURE ',//,
+        150 |     + '  N        KP',10X,'BIAS',27X,'RMS',15X,'MAXDIF',//)
+        151 |      DO 25 K=1,16
+        152 |      COUNT = MAX(1.0 E+0,STATZ(8,K))
+        153 |      COUNT = 1.0 / COUNT
+        154 |      DO 25 I=1,3
+        155 |      STATZ(I,K) = STATZ(I,K) * COUNT
+        156 |      STATZ(I+3,K) = SQRT(STATZ(I+3,K)*COUNT)
+        157 |   25 CONTINUE
+        158 |      DO 35 KK=1,16
+        159 |      K=16-KK+1
+        160 |      KNT = MAX0(1,INT(STATZ(8,K)))
+        161 |      WRITE(6,30)KNT,IPMAND(K),(STATZ(I,K),I=1,7),MAXI(K),MAXJ(K)
+        162 |   30 FORMAT(I7,I6,6F10.3,F10.3,2I7)
+        163 |   35 CONTINUE
+        164 |      RETURN
+        165 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+abs                              Pure Intrinsic
+                                 0-139.10  0-140.20
+ 
+alnp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-109.7@  0-110.31  0-110.37  0-129.7@  0-130.31  0-130.37
+ 
+alnp3                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-103.7@  0-109.22  0-123.7@  0-129.22
+ 
+alnpkl                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-99.7@  0-103.31  0-104.14  0-119.7@  0-123.31  0-124.14
+ 
+alnpkm                           Static, Real(4), Offset: 0, Alignment: full word
+                                 0-100.7@  0-103.22  0-104.23  0-120.7@  0-123.22  0-124.23
+ 
+az                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-106.7@  0-110.19  0-126.7@  0-130.19
+ 
+bt                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-107.7@  0-108.33  0-110.28  0-127.7@  0-128.33  0-130.28
+ 
+count                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-152.7@  0-153.7@  0-153.21  0-155.33  0-156.40
+ 
+da                               Reference argument, Real(4) (1:440, 1:50, 1:6), Offset: 0, Alignment: full word
+                                 0-47.17$  0-1.25  0-61.14  0-74.17  0-101.12  0-102.12
+ 
+dlnp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-104.7@  0-105.20  0-108.36  0-108.41  0-124.7@  0-125.20  0-128.36  0-128.41
+ 
+dlon                             Parameter, Real(4)
+                                 1-35.19$
+ 
+dstats                           Entry
+                                 0-147.16$
+ 
+dz                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-102.7@  0-106.13  0-108.17  0-122.7@  0-126.13  0-128.17
+ 
+dz1                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-101.7@  0-106.18  0-108.20  0-121.7@  0-126.18  0-128.20
+ 
+g                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-59.17
+ 
+global                           Parameter, Logical(4)
+                                 1-32.19$  1-33.19$
+ 
+grid_111                         Parameter, Real(4)
+                                 1-31.19$
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-60.13@  0-61.17  0-74.20  0-80.22  0-81.22  0-82.22  0-84.23  0-85.23  0-86.23  0-101.15
+                                 0-102.15  0-141.17  0-154.13@  0-155.13  0-155.26  0-156.13  0-156.33  0-161.39  0-161.44@
+ 
+imax                             Parameter, Integer(4)
+                                 1-22.19$  0-47.21  0-47.41  0-60.18
+ 
+imglo                            Parameter, Integer(4)
+                                 1-20.19$
+ 
+int                              Pure Intrinsic
+                                 0-160.20
+ 
+ipmand                           Static, Integer(4) (1:16), Offset: 0, Alignment: full word
+                                 0-52.17$  0-55.12*  0-89.11  0-161.22
+ 
+j                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.40  0-142.17
+ 
+jmax                             Parameter, Integer(4)
+                                 1-23.19$
+ 
+jmglo                            Parameter, Integer(4)
+                                 1-21.19$
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-88.13@  0-89.18  0-132.15  0-132.28  0-133.15  0-133.28  0-134.15  0-134.28  0-135.15  0-135.28
+                                 0-136.15  0-136.28  0-137.15  0-137.28  0-138.15  0-138.28  0-139.31  0-140.15  0-141.12  0-142.12
+                                 0-151.13@  0-152.35  0-155.15  0-155.28  0-156.17  0-156.37  0-159.7@  0-160.32  0-161.29  0-161.41
+                                 0-161.56  0-161.64
+ 
+kk                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-62.12@  0-73.11  0-73.27  0-74.11  0-74.22  0-83.12@  0-84.12  0-84.25  0-85.12  0-85.25  0-86.12
+                                 0-86.25  0-91.12@  0-92.12  0-93.14  0-111.12@  0-112.12  0-113.15  0-158.13@  0-159.12
+ 
+kl                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-92.7@  0-97.11  0-98.12  0-99.24  0-102.17  0-107.23  0-112.7@  0-117.11  0-118.12  0-119.25
+                                 0-122.17  0-127.24
+ 
+klev                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.42  0-61.19  0-62.17  0-91.17
+ 
+km                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-98.7@  0-100.24  0-101.17  0-107.33  0-118.7@  0-120.25  0-121.17  0-127.35
+ 
+knt                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-160.7@  0-161.18
+ 
+ldmax                            Parameter, Integer(4)
+                                 1-29.19$  1-30.37
+ 
+levx                             Parameter, Integer(4)
+                                 1-30.19$
+ 
+lmax                             Parameter, Integer(4)
+                                 1-26.19$  0-47.48  0-80.24  0-81.24  0-82.24  1-28.28  1-30.30
+ 
+lmaxp1                           Parameter, Integer(4)
+                                 1-27.19$  0-48.51  0-49.23  0-49.38  0-49.53  0-83.17  0-111.17  1-28.35
+ 
+lmxdbl                           Parameter, Integer(4)
+                                 1-28.19$
+ 
+log                              Pure Intrinsic
+                                 0-90.14  0-99.16  0-100.16  0-119.16  0-120.16
+ 
+max                              Pure Intrinsic
+                                 0-152.15
+ 
+max0                             Pure Intrinsic
+                                 0-160.13
+ 
+maxi                             Static, Integer(4) (1:16), Offset: 0, Alignment: full word
+                                 0-50.17$  0-54.12*  0-141.7@  0-161.51
+ 
+maxj                             Static, Integer(4) (1:16), Offset: 0, Alignment: full word
+                                 0-50.26$  0-54.23*  0-142.7@  0-161.59
+ 
+obuf                             Reference argument, Real(4) (1:440, 1:45, 1:6), Offset: 0, Alignment: full word
+                                 0-47.35$  0-1.31  0-80.17  0-81.17  0-82.17  0-84.18  0-85.18  0-86.18
+ 
+outz                             Static, Real(4) (1:46), Offset: 0, Alignment: full word
+                                 0-49.32$  0-81.7@  0-85.7@  0-121.12  0-122.12
+ 
+p                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-89.7@  0-90.18  0-93.21  0-113.22
+ 
+pin                              Static, Real(4) (1:50), Offset: 0, Alignment: full word
+                                 0-48.17$  0-73.7@  0-93.10  0-99.20  0-100.20
+ 
+plnp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-90.7@  0-109.15  0-129.15
+ 
+pout                             Static, Real(4) (1:46), Offset: 0, Alignment: full word
+                                 0-49.17$  0-80.7@  0-84.7@  0-113.10  0-119.20  0-120.20
+ 
+pst1                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-61.7@  0-73.17
+ 
+r                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-57.7@  0-59.13
+ 
+rlnp                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-105.7@  0-106.25  0-107.40  0-125.7@  0-126.25  0-127.42
+ 
+rog                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-59.7@  0-107.12  0-127.12
+ 
+si                               Reference argument, Real(4) (1:51), Offset: 0, Alignment: full word
+                                 0-48.37$  0-1.28  0-73.24
+ 
+si2                              Reference argument, Real(4) (1:46), Offset: 0, Alignment: full word
+                                 0-48.46$  0-1.36
+ 
+sqrt                             Pure Intrinsic
+                                 0-156.22
+ 
+statz                            Static, Real(4) (1:8, 1:16), Offset: 0, Alignment: full word
+                                 0-51.17$  0-53.12*  0-132.7@  0-132.20  0-133.7@  0-133.20  0-134.7@  0-134.20  0-135.7@  0-135.20
+                                 0-136.7@  0-136.20  0-137.7@  0-137.20  0-138.7@  0-138.20  0-139.23  0-140.7@  0-152.27  0-155.7@
+                                 0-155.20  0-156.7@  0-156.27  0-160.24  0-161.33
+ 
+tin                              Static, Real(4) (1:50), Offset: 0, Alignment: full word
+                                 0-48.27$  0-74.7@  0-107.19  0-107.29
+ 
+tout                             Static, Real(4) (1:46), Offset: 0, Alignment: full word
+                                 0-49.47$  0-82.7@  0-86.7@  0-127.19  0-127.30
+ 
+ysouth                           Parameter, Real(4)
+                                 1-34.19$
+ 
+z3                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-108.7@  0-110.13  0-128.7@  0-130.13
+ 
+zdif                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-131.7@  0-135.33  0-138.33  0-138.38  0-139.14  0-140.24
+ 
+zin                              Static, Real(4), Offset: 0, Alignment: full word
+                                 0-110.7@  0-131.21  0-133.33  0-136.33  0-136.37
+ 
+zout                             Static, Real(4), Offset: 0, Alignment: full word
+                                 0-130.7@  0-131.14  0-134.33  0-137.33  0-137.38
+ 
+zstats                           Subroutine
+                                 0-1.18$
+ 
+** zstats   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    ZSTATS.f                    03/26/03   17:35:09
+     1    /mp/emc2/wx20du/narr_source/sorc/gesprep/parmanl
+                                      03/26/03   17:35:10      0      46
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     200
+1501-510  Compilation successful for file ZSTATS.f.
+1501-543  Object file created.

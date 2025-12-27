@@ -1,0 +1,129 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/EXMOIS.f 09/30/06 19:45:34
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE EXMOIS( P , Q , PB , QB )
+          2 |C
+          3 |      IMPLICIT REAL ( A - H, O - Z )
+          4 |C
+          5 |C  SET PRESSURE LVL (BARS) IN LOWER STRATOSPHERE ABOVE WHICH
+          6 |C  SPECIFIC HUMIDITY WILL BE ASSUMED CONSTANT AND SET THIS
+          7 |C  CONSTANT, WHICH IS ADOPTED FROM THE STANDARD ATMOSPHERE
+          8 |C  PROFILES GIVEN ON PAGES 1-5 THRU 1-11 IN
+          9 |C  NASA REPORT X-613-86-10 BY HARSHVARDHAN
+         10 |C
+         11 |      DATA   PLIMS , QLIMS / 0.06E0 , 4.0E-6 /
+         12 |C
+         13 |C  NOW PERFORM POWER LAW EXTRAPOLATION (I.E. LOG-Q LINEAR IN LOG-P)
+         14 |C  OF SPECIFIC HUMIDITY UPWARD FROM UPPER TROPOSPHERE TO LOWER
+         15 |C  STRATOSPHERE.  EXTRAPOLATE TO AN ASYMPTOTIC LIMITING VALUE OF
+         16 |C  Q=QLIMS ABOVE P=PLIMS.  CHOICE OF POWERE LAW EXTRAPOLATION
+         17 |C  FOLLOWS RECOMMENDATION IN AFGL TECH REPORT 85/0090 BY MITCHELL.
+         18 |C
+         19 |C
+         20 |      IF ( P .LE. PLIMS )  THEN
+         21 |         Q = QLIMS
+         22 |C
+         23 |      ELSE
+         24 |         BD = PB/PLIMS
+         25 |         BN = QB/QLIMS
+         26 |         BB = LOG(BN)/LOG(BD)
+         27 |         AA = QLIMS/PLIMS**BB
+         28 |C
+         29 |         Q  = AA * P**BB
+         30 |C
+         31 |      ENDIF
+         32 |C
+         33 |      RETURN
+         34 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+aa                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-27.10@  0-29.15
+ 
+bb                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-26.10@  0-27.28  0-29.23
+ 
+bd                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-24.10@  0-26.27
+ 
+bn                               Static, Real(4), Offset: 0, Alignment: full word
+                                 0-25.10@  0-26.19
+ 
+exmois                           Subroutine
+                                 0-1.18$
+ 
+log                              Pure Intrinsic
+                                 0-26.15  0-26.23
+ 
+p                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.26  0-20.12  0-29.20
+ 
+pb                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.34  0-24.15
+ 
+plims                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-11.14*  0-20.19  0-24.18  0-27.21
+ 
+q                                Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.30  0-21.10@  0-29.10@
+ 
+qb                               Reference argument, Real(4), Offset: 0, Alignment: full word
+                                 0-1.39  0-25.15
+ 
+qlims                            Static, Real(4), Offset: 0, Alignment: full word
+                                 0-11.22*  0-21.14  0-25.18  0-27.15
+ 
+** exmois   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    EXMOIS.f                    10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      34
+1501-510  Compilation successful for file EXMOIS.f.
+1501-543  Object file created.

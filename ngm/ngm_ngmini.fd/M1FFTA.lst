@@ -1,0 +1,208 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/M1FFTA.f 09/30/06 19:44:04
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE M1FFTA(A,WORK,TRIGS,INC,JUMP,N,LOT)
+          2 |C     SUBROUTINE M1FFTA - PREPROCESSING STEP FOR FFT99, ISIGN=+1
+          3 |C     (SPECTRAL TO GRIDPOINT TRANSFORM)
+          4 |C
+          5 |      DIMENSION A(N),WORK(N),TRIGS(N)
+          6 |      NH=N/2
+          7 |      NX=N
+          8 |      INK=INC+INC
+          9 |C
+         10 |C     A(0)   A(N/2)
+         11 |      IA=1
+         12 |      IB=N*INC+1
+         13 |      JA=1
+         14 |      JB=2
+         15 |CDIR$ IVDEP
+         16 |      DO 10 L=1,LOT
+         17 |      WORK(JA)=A(IA)
+         18 |      WORK(JB)=A(IA)
+         19 |      IA=IA+JUMP
+         20 |      IB=IB+JUMP
+         21 |      JA=JA+NX
+         22 |      JB=JB+NX
+         23 |   10 CONTINUE
+         24 |C
+         25 |C     REMAINING WAVENUMBERS
+         26 |      IABASE=2*INC+1
+         27 |      IBBASE=(N-2)*INC+1
+         28 |      JABASE=3
+         29 |      JBBASE=N-1
+         30 |C
+         31 |      DO 30 K=3,NH,2
+         32 |      IA=IABASE
+         33 |      IB=IBBASE
+         34 |      JA=JABASE
+         35 |      JB=JBBASE
+         36 |      C=TRIGS(N+K)
+         37 |      S=TRIGS(N+K+1)
+         38 |CDIR$ IVDEP
+         39 |      DO 20 L=1,LOT
+         40 |      WORK(JA)=(A(IA)+A(IB))-
+         41 |     *    (S*(A(IA)-A(IB))+C*(A(IA+INC)+A(IB+INC)))
+         42 |      WORK(JB)=(A(IA)+A(IB))+
+         43 |     *    (S*(A(IA)-A(IB))+C*(A(IA+INC)+A(IB+INC)))
+         44 |      WORK(JA+1)=(C*(A(IA)-A(IB))-S*(A(IA+INC)+A(IB+INC)))+
+         45 |     *    (A(IA+INC)-A(IB+INC))
+         46 |      WORK(JB+1)=(C*(A(IA)-A(IB))-S*(A(IA+INC)+A(IB+INC)))-
+         47 |     *    (A(IA+INC)-A(IB+INC))
+         48 |      IA=IA+JUMP
+         49 |      IB=IB+JUMP
+         50 |      JA=JA+NX
+         51 |      JB=JB+NX
+         52 |   20 CONTINUE
+         53 |      IABASE=IABASE+INK
+         54 |      IBBASE=IBBASE-INK
+         55 |      JABASE=JABASE+2
+         56 |      JBBASE=JBBASE-2
+         57 |   30 CONTINUE
+         58 |C
+         59 |      IF (IABASE.NE.IBBASE) GO TO 50
+         60 |C     WAVENUMBER N/4 (IF IT EXISTS)
+         61 |      IA=IABASE
+         62 |      JA=JABASE
+         63 |CDIR$ IVDEP
+         64 |      DO 40 L=1,LOT
+         65 |      WORK(JA)=2.0 E0*A(IA)
+         66 |      WORK(JA+1)=-2.0 E0*A(IA+INC)
+         67 |      IA=IA+JUMP
+         68 |      JA=JA+NX
+         69 |   40 CONTINUE
+         70 |C
+         71 |   50 CONTINUE
+         72 |      RETURN
+         73 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+a                                Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-5.17$  0-1.25  0-17.16  0-18.16  0-40.17  0-40.23  0-41.15  0-41.21  0-41.31  0-41.41  0-42.17
+                                 0-42.23  0-43.15  0-43.21  0-43.31  0-43.41  0-44.22  0-44.28  0-44.38  0-44.48  0-45.12  0-45.22
+                                 0-46.22  0-46.28  0-46.38  0-46.48  0-47.12  0-47.22  0-65.23  0-66.26
+ 
+c                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-36.7@  0-41.28  0-43.28  0-44.19  0-46.19
+ 
+ia                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-11.7@  0-17.18  0-18.18  0-19.7@  0-19.10  0-32.7@  0-40.19  0-41.17  0-41.33  0-42.19  0-43.17
+                                 0-43.33  0-44.24  0-44.40  0-45.14  0-46.24  0-46.40  0-47.14  0-48.7@  0-48.10  0-61.7@  0-65.25
+                                 0-66.28  0-67.7@  0-67.10
+ 
+iabase                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-26.7@  0-32.10  0-53.7@  0-53.14  0-59.11  0-61.10
+ 
+ib                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-12.7@  0-20.7@  0-20.10  0-33.7@  0-40.25  0-41.23  0-41.43  0-42.25  0-43.23  0-43.43  0-44.30
+                                 0-44.50  0-45.24  0-46.30  0-46.50  0-47.24  0-49.7@  0-49.10
+ 
+ibbase                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-27.7@  0-33.10  0-54.7@  0-54.14  0-59.21
+ 
+inc                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.38  0-8.11  0-8.15  0-12.12  0-26.16  0-27.20  0-41.36  0-41.46  0-43.36  0-43.46  0-44.43
+                                 0-44.53  0-45.17  0-45.27  0-46.43  0-46.53  0-47.17  0-47.27  0-66.31
+ 
+ink                              Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-8.7@  0-53.21  0-54.21
+ 
+ja                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-13.7@  0-17.12  0-21.7@  0-21.10  0-34.7@  0-40.12  0-44.12  0-50.7@  0-50.10  0-62.7@  0-65.12
+                                 0-66.12  0-68.7@  0-68.10
+ 
+jabase                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-28.7@  0-34.10  0-55.7@  0-55.14  0-62.10
+ 
+jb                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-14.7@  0-18.12  0-22.7@  0-22.10  0-35.7@  0-42.12  0-46.12  0-51.7@  0-51.10
+ 
+jbbase                           Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-29.7@  0-35.10  0-56.7@  0-56.14
+ 
+jump                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.42  0-19.13  0-20.13  0-48.13  0-49.13  0-67.13
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-31.13@  0-36.17  0-37.17
+ 
+l                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-16.13@  0-39.13@  0-64.13@
+ 
+lot                              Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.49  0-16.17  0-39.17  0-64.17
+ 
+m1ffta                           Subroutine
+                                 0-1.18$
+ 
+n                                Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.47  0-5.19  0-5.19  0-5.27  0-5.27  0-5.36  0-5.36  0-6.10  0-7.10  0-12.10  0-27.15  0-29.14
+                                 0-36.15  0-37.15
+ 
+nh                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-6.7@  0-31.17
+ 
+nx                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-7.7@  0-21.13  0-22.13  0-50.13  0-51.13  0-68.13
+ 
+s                                Static, Real(4), Offset: 0, Alignment: full word
+                                 0-37.7@  0-41.12  0-43.12  0-44.35  0-46.35
+ 
+trigs                            Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-5.30$  0-1.32  0-36.9  0-37.9
+ 
+work                             Reference argument, Real(4) (1:?), Offset: 0, Alignment: full word
+                                 0-5.22$  0-1.27  0-17.7@  0-18.7@  0-40.7@  0-42.7@  0-44.7@  0-46.7@  0-65.7@  0-66.7@
+ 
+** m1ffta   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    M1FFTA.f                    10/09/02   12:45:07
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      73
+1501-510  Compilation successful for file M1FFTA.f.
+1501-543  Object file created.

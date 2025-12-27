@@ -1,0 +1,37 @@
+      SUBROUTINE DAMPUX(DIV,VOR,TEM,RMX,DELTIM,FDAMP,ARN,SPDMAX)
+      DIMENSION FDAMP(#LNT2),ARN(#LNT2),SPDMAX(#LEVS),
+     1 RMX(#LNT22,#LEVH),
+     3 VOR(#LNT22,#LEVS), DIV(#LNT22,#LEVS),TEM(#LNT22,#LEVS)
+  %INCLUDE COMIO;
+C.................................................................
+      DO 410 J=1,#LNT2
+      ARN(J)=SNNP1(J)+0.25#E0
+      ARN(J)= SQRT(ARN(J))
+      ARN(J)=ARN(J)-0.5#E0
+  410 CONTINUE
+      ALFA=2.5#E0
+      BETA=#RERTH*1.009#E0/DELTIM
+      ALFADT=ALFA*DELTIM/#RERTH
+C.................................................
+      DO 80 K=1,#LEVS
+      RNCRIT=BETA/SPDMAX(K)
+      COEF=ALFADT*SPDMAX(K)
+      DO 420 J=1,#LNT2
+      IF (ARN(J).GT.RNCRIT) THEN
+      DIV(J,K) =DIV(J,K)/(1.+(ARN(J)-RNCRIT)*COEF)
+      VOR(J,K) =VOR(J,K)/(1.+(ARN(J)-RNCRIT)*COEF)
+      TEM(J,K) =TEM(J,K)/(1.+(ARN(J)-RNCRIT)*COEF)
+      END IF
+  420 CONTINUE
+      DO 422 IT=1,#NTRAC
+      IS=(IT-1)*#LEVS
+      L=IS+K
+      DO 421 J=1,#LNT2
+      IF (ARN(J).GT.RNCRIT) THEN
+      RMX(J,L) =RMX(J,L)/(1.+(ARN(J)-RNCRIT)*COEF)
+      END IF
+  421 CONTINUE
+  422 CONTINUE
+   80 CONTINUE
+      RETURN
+      END

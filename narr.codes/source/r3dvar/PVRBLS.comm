@@ -1,0 +1,14 @@
+!-----------------------------------------------------------------------
+      real(4),pointer::z0(:,:),ustar(:,:),uz0(:,:),vz0(:,:)
+      real(4),pointer::thz0(:,:),qz0(:,:),ths(:,:),qs(:,:),akms(:,:)
+      real(4),pointer::akhs(:,:),rf(:,:),twbs(:,:),qwbs(:,:),sno(:,:)
+      real(4),pointer::si(:,:),cldefi(:,:),prec(:,:),acprec(:,:)
+      real(4),pointer::accliq(:,:),cuprec(:,:),th10(:,:),q10(:,:)
+      real(4),pointer::u10(:,:),v10(:,:),tshltr(:,:),qshltr(:,:)
+      real(4),pointer::pshltr(:,:),q2(:,:,:),afsi(:,:)
+      real(4),pointer::th30(:,:),q30(:,:),u30(:,:),v30(:,:)
+      COMMON/PVRBLS/Z0,USTAR,UZ0,VZ0,THZ0,QZ0,THS,QS,AKMS,AKHS,RF         
+      common/pvrbls/TWBS,QWBS,SNO,SI,CLDEFI,PREC,ACPREC,ACCLIQ,CUPREC
+      common/pvrbls/TH10,Q10,U10,V10,TSHLTR,QSHLTR,PSHLTR,Q2,AFSI
+      common/pvrbls/TH30,Q30,U30,V30
+!-----------------------------------------------------------------------

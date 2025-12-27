@@ -1,0 +1,15 @@
+#! /bin/sh
+set -x
+
+if [ $err -ne 0 ]; then
+   echo " ********** ERROR PROGRAM $pgm **********"
+   echo " ***** FAILED - ABNORMAL EXIT *****"
+   echo " ***** FAILED - ABNORMAL EXIT *****"
+   echo " ***** FAILED - ABNORMAL EXIT *****"
+   echo " ***** FAILED - ABNORMAL EXIT *****"
+   llcancel $1
+   sleep 60
+   exit
+else
+   echo " ********** COMPLETED PROGRAM $pgm  **********"
+fi

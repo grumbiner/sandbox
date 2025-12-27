@@ -1,0 +1,2 @@
+      real(4),pointer::tlmin(:,:),tlmax(:,:)
+      COMMON/PRFHLD/TLMIN,TLMAX

@@ -1,0 +1,10 @@
+C.....BEGIN comfver...............................................
+      COMMON/comfver/AM(#LEVS,#LEVS),HM(#LEVS,#LEVS),TM(#LEVS,#LEVS),
+     O               BM(#LEVS,#LEVS),CM(#LEVS,#LEVS),SPDMAX(#LEVS),
+     1 SI(#LEVP1),SL(#LEVS),DEL(#LEVS),RDEL2(#LEVS),RMSDOT(#LEVM1),
+     2 CI(#LEVP1),CL(#LEVS),TOV(#LEVS),GV(#LEVS),SV(#LEVS),RPI(#LEVM1),
+     3 P1(#LEVS),P2(#LEVS), H1(#LEVS),   H2(#LEVS),RPIREC(#LEVM1),
+     8   THOUR,DELTIM,KDT,INISTP,SL1,Z00,FHOUR,SHOUR,LIMLOW,DTCVAV,
+     9   NFLIP,NFLOP,NR2DDA,FILTA,FILTB,DK,TK,PERCUT,DTSWAV,DTLWAV,
+     X   COWAVE,DTWAVE,N50UFL,NUMSUM,NUMMAX,NCPUS,NCPUS1,NCLDB1
+C.....sof   comfver...............................................

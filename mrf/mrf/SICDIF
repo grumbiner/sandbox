@@ -1,0 +1,188 @@
+C-----------------------------------------------------------------------
+      SUBROUTINE SICDIF(D,T,Q,X,Y,Z,U,V)
+      %INCLUDE DBSICDIF;
+      PARAMETER(KM=#LEVS,JCAP=#JCAP,LNT2=#LNT2,LNT22=#LNT22)
+      REAL D(LNT22,KM),T(LNT22,KM),Q(LNT22)
+      REAL X(LNT22,KM),Y(LNT22,KM),Z(LNT22),U(LNT22,KM),V(LNT22,KM)
+      %INCLUDE COMIO;
+      COMMON/COMSIC/ DT,GVDT(KM),SVDT(KM),AMDT(KM,KM),BMDT(KM,KM),
+     1               DM(KM,KM,0:JCAP)
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  EXPLICITLY INTEGRATE LNPS AND TEMPERATURE HALFWAY IN TIME.
+      DO I=1,LNT2
+        Z(I)=Q(I)+DT*Z(I)
+      ENDDO
+      DO K=1,KM
+        DO I=1,LNT2
+          Y(I,K)=T(I,K)+DT*Y(I,K)
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  COMPUTE LINEAR DEPENDENCE OF DIVERGENCE ON LNPS AND TEMPERATURE.
+C  EXPLICITLY INTEGRATE DIVERGENCE HALFWAY INCLUDING LINEAR TERMS.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+        DO I=1,LNT2
+          V(I,K)=0.
+        ENDDO
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2
+            V(I,K)=V(I,K)+AMDT(K,J)*Y(I,J)
+          ENDDO
+        ENDDO
+        DO I=1,LNT2
+          U(I,K)=D(I,K)+DT*X(I,K)+SNNP1(I)*(V(I,K)+GVDT(K)*Z(I))
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  SOLVE HELMHOLZ EQUATION FOR SEMI-IMPLICIT DIVERGENCE.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+        DO I=1,LNT2
+          V(I,K)=0.
+        ENDDO
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2,2
+            N=NDEX(I)
+            V(I,K)=V(I,K)+DM(K,J,N)*U(I,J)
+            V(I+1,K)=V(I+1,K)+DM(K,J,N)*U(I+1,J)
+          ENDDO
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  BACK SOLVE FOR LNPS.
+CFPP$ UNROLL L
+      DO J=1,KM
+        DO I=1,LNT2
+          Z(I)=Z(I)+SVDT(J)*V(I,J)
+        ENDDO
+      ENDDO
+      DO I=1,LNT2
+        Z(I)=2*Z(I)-Q(I)
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  BACK SOLVE FOR TEMPERATURE AND DIVERGENCE.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2
+            Y(I,K)=Y(I,K)+BMDT(K,J)*V(I,J)
+          ENDDO
+        ENDDO
+        DO I=1,LNT2
+          Y(I,K)=2*Y(I,K)-T(I,K)
+          X(I,K)=2*V(I,K)-D(I,K)
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END
+C-----------------------------------------------------------------------
+      SUBROUTINE IMPADJ(D,T,Q,X,Y,Z,U,V)
+      %INCLUDE DBIMPADJ;
+      PARAMETER(KM=#LEVS,JCAP=#JCAP,LNT2=#LNT2,LNT22=#LNT22)
+      REAL D(LNT22,KM),T(LNT22,KM),Q(LNT22)
+      REAL X(LNT22,KM),Y(LNT22,KM),Z(LNT22),U(LNT22,KM),V(LNT22,KM)
+      %INCLUDE COMIO;
+      COMMON/COMSIC/ DT,GVDT(KM),SVDT(KM),AMDT(KM,KM),BMDT(KM,KM),
+     1               DM(KM,KM,0:JCAP)
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  COMPUTE LINEAR DEPENDENCE OF DIVERGENCE ON LNPS AND TEMPERATURE.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+        DO I=1,LNT2
+          V(I,K)=0.
+        ENDDO
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2
+            V(I,K)=V(I,K)+AMDT(K,J)*Y(I,J)
+          ENDDO
+        ENDDO
+        DO I=1,LNT2
+          U(I,K)=X(I,K)+SNNP1(I)*(V(I,K)+GVDT(K)*Z(I))
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  SOLVE HELMHOLZ EQUATION FOR SEMI-IMPLICIT DIVERGENCE.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+        DO I=1,LNT2
+          V(I,K)=0.
+        ENDDO
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2,2
+            N=NDEX(I)
+            V(I,K)=V(I,K)+DM(K,J,N)*U(I,J)
+            V(I+1,K)=V(I+1,K)+DM(K,J,N)*U(I+1,J)
+          ENDDO
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  BACK SOLVE FOR LNPS.
+CFPP$ UNROLL L
+      DO J=1,KM
+        DO I=1,LNT2
+          Q(I)=Q(I)+SVDT(J)*V(I,J)
+        ENDDO
+      ENDDO
+      DO I=1,LNT2
+        Q(I)=Q(I)+Z(I)
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  BACK SOLVE FOR TEMPERATURE AND DIVERGENCE.
+CMIC$ DO ALL AUTOSCOPE
+      DO K=1,KM
+CFPP$ UNROLL L
+        DO J=1,KM
+          DO I=1,LNT2
+            T(I,K)=T(I,K)+BMDT(K,J)*V(I,J)
+          ENDDO
+        ENDDO
+        DO I=1,LNT2
+          T(I,K)=T(I,K)+Y(I,K)
+          D(I,K)=D(I,K)+V(I,K)
+        ENDDO
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END
+C-----------------------------------------------------------------------
+      SUBROUTINE GSICDF(DELTIM,AM,BM,GV,SV,CM)
+      %INCLUDE DBGSICDF;
+      PARAMETER(KM=#LEVS,JCAP=#JCAP,LNT2=#LNT2)
+      DIMENSION AM(KM*KM),BM(KM*KM),SV(KM),GV(KM),CM(KM*KM)
+      PARAMETER(RD=#RD,RERTH=#RERTH,RAA=RD/(RERTH**2))
+      PARAMETER(TOL=1.E-12)
+      COMMON/COMSIC/ DT,GVDT(KM),SVDT(KM),AMDT(KM*KM),BMDT(KM*KM),
+     1               DM(KM*KM,0:JCAP)
+      DIMENSION WORK(2*KM)
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      DT=DELTIM
+      DO K=1,KM
+        GVDT(K)=DT*GV(K)
+        SVDT(K)=DT*SV(K)
+      ENDDO
+      DO KJ=1,KM*KM
+        AMDT(KJ)=DT*AM(KJ)
+        BMDT(KJ)=DT*BM(KJ)
+        DM(KJ,0)=0.
+      ENDDO
+      DO KJ=1,KM*KM,KM+1
+        DM(KJ,0)=1.
+      ENDDO
+CMIC$ DO ALL SHARED(DT,DM,CM) PRIVATE(N,DT2NN1,KJ,WORK,DET)
+      DO N=1,JCAP
+        DT2NN1=DT**2*(N*(N+1))
+        DO KJ=1,KM*KM
+          DM(KJ,N)=DM(KJ,0)-DT2NN1*CM(KJ)
+        ENDDO
+        CALL MINV(DM(1,N),KM,KM,WORK,DET,TOL,0,1)
+      ENDDO
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END

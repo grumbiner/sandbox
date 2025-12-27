@@ -1,0 +1,90 @@
+      SUBROUTINE M1FFTM(A,WORK,TRIGS,IFAX,INC,JUMP,N,LOT,ISIGN)
+      DIMENSION A(N),WORK(N),TRIGS(N),IFAX(1)
+C
+      NFAX=IFAX(1)
+      NX=N
+      NH=N/2
+      INK=INC+INC
+      IF (ISIGN.EQ.+1) GO TO 30
+C
+C     IF NECESSARY, TRANSFER DATA TO WORK AREA
+      IGO=50
+      IF (MOD(NFAX,2).EQ.1) GOTO 40
+      IBASE=1
+      JBASE=1
+      DO 20 L=1,LOT
+      I=IBASE
+      J=JBASE
+CDIR$ IVDEP
+      DO 10 M=1,N
+      WORK(J)=A(I)
+      I=I+INC
+      J=J+1
+   10 CONTINUE
+      IBASE=IBASE+JUMP
+      JBASE=JBASE+NX
+   20 CONTINUE
+C
+      IGO=60
+      GO TO 40
+C
+C     PREPROCESSING (ISIGN=+1)
+C     ------------------------
+C
+   30 CONTINUE
+      CALL M1FFTA(A,WORK,TRIGS,INC,JUMP,N,LOT)
+      IGO=60
+C
+C     COMPLEX TRANSFORM
+C     -----------------
+C
+   40 CONTINUE
+      IA=1
+      LA=1
+      DO 80 K=1,NFAX
+      IF (IGO.EQ.60) GO TO 60
+   50 CONTINUE
+      CALL M1VPAS(A(IA),A(IA+INC),WORK(1),WORK(2),TRIGS,
+     *   INK,2,JUMP,NX,LOT,NH,IFAX(K+1),LA)
+      IGO=60
+      GO TO 70
+   60 CONTINUE
+      CALL M1VPAS(WORK(1),WORK(2),A(IA),A(IA+INC),TRIGS,
+     *    2,INK,NX,JUMP,LOT,NH,IFAX(K+1),LA)
+      IGO=50
+   70 CONTINUE
+      LA=LA*IFAX(K+1)
+   80 CONTINUE
+C
+      IF (ISIGN.EQ.-1) GO TO 130
+C
+C     IF NECESSARY, TRANSFER DATA FROM WORK AREA
+      IF (MOD(NFAX,2).EQ.1) GO TO 110
+      IBASE=1
+      JBASE=1
+      DO 100 L=1,LOT
+      I=IBASE
+      J=JBASE
+CDIR$ IVDEP
+      DO 90 M=1,N
+      A(J)=WORK(I)
+      I=I+1
+      J=J+INC
+   90 CONTINUE
+      IBASE=IBASE+NX
+      JBASE=JBASE+JUMP
+  100 CONTINUE
+C
+C     FILL IN ZEROS AT END
+  110 CONTINUE
+      GO TO 140
+C
+C     POSTPROCESSING (ISIGN=-1):
+C     --------------------------
+C
+  130 CONTINUE
+      CALL M1FFTB(WORK,A,TRIGS,INC,JUMP,N,LOT)
+C
+  140 CONTINUE
+      RETURN
+      END

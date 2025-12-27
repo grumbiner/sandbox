@@ -1,0 +1,220 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_rgcinp.fd/PRINTBIT.f 09/30/06 19:45:30
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              NOLIBESSL       NOLIBPOSIX
+         OBJECT          SOURCE          STDFRAMEWORK    STRICT
+         SWAPOMP         THREADED        UNWIND          NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR3)            ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         FLTTRAP(OVERFLOW,ZERODIVIDE,INVALID,ENABLE)
+         HALT(S)               IEEE(NEAR)            INITAUTO(FF      )
+         INTSIZE(4)            LANGLVL(EXTENDED)     POSITION(APPENDOLD)
+         REALSIZE(4)           SAVE(ALL)             SIGTRAP()
+         TUNE(PWR3)            UNROLL(AUTO)          XREF(FULL)
+         XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |C
+          2 |C
+          3 |      SUBROUTINE PRINTBIT (BITS, IDIM, JDIM, NG, LABEL)
+          4 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          5 |C                .      .    .                                       .
+          6 |C SUBPROGRAM:    PRINTBIT    PRINTS THE LOGICAL ARRAY CALLED BITS
+          7 |C   PRGMMR: JIM HOKE         ORG: W/NMC22    DATE: 85-03-27
+          8 |C
+          9 |C ABSTRACT: PRINTS THE LOGICAL ARRAY CALLED BITS
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   85-03-27  JIM HOKE
+         13 |C   88-08-03  BRIAN SCHMIDT ADDED DOCBLOCK
+         14 |C   90-07-01  KEN MITCHELL CONVERTED TO CRAY Y-MP
+         15 |C   92-07-14  KEN MITCHELL MODIFIED TO PRINT ENTIRE GRID
+         16 |C
+         17 |C USAGE:    CALL PRINTBIT (BITS, IDIM, JDIM, NG, LABEL)
+         18 |C   INPUT ARGUMENT LIST:
+         19 |C     BITS     - LOGICAL ARRAY TO BE PRINTED
+         20 |C     IDIM     - FIRST DIMENSION OF ARRAY BITS
+         21 |C     JDIM     - SECOND DIMENSION OF ARRAY BITS
+         22 |C     NG       - GRID NUMBER FOR LOGICAL ARRAY TO BE PRINTED
+         23 |C     LABEL    - LABEL DESCRIBING GRID NG
+         24 |C
+         25 |C   OUTPUT FILES:
+         26 |C     FT06F001 - FOR PRINTOUT
+         27 |C
+         28 |C REMARKS: THE LABEL CAN HAVE UP TO 24 CHARACTERS
+         29 |C
+         30 |C ATTRIBUTES:
+         31 |C   LANGUAGE: FORTRAN 77
+         32 |C   MACHINE:  CRAY Y-MP
+         33 |C
+         34 |C$$$
+         35 |C
+         36 |      LOGICAL BITS
+         37 |C
+         38 |      DIMENSION BITS(IDIM, JDIM)
+         39 |      DIMENSION LABEL(3)
+         40 |      DIMENSION ILABEL1(IDIM),ILABEL2(IDIM),ILABEL3(IDIM)
+         41 |C
+         42 |C     ITOT IS NO. OF "PAGES" PRINTED PER FIELD
+         43 |C      (MAX OF 74 COLUMNS OF VALUES PRINTED PER PAGE)
+         44 |C
+         45 |      ITOT = (IDIM - 1)/74 + 1
+         46 |C
+         47 |      DO 100 I=1,IDIM
+         48 |      ILABEL1(I) = I / 100
+         49 |      ILABEL2(I) = ( I - ILABEL1(I)*100 ) / 10
+         50 |      ILABEL3(I) = MOD (I, 10)
+         51 |  100 CONTINUE
+         52 |C
+         53 |      PRINT 200, NG, (LABEL(I), I=1,3)
+         54 |  200 FORMAT (///,'LOGICAL MASK ARRAY FOR GRID',I2,' -- ',3A8)
+         55 |C
+         56 |C     PRINT THE NUMBER OF ELEMENTS AND THE NUMBER OF TRUE ELEMENTS
+         57 |C
+         58 |      IJ     = IDIM * JDIM
+         59 |      NUMONES= 0
+         60 |      DO 225  I=1,IDIM
+         61 |      DO 225  J=1,JDIM
+         62 |      IF(BITS(I,J)) NUMONES=NUMONES+1
+         63 |  225 CONTINUE
+         64 |      PRINT 250, IJ, NUMONES
+         65 |  250 FORMAT (//,'THERE ARE', I6, ' ELEMENTS DISPLAYED, OF WHICH',
+         66 |     1             I6, ' ARE TRUE.')
+         67 |C
+         68 |      DO 800  K=1,ITOT
+         69 |C
+         70 |      IB = 1 + (K-1)*74
+         71 |      IE = IB + 74 - 1
+         72 |      IF (IE .GT. IDIM) IE=IDIM
+         73 |C
+         74 |      PRINT 290, K,ITOT,IB,IE
+         75 |  290 FORMAT(//,1X,'PAGE=',I2,' OF',I2,' (COLS ',I3,' TO ',I3,')')
+         76 |C
+         77 |      PRINT 300, (ILABEL1(I), I=IB,IE)
+         78 |  300 FORMAT(/, 3X, 'I= ', 74I1)
+         79 |C
+         80 |      PRINT 400, (ILABEL2(I), I=IB,IE)
+         81 |  400 FORMAT(  6X,  74I1)
+         82 |C
+         83 |      PRINT 500, (ILABEL3(I), I=IB,IE)
+         84 |  500 FORMAT(   6X,  74I1)
+         85 |C
+         86 |      PRINT 550
+         87 |  550 FORMAT (/)
+         88 |C
+         89 |      DO 700 J=1,JDIM
+         90 |         JJ = JDIM + 1 - J
+         91 |C
+         92 |         PRINT 600, JJ, (BITS(I, JJ), I=IB,IE)
+         93 |  600    FORMAT ( 'J=', I3, 1X, 74L1)
+         94 |C
+         95 |  700 CONTINUE
+         96 |C
+         97 |  800 CONTINUE
+         98 |C
+         99 |      PRINT 550
+        100 |C
+        101 |      RETURN
+        102 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+bits                             Reference argument, Logical(4) (1:?, 1:?), Offset: 0, Alignment: full word
+                                 0-36.15$  0-3.28  0-38.17$  0-62.10  0-92.26
+ 
+i                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-47.14@  0-48.15  0-48.20  0-49.15  0-49.22  0-49.34  0-50.15  0-50.25  0-53.29  0-53.33@
+                                 0-60.15@  0-62.15  0-77.27  0-77.31@  0-80.27  0-80.31@  0-83.27  0-83.31@  0-92.31  0-92.39@
+ 
+ib                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-70.7@  0-71.12  0-74.25  0-77.33  0-80.33  0-83.33  0-92.41
+ 
+idim                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.34  0-38.22  0-38.22  0-40.25  0-40.25  0-40.39  0-40.39  0-40.53  0-40.53  0-45.15  0-47.18
+                                 0-58.16  0-60.19  0-72.19  0-72.28
+ 
+ie                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-71.7@  0-72.11  0-72.25@  0-74.28  0-77.36  0-80.36  0-83.36  0-92.44
+ 
+ij                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-58.7@  0-64.18
+ 
+ilabel1                          Controlled Automatic, Integer(4) (1:?), Offset: 0, Alignment: full word
+                                 0-40.17$  0-48.7@  0-49.26  0-77.19
+ 
+ilabel2                          Controlled Automatic, Integer(4) (1:?), Offset: 0, Alignment: full word
+                                 0-40.31$  0-49.7@  0-80.19
+ 
+ilabel3                          Controlled Automatic, Integer(4) (1:?), Offset: 0, Alignment: full word
+                                 0-40.45$  0-50.7@  0-83.19
+ 
+itot                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-45.7@  0-68.19  0-74.20
+ 
+j                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-61.15@  0-62.17  0-89.14@  0-90.26
+ 
+jdim                             Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.40  0-38.28  0-38.28  0-58.23  0-61.19  0-89.18  0-90.15
+ 
+jj                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-90.10@  0-92.21  0-92.34
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-68.15@  0-70.17  0-74.18
+ 
+label                            Reference argument, Integer(4) (1:3), Offset: 0, Alignment: full word
+                                 0-39.17$  0-3.50  0-53.23
+ 
+mod                              Pure Intrinsic
+                                 0-50.20
+ 
+ng                               Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-3.46  0-53.18
+ 
+numones                          Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-59.7@  0-62.21@  0-62.29  0-64.22
+ 
+printbit                         Subroutine
+                                 0-3.18$
+ 
+** printbit   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    PRINTBIT.f                  10/10/02   16:14:55
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................     102
+1501-510  Compilation successful for file PRINTBIT.f.
+1501-543  Object file created.

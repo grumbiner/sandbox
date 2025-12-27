@@ -1,0 +1,118 @@
+
+#QSUB -lM 32Mw -lT 32400 -eo -x -s /bin/sh
+# This script makes a global forecast.
+# Imported variable CDATE in yymmddhh format determines date to process.
+set -xS
+export FILENV NCPUS
+export CDATE FHOUR
+export DIRPRX SIGANL SFCANL
+export DIRRUN SIGFCS PGBFCS FLXFCS ZNLFCS KENFCS
+FHOUR=${FHOUR:-132}
+FHAVN=${FHAVN:-72}
+DIRPRX=${DIRPRX:-/gloptmp/datprx}
+SIGANL=${SIGANL:-$DIRPRX/siganl.$CDATE}
+SFCANL=${SFCANL:-$DIRPRX/sfcanl.$CDATE}
+SIGFCS=${SIGFCS:-$DIRPRX/sigf'$FH'.$CDATE}
+PGBFCS=${PGBFCS:-$DIRPRX/pgbf'$FH'.$CDATE}
+FLXFCS=${FLXFCS:-$DIRPRX/flxf'$FH'.$CDATE}
+ZNLFCS=${ZNLFCS:-$DIRPRX/znlf'$FH'.$CDATE}
+KENFCS=${KENFCS:-$DIRPRX/kenf'$FH'.$CDATE}
+DIRRUN=${DIRRUN:-/tmp/mrfprx.$CDATE}
+
+mkdir -p $DIRRUN
+cd $DIRRUN
+
+sigim=$SIGANL
+sigi=/dev/null
+sfci=$SFCANL
+FH=00
+while test $FH -lt $FHOUR;do
+FH=`expr $FH + 6`;test $FH -lt 10&&FH=0$FH
+eval siga=$SIGFCS
+eval flxa=$FLXFCS
+eval znla=$ZNLFCS
+sfca=sfcf.$FH
+eval pgba=$PGBFCS
+FH=`expr $FH + 6`;test $FH -lt 10&&FH=0$FH
+sigfm=sigm.$FH
+eval sigf=$SIGFCS
+sfcf=sfcf.$FH
+eval flxf=$FLXFCS
+eval znlf=$ZNLFCS
+eval kenf=$KENFCS
+eval pgbf=$PGBFCS
+
+FILENV=fcstasgn
+fcstexec=/nwprod/sm12628/exec.sm12628/fcst28.xc
+if test $FH -eq 12 -o $FH -gt $FHAVN;then
+fcstparm=/nwprod/sm12628/ucl.sm12628/mrffcst.parm126
+else
+fcstparm=/dm/datpro/mrffcst.parm126a
+fi
+fcstcpus=4
+co2const=/nwprod/sm12628/fix.sm12628/co2const.28
+mtnvar=/nwprod/sm12628/fix.sm12628/mtnvar.126
+tune1=/nwprod/sm12628/fix.sm12628/tune1.season
+assign -a $sigim         -Fcos -Cascii -Nibm fort.11
+assign -a $sigi          -Fcos -Cascii -Nibm fort.12
+assign -a $sfci          -Fcos -Cascii -Nibm fort.14
+assign -a $co2const      -Fcos -Cascii -Nibm fort.15
+assign -a $mtnvar        -Fcos -Cascii -Nibm fort.24
+assign -a $tune1         -Fcos -Cascii -Nibm fort.43
+assign -a $sigfm         -Fcos -Cascii -Nibm fort.51
+assign -a $sigf          -Fcos -Cascii -Nibm fort.52
+assign -a $sfcf          -Fcos -Cascii -Nibm fort.53
+assign -a $sfca          -Fcos -Cascii -Nibm fort.54
+assign -a $siga          -Fcos -Cascii -Nibm fort.56
+assign -a znli           -Fcos -Cascii -Nibm fort.61
+assign -a flxi           -s unblocked        fort.62
+assign -a $flxf          -s unblocked        fort.63
+assign -a $znlf          -Fcos -Cascii -Nibm fort.64
+assign -a $kenf          -Fcos -Cascii -Nibm fort.67
+assign -a $flxa          -s unblocked        fort.68
+assign -a $znla          -Fcos -Cascii -Nibm fort.69
+NCPUS=$fcstcpus $fcstexec <$fcstparm;fcsterr=$?
+if test $fcsterr -ne 0;then exit $fcsterr;fi
+
+if [[ -s $siga ]];then
+FILENV=pgbasgn
+pgbexec=/nwprod/sm12628/exec.sm12628/postgp.xc
+pgbparm=/dev/null
+assign -a $siga          -Fcos -Cascii -Nibm fort.11
+assign -a /dev/null      -Fcos -Cascii -Nibm fort.12
+assign -a $pgba          -s unblocked        fort.51
+NCPUS=1 $pgbexec <$pgbparm;pgberr=$?
+
+FILENV=fluxterpasgn
+fluxterpexec=/nwprod/sm12628/exec.sm12628/fluxcnv.xc
+fluxterpparm=/dev/null
+/dm/wd20mi/jif/windex1.j9410/windex1 $flxa flxa.ix1
+assign -a $flxa          -s unblocked        fort.11
+assign -a flxa.ix1       -s unblocked        fort.31
+assign -a flx1a          -s unblocked        fort.51
+NCPUS=1 $fluxterpexec <$fluxterpparm;fluxterperr=$?
+cat flx1a >>$pgba
+fi
+
+FILENV=pgbasgn
+pgbexec=/nwprod/sm12628/exec.sm12628/postgp.xc
+pgbparm=/dev/null
+assign -a $sigf          -Fcos -Cascii -Nibm fort.11
+assign -a /dev/null      -Fcos -Cascii -Nibm fort.12
+assign -a $pgbf          -s unblocked        fort.51
+NCPUS=1 $pgbexec <$pgbparm;pgberr=$?
+
+FILENV=fluxterpasgn
+fluxterpexec=/nwprod/sm12628/exec.sm12628/fluxcnv.xc
+fluxterpparm=/dev/null
+/dm/wd20mi/jif/windex1.j9410/windex1 $flxf flxf.ix1
+assign -a $flxf          -s unblocked        fort.11
+assign -a flxf.ix1       -s unblocked        fort.31
+assign -a flx1f          -s unblocked        fort.51
+NCPUS=1 $fluxterpexec <$fluxterpparm;fluxterperr=$?
+cat flx1f >>$pgbf
+
+sigim=$sigfm
+sigi=$sigf
+sfci=$sfcf
+done

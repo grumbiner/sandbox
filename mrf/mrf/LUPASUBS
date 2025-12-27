@@ -1,0 +1,292 @@
+CFPP$ NOCONCUR R
+      SUBROUTINE PLN2I(QLNT,QLNV,COLRAD,LAT)
+      %INCLUDE DBPLN2T;
+CC
+      DIMENSION         QLNT(#LNT2)
+      DIMENSION         QLNV(#LNUT2)
+      DIMENSION       COLRAD(#LATG2)
+CC
+      DIMENSION            X(#JCAP1)
+      DIMENSION         DPLN(#LNUT2)
+CC
+      COMMON /PLN2TI/ DEPS(#LNUT2),RDEPS(#LNUT2),
+     1                DX(#TWOJ1),Y(#JCAP1),INDXMV(#LNUT2)
+CC
+CCC   DATA IFIR /0/
+CCC         PART BETWEEN GUARDS MADE INTO SR GPLN2I.
+CCC         7 DEC 1990      M. ROZWODOSKI
+CC
+      COLR   = COLRAD(LAT)
+      SINLAT = COS(COLR)
+      COS2   = 1.0 - SINLAT * SINLAT
+      PROD   = 1.0
+      DO 600 LL=1,#JCAP1
+             X(LL) = 0.5*PROD
+CCCC         IF (PROD .LT. 1.0E-75)  PROD=0.0
+             PROD = PROD*COS2*Y(LL)
+  600 CONTINUE
+      DO 620 LL=1,#JCAP1
+             X(LL) = SQRT(X(LL))
+  620 CONTINUE
+      DO 640 LL=1,#JCAP1
+             DPLN(2*LL-1) = X(LL)
+             DPLN(2*LL  ) = X(LL)
+  640 CONTINUE
+      LPLUS = #TWOJ1
+      DO 700 LL=1,#TWOJ1
+             DPLN(LL+LPLUS) = DX(LL) * SINLAT * DPLN(LL)
+  700 CONTINUE
+      LP2 = 0
+      LP1 =     #TWOJ1
+      LP0 = 2 * #TWOJ1
+      LEN =     #TWOJ1 - 2
+      DO 740  N=3,#JCAP2
+CDIR$ IVDEP
+      DO 720 LL=1,LEN
+             DPLN(LL+LP0) = (SINLAT * DPLN(LL+LP1)
+     1               - DEPS(LL+LP1) * DPLN(LL+LP2)) * RDEPS(LL+LP0)
+  720 CONTINUE
+      LP2 = LP1
+      LP1 = LP0
+      LP0 = LP0 + LEN
+      LEN = LEN - 2
+  740 CONTINUE
+CC
+CC    TRANSPOSE VECTOR DPLN ARRAY FROM CRAY ORDER TO IBM ORDER.
+      DO 800 I=1,#LNUT2
+             QLNV(INDXMV(I)) = DPLN(I)
+  800 CONTINUE
+CC
+      LPV = 0
+      LPT = 0
+      LEN = #TWOJ1
+      DO 860  N=1,#JCAP1
+      DO 840 LL=1,LEN
+             QLNT(LL+LPT) = QLNV(LL+LPV)
+  840 CONTINUE
+      LPV = LPV + LEN + 2
+      LPT = LPT + LEN
+      LEN = LEN - 2
+  860 CONTINUE
+CC
+      RETURN
+      END
+      SUBROUTINE GPLN2I
+      %INCLUDE DBGPLN2T ;
+CC
+      DIMENSION       X(#JCAP1)
+CC
+      COMMON /PLN2TI/ DEPS(#LNUT2),RDEPS(#LNUT2),
+     1                DX(#TWOJ1),Y(#JCAP1),INDXMV(#LNUT2)
+CC
+CCC   DATA IFIR /0/
+CC
+CCC   IF  (IFIR .EQ. 1)  GO TO 500
+CCC        IFIR = 1
+      DO 200 LL=1,#JCAP1
+             RDEPS(LL) = 0.0
+  200 CONTINUE
+      LPLUS = #JCAP1
+      LEN   = #JCAP1
+      DO 240 INDE=2,#JCAP2
+      DO 220   LL=1,LEN
+             L = LL - 1
+             N = L + INDE - 1
+             RDEPS(LL+LPLUS) = (N*N - L*L) / (4.0 * N*N - 1.0)
+  220 CONTINUE
+      LPLUS = LPLUS + LEN
+      LEN = LEN - 1
+  240 CONTINUE
+      DO 260 I=#JCAP2,#LNUT
+             RDEPS(I) = SQRT(RDEPS(I))
+  260 CONTINUE
+      DO 300 I=1,#LNUT
+             DEPS(2*I-1) = RDEPS(I)
+             DEPS(2*I  ) = RDEPS(I)
+  300 CONTINUE
+      IBEGIN = #TWOJ1 + 1
+      DO 320 I=IBEGIN,#LNUT2
+             RDEPS(I) = 1.0/DEPS(I)
+  320 CONTINUE
+      DO 400 LL=1,#JCAP1
+             X(LL) = LL*2+1
+  400 CONTINUE
+      DO 420 LL=1,#JCAP1
+             Y(LL) = X(LL)/(X(LL)-1.)
+  420 CONTINUE
+      DO 440 LL=1,#JCAP1
+             X(LL) = SQRT(X(LL))
+  440 CONTINUE
+      DO 460 LL=1,#JCAP1
+             DX(2*LL-1) = X(LL)
+             DX(2*LL  ) = X(LL)
+  460 CONTINUE
+C 500 CONTINUE
+CC
+CC    SET INDEX ARRAY FOR TRANSPOSING VECTOR ARRAY
+CC    FROM CRAY ORDER TO IBM ORDER.
+      L=0
+      DO 640 NN=1,#JCAP2
+      LLN=MIN0(#JCAP2-NN+1,#JCAP1)
+      DO 620 LL=1,LLN
+      INDX=((#JCAP+3)*(LL-1)-(LL-1)*LL/2+NN)*2
+      L=L+2
+      INDXMV(L-1)=INDX-1
+      INDXMV(L  )=INDX
+  620 CONTINUE
+  640 CONTINUE
+CC
+      RETURN
+      END
+      SUBROUTINE EPSLON(EPS,JCAP)
+      %INCLUDE DBEPSLON ;
+      DIMENSION EPS(#JCAP1,#JCAP2)
+      JCAP1 = JCAP + 1
+      JCAP2 = JCAP + 2
+      DO 1 LL=1,JCAP1
+      L = LL - 1
+      DO 1 INDE=2,JCAP2
+      N = L + INDE - 1
+      A = (N*N - L*L) / (4.0 * N*N - 1.0)
+      EPS(LL,INDE)=#SROOT(A)
+1     CONTINUE
+      DO 2 LL=1,#JCAP1
+      EPS(LL,1) = 0.0#E0
+2     CONTINUE
+      RETURN
+      END
+      SUBROUTINE EPSILO(EPS,JCAP)
+      %INCLUDE DBEPSLON ;
+      DIMENSION EPS(#JCAP2,#JCAP1)
+      JCAP1 = JCAP + 1
+      JCAP2 = JCAP + 2
+      DO 1 LL=1,JCAP1
+      L = LL - 1
+      DO 1 INDE=2,JCAP2
+      N = L + INDE - 1
+      A = (N*N - L*L) / (4.0 * N*N - 1.0)
+      EPS(INDE,LL)=#SROOT(A)
+1     CONTINUE
+      DO 2 LL=1,#JCAP1
+      EPS(1,LL) = 0.0#E0
+2     CONTINUE
+      RETURN
+      END
+CFPP$ NOCONCUR R
+      SUBROUTINE DERIVS(SYN,DYN,RCS2)
+C.................................................................
+C SYN(1, 0*#LEVS+0*#LEVH+1)  ZE
+C SYN(1, 1*#LEVS+0*#LEVH+1)  DI
+C SYN(1, 2*#LEVS+0*#LEVH+1)  TE
+C SYN(1, 3*#LEVS+0*#LEVH+1)  RQ
+C SYN(1, 3*#LEVS+1*#LEVH+1)  DPDLAM
+C SYN(1, 3*#LEVS+1*#LEVH+2)  DPDPHI
+C SYN(1, 3*#LEVS+1*#LEVH+3)  ULN
+C SYN(1, 4*#LEVS+1*#LEVH+3)  VLN
+C.................................................................
+C DYN(1, 0*#LEVS+0*#LEVH+1)  D(T)/D(PHI)
+C DYN(1, 1*#LEVS+0*#LEVH+1)  D(RQ)/D(PHI)
+C DYN(1, 1*#LEVS+1*#LEVH+1)  D(T)/D(LAM)
+C DYN(1, 2*#LEVS+1*#LEVH+1)  D(RQ)/D(LAM)
+C DYN(1, 2*#LEVS+2*#LEVH+1)  D(U)/D(LAM)
+C DYN(1, 3*#LEVS+2*#LEVH+1)  D(V)/D(LAM)
+C DYN(1, 4*#LEVS+2*#LEVH+1)  D(U)/D(PHI)
+C DYN(1, 5*#LEVS+2*#LEVH+1)  D(V)/D(PHI)
+C.................................................................
+      PARAMETER(LOTS    =5*#LEVS+1*#LEVH+2,LOTST=2*#LEVS+1,
+     &          KSZ     =0*#LEVS+0*#LEVH+1,
+     &          KSD     =1*#LEVS+0*#LEVH+1,
+     &          KST     =2*#LEVS+0*#LEVH+1,
+     &          KSR     =3*#LEVS+0*#LEVH+1,
+     &          KSPLAM  =3*#LEVS+1*#LEVH+1,
+     &          KSPPHI  =3*#LEVS+1*#LEVH+2,KSTB=3*#LEVS+1*#LEVH+2,
+     &          KSU     =3*#LEVS+1*#LEVH+3,
+     &          KSV     =4*#LEVS+1*#LEVH+3)
+      PARAMETER(LOTD    =6*#LEVS+2*#LEVH,
+     &          KDTPHI  =0*#LEVS+0*#LEVH+1,
+     &          KDRPHI  =1*#LEVS+0*#LEVH+1,
+     &          KDTLAM  =1*#LEVS+1*#LEVH+1,
+     &          KDRLAM  =2*#LEVS+1*#LEVH+1,
+     &          KDULAM  =2*#LEVS+2*#LEVH+1,
+     &          KDVLAM  =3*#LEVS+2*#LEVH+1,
+     &          KDUPHI  =4*#LEVS+2*#LEVH+1,
+     &          KDVPHI  =5*#LEVS+2*#LEVH+1)
+C...
+       DIMENSION RL(#JCAP1),RLCS2(#JCAP1),
+     1 SYN(#LONF22,LOTS),DYN(#LONF22,LOTD) 
+C.................................................................
+        DO  LL=1,#JCAP1
+          RL(LL)=FLOAT(LL-1)/#RERTH
+        ENDDO
+C
+      DO I=1,#JCAP1
+       RLCS2(I)=RL(I)*RCS2
+      ENDDO
+C
+C   CALCULATE T RQ U V ZONAL DERIVS. BY MULTIPLICATION WITH I*L
+C   NOTE RLCS2=RCS2*L/#RERTH
+C
+      DO K=1,#LEVS
+       DO I=1,#JCAP1
+C   D(T)/D(LAM)
+        DYN(2*I-1,KDTLAM-1+K)= -SYN(2*I  ,KST-1+K)*RLCS2(I)
+        DYN(2*I  ,KDTLAM-1+K)=  SYN(2*I-1,KST-1+K)*RLCS2(I)
+        DYN(#LONF+2*I-1,KDTLAM-1+K)= -SYN(#LONF+2*I  ,KST-1+K)*RLCS2(I)
+        DYN(#LONF+2*I  ,KDTLAM-1+K)=  SYN(#LONF+2*I-1,KST-1+K)*RLCS2(I)
+C   D(U)/D(LAM)
+        DYN(2*I-1,KDULAM-1+K)= -SYN(2*I  ,KSU-1+K)*RLCS2(I)
+        DYN(2*I  ,KDULAM-1+K)=  SYN(2*I-1,KSU-1+K)*RLCS2(I)
+        DYN(#LONF+2*I-1,KDULAM-1+K)= -SYN(#LONF+2*I  ,KSU-1+K)*RLCS2(I)
+        DYN(#LONF+2*I  ,KDULAM-1+K)=  SYN(#LONF+2*I-1,KSU-1+K)*RLCS2(I)
+C   D(V)/D(LAM)
+        DYN(2*I-1,KDVLAM-1+K)= -SYN(2*I  ,KSV-1+K)*RLCS2(I)
+        DYN(2*I  ,KDVLAM-1+K)=  SYN(2*I-1,KSV-1+K)*RLCS2(I)
+        DYN(#LONF+2*I-1,KDVLAM-1+K)= -SYN(#LONF+2*I  ,KSV-1+K)*RLCS2(I)
+        DYN(#LONF+2*I  ,KDVLAM-1+K)=  SYN(#LONF+2*I-1,KSV-1+K)*RLCS2(I)
+       ENDDO
+      ENDDO
+C
+      DO K=1,#LEVH
+       DO I=1,#JCAP1
+C   D(RQ)/D(LAM)
+        DYN(2*I-1,KDRLAM-1+K)= -SYN(2*I  ,KSR-1+K)*RLCS2(I)
+        DYN(2*I  ,KDRLAM-1+K)=  SYN(2*I-1,KSR-1+K)*RLCS2(I)
+        DYN(#LONF+2*I-1,KDRLAM-1+K)= -SYN(#LONF+2*I  ,KSR-1+K)*RLCS2(I)
+        DYN(#LONF+2*I  ,KDRLAM-1+K)=  SYN(#LONF+2*I-1,KSR-1+K)*RLCS2(I)
+       ENDDO
+      ENDDO
+C
+      CALL FTI#LONF(SYN,DUMMY,(5*#LEVS+#LEVH+2)*2,1)
+C
+C   D(T)/D(PHI)  D(RQ)/D(PHI) IN S. HEMI.
+      DO K=1,#LEVS
+       DO I=1,#LONF
+        DYN(I+#LONF,KDTPHI-1+K)=-DYN(I+#LONF,KDTPHI-1+K)
+       ENDDO
+      ENDDO
+      DO K=1,#LEVH
+       DO I=1,#LONF
+        DYN(I+#LONF,KDRPHI-1+K)=-DYN(I+#LONF,KDRPHI-1+K)
+       ENDDO
+      ENDDO
+
+C   SYNTHESIZE TEMP.    MERIDIONAL AND ZONAL DERIVATIVES
+C   SYNTHESIZE MOISTURE MERIDIONAL AND ZONAL DERIVATIVES
+C   SYNTHESIZE U AND V            ZONAL      DERIVATIVES
+C
+      CALL FTI#LONF(DYN,DUMMY,(4*#LEVS+2*#LEVH)*2,1)
+C
+C CALCULATE GRID MERIDIONAL DERIVATIVES OF U AND V.
+C
+C  COS*D(U)/D(THETA)= D(V)/D(LAM)-A*ZETA*COS**2
+C  COS*D(V)/D(THETA)=-D(U)/D(LAM)+A*DIVR*COS**2
+C
+      DO K=1,#LEVS
+       DO J=1,#LONF2
+        DYN(J,KDUPHI-1+K)= DYN(J,KDVLAM-1+K)-SYN(J,KSZ-1+K)
+        DYN(J,KDVPHI-1+K)=-DYN(J,KDULAM-1+K)+SYN(J,KSD-1+K)
+       ENDDO
+      ENDDO
+C
+      RETURN
+      END

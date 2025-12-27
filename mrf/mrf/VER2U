@@ -1,0 +1,118 @@
+      SUBROUTINE AMBMSV(KM,SI,SL,TOV,AM,BM,SV,GV,CM)
+      %INCLUDE DBAMBMSV;
+      DIMENSION SI(KM+1),SL(KM),TOV(KM)
+      DIMENSION AM(KM,KM),BM(KM,KM),SV(KM),GV(KM),CM(KM,KM)
+      PARAMETER(RD=#RD,CP=#CP,RERTH=#RERTH)
+      PARAMETER(ROCP=RD/CP,RAA=RD/(RERTH**2))
+      DIMENSION CD(KM,KM+1),CI(KM+1,KM),CQ(KM+1,KM),CQL(KM,KM)
+      DIMENSION RNU(KM),RMU(KM),TI(2:KM),DT(KM+1,KM)
+      CALL BNMC(KM,SI,SL,CD,CI,CQ,CQL)
+      DO 10 J=1,KM
+        SV(J)=CQ(KM+1,J)
+        GV(J)=RAA*TOV(J)
+        DT(1,J)=0.
+        DT(KM+1,J)=0.
+10    CONTINUE
+      DO 20 K=1,KM-1
+        TI(K+1)=0.
+        DEL=SI(K+1)-SI(K)
+        RSL=LOG(SI(K+1)/SI(K))/DEL
+        RNU(K)=(1.-RSL*SI(K))/DEL
+        RMU(K)=(RSL*SI(K+1)-1.)/DEL
+20    CONTINUE
+      RNU(KM)=0.
+      RMU(KM)=1./SI(KM)
+      DO 40 K=2,KM
+        DO 30 J=1,KM
+          TI(K)=TI(K)+CI(K,J)*TOV(J)
+          DT(K,J)=(1-SI(K))*CQ(KM+1,J)-CQ(K,J)
+30      CONTINUE
+40    CONTINUE
+      DO 70 J=1,KM
+        DO 50 K=1,KM
+          AM(K,J)=-RAA*CQL(K,J)
+          BM(K,J)=(ROCP-1)*TOV(K)*CQ(KM+1,J)
+     &           +ROCP*TOV(K)*(RNU(K)*DT(K+1,J)+RMU(K)*DT(K,J))
+50      CONTINUE
+        BM(J,J)=BM(J,J)-TOV(J)
+        DO 60 K=1,KM
+        DO 60 I=2,KM
+          BM(K,J)=BM(K,J)-CD(K,I)*TI(I)*DT(I,J)
+60      CONTINUE
+70    CONTINUE
+CMIC$ DO ALL SHARED(KM,GV,SV,AM,BM,CM) PRIVATE(J,K,I)
+      DO 100 J=1,KM
+        DO 80 K=1,KM
+          CM(K,J)=GV(K)*SV(J)
+80      CONTINUE
+        DO 90 K=1,KM
+        DO 90 I=1,KM
+          CM(K,J)=CM(K,J)+AM(K,I)*BM(I,J)
+90      CONTINUE
+100   CONTINUE
+      RETURN
+      END
+      SUBROUTINE BNMC(KM,SI,SL,CD,CI,CQ,CQL)
+      PARAMETER(RD=#RD,CP=#CP,ROCP=RD/CP)
+      DIMENSION SI(KM+1),SL(KM)
+      DIMENSION CD(KM,KM+1),CI(KM+1,KM),CQ(KM+1,KM),CQL(KM,KM)
+      DIMENSION DEL(KM),SLK(KM),ALFA(2:KM),BETA(KM-1)
+
+      DO K=1,KM
+        DEL(K)=SI(K+1)-SI(K)
+        SLK(K)=SL(K)**ROCP
+      ENDDO
+      DO K=2,KM
+        ALFA(K)=0.5*(1.-SLK(K-1)/SLK(K))/ROCP
+      ENDDO
+      DO K=1,KM-1
+        BETA(K)=0.5*(SLK(K+1)/SLK(K)-1.)/ROCP
+      ENDDO
+
+      DO KD=1,KM
+        DO KI=1,KM+1
+          CD(KD,KI)=0
+        ENDDO
+      ENDDO
+      DO KD=1,KM
+        CD(KD,KD)=-1/DEL(KD)
+        CD(KD,KD+1)=1/DEL(KD)
+      ENDDO
+
+      DO KI=1,KM+1
+        DO KD=1,KM
+          CI(KI,KD)=0
+        ENDDO
+      ENDDO
+      DO KI=2,KM
+        CI(KI,KI-1)=0.5
+        CI(KI,KI)=0.5
+      ENDDO
+
+      DO KI=1,KM+1
+        DO KD=KI,KM
+          CQ(KI,KD)=0
+        ENDDO
+        DO KD=1,KI-1
+          CQ(KI,KD)=DEL(KD)
+        ENDDO
+      ENDDO
+
+      CQL(1,1)=DEL(1)-BETA(1)*SI(2)
+      DO KT=2,KM-1
+        CQL(1,KT)=DEL(KT)-ALFA(KT)*SI(KT)-BETA(KT)*SI(KT+1)
+      ENDDO
+      CQL(1,KM)=DEL(KM)-ALFA(KM)*SI(KM)
+      DO KZ=2,KM
+        CQL(KZ,1)=CQL(1,1)+BETA(1)
+        DO KT=2,KZ-1
+          CQL(KZ,KT)=CQL(1,KT)+ALFA(KT)+BETA(KT)
+        ENDDO
+        CQL(KZ,KZ)=CQL(1,KZ)+ALFA(KZ)
+        DO KT=KZ+1,KM
+          CQL(KZ,KT)=CQL(1,KT)
+        ENDDO
+      ENDDO
+
+      RETURN
+      END

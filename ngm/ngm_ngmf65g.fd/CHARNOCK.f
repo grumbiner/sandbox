@@ -1,0 +1,143 @@
+C
+      SUBROUTINE CHARNOCK( ZZ, CHARN,  AX0,AX1,AX2)
+C
+C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+C
+C SUBPROGRAM:    CHARNOCK    COMPUTE 3 COEFFS FOR QUADRATIC POLYNOMIAL
+C   PRGMMR: JIM TUCCILLO         ORG: W/NMC4    DATE: 90-06-13
+C
+C ABSTRACT: COMPUTE 3 COEFFS FOR QUADRATIC POLYNOMIAL
+C   .       TO GIVE NEUTRAL DRAG COEFFICIENT FOR OCEAN
+C   .       AS FUNCTION OF WIND SPEED
+C   .
+C   .       THE FORMULA FOR THE DRAG COEFFICIENT FOR A NEUTRAL
+C   .       STRATIFICATION LOGARITHMIC WIND PROFILE IS SOLVED
+C   .       USING THE CHARNOCK FORMULA
+C   .
+C   .       Z0   =   CHARN * ( UF *  UF ) / GRAVITY
+C   .
+C   .       FOR THE OCEANIC ROUGHNESS LENGTH  'Z0' , WHERE UF IS THE
+C   .       FRICTION VELOCITY.  THE DRAG COEFFICIENT 'CD' IS
+C   .       COMPUTED FOR 100 VALUES OF THE WIND SPEED 'S'
+C   .       ( 1,2,3,--100 M/SEC ) AT THE ASSIGNED INPUT HEIGHT ZZ.
+C   .       (THIS IS BASED ON USING THE ABOVE VALUE OF Z0 IN THE
+C   .        CONVENTIONAL LOGARITHMIC PROFILE OF PRANDTL AND
+C   .        VON KARMAN  )
+C   .
+C   .       THE RESULTS FOR S=1,2--50 ARE FITTED TO THE POLYNOMIAL
+C   .
+C   .       CD  =  AX0 + AX1*S + AX2*(S*S)
+C   .
+C PROGRAM HISTORY LOG:
+C   90-06-13  JIM TUCCILLO
+C
+C USAGE:  CALL CHARNOCK( ZZ, CHARN,   AX0,AX1,AX2 )
+C   INPUT ARGUMENT LIST:
+C     ZZ       - HEIGHT OF WIND VALUE IN METERS
+C     CHARN    - CHARNOCK COEFFICIENT ( E. G. 0.02 )
+C
+C   OUTPUT ARGUMENT LIST:
+C     AX0,AX1, - COEFFICIENTS
+C     AX2
+C
+C   OUTPUT FILES:
+C     FT06F001 - FOR PRINTOUT
+C
+C   SUBPROGRAMS CALLED:
+C     NONE
+C
+C ATTRIBUTES:
+C   LANGUAGE: FORTRAN
+C   MACHINE:  CRAY Y-MP
+C
+C$$$
+C
+C           ARRAYS FOR DRAG COEFFICIENT AND SPEED
+      DIMENSION CD(100),S(100)
+C
+C------------------------------------------------------------
+C          CRITERION FOR CONVERGENCE OF NEWTON-RAPHSON
+      CRIT = 0.0000001E0
+C
+      SPD = 0.E0
+C      THE ITERATE, X, IS THE SQUARE ROOT OF THE DRAG COEFFICIENT
+      X = 0.02E0
+C
+      DO 15 N = 1,100
+      SPD = SPD + 1.E0
+      S(N) =SPD
+      B = 9.81E0 * ZZ / ( SPD * SPD * CHARN )
+C
+        DO 10 L = 1,100
+        L1 = L
+        XSQ = X * X
+        X3 = ALOG( 1.E0 + (B / XSQ ) )
+        XDEN = ( 2.E0 * B / ( B + XSQ ) ) - X3
+        XNUM = X * X3 - 0.4E0
+        CHG = XNUM / XDEN
+        X = X + CHG
+        DCHG = ABS ( CHG )
+        IF( DCHG .LT. CRIT ) GO TO 12
+C
+   10   CONTINUE
+C
+C              DID NOT CONVERGE
+      PRINT 11,N,SPD,B,X,CHG
+   11 FORMAT(1H ,2X,'NO CONV. IN CHARNOCK FOR N,SPD,B,X,CHG=',
+     1  I4,4E14.6)
+      GO TO 15
+C
+   12 CD(N) = X*X
+C
+C
+   15 CONTINUE
+C
+C
+C         THE  NUMBER OF POINTS TO BE FIT BY A PARABOLA IN SPD
+      NFIT = 50
+      DNFIT = FLOAT(NFIT)
+C        COMPUTE POWER SUMS
+      S1 = 0.E0
+      S2 = 0.E0
+      S3 = 0.E0
+      S4 = 0.E0
+      C = 0.E0
+      CS1 = 0.E0
+      CS2 = 0.E0
+C
+      DO 20 I = 1,NFIT
+      SS = S(I)
+      CC = CD(I)
+      C = C + CC
+      CS1 = CS1 + CC*SS
+      SQ = SS*SS
+      CS2 = CS2 + CC*SQ
+      SCU = SQ * SS
+      S1 = S1 + SS
+      S2 = S2 + SQ
+      S3 = S3 + SCU
+      S4 = S4 + SCU*SS
+C
+   20 CONTINUE
+C
+      REC = 1.E0 / DNFIT
+      S1 = S1 * REC
+      S2 = S2 * REC
+      S3 = S3 * REC
+      S4 = S4 * REC
+      C = C * REC
+      CS1 = CS1 * REC
+      CS2 = CS2 * REC
+      AA = S2 - S1 * S1
+      BB = S3 - S1 * S2
+      CC = S4 - S2 * S2
+      P = CS1 - C * S1
+      Q = CS2 - C * S2
+      DENOM = BB*BB - AA * CC
+      AX1 =(BB*Q - CC* P)/DENOM
+      AX2 = (P - AA * AX1) / BB
+      AX0 = C - AX1 * S1 - AX2 * S2
+C
+C
+      RETURN
+      END

@@ -1,0 +1,228 @@
+IBM XL Fortran Enterprise Edition V10.1 for AIX (5724-M13)  Version 10.01.0000.0002 --- /gpfs/m/nco/ops/nwprod/sorc/ngm_ngmini.fd/M1GLAT.f 09/30/06 19:43:51
+ 
+>>>>> OPTIONS SECTION <<<<<
+***   Options In Effect   ***
+  
+         ==  On / Off Options  ==
+         CR              DBG             DDIM            ESCAPE
+         FULLPATH        I4              INLGLUE         NOLIBESSL
+         NOLIBPOSIX      OBJECT          SOURCE          STDFRAMEWORK
+         STRICT          SWAPOMP         THREADED        UNWIND
+         NOZEROSIZE
+  
+         ==  Options Of Integer Type ==
+         FIXED(72)             MAXMEM(-1)            OPTIMIZE(2)
+         SPILLSIZE(548)        STACKTEMP(0)
+  
+         ==  Options Of Character Type  ==
+         64(LARGETYPE)         ALIAS(STD,INTPTR)     ALIGN(BINDC(POWER),STRUCT(NATURAL))
+         ARCH(PWR5X)           ATTR()                AUTODBL(NONE)
+         DIRECTIVE(IBM*,IBMT)  ENUM()                FLAG(I,I)
+         FLOAT(RNDSNGL,MAF,FOLD,RNGCHK)
+         HALT(S)               IEEE(NEAR)            INTSIZE(4)
+         LANGLVL(EXTENDED)     POSITION(APPENDOLD)   REALSIZE(4)
+         SAVE(ALL)             TUNE(PWR5)            UNROLL(AUTO)
+         XREF(FULL)            XLF77(NOLEADZERO,GEDIT77,NOBLANKPAD,OLDBOZ,INTARG,INTXOR,PERSISTENT,SOFTEOF)
+         XLF90(NOSIGNEDZERO,NOAUTODEALLOC)
+  
+>>>>> SOURCE SECTION <<<<<
+          1 |      SUBROUTINE M1GLAT(KHALF,COLRAD,WGT,WGTCS,RCS2)
+          2 |C$$$  SUBPROGRAM DOCUMENTATION BLOCK
+          3 |C                .      .    .                                       .
+          4 |C SUBPROGRAM:    M1GLAT      COMPUTE GAUSSIAN LATS AND WEIGHTS
+          5 |C   PRGMMR: SELA             ORG: W/NMC22    DATE: 79-03-03
+          6 |C
+          7 |C ABSTRACT: COMPUTE GAUSSIAN LATITUDES AND WEIGHTS.
+          8 |C   SEE P 887, 25.4.29, HANDBOOK OF MATH FUNCTIONS, ABRAMOWITZ AND
+          9 |C   STEGUN, FOR DETAILS.
+         10 |C
+         11 |C PROGRAM HISTORY LOG:
+         12 |C   79-03-03  SELA
+         13 |C   88-04-08  PARRISH   ADD DOCBLOCK
+         14 |C
+         15 |C USAGE:    CALL M1GLAT(KHALF,COLRAD,WGT,WGTCS,RCS2)
+         16 |C   INPUT ARGUMENT LIST:
+         17 |C     KHALF    - NUMBER OF GAUSSIAN LATITUDES TO COMPUTE (POLE TO
+         18 |C              - EQUATOR)
+         19 |C
+         20 |C   OUTPUT ARGUMENT LIST:
+         21 |C     COLRAD   - GAUSSIAN COLATITUDES IN RADIANS (FULL PRECISION)
+         22 |C     WGT      - INTEGRATION WEIGHTS (FULL PRECISION)
+         23 |C     WGTCS    - WGT/(COS(LAT))**2
+         24 |C     RCS2     - 1/(COS(LAT))**2
+         25 |C
+         26 |C ATTRIBUTES:
+         27 |C   LANGUAGE: FTN200
+         28 |C   MACHINE:  CYBER
+         29 |C
+         30 |C$$$
+         31 |      implicit double precision (a-h,o-z)
+         32 |      double precision COLRAD(1),WGT(1),WGTCS(1),RCS2(1)
+         33 |      EPS=1.d-12
+         34 |      SI=1.d0
+         35 |      K2=2*KHALF
+         36 |      RK2=K2
+         37 |      SCALE=2.d0  /(RK2*RK2)
+         38 |      K1=K2-1
+         39 |      PI=ATAN(SI)*4.d0
+         40 |      DRADZ=PI/360.d0
+         41 |      RAD=0.d0
+         42 |      DO 1000 K=1,KHALF
+         43 |      ITER=0
+         44 |      DRAD=DRADZ
+         45 |1     CALL M1POLY(K2,RAD,P2)
+         46 |2     P1 =P2
+         47 |      ITER=ITER+1
+         48 |      RAD=RAD+DRAD
+         49 |      CALL M1POLY(K2,RAD,P2)
+         50 |      IF(SIGN(SI,P1).EQ.SIGN(SI,P2))GO TO 2
+         51 |      IF(DRAD.LT.EPS)GO TO 3
+         52 |      RAD=RAD-DRAD
+         53 |      DRAD=DRAD*0.25d0
+         54 |      GO TO 1
+         55 |3     CONTINUE
+         56 |      COLRAD(K)=RAD
+         57 |      PHI=RAD   *180.d0/PI
+         58 |      CALL M1POLY(K1,RAD,P1)
+         59 |      X=  COS(RAD)
+         60 |      W=SCALE*(1.d0-X*X)/(P1*P1)
+         61 |      WGT(K)=    W
+         62 |      SN=  SIN(RAD)
+         63 |      W=W/(SN*SN)
+         64 |      WGTCS(K)=    W
+         65 |      RC=1.d0/(SN*SN)
+         66 |      RCS2(K)=   RC
+         67 |      CALL M1POLY(K2,RAD,P1)
+         68 |      PRPHI =    PHI
+         69 |      PRCOL =    COLRAD(K)
+         70 |1000  CONTINUE
+         71 |C     THIS LINE COMES FROM META FOR DEBUG
+         72 |      RETURN
+         73 |      END
+ 
+>>>>> ATTRIBUTE AND CROSS REFERENCE SECTION <<<<<
+ 
+ 
+ 
+IDENTIFIER NAME                  CROSS REFERENCE AND ATTRIBUTES
+ 
+atan                             Pure Intrinsic
+                                 0-39.10
+ 
+colrad                           Reference argument, Real(8) (1:1), Offset: 0, Alignment: double word
+                                 0-32.24$  0-1.31  0-56.7@  0-69.18
+ 
+cos                              Pure Intrinsic
+                                 0-59.11
+ 
+drad                             Static, Real(8), Offset: 0, Alignment: double word
+                                 0-44.7@  0-48.15  0-51.10  0-52.15  0-53.7@  0-53.12
+ 
+dradz                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-40.7@  0-44.12
+ 
+eps                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-33.7@  0-51.18
+ 
+iter                             Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-43.7@  0-47.7@  0-47.12
+ 
+k                                Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-42.15@  0-56.14  0-61.11  0-64.13  0-66.12  0-69.25
+ 
+k1                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-38.7@  0-58.19
+ 
+k2                               Static, Integer(4), Offset: 0, Alignment: full word
+                                 0-35.7@  0-36.11  0-38.10  0-45.19  0-49.19  0-67.19
+ 
+khalf                            Reference argument, Integer(4), Offset: 0, Alignment: full word
+                                 0-1.25  0-35.12  0-42.19
+ 
+m1glat                           Subroutine
+                                 0-1.18$
+ 
+m1poly                           External Subroutine
+                                 0-45.12  0-49.12  0-58.12  0-67.12
+ 
+p1                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-46.7@  0-50.18  0-58.26  0-60.27  0-60.30  0-67.26
+ 
+p2                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-45.26  0-46.11  0-49.26  0-50.33
+ 
+phi                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-57.7@  0-68.18
+ 
+pi                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-39.7@  0-40.13  0-57.25
+ 
+prcol                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-69.7@
+ 
+prphi                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-68.7@
+ 
+rad                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-41.7@  0-45.22  0-48.7@  0-48.11  0-49.22  0-52.7@  0-52.11  0-56.17  0-57.11  0-58.22  0-59.15
+                                 0-62.16  0-67.22
+ 
+rc                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-65.7@  0-66.18
+ 
+rcs2                             Reference argument, Real(8) (1:1), Offset: 0, Alignment: double word
+                                 0-32.50$  0-1.48  0-66.7@
+ 
+rk2                              Static, Real(8), Offset: 0, Alignment: double word
+                                 0-36.7@  0-37.21  0-37.25
+ 
+scale                            Static, Real(8), Offset: 0, Alignment: double word
+                                 0-37.7@  0-60.9
+ 
+si                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-34.7@  0-39.15  0-50.15  0-50.30
+ 
+sign                             Pure Intrinsic
+                                 0-50.10  0-50.25
+ 
+sin                              Pure Intrinsic
+                                 0-62.12
+ 
+sn                               Static, Real(8), Offset: 0, Alignment: double word
+                                 0-62.7@  0-63.12  0-63.15  0-65.16  0-65.19
+ 
+w                                Static, Real(8), Offset: 0, Alignment: double word
+                                 0-60.7@  0-61.18  0-63.7@  0-63.9  0-64.20
+ 
+wgt                              Reference argument, Real(8) (1:1), Offset: 0, Alignment: double word
+                                 0-32.34$  0-1.38  0-61.7@
+ 
+wgtcs                            Reference argument, Real(8) (1:1), Offset: 0, Alignment: double word
+                                 0-32.41$  0-1.42  0-64.7@
+ 
+x                                Static, Real(8), Offset: 0, Alignment: double word
+                                 0-59.7@  0-60.21  0-60.23
+ 
+** m1glat   === End of Compilation 1 ===
+ 
+>>>>> FILE TABLE SECTION <<<<<
+ 
+ 
+                                       FILE CREATION        FROM
+FILE NO   FILENAME                    DATE       TIME       FILE    LINE
+     0    M1GLAT.f                    10/09/02   12:45:08
+ 
+ 
+>>>>> COMPILATION EPILOGUE SECTION <<<<<
+ 
+ 
+FORTRAN Summary of Diagnosed Conditions
+ 
+TOTAL   UNRECOVERABLE  SEVERE       ERROR     WARNING    INFORMATIONAL
+               (U)       (S)         (E)        (W)          (I)
+    0           0         0           0          0            0
+ 
+ 
+    Source records read.......................................      73
+1501-510  Compilation successful for file M1GLAT.f.
+1501-543  Object file created.

@@ -1,0 +1,17 @@
+FT40F001XTRN                          
+     name of mos forecast file could go here
+     name of mos constant file could go here
+NGM MOS GUIDANCE FOR                 
+   3                                
+JSMT47 KWBC                                     
+ANN     GST     JNU     KTN     PSG     SGY     SIT     WRG     YAK     
+Z26     ZZZZZZZZ
+JSMT48 KWBC                                 
+ADQ     AKN     ANC     ANI     BET     CDB     CDV     DLG     DUT     
+ENA     GKN     HOM     ILI     MDO     MRI     PACZ    PAED    PAEH    
+PAQ     PASV    PTH     SNP     TKA     VDZ     VWS     5WD     5WT     
+ZZZZZZZZ
+JSMT49 KWBC                         
+BIG     BRW     BTI     BTT     ENN     FAI     FYU     GAM     MCG     
+OME     ORT     OTZ     PAEI    PAGA    PAIM    PALU    PATC    PATL    
+PUO     SCC     TAL     UNK     5MK     ZZZZZZZZ
