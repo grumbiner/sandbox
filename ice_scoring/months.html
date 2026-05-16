@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 transitional//EN"
+            "http://www.w3.org/TR/html4/loose.dtd">
+
+<HTML>
+<HEAD>
+
+ <link href="/mmab/images/main.css" type="text/css" rel="STYLESHEET">
+  <TITLE>Monthly figures for ice cover - Chapman and Walsh source</TITLE>
+</HEAD>
+<BODY BACKGROUND="/mmab/images/dirbkgnd.gif"> 
+
+  This page makes use of JavaScript to permit display of interatively selected
+months of ice cover.  
+The data are from Chapman, W. L. and J. E. Walsh, Long-Range Prediction
+of Regional Sea Ice Anomalies in the Arctic, Weather and Forecasting,
+6, pp 271-288, 1991.  The data are available from the
+<a href="http://nsidc.org">The National Snow and Ice Data Center</a>.
+One important feature is that these
+fields are not averages in any sense.  They are representations of the sea ice
+cover at the end of the named months.<p>
+
+<A HREF="mailto:Robert.Grumbine@noaa.gov">Robert.Grumbine@noaa.gov</a>
+<BR/>
+Last Modified 27 May 2005
+<HR>
+
+Examine the annual cycle for given years:
+<FORM NAME=setup ACTION="script">
+<SELECT NAME=hem><OPTION>North<OPTION>South</SELECT>
+Year to work on: <INPUT TYPE=text SIZE=4 NAME=year onChange="showyear(document.setup.year.value)">
+<INPUT TYPE=button VALUE=Display onClick="showyear(document.setup.year.value)"><BR>
+<TABLE BORDER=1>
+<TR ALIGN=CENTER>
+  <TD><INPUT TYPE=button VALUE="Next Year" onClick="delyear(1)"></TD>
+  <TD><INPUT TYPE=button VALUE="Previous Year" onClick="delyear(-1)"></TD>
+</TR>
+<TR ALIGN=CENTER>
+  <TD><INPUT TYPE=button VALUE="Next Decade" onClick="delyear(10)"></TD>
+  <TD><INPUT TYPE=button VALUE="Previous Decade" onClick="delyear(-10)"></TD>
+</TR>
+</TABLE>
+</FORM>
+
+<HR>
+Examine ice conditions for given months (2 years on either side given when possible):
+<FORM NAME=months ACTION="script">
+<SELECT NAME=hem><OPTION>North<OPTION>South</SELECT>
+Reference Year: <INPUT TYPE=text SIZE=4 VALUE=1985 NAME=year ><BR>
+Month of interest<INPUT TYPE=text SIZE=12 VALUE=February NAME=mon ><BR>
+<INPUT TYPE=button VALUE=Display onClick="showmonths()"><BR>
+<TABLE BORDER=1>
+<TR ALIGN=CENTER>
+  <TD><INPUT TYPE=button VALUE="Next Year" onClick="delmonyear(1)"></TD>
+  <TD><INPUT TYPE=button VALUE="Previous Year" onClick="delmonyear(-1)"></TD>
+</TR>
+<TR ALIGN=CENTER>
+  <TD><INPUT TYPE=button VALUE="Next Decade" onClick="delmonyear(10)"></TD>
+  <TD><INPUT TYPE=button VALUE="Previous Decade" onClick="delmonyear(-10)"></TD>
+</TR>
+</TABLE>
+</FORM>
+<HR>
+
+<SCRIPT LANGUAGE="JavaScript" TYPE="text/javascript">
+function delyear(delta) {
+// Need to ensure that we have numeric operations here
+  var tmp = document.setup.year.value;
+  tmp = 1.*tmp + 1.*delta;
+  document.setup.year.value = tmp;
+  showyear(tmp);
+}
+var x = 200, y = 50, w = 500, h = 500;
+function showyear(year) {
+  switch (document.setup.hem.selectedIndex) {
+    case 0: var hem = "nh"; break;
+    case 1: var hem = "sh"; break;
+  }
+  year = manage_dates(hem, document.setup.year.value);
+  if (year != document.setup.year.value) document.setup.year.value = year;
+  var win = window.open("","", "resizable,scrollbars,width="+w+",height="+h);
+  win.moveTo(x,y);
+  win.document.open();
+  var doc = win.document;
+  doc.write('<HTML> <BODY BGCOLOR="#FFFFFF">');
+  doc.write('Ice cover for the year '+year+'<BR>\n');
+  doc.write('January<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'01.gif"><HR><BR>\n' );
+  doc.write('February<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'02.gif"><HR><BR>\n' );
+  doc.write('March<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'03.gif"><HR><BR>\n' );
+  doc.write('April<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'04.gif"><HR><BR>\n' );
+  doc.write('May<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'05.gif"><HR><BR>\n' );
+  doc.write('June<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'06.gif"><HR><BR>\n' );
+  doc.write('July<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'07.gif"><HR><BR>\n' );
+  doc.write('August<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'08.gif"><HR><BR>\n' );
+  doc.write('September<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'09.gif"><HR><BR>\n' );
+  doc.write('October<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'10.gif"><HR><BR>\n' );
+  doc.write('November<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'11.gif"><HR><BR>\n' );
+  doc.write('December<BR><IMG ALT="" SRC="months/'+hem+'ice'+year+'12.gif"><BR>\n' );
+  doc.write('</BODY></HTML>\n');
+  doc.close();
+}
+
+
+// Handle the work of displaying a given month for a few consecutive years
+function showmonths() {
+  var mon = document.months.mon.value;
+  var year = document.months.year.value;
+  switch (document.months.hem.selectedIndex) {
+    case 0: var hem = "nh"; break;
+    case 1: var hem = "sh"; break;
+  }
+  var win = window.open("","", "resizable,scrollbars,width="+w+",height="+h);
+  win.moveTo(x,y);
+  win.document.open();
+  var doc = win.document;
+  lastyear = 1.*year + 2.0;
+  lastyear = manage_dates(hem, lastyear);
+  firstyear = lastyear - 4.0;
+  firstyear = manage_dates(hem, firstyear );
+  document.months.year.value = (firstyear + lastyear)/2.;
+  switch(mon) {
+    case "Jan":
+    case "January": mm = "01"; break;
+    case "Feb":
+    case "February": mm = "02"; break;
+    case "Mar":
+    case "March": mm = "03"; break;
+    case "Apr":
+    case "April": mm = "04"; break;
+    case "May": mm = "05"; break;
+    case "Jun":
+    case "June": mm = "06"; break;
+    case "Jul":
+    case "July": mm = "07"; break;
+    case "Aug":
+    case "August": mm = "08"; break;
+    case "Sep":
+    case "September": mm = "09"; break;
+    case "Oct":
+    case "October": mm = "10"; break;
+    case "Nov":
+    case "November": mm = "11"; break;
+    case "Dec":
+    case "December": mm = "12"; break;
+    default:
+       mm = "12"; break;
+  }
+  doc.write('<HTML><BODY BGCOLOR="#FFFFFF">');
+  doc.write(mon+'Ice cover for years '+firstyear+' to '+lastyear+'<HR>\n');
+  for (i = firstyear; i <= lastyear; i++) {
+    doc.write(i+mm+'<BR><IMG ALT="" SRC="months/'+hem+'ice'+i+mm+'.gif"><HR><BR>\n');
+  }
+  doc.write('</BODY></HTML>\n');
+  doc.close();
+}
+
+   
+
+
+function delmonyear(delta) {
+// Need to ensure that we have numeric operations here
+  var tmp = document.months.year.value;
+  tmp = 1.*tmp + 1.*delta;
+  document.months.year.value = tmp;
+  showmonths();
+}
+function manage_dates(hem, year) {
+  if (hem == "nh" && year > 1990) {
+    alert("Sorry, 1990 is the most recent year we can show from this history in the northern hemisphere\n");
+    year = 1990; 
+  }
+  if (hem == "nh" && year < 1901) {
+    alert("Sorry, 1901 is the earliest year we can show from this history in the northern hemisphere\n");
+    year = 1901; 
+  }
+  if (hem == "sh" && year > 1990) {
+    alert("Sorry, 1990 is the most recent year we can show from this history in the southern hemisphere\n");
+    year = 1990; 
+  }
+  if (hem == "sh" && year < 1973) {
+    alert("Sorry, 1973 is the earliest year we can show from this history in the southern hemisphere\n");
+    year = 1973;
+  }
+  return year;
+}
+</SCRIPT>
+
+</BODY>
+</HTML>

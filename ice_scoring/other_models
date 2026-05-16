@@ -1,0 +1,14 @@
+ESRL    ftp://ftp1.esrl.noaa.gov/RASM-ESRL/ModelOutput/
+ECCC     http://dd.weather.gc.ca/model_giops/
+  CAPS:  http://dd.alpha.meteo.gc.ca/yopp/model_caps/
+  RIOPS: http://dd.alpha.meteo.gc.ca/yopp/model_riops/
+ 
+NRL-Stennis
+
+RTOFS-Global ftpprd://ftpprd.ncep.noaa.gov/pub/data/nccf/com/rtofs/prod/rtofs.YYYYMMDD/
+GFS
+CFS
+
+Persistence
+
+Drift

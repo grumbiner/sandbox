@@ -1,0 +1,43 @@
+All scores are computed for each grid cell, then multiplied by the area 
+of the grid cell.  After evaluating the globe, or whatever smaller domain 
+is being evaluated, the scores are divided by the total area.  This 
+area-weighting is necessary to avoid giving misleading impressions of 
+model skill.  On the verification grid, 5 arcminutes resolution, there are 4320 
+grid points covering latitude 89.958 N, which is only 29 km around.  
+The same number of points at 60 N covers 20,000 km. (!)
+
+Currently two domains are used -- global and 'limited'.  The limited domain
+excludes land points and points where the ocean never gets cold.  This is
+more demanding on the models, in that they don't get credit for predicting
+no ice near Hawaii.
+
+Scores that are used:
+
+Bias:<br/>
+Bias is the average error in ice concentration, observation - model.  
+Positive means that the model has too little ice, whether because the 
+model's ice concentration is too low, or that it doesn't have ice in 
+an area that the observation does.<br/>
+
+Root Mean Square Error (RMS):<br/>
+Since bias allows overprediction to compensate for underprediction, we 
+also sum the square of the errors.  When finished, take the square root.
+This gives a better sense of how wrong the concentration typically is,
+but no idea whether the model is too high or too low.<br/>
+
+Probability of Detection (PoD):<br/>
+For all grid cells with observed ice, this is the probability that the model
+also predicted that there would be ice.<br/>
+
+False Alarm Rate (FAR):<br/>
+For the area that the model said would have ice, this the the percentage that
+did not.</br>
+
+% Correct:<br/>
+This is the sum of probabilities that the model said there would be no ice and
+observation said there was no ice, plus the model said that there would be ice, and
+there was ice observed.</br>
+
+
+Robert Grumbine
+3 Jan 2013

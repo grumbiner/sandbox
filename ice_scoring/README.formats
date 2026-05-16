@@ -1,0 +1,12 @@
+readab.C      -- C++ reading of Hycom .a, .b files
+read_diag.C   -- C++ reading of Hycom diag Netcdf files
+read_prog.C   -- C++ reading of Hycom prog Netcdf files
+read_cice.C   -- C++ reading of CICE Netcdf files
+ncread.F      -- Fortran90 reading of Netcdf file
+
+Currently incomplete/outdated:
+16 -rw-r--r--  1 rmg3  staff   825 Apr 26 07:29 makefile
+
+
+Robert Grumbine
+17 May 2018

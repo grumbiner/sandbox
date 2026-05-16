@@ -1,0 +1,325 @@
+<h2 align="center">Highly Experimental pre-alpha sea ice model</h2>
+
+This is a structural placeholder.  The contents are all essentially
+meaningless at this point.  The only thing it does is point towards
+what types of output might be coming when the alpha level experimental
+runs begin.<p>
+
+You have been warned.<p>
+<hr>
+<a href="scoreout.kiss_v0.0.0">Most recent KISS V0 concentration scores</a><br/>
+<a href="scoreout.gfs_v1.0.0">Most recent GFS V1 concentration scores</a><br/>
+<a href="scoreout.cfs_v2.0.0">Most recent CFS V2 concentration scores</a><br/>
+<br/>
+Skill Measures vs. Forecast Lead</br>
+<a href="bias.png">Bias </a><br/>
+<a href="rms.png">RMS </a><br/>
+<a href="pod.png">Probability of Detection </a><br/>
+<a href="far.png">False Alarm Rate </a><br/>
+<a href="correct.png">% Correct </a><br/>
+Scores are for forecasts verifying on most recent observed day.<br/>
+<br/>
+Skill of day 8 forecasts (most recent on right)</br>
+<a href="bias8.png">Bias </a><br/>
+<a href="rms8.png">RMS </a><br/>
+<a href="pod8.png">Probability of Detection </a><br/>
+<a href="far8.png">False Alarm Rate </a><br/>
+<a href="correct8.png">% Correct </a><br/>
+
+<hr>
+New Graphics<br/>
+
+<h3 align="center">Alaska</h3>
+<table  align="center"border="1">
+<tbody align="center">
+<tr><td>Lead</td><td>Concentration</td><td>Thickness</td></tr>
+<tr><td>1 day</td><td><a href="kiss_v0.0.0/conc1_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc1_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc1_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick1_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick1_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick1_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>2 day</td><td><a href="kiss_v0.0.0/conc2_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc2_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc2_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick2_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick2_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick2_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>3 day</td><td><a href="kiss_v0.0.0/conc3_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc3_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc3_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick3_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick3_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick3_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>4 day</td><td><a href="kiss_v0.0.0/conc4_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc4_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc4_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick4_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick4_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick4_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>5 day</td><td><a href="kiss_v0.0.0/conc5_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc5_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc5_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick5_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick5_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick5_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>6 day</td><td><a href="kiss_v0.0.0/conc6_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc6_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc6_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick6_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick6_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick6_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>7 day</td><td><a href="kiss_v0.0.0/conc7_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc7_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc7_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick7_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick7_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick7_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>8 day</td><td><a href="kiss_v0.0.0/conc8_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc8_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc8_alaska.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick8_alaska.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick8_alaska.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick8_alaska.gif">CFS V2 </a>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 align="center">Antarctica</h3>
+<table  align="center"border="1">
+<tbody align="center">
+<tr><td>Lead</td><td>Concentration</td><td>Thickness</td></tr>
+<tr><td>1 day</td><td><a href="kiss_v0.0.0/conc1_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc1_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc1_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick1_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick1_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick1_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>2 day</td><td><a href="kiss_v0.0.0/conc2_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc2_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc2_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick2_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick2_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick2_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>3 day</td><td><a href="kiss_v0.0.0/conc3_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc3_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc3_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick3_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick3_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick3_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>4 day</td><td><a href="kiss_v0.0.0/conc4_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc4_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc4_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick4_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick4_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick4_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>5 day</td><td><a href="kiss_v0.0.0/conc5_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc5_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc5_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick5_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick5_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick5_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>6 day</td><td><a href="kiss_v0.0.0/conc6_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc6_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc6_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick6_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick6_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick6_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>7 day</td><td><a href="kiss_v0.0.0/conc7_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc7_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc7_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick7_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick7_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick7_aa.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>8 day</td><td><a href="kiss_v0.0.0/conc8_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc8_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc8_aa.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick8_aa.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick8_aa.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick8_aa.gif">CFS V2 </a>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 align="center">Arctic</h3>
+<table  align="center"border="1">
+<tbody align="center">
+<tr><td>Lead</td><td>Concentration</td><td>Thickness</td></tr>
+<tr><td>1 day</td><td><a href="kiss_v0.0.0/conc1_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc1_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc1_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick1_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick1_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick1_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>2 day</td><td><a href="kiss_v0.0.0/conc2_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc2_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc2_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick2_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick2_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick2_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>3 day</td><td><a href="kiss_v0.0.0/conc3_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc3_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc3_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick3_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick3_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick3_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>4 day</td><td><a href="kiss_v0.0.0/conc4_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc4_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc4_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick4_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick4_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick4_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>5 day</td><td><a href="kiss_v0.0.0/conc5_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc5_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc5_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick5_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick5_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick5_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>6 day</td><td><a href="kiss_v0.0.0/conc6_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc6_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc6_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick6_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick6_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick6_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>7 day</td><td><a href="kiss_v0.0.0/conc7_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc7_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc7_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick7_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick7_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick7_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+<tr><td>8 day</td><td><a href="kiss_v0.0.0/conc8_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/conc8_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/conc8_arctic.gif">CFS V2 </a>
+</td>
+<td><a href="kiss_v0.0.0/thick8_arctic.gif">KISS V0 </a>
+<a href="gfs_v1.0.0/thick8_arctic.gif">GFS V1 </a>
+<a href="cfs_v2.0.0/thick8_arctic.gif">CFS V2 </a>
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<hr>
+Ugly old graphics
+<table border="1">
+<tr><td>Lead</td><td>Thickness</td><td>Concentration</td></tr>
+<tr>
+<td>1 day </td> <td><a href="kiss_v0.0.0/thick024.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc024.png">KISS V0</a></td>
+<td>1 day </td> <td><a href="gfs_v1.0.0/thick024.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc024.png">GFS V1</a></td>
+<td>1 day </td> <td><a href="cfs_v2.0.0/thick024.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc024.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>2 day </td> <td><a href="kiss_v0.0.0/thick048.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc048.png">KISS V0</a></td>
+<td>2 day </td> <td><a href="gfs_v1.0.0/thick048.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc048.png">GFS V1</a></td>
+<td>2 day </td> <td><a href="cfs_v2.0.0/thick048.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc048.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>3 day </td> <td><a href="kiss_v0.0.0/thick072.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc072.png">KISS V0</a></td>
+<td>3 day </td> <td><a href="gfs_v1.0.0/thick072.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc072.png">GFS V1</a></td>
+<td>3 day </td> <td><a href="cfs_v2.0.0/thick072.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc072.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>4 day </td> <td><a href="kiss_v0.0.0/thick096.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc096.png">KISS V0</a></td>
+<td>4 day </td> <td><a href="gfs_v1.0.0/thick096.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc096.png">GFS V1</a></td>
+<td>4 day </td> <td><a href="cfs_v2.0.0/thick096.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc096.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>5 day </td> <td><a href="kiss_v0.0.0/thick120.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc120.png">KISS V0</a></td>
+<td>5 day </td> <td><a href="gfs_v1.0.0/thick120.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc120.png">GFS V1</a></td>
+<td>5 day </td> <td><a href="cfs_v2.0.0/thick120.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc120.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>6 day </td> <td><a href="kiss_v0.0.0/thick144.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc144.png">KISS V0</a></td>
+<td>6 day </td> <td><a href="gfs_v1.0.0/thick144.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc144.png">GFS V1</a></td>
+<td>6 day </td> <td><a href="cfs_v2.0.0/thick144.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc144.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>7 day </td> <td><a href="kiss_v0.0.0/thick168.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc168.png">KISS V0</a></td>
+<td>7 day </td> <td><a href="gfs_v1.0.0/thick168.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc168.png">GFS V1</a></td>
+<td>7 day </td> <td><a href="cfs_v2.0.0/thick168.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc168.png">CFS V2</a></td>
+</tr>
+
+<tr>
+<td>8 day </td> <td><a href="kiss_v0.0.0/thick192.png">KISS V0</a></td> <td><a href="kiss_v0.0.0/conc192.png">KISS V0</a></td>
+<td>8 day </td> <td><a href="gfs_v1.0.0/thick192.png">GFS V1</a></td> <td><a href="gfs_v1.0.0/conc192.png">GFS V1</a></td>
+<td>8 day </td> <td><a href="cfs_v2.0.0/thick192.png">CFS V2</a></td> <td><a href="cfs_v2.0.0/conc192.png">CFS V2</a></td>
+</tr>
+
+</table>
+<hr/>
+
+If you're interested in helping, when it becomes possible to provide help,
+please write <a href="mailto:Robert.Grumbine@noaa.gov">Robert.Grumbine@noaa.gov</a>
+3 Jan 2013

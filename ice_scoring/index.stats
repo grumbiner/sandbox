@@ -1,0 +1,149 @@
+<h2 align="center">Highly Experimental Statistical Sea Ice Modeling </h2>
+
+This is a structural placeholder.  The contents are all essentially
+meaningless at this point.  The only thing it does is point towards
+what types of output might be coming when the alpha level experimental
+runs begin.<p>
+
+You have been warned.<p>
+<hr>
+
+Statistical models -- for 1-16 day leads<ul>
+<li>Tropical earth (no sea ice anywhere) </li>
+<li>Snowball earth (100% ice cover everywhere) </li>
+<li>Exact Persistence (ice concentrations remain same as today) </li>
+<li>MRF v0 Persistence*</li>
+</ul>
+
+* The Medium Range Forecast model (MRF, the predecessor of the GFS -- Global Forecast System)
+from 1997 to 2005 set ice concentration to 100% for all areas where the observations 
+showed 55% or greater, 0 otherwise, and this value was held fixed through time -- the 16 days
+of the forecast run.
+
+<hr/>
+
+Today's Global Skill Measures vs. Forecast Lead and model (1-16 day lead) </br>
+bias
+rms
+pod
+far
+correct
+
+<h3 align="center">Global Scores -- through time for specified forecast lead</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+<hr/>
+
+Today's Sub-global Scores:
+<h3 align="center">Northern Hemisphere</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+<h3 align="center">Southern Hemisphere</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+Regional:
+<h3 align="center">Alaska Region</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+<h3 align="center">Gulf of St. Lawrence</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+<h3 align="center">Sea of Okhotsk and areas to SW</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+<h3 align="center">Ross Sea, Antarctica</h3>
+<table align="center"border="1">
+<tbody align="center">
+<tr><td>Lead (days)</td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>2 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>5 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>8 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+<tr><td>16 </td><td>Bias</td><td>RMS</td><td>PoD</td><td>FAR</td><td>% Correct</td> </tr>
+</tbody>
+</table>
+
+
+
+
+<hr/>
+Graphics<br/>
+
+<h3 align="center">Alaska</h3>
+<table align="center"border="1">
+<tbody align="center">
+</tbody>
+</table>
+
+<hr>
+<h3 align="center">Antarctica</h3>
+<table align="center"border="1">
+<tbody align="center">
+</tbody>
+</table>
+
+<hr>
+<h3 align="center">Arctic</h3>
+<table align="center"border="1">
+<tbody align="center">
+</tbody>
+</table>
+
+
+<hr/>
+
+next 9 months:<br/>
+<hr/>
+This month in to indefinite future:<br/>
+<hr/>
+
+If you're interested in helping, when it becomes possible to provide help,
+please write <a href="mailto:Robert.Grumbine@noaa.gov">Robert.Grumbine@noaa.gov</a>
+

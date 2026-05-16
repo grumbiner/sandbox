@@ -1,0 +1,9 @@
+The main scripts are findedge_main.py and score_main.py
+Both are rather slow compared to C/C++ (10-100 times slower) at this point.
+
+ijpt, latpt, grid, const are declaring utility classes in analog to the 
+  C++ classes in mmablib.  Set PYTHONPATH to include mmablib/mmablib/py
+
+Robert Grumbine
+23 April 2018
+18 October 2018
